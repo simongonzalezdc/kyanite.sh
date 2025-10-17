@@ -1,4 +1,4 @@
-# Project Name
+# Lyric (Working Name)
 
 ## Overview
 Short summary of what this project does.
