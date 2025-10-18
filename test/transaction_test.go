@@ -1,4 +1,4 @@
-package lyricforge_test
+package noise
 
 import (
 	"context"
@@ -8,14 +8,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/domain"
-	"github.com/puente-labs/lyricforge/internal/infra/db"
+	"github.com/puente-labs/noise/internal/domain"
+	"github.com/puente-labs/noise/internal/infra/db"
 )
 
 // TestDatabaseTransactions tests the transaction functionality
 func TestDatabaseTransactions(t *testing.T) {
 	// Create temporary directory for test database
-	tempDir, err := os.MkdirTemp("", "lyricforge_test_transactions")
+	tempDir, err := os.MkdirTemp("", "noise.sh_test_transactions")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
@@ -401,7 +401,7 @@ func testExecuteInTransaction(t *testing.T, database *db.DB) {
 // BenchmarkTransactionPerformance benchmarks transaction performance
 func BenchmarkTransactionPerformance(b *testing.B) {
 	// Create temporary directory for benchmark database
-	tempDir, err := os.MkdirTemp("", "lyricforge_benchmark_transactions")
+	tempDir, err := os.MkdirTemp("", "noise.sh_benchmark_transactions")
 	if err != nil {
 		b.Fatalf("Failed to create temp directory: %v", err)
 	}

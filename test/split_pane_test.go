@@ -1,4 +1,4 @@
-package lyricforge_test
+package noise
 
 import (
 	"fmt"
@@ -7,8 +7,8 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/lyricforge/internal/infra/db"
-	"github.com/puente-labs/lyricforge/internal/ui/editor"
+	"github.com/puente-labs/noise/internal/infra/db"
+	"github.com/puente-labs/noise/internal/ui/editor"
 )
 
 // TestSplitPaneModelCreation tests the creation of a split-pane model

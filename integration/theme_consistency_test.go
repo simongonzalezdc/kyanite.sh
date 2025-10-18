@@ -6,8 +6,8 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/lyricforge/internal/app"
-	"github.com/puente-labs/lyricforge/internal/ui/editor"
+	"github.com/puente-labs/noise/internal/app"
+	"github.com/puente-labs/noise/internal/ui/editor"
 )
 
 // TestThemeConsistencyAcrossComponents verifies that editor, preview and status bar

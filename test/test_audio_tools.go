@@ -1,11 +1,11 @@
-package lyricforge_test
+package noise
 
 import (
 	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/lyricforge/internal/ui"
+	"github.com/puente-labs/noise/internal/ui"
 )
 
 // TestAudioModelCreation tests that the audio model can be created successfully

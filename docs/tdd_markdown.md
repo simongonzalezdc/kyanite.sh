@@ -1,5 +1,5 @@
 # Technical Design Document (TDD)
-## LyricForge: AI-Powered Songwriting TUI
+## noise.sh: AI-Powered Songwriting TUI
 
 **Version:** 1.0  
 **Date:** October 17, 2025  
@@ -27,7 +27,7 @@
 
 ### Architecture Philosophy
 
-LyricForge follows a **modular monolith** architecture with clear separation between UI, business logic, AI orchestration, and data persistence. The system uses the **Model-Update-View (Elm Architecture)** pattern via Bubble Tea for predictable state management and side-effect handling.
+noise.sh follows a **modular monolith** architecture with clear separation between UI, business logic, AI orchestration, and data persistence. The system uses the **Model-Update-View (Elm Architecture)** pattern via Bubble Tea for predictable state management and side-effect handling.
 
 ### High-Level Architecture Diagram
 
@@ -640,7 +640,7 @@ type AIOrchestrator interface {
 
 - **Local-First:** All data stored locally, no cloud uploads
 - **No Telemetry:** No analytics, tracking, or data collection
-- **File Permissions:** User-writable directories only (~/.lyricforge/)
+- **File Permissions:** User-writable directories only (~/.noise.sh/)
 - **Git Security:** All commits signed with user's Git identity
 
 ### Input Validation
@@ -728,7 +728,7 @@ func TestEditorView(t *testing.T) {
 
 ```yaml
 builds:
-  - binary: lyricforge
+  - binary: noise.sh
     goos: [linux, windows, darwin]
     goarch: [amd64, arm64]
     ldflags:
@@ -743,7 +743,7 @@ archives:
 release:
   github:
     owner: puente-labs
-    name: lyricforge
+    name: noise.sh
 ```
 
 ### Installation Methods
@@ -751,18 +751,18 @@ release:
 **Homebrew:**
 ```bash
 brew tap puente-labs/tap
-brew install lyricforge
+brew install noise.sh
 ```
 
 **Direct Download:**
 ```bash
-curl -L https://github.com/puente-labs/lyricforge/releases/latest/download/lyricforge_Linux_x86_64.tar.gz | tar xz
-sudo mv lyricforge /usr/local/bin/
+curl -L https://github.com/puente-labs/noise.sh/releases/latest/download/noise.sh_Linux_x86_64.tar.gz | tar xz
+sudo mv noise.sh /usr/local/bin/
 ```
 
 **Go Install:**
 ```bash
-go install github.com/puente-labs/lyricforge@latest
+go install github.com/puente-labs/noise.sh@latest
 ```
 
 ### Prerequisites

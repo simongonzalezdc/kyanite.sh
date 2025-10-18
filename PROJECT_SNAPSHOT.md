@@ -1,8 +1,8 @@
-# LyricForge Project Snapshot
+# noise.sh Project Snapshot
 
 ## Project Overview
 
-LyricForge is an AI-powered terminal user interface (TUI) application that transforms the songwriting process by combining professional songwriting pedagogy with beautiful visual design and intelligent AI assistance. It empowers songwriters to create authentic, human-quality lyrics while maintaining complete privacy and ownership of their creative work.
+noise.sh is an AI-powered terminal user interface (TUI) application that transforms the songwriting process by combining professional songwriting pedagogy with beautiful visual design and intelligent AI assistance. It empowers songwriters to create authentic, human-quality lyrics while maintaining complete privacy and ownership of their creative work.
 
 The application is designed as a **local-first, privacy-focused** tool that brings together:
 - Expert songwriting techniques from renowned instructors (Pat Pattison, Andrea Stolpe, Jason Blume)
@@ -101,9 +101,9 @@ The system follows a **modular monolith** architecture with clear separation of 
 The planned project structure follows Go best practices with clear separation of concerns:
 
 ```
-lyricforge/
+noise.sh/
 ├── cmd/
-│   └── lyricforge/
+│   └── noise.sh/
 │       └── main.go              # Entry point
 ├── internal/
 │   ├── app/                     # Application layer
@@ -267,11 +267,11 @@ lyricforge/
 1. **Environment Setup**
    ```bash
    # Create project structure
-   mkdir lyricforge && cd lyricforge
+   mkdir noise.sh && cd noise.sh
    git init
 
    # Initialize Go module
-   go mod init github.com/puente-labs/lyricforge
+   go mod init github.com/puente-labs/noise.sh
 
    # Install core dependencies (Bubble Tea ecosystem)
    go get github.com/charmbracelet/bubbletea@latest
@@ -283,7 +283,7 @@ lyricforge/
    ```
 
 2. **Create Initial Code Structure**
-   - Implement `cmd/lyricforge/main.go` entry point
+   - Implement `cmd/noise.sh/main.go` entry point
    - Create `internal/ui/root.go` with basic Bubble Tea setup
    - Set up `internal/domain/` with core data models
    - Initialize `internal/infra/` for file operations

@@ -1,9 +1,9 @@
-# LyricForge Theme System Enhancement
+# noise.sh Theme System Enhancement
 ## Implementation Specification for Kilocode AI
 
 **Version:** 1.0  
 **Date:** October 17, 2025  
-**Purpose:** Complete specification for implementing 12 cohesive themes in LyricForge TUI
+**Purpose:** Complete specification for implementing 12 cohesive themes in noise.sh TUI
 
 ---
 
@@ -315,7 +315,7 @@ var SageMeadow = Theme{
 ### File Structure
 
 ```
-lyricforge/
+noise.sh/
 ├── internal/
 │   ├── theme/
 │   │   ├── theme.go          # Theme struct and definitions
@@ -620,7 +620,7 @@ package ui
 
 import (
     "github.com/charmbracelet/lipgloss"
-    "lyricforge/internal/theme"
+    "noise.sh/internal/theme"
 )
 
 // StyleManager holds all UI styles using current theme
@@ -738,7 +738,7 @@ func GetConfigPath() (string, error) {
     if err != nil {
         return "", err
     }
-    return filepath.Join(home, ".lyricforge", "config.json"), nil
+    return filepath.Join(home, ".noise.sh", "config.json"), nil
 }
 
 // LoadConfig loads configuration from disk
@@ -806,9 +806,9 @@ package main
 
 import (
     tea "github.com/charmbracelet/bubbletea"
-    "lyricforge/internal/theme"
-    "lyricforge/internal/ui"
-    "lyricforge/config"
+    "noise.sh/internal/theme"
+    "noise.sh/internal/ui"
+    "noise.sh/config"
 )
 
 type model struct {
@@ -857,7 +857,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
     // Use styleManager to get themed styles
-    title := m.styleManager.TitleStyle().Render("LyricForge")
+    title := m.styleManager.TitleStyle().Render("noise.sh")
     
     // Current theme indicator
     themeInfo := m.styleManager.HighlightStyle().
@@ -942,7 +942,7 @@ func (m model) View() string {
 
 #### How Custom Themes Work
 
-1. **Config File Location:** `~/.lyricforge/config.json`
+1. **Config File Location:** `~/.noise.sh/config.json`
 2. **Structure:** Users can define custom themes in the `custom_themes` section
 3. **Theme Selection:** Custom themes appear in the theme list alongside built-in themes
 4. **Validation:** System validates that all required colors are present and valid hex codes
@@ -1005,12 +1005,12 @@ type Config struct {
 
 // ValidateHexColor checks if a string is a valid hex color
 func ValidateHexColor(color string) bool {
-    hexPattern := regexp.MustCompile(`^#[0-9A-Fa-f]{6}# LyricForge Theme System Enhancement
+    hexPattern := regexp.MustCompile(`^#[0-9A-Fa-f]{6}# noise.sh Theme System Enhancement
 ## Implementation Specification for Kilocode AI
 
 **Version:** 1.0  
 **Date:** October 17, 2025  
-**Purpose:** Complete specification for implementing 12 cohesive themes in LyricForge TUI
+**Purpose:** Complete specification for implementing 12 cohesive themes in noise.sh TUI
 
 ---
 
@@ -1322,7 +1322,7 @@ var SageMeadow = Theme{
 ### File Structure
 
 ```
-lyricforge/
+noise.sh/
 ├── internal/
 │   ├── theme/
 │   │   ├── theme.go          # Theme struct and definitions
@@ -1627,7 +1627,7 @@ package ui
 
 import (
     "github.com/charmbracelet/lipgloss"
-    "lyricforge/internal/theme"
+    "noise.sh/internal/theme"
 )
 
 // StyleManager holds all UI styles using current theme
@@ -1745,7 +1745,7 @@ func GetConfigPath() (string, error) {
     if err != nil {
         return "", err
     }
-    return filepath.Join(home, ".lyricforge", "config.json"), nil
+    return filepath.Join(home, ".noise.sh", "config.json"), nil
 }
 
 // LoadConfig loads configuration from disk
@@ -1813,9 +1813,9 @@ package main
 
 import (
     tea "github.com/charmbracelet/bubbletea"
-    "lyricforge/internal/theme"
-    "lyricforge/internal/ui"
-    "lyricforge/config"
+    "noise.sh/internal/theme"
+    "noise.sh/internal/ui"
+    "noise.sh/config"
 )
 
 type model struct {
@@ -1864,7 +1864,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
     // Use styleManager to get themed styles
-    title := m.styleManager.TitleStyle().Render("LyricForge")
+    title := m.styleManager.TitleStyle().Render("noise.sh")
     
     // Current theme indicator
     themeInfo := m.styleManager.HighlightStyle().
@@ -1976,7 +1976,7 @@ func GetConfigPath() (string, error) {
     if err != nil {
         return "", err
     }
-    return filepath.Join(home, ".lyricforge", "config.json"), nil
+    return filepath.Join(home, ".noise.sh", "config.json"), nil
 }
 
 // LoadConfig loads configuration from disk
@@ -2056,7 +2056,7 @@ package theme
 
 import (
     "github.com/charmbracelet/lipgloss"
-    "lyricforge/config"
+    "noise.sh/config"
 )
 
 // Registry holds all available themes (built-in + custom)
@@ -2149,9 +2149,9 @@ package main
 
 import (
     tea "github.com/charmbracelet/bubbletea"
-    "lyricforge/internal/theme"
-    "lyricforge/internal/ui"
-    "lyricforge/config"
+    "noise.sh/internal/theme"
+    "noise.sh/internal/ui"
+    "noise.sh/config"
     "log"
 )
 
@@ -2193,11 +2193,11 @@ func initialModel() model {
 
 **Creating Your Own Theme:**
 
-1. Create or edit `~/.lyricforge/config.json`
+1. Create or edit `~/.noise.sh/config.json`
 2. Add a `custom_themes` section with your theme definition
 3. Use valid hex colors (format: `#RRGGBB`)
 4. Give your theme a unique ID (lowercase, use hyphens)
-5. Restart LyricForge or use `Ctrl+R` to reload config
+5. Restart noise.sh or use `Ctrl+R` to reload config
 6. Select your custom theme with `Ctrl+T`
 
 **Required Colors:**
@@ -2238,7 +2238,7 @@ func initialModel() model {
 Add a CLI command to generate a custom theme template:
 
 ```bash
-lyricforge theme new my-theme-name
+noise.sh theme new my-theme-name
 ```
 
 This creates a config section with placeholder colors that users can edit.
@@ -2288,24 +2288,24 @@ Before applying a theme, show a preview with sample text:
 ### Testing Commands
 ```bash
 # Test theme switching with all themes
-go run cmd/lyricforge/main.go --theme slate
-go run cmd/lyricforge/main.go --theme amber-night
-go run cmd/lyricforge/main.go --theme molten-gold
-go run cmd/lyricforge/main.go --theme clay-roads
-go run cmd/lyricforge/main.go --theme iron-storm
-go run cmd/lyricforge/main.go --theme jade-tide
-go run cmd/lyricforge/main.go --theme sunset-ember
-go run cmd/lyricforge/main.go --theme forest-whisper
-go run cmd/lyricforge/main.go --theme electric-bloom
-go run cmd/lyricforge/main.go --theme plasma-pulse
-go run cmd/lyricforge/main.go --theme indigo-depths
-go run cmd/lyricforge/main.go --theme sage-meadow
+go run cmd/noise.sh/main.go --theme slate
+go run cmd/noise.sh/main.go --theme amber-night
+go run cmd/noise.sh/main.go --theme molten-gold
+go run cmd/noise.sh/main.go --theme clay-roads
+go run cmd/noise.sh/main.go --theme iron-storm
+go run cmd/noise.sh/main.go --theme jade-tide
+go run cmd/noise.sh/main.go --theme sunset-ember
+go run cmd/noise.sh/main.go --theme forest-whisper
+go run cmd/noise.sh/main.go --theme electric-bloom
+go run cmd/noise.sh/main.go --theme plasma-pulse
+go run cmd/noise.sh/main.go --theme indigo-depths
+go run cmd/noise.sh/main.go --theme sage-meadow
 
 # Test with invalid theme (should fall back to default)
-go run cmd/lyricforge/main.go --theme invalid-theme
+go run cmd/noise.sh/main.go --theme invalid-theme
 
 # Test custom theme loading
-# 1. Create ~/.lyricforge/config.json with custom theme
+# 1. Create ~/.noise.sh/config.json with custom theme
 # 2. Run app and verify custom theme appears in theme list
 # 3. Select custom theme with Ctrl+T
 
@@ -2339,7 +2339,7 @@ For questions during implementation:
 1. Verify all color hex codes match exactly (case-insensitive but # required)
 2. Ensure lipgloss.Color() wraps all color values
 3. Check that theme manager is initialized before any UI rendering
-4. Confirm config directory (~/.lyricforge/) is created before saving
+4. Confirm config directory (~/.noise.sh/) is created before saving
 5. Test each theme visually - numbers can lie, eyes don't
 
 **Good luck with implementation! 🎨🚀**

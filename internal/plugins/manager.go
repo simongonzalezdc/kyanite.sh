@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/config"
-	"github.com/puente-labs/lyricforge/internal/logging"
+	"github.com/puente-labs/noise/internal/config"
+	"github.com/puente-labs/noise/internal/logging"
 )
 
 // DefaultManager is the default implementation of PluginManager
@@ -372,7 +372,7 @@ func getDefaultPluginDirs(cfg *config.Config) []string {
 	}
 
 	return []string{
-		filepath.Join(homeDir, ".lyricforge", "plugins"),
+		filepath.Join(homeDir, ".noise", "plugins"),
 		"./plugins",
 		"./internal/plugins/examples",
 	}

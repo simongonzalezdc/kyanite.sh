@@ -9,9 +9,9 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/lyricforge/internal/domain"
-	"github.com/puente-labs/lyricforge/internal/infra/db"
-	"github.com/puente-labs/lyricforge/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/domain"
+	"github.com/puente-labs/noise/internal/infra/db"
+	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
 // ManagerState represents different states of the project manager

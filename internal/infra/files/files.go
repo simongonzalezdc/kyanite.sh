@@ -1,4 +1,4 @@
-// Package files provides file I/O operations for the LyricForge application.
+// Package files provides file I/O operations for the noise.sh application.
 // It handles reading and writing markdown files with YAML frontmatter,
 // integrating with the existing error handling and domain systems.
 package files
@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/domain"
-	"github.com/puente-labs/lyricforge/internal/errors"
+	"github.com/puente-labs/noise/internal/domain"
+	"github.com/puente-labs/noise/internal/errors"
 	"gopkg.in/yaml.v3"
 )
 
@@ -95,7 +95,7 @@ func getDefaultSongsDir() string {
 	if err != nil {
 		return "./songs" // fallback
 	}
-	return filepath.Join(homeDir, ".lyricforge", "songs")
+	return filepath.Join(homeDir, ".noise", "songs")
 }
 
 // ReadSong reads a song file and parses it into a domain.Song

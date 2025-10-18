@@ -1,4 +1,4 @@
-// Package app provides application services for the LyricForge application.
+// Package app provides application services for the noise.sh application.
 // It includes services for AI assistance, auto-saving, theory analysis, and editor functionality.
 package app
 
@@ -6,7 +6,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/domain"
+	"github.com/puente-labs/noise/internal/domain"
 )
 
 // AIService handles AI-powered assistance

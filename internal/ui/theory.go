@@ -10,8 +10,8 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/lyricforge/internal/app"
-	"github.com/puente-labs/lyricforge/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/app"
+	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
 // TheoryModel handles the music theory tools screen

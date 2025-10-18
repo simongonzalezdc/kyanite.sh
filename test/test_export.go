@@ -1,4 +1,4 @@
-package lyricforge_test
+package noise
 
 import (
 	"os"

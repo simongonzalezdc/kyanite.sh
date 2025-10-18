@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/domain"
-	"github.com/puente-labs/lyricforge/internal/infra/db"
+	"github.com/puente-labs/noise/internal/domain"
+	"github.com/puente-labs/noise/internal/infra/db"
 )
 
 // CollaborationManager coordinates all collaborative features

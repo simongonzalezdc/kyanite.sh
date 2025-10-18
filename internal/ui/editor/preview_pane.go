@@ -11,7 +11,7 @@ import (
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/harmonica"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/lyricforge/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
 // PreviewPaneModel handles the markdown preview pane

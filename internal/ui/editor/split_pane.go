@@ -7,11 +7,11 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/lyricforge/internal/app"
-	"github.com/puente-labs/lyricforge/internal/domain"
-	"github.com/puente-labs/lyricforge/internal/infra/db"
-	"github.com/puente-labs/lyricforge/internal/infra/files"
-	"github.com/puente-labs/lyricforge/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/app"
+	"github.com/puente-labs/noise/internal/domain"
+	"github.com/puente-labs/noise/internal/infra/db"
+	"github.com/puente-labs/noise/internal/infra/files"
+	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
 // Screen represents different screens in the application (local copy to avoid import cycle)

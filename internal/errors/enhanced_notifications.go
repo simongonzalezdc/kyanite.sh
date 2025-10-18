@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/logging"
+	"github.com/puente-labs/noise/internal/logging"
 )
 
 // ActionableError represents an error with suggested actions

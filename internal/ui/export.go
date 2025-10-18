@@ -11,7 +11,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/lyricforge/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
 // ExportFormat represents different export formats
@@ -102,7 +102,7 @@ func NewExportModel(content string) *ExportModel {
 		ExportTime:     time.Now(),
 		WordCount:      countWords(content),
 		CharacterCount: len(content),
-		Application:    "LyricForge",
+		Application:    "noise.sh",
 	}
 
 	model := &ExportModel{
@@ -258,7 +258,7 @@ func (m *ExportModel) performExport() tea.Cmd {
 		// Generate filename with timestamp
 		timestamp := time.Now().Format("20060102_150405")
 		ext := m.getFileExtension(format)
-		filename := fmt.Sprintf("lyricforge_export_%s.%s", timestamp, ext)
+		filename := fmt.Sprintf("noise.sh_export_%s.%s", timestamp, ext)
 
 		// Default output path
 		if m.result == nil {

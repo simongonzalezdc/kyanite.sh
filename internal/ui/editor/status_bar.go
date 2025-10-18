@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/lyricforge/internal/app"
-	"github.com/puente-labs/lyricforge/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/app"
+	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
 // StatusBarSection represents a section of the status bar

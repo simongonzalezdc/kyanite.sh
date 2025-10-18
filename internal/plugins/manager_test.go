@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/puente-labs/lyricforge/internal/config"
-	"github.com/puente-labs/lyricforge/internal/logging"
+	"github.com/puente-labs/noise/internal/config"
+	"github.com/puente-labs/noise/internal/logging"
 )
 
 func TestPluginManager(t *testing.T) {

@@ -1,4 +1,4 @@
-package lyricforge_test
+package noise
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/ui/editor"
+	"github.com/puente-labs/noise/internal/ui/editor"
 )
 
 // TestRealTimePreviewManager tests the real-time preview manager functionality

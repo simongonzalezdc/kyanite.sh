@@ -1,4 +1,4 @@
-# LyricForge Design System & Styling Reference
+# noise.sh Design System & Styling Reference
 ## For Kilocode AI Coding Agent
 
 **Version:** 1.0  
@@ -945,7 +945,7 @@ lipgloss.NewStyle().
     Render("✓ Saved successfully")
 
 // Gradient title
-TitleGradient("LyricForge") // Purple → Gold gradient
+TitleGradient("noise.sh") // Purple → Gold gradient
 ```
 
 ---

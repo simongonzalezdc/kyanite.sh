@@ -1,11 +1,11 @@
-package lyricforge_test
+package noise
 
 import (
 	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/lyricforge/internal/ui/editor"
+	"github.com/puente-labs/noise/internal/ui/editor"
 )
 
 // containsString checks if a string contains a substring

@@ -1,4 +1,4 @@
-package lyricforge_test
+package noise
 
 import (
 	"fmt"
@@ -8,10 +8,10 @@ import (
 
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/lyricforge/internal/app"
-	"github.com/puente-labs/lyricforge/internal/domain"
-	"github.com/puente-labs/lyricforge/internal/infra/db"
-	"github.com/puente-labs/lyricforge/internal/ui/editor"
+	"github.com/puente-labs/noise/internal/app"
+	"github.com/puente-labs/noise/internal/domain"
+	"github.com/puente-labs/noise/internal/infra/db"
+	"github.com/puente-labs/noise/internal/ui/editor"
 )
 
 // TestEditorPaneModelCreation tests the creation of an editor pane model

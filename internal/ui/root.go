@@ -6,12 +6,12 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/lyricforge/internal/collaboration"
-	"github.com/puente-labs/lyricforge/internal/config"
-	"github.com/puente-labs/lyricforge/internal/infra/db"
-	"github.com/puente-labs/lyricforge/internal/plugins"
-	"github.com/puente-labs/lyricforge/internal/ui/editor"
-	"github.com/puente-labs/lyricforge/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/collaboration"
+	"github.com/puente-labs/noise/internal/config"
+	"github.com/puente-labs/noise/internal/infra/db"
+	"github.com/puente-labs/noise/internal/plugins"
+	"github.com/puente-labs/noise/internal/ui/editor"
+	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
 // Screen represents different screens in the application
@@ -402,7 +402,7 @@ func (m *RootModel) renderLoading() string {
 		Width(m.width).
 		Height(m.height)
 
-	loadingText := "🎵 LyricForge 🎵\n\n"
+	loadingText := "🎵 noise.sh 🎵\n\n"
 	if m.errorMsg != "" {
 		loadingText += "Error: " + m.errorMsg + "\n\nPress any key to exit..."
 	} else {

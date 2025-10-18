@@ -1,4 +1,4 @@
-module github.com/puente-labs/lyricforge
+module github.com/puente-labs/noise
 
 go 1.25.3
 

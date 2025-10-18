@@ -1,10 +1,10 @@
-package lyricforge_test
+package noise
 
 import (
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/lyricforge/internal/ui"
+	"github.com/puente-labs/noise/internal/ui"
 )
 
 // TestMenuModelCreation tests menu model creation
@@ -23,8 +23,8 @@ func TestMenuModelCreation(t *testing.T) {
 	}
 
 	// Verify view contains expected content
-	if !contains(view, "LyricForge") {
-		t.Error("Expected view to contain LyricForge title")
+	if !contains(view, "noise.sh") {
+		t.Error("Expected view to contain noise.sh title")
 	}
 }
 
@@ -108,7 +108,7 @@ func TestMenuModelResponsiveMode(t *testing.T) {
 	}
 
 	// Verify full mode content
-	if !contains(view, "🎵 LyricForge") {
+	if !contains(view, "🎵 noise.sh") {
 		t.Error("Expected full mode title")
 	}
 
@@ -218,7 +218,7 @@ func TestMenuModelDescriptions(t *testing.T) {
 		"Metronome and chord playback",
 		"Manage songs and projects",
 		"Application settings",
-		"Exit LyricForge",
+		"Exit noise.sh",
 	}
 
 	for _, desc := range expectedDescs {

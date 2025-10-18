@@ -1,5 +1,5 @@
 # Product Requirements Document (PRD)
-## LyricForge: AI-Powered Songwriting TUI
+## noise.sh: AI-Powered Songwriting TUI
 
 **Version:** 1.0  
 **Date:** October 17, 2025  
@@ -12,7 +12,7 @@
 
 ### Product Vision
 
-LyricForge is a **local-first, AI-powered terminal user interface (TUI) application** that transforms the songwriting process by combining professional songwriting pedagogy with beautiful visual design and intelligent AI assistance. It empowers songwriters to create authentic, human-quality lyrics while maintaining complete privacy and ownership of their creative work.
+noise.sh is a **local-first, AI-powered terminal user interface (TUI) application** that transforms the songwriting process by combining professional songwriting pedagogy with beautiful visual design and intelligent AI assistance. It empowers songwriters to create authentic, human-quality lyrics while maintaining complete privacy and ownership of their creative work.
 
 ### Key Differentiators
 

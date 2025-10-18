@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/puente-labs/lyricforge/internal/config"
+	"github.com/puente-labs/noise/internal/config"
 )
 
 // LogLevel represents the severity level of log messages
@@ -110,7 +110,7 @@ func NewFromConfig(appConfig *config.Config) (*Logger, error) {
 	// Determine output file if in debug mode
 	var logFile string
 	if appConfig.IsDebug() {
-		logFile = filepath.Join(appConfig.GetDataDir(), "logs", "lyricforge.log")
+		logFile = filepath.Join(appConfig.GetDataDir(), "logs", "noise.sh.log")
 	}
 
 	cfg := &Config{

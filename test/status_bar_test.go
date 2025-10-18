@@ -1,4 +1,4 @@
-package lyricforge_test
+package noise
 
 import (
 	"fmt"
@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/app"
-	"github.com/puente-labs/lyricforge/internal/ui/editor"
+	"github.com/puente-labs/noise/internal/app"
+	"github.com/puente-labs/noise/internal/ui/editor"
 )
 
 // TestStatusBarModelCreation tests the creation of a status bar model

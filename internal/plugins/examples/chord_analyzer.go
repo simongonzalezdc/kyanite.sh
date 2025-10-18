@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/plugins"
+	"github.com/puente-labs/noise/internal/plugins"
 )
 
 // ChordAnalyzerPlugin is an example plugin that adds chord analysis functionality
@@ -24,7 +24,7 @@ func NewChordAnalyzerPlugin() *ChordAnalyzerPlugin {
 			Name:        "Chord Analyzer",
 			Version:     "1.0.0",
 			Description: "Analyzes chords in lyrics and provides theory insights",
-			Author:      "LyricForge Team",
+			Author:      "noise.sh Team",
 			License:     "MIT",
 			Capabilities: []plugins.Capability{
 				plugins.CapabilityTheoryTool,

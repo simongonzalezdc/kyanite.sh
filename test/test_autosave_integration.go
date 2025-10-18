@@ -1,4 +1,4 @@
-package lyricforge_test
+package noise
 
 import (
 	"context"
@@ -7,10 +7,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/app"
-	"github.com/puente-labs/lyricforge/internal/domain"
-	"github.com/puente-labs/lyricforge/internal/infra/db"
-	"github.com/puente-labs/lyricforge/internal/infra/files"
+	"github.com/puente-labs/noise/internal/app"
+	"github.com/puente-labs/noise/internal/domain"
+	"github.com/puente-labs/noise/internal/infra/db"
+	"github.com/puente-labs/noise/internal/infra/files"
 )
 
 // TestAutoSaveIntegration tests the auto-save integration functionality

@@ -1,10 +1,10 @@
-# LyricForge Plugin System
+# noise.sh Plugin System
 
-The LyricForge plugin system allows developers to extend the application's functionality without modifying the core codebase. This document explains how to create, install, and manage plugins.
+The noise.sh plugin system allows developers to extend the application's functionality without modifying the core codebase. This document explains how to create, install, and manage plugins.
 
 ## Overview
 
-The plugin system provides a secure and stable foundation for extending LyricForge with:
+The plugin system provides a secure and stable foundation for extending noise.sh with:
 
 - **UI Extensions**: Add new screens, menu items, or modify existing UI
 - **Editor Tools**: Add new editing capabilities and tools
@@ -41,7 +41,7 @@ Create a new Go file that implements the `Plugin` interface:
 package main
 
 import (
-    "github.com/puente-labs/lyricforge/internal/plugins"
+    "github.com/puente-labs/noise.sh/internal/plugins"
 )
 
 type MyPlugin struct {
@@ -87,7 +87,7 @@ Create a `plugin.json` file with plugin metadata:
   "id": "my_plugin",
   "name": "My Custom Plugin",
   "version": "1.0.0",
-  "description": "A custom plugin for LyricForge",
+  "description": "A custom plugin for noise.sh",
   "author": "Your Name",
   "license": "MIT",
   "capabilities": [
@@ -166,7 +166,7 @@ func (p *MyPlugin) GetMenuItems() []*plugins.MenuItem {
 
 Plugins are loaded from these directories (in order of precedence):
 
-- `~/.lyricforge/plugins/` (User plugins)
+- `~/.noise.sh/plugins/` (User plugins)
 - `./plugins/` (Project plugins)
 - `./internal/plugins/examples/` (Built-in examples)
 
@@ -174,7 +174,7 @@ Plugins are loaded from these directories (in order of precedence):
 
 1. Create your plugin files (`.go` and `.json`)
 2. Copy them to one of the plugin directories
-3. Restart LyricForge
+3. Restart noise.sh
 
 ### 3. Development Installation
 
@@ -224,16 +224,16 @@ Access the plugin management interface through the application settings. The int
 
 ```bash
 # List plugins
-lyricforge --list-plugins
+noise.sh --list-plugins
 
 # Enable plugin
-lyricforge --enable-plugin plugin_id
+noise.sh --enable-plugin plugin_id
 
 # Disable plugin
-lyricforge --disable-plugin plugin_id
+noise.sh --disable-plugin plugin_id
 
 # Plugin info
-lyricforge --plugin-info plugin_id
+noise.sh --plugin-info plugin_id
 ```
 
 ## Best Practices
@@ -276,7 +276,7 @@ See `internal/plugins/examples/chord_analyzer.go` for an example that provides c
 1. **Plugin not loading**
    - Check file permissions
    - Verify manifest JSON syntax
-   - Check LyricForge logs for errors
+   - Check noise.sh logs for errors
 
 2. **Plugin not appearing in UI**
    - Ensure plugin is enabled
@@ -293,10 +293,10 @@ See `internal/plugins/examples/chord_analyzer.go` for an example that provides c
 Enable debug logging to troubleshoot plugin issues:
 
 ```bash
-lyricforge --debug
+noise.sh --debug
 ```
 
-Check the log file at `~/.lyricforge/logs/lyricforge.log` for detailed plugin loading information.
+Check the log file at `~/.noise.sh/logs/noise.sh.log` for detailed plugin loading information.
 
 ## API Reference
 
@@ -343,7 +343,7 @@ type PluginContext struct {
 
 ## Contributing
 
-When contributing plugins to the LyricForge project:
+When contributing plugins to the noise.sh project:
 
 1. Follow the established patterns in existing plugins
 2. Include comprehensive tests
@@ -353,4 +353,4 @@ When contributing plugins to the LyricForge project:
 
 ## License
 
-Plugins are licensed separately from the main LyricForge application. Ensure your plugin complies with the chosen license terms.
+Plugins are licensed separately from the main noise.sh application. Ensure your plugin complies with the chosen license terms.

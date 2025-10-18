@@ -98,7 +98,7 @@ type DevConfig struct {
 func DefaultConfig() *Config {
 	return &Config{
 		App: AppConfig{
-			Name:             "LyricForge",
+			Name:             "noise.sh",
 			Version:          "1.0.0",
 			DataDir:          getDefaultDataDir(),
 			AutoSave:         true,
@@ -109,7 +109,7 @@ func DefaultConfig() *Config {
 			Type:     "sqlite",
 			Host:     "localhost",
 			Port:     5432,
-			Database: "lyricforge",
+			Database: "noise",
 			Username: "postgres",
 			Password: "",
 			SSLMode:  "disable",
@@ -172,10 +172,10 @@ func Load() (*Config, error) {
 	}
 
 	// Set configuration file names (without extension)
-	v.SetConfigName("lyricforge")
+	v.SetConfigName("noise")
 
 	// Enable reading from environment variables
-	v.SetEnvPrefix("LYRICFORGE")
+	v.SetEnvPrefix("NOISE")
 	v.AutomaticEnv()
 
 	// Read configuration file
@@ -222,7 +222,7 @@ func (c *Config) Save() error {
 	v.Set("dev", c.Dev)
 
 	// Write configuration file
-	configPath := filepath.Join(configDir, "lyricforge.yaml")
+	configPath := filepath.Join(configDir, "noise.yaml")
 	if err := v.WriteConfigAs(configPath); err != nil {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
@@ -257,43 +257,43 @@ func (c *Config) Validate() error {
 // overrideFromEnv overrides configuration values with environment variables
 func (c *Config) overrideFromEnv() {
 	// App settings
-	if val := os.Getenv("LYRICFORGE_APP_DATA_DIR"); val != "" {
+	if val := os.Getenv("NOISE_APP_DATA_DIR"); val != "" {
 		c.App.DataDir = val
 	}
 
-	if val := os.Getenv("LYRICFORGE_APP_AUTO_SAVE"); val != "" {
+	if val := os.Getenv("NOISE_APP_AUTO_SAVE"); val != "" {
 		c.App.AutoSave = val == "true"
 	}
 
 	// Database settings
-	if val := os.Getenv("LYRICFORGE_DATABASE_HOST"); val != "" {
+	if val := os.Getenv("NOISE_DATABASE_HOST"); val != "" {
 		c.Database.Host = val
 	}
 
-	if val := os.Getenv("LYRICFORGE_DATABASE_PORT"); val != "" {
+	if val := os.Getenv("NOISE_DATABASE_PORT"); val != "" {
 		// TODO: Parse port from environment variable
 		_ = val // Suppress unused variable warning
 	}
 
 	// AI settings
-	if val := os.Getenv("LYRICFORGE_AI_API_KEY"); val != "" {
+	if val := os.Getenv("NOISE_AI_API_KEY"); val != "" {
 		c.AI.APIKey = val
 	}
 
-	if val := os.Getenv("LYRICFORGE_AI_BASE_URL"); val != "" {
+	if val := os.Getenv("NOISE_AI_BASE_URL"); val != "" {
 		c.AI.BaseURL = val
 	}
 
-	if val := os.Getenv("LYRICFORGE_AI_ENABLED"); val != "" {
+	if val := os.Getenv("NOISE_AI_ENABLED"); val != "" {
 		c.AI.Enabled = val == "true"
 	}
 
 	// Dev settings
-	if val := os.Getenv("LYRICFORGE_DEV_DEBUG"); val != "" {
+	if val := os.Getenv("NOISE_DEV_DEBUG"); val != "" {
 		c.Dev.Debug = val == "true"
 	}
 
-	if val := os.Getenv("LYRICFORGE_DEV_LOG_LEVEL"); val != "" {
+	if val := os.Getenv("NOISE_DEV_LOG_LEVEL"); val != "" {
 		c.Dev.LogLevel = val
 	}
 }
@@ -304,7 +304,7 @@ func getDefaultDataDir() string {
 	if err != nil {
 		return "./data"
 	}
-	return filepath.Join(homeDir, ".lyricforge")
+	return filepath.Join(homeDir, ".noise")
 }
 
 // getConfigDir returns the configuration directory
@@ -313,7 +313,7 @@ func getConfigDir() string {
 	if err != nil {
 		return "./config"
 	}
-	return filepath.Join(homeDir, ".config", "lyricforge")
+	return filepath.Join(homeDir, ".config", "noise")
 }
 
 // GetDataDir returns the data directory (creates it if it doesn't exist)

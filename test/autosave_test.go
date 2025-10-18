@@ -1,4 +1,4 @@
-package lyricforge_test
+package noise
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/app"
-	"github.com/puente-labs/lyricforge/internal/infra/db"
+	"github.com/puente-labs/noise/internal/app"
+	"github.com/puente-labs/noise/internal/infra/db"
 )
 
 // TestAutoSaveServiceCreation tests the creation of an auto-save service

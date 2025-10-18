@@ -1,6 +1,6 @@
 // Test file for the File I/O system
 // This file tests the basic functionality of the file I/O system
-package lyricforge_test
+package noise
 
 import (
 	"fmt"
@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/domain"
-	"github.com/puente-labs/lyricforge/internal/infra/files"
+	"github.com/puente-labs/noise/internal/domain"
+	"github.com/puente-labs/noise/internal/infra/files"
 )
 
 // TestFileIO tests the file I/O system functionality

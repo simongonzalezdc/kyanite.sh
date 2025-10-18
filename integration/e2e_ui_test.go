@@ -7,7 +7,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/lyricforge/internal/ui/editor"
+	"github.com/puente-labs/noise/internal/ui/editor"
 )
 
 // TestE2E_UI_Workflow runs UI-only end-to-end scenarios without a database (passes nil DB).

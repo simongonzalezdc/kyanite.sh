@@ -1,4 +1,4 @@
-// Package ui provides user interface components and models for the LyricForge application.
+// Package ui provides user interface components and models for the noise.sh application.
 // It includes Bubble Tea models, styling, animations, and responsive layout management.
 package ui
 
@@ -12,7 +12,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/harmonica"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/lyricforge/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
 // AnimationConfig holds configuration for animations

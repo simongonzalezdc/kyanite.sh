@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/lyricforge/internal/collaboration"
-	"github.com/puente-labs/lyricforge/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/collaboration"
+	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
 // PresenceIndicatorModel handles displaying user presence indicators

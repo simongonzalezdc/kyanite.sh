@@ -1,5 +1,5 @@
 # Enhancement #3+5: Mobile Companion App (PWA)
-**LyricForge - Capture Tool for On-the-Go Ideas**
+**noise.sh - Capture Tool for On-the-Go Ideas**
 
 **Version:** 3.0 (Companion App)  
 **Status:** READY FOR IMPLEMENTATION  
@@ -474,7 +474,7 @@ The house is quiet, but it's not       A ┘
 **Example PNG Export:**
 ```
 ┌─────────────────────────────────────┐
-│ LyricForge                    Draft │ ← Terminal header
+│ noise.sh                    Draft │ ← Terminal header
 │─────────────────────────────────────│
 │ Lost My Dog                         │
 │ Key: C | Tempo: 84 BPM              │
@@ -487,7 +487,7 @@ The house is quiet, but it's not       A ┘
 │                                     │
 │─────────────────────────────────────│
 │ Written Oct 17, 2025                │
-│ lyricforge.app                      │
+│ noise.sh.app                      │
 └─────────────────────────────────────┘
 ```
 
@@ -646,7 +646,7 @@ self.addEventListener('sync', async (event) => {
 First launch:
 1. Tap "Connect Dropbox" (or Google Drive)
 2. OAuth login (once)
-3. Choose folder: /LyricForge/
+3. Choose folder: /noise.sh/
 4. Done. Never think about it again.
 ```
 

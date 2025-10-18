@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/domain"
-	"github.com/puente-labs/lyricforge/internal/errors"
+	"github.com/puente-labs/noise/internal/domain"
+	"github.com/puente-labs/noise/internal/errors"
 )
 
 // FileRepository defines the interface for file-based song persistence operations

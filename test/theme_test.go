@@ -1,10 +1,10 @@
-package lyricforge_test
+package noise
 
 import (
 	"testing"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/lyricforge/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
 // TestThemeColors tests theme color constants

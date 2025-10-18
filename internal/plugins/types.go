@@ -1,4 +1,4 @@
-// Package plugins provides a plugin system for extending LyricForge functionality
+// Package plugins provides a plugin system for extending noise.sh functionality
 package plugins
 
 import (
@@ -6,7 +6,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/lyricforge/internal/config"
+	"github.com/puente-labs/noise/internal/config"
 )
 
 // PluginMetadata contains information about a plugin
@@ -77,7 +77,7 @@ type PluginContext struct {
 	// Logger logging.Logger
 }
 
-// Plugin represents a LyricForge plugin
+// Plugin represents a noise.sh plugin
 type Plugin interface {
 	// Metadata returns information about the plugin
 	Metadata() *PluginMetadata

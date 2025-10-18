@@ -1,11 +1,11 @@
-package lyricforge_test
+package noise
 
 import (
 	"errors"
 	"testing"
 	"time"
 
-	appErrors "github.com/puente-labs/lyricforge/internal/errors"
+	appErrors "github.com/puente-labs/noise/internal/errors"
 )
 
 // TestAppErrorCreation tests the creation of application errors

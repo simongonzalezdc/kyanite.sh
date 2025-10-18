@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/domain"
-	"github.com/puente-labs/lyricforge/internal/errors"
-	"github.com/puente-labs/lyricforge/internal/infra/db"
-	"github.com/puente-labs/lyricforge/internal/infra/files"
-	"github.com/puente-labs/lyricforge/internal/logging"
+	"github.com/puente-labs/noise/internal/domain"
+	"github.com/puente-labs/noise/internal/errors"
+	"github.com/puente-labs/noise/internal/infra/db"
+	"github.com/puente-labs/noise/internal/infra/files"
+	"github.com/puente-labs/noise/internal/logging"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )

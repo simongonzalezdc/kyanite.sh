@@ -1,4 +1,4 @@
-// Package db provides database persistence and repository implementations for the LyricForge application.
+// Package db provides database persistence and repository implementations for the noise.sh application.
 // It supports both SQLite with CGO and in-memory fallback storage for environments where CGO is unavailable.
 package db
 
@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/domain"
+	"github.com/puente-labs/noise/internal/domain"
 )
 
 // DB wraps the database connection with helper methods
@@ -45,7 +45,7 @@ func New(cfg Config) (*DB, error) {
 		return nil, fmt.Errorf("failed to prepare data directory: %w", err)
 	}
 
-	dbPath := filepath.Join(cfg.DataDir, "lyricforge.db")
+	dbPath := filepath.Join(cfg.DataDir, "noise.sh.db")
 
 	conn, err := sql.Open(sqliteDriverName, dbPath)
 	if err != nil {
@@ -171,7 +171,7 @@ func getDefaultDataDir() string {
 	if err != nil {
 		return "./data" // fallback
 	}
-	return filepath.Join(homeDir, ".lyricforge")
+	return filepath.Join(homeDir, ".noise")
 }
 
 // getHomeDir returns the user's home directory (cross-platform)

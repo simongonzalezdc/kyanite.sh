@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/logging"
+	"github.com/puente-labs/noise/internal/logging"
 )
 
 // FileErrorReporter reports errors to a file
@@ -195,7 +195,7 @@ func (r *ExternalErrorReporter) Report(ctx context.Context, report *ErrorReport)
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+r.apiKey)
-	req.Header.Set("User-Agent", "LyricForge-ErrorReporter/1.0")
+	req.Header.Set("User-Agent", "noise.sh-ErrorReporter/1.0")
 
 	// Send request
 	resp, err := r.client.Do(req)

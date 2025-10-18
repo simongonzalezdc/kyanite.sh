@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/lyricforge/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
 // SplashModel handles the splash screen
@@ -94,7 +94,7 @@ func (m *SplashModel) View() string {
 
 	// Apply fade effects based on animation progress
 	if m.showTitle || titleProgress > 0 {
-		title := "🎵 LyricForge 🎵"
+		title := "🎵 noise.sh 🎵"
 		if titleProgress < 1.0 && titleProgress > 0 {
 			// Apply fade effect to title
 			titleOpacity := uint(titleProgress * 255)

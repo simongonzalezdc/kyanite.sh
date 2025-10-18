@@ -4,7 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/lyricforge/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
 // MenuModel handles the main menu screen
@@ -32,7 +32,7 @@ func NewMenuModel() *MenuModel {
 		item{title: "Audio Tools", desc: "Metronome and chord playback", screen: screenAudio},
 		item{title: "Project Manager", desc: "Manage songs and projects", screen: screenManager},
 		item{title: "Settings", desc: "Application settings", screen: screenSettings},
-		item{title: "Exit", desc: "Exit LyricForge", screen: screenSplash},
+		item{title: "Exit", desc: "Exit noise.sh", screen: screenSplash},
 	}
 
 	// Create custom delegate with Midnight Jazz styling
@@ -56,7 +56,7 @@ func NewMenuModel() *MenuModel {
 		Foreground(styles.TextSecondary)
 
 	l := list.New(items, delegate, 0, 0)
-	l.Title = styles.TitleGradient("🎵 LyricForge")
+	l.Title = styles.TitleGradient("🎵 noise.sh")
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.SetShowHelp(false)
@@ -181,9 +181,9 @@ func (m *MenuModel) applyResponsiveStyling() list.Model {
 	if m.showMinimalMenu {
 		styledList.Title = styles.TitleGradient("🎵 LF")
 	} else if m.showShortTitles {
-		styledList.Title = styles.TitleGradient("🎵 LyricForge")
+		styledList.Title = styles.TitleGradient("🎵 noise.sh")
 	} else {
-		styledList.Title = styles.TitleGradient("🎵 LyricForge")
+		styledList.Title = styles.TitleGradient("🎵 noise.sh")
 	}
 
 	// Adjust list dimensions for responsive layout

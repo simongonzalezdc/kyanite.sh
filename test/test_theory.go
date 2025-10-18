@@ -1,12 +1,12 @@
 //go:build ignore
 
-package lyricforge_test
+package noise
 
 import (
 	"fmt"
 	"log"
 
-	"github.com/puente-labs/lyricforge/internal/app"
+	"github.com/puente-labs/noise/internal/app"
 )
 
 // TestTheoryService tests the theory service functionality

@@ -6,7 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/lyricforge/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
 // PluginSettingsModel handles the plugin management interface
@@ -129,7 +129,7 @@ func (m *PluginSettingsModel) renderEmptyState() string {
 		Align(lipgloss.Center).
 		Width(m.width - 4).
 		Padding(2).
-		Render("No plugins loaded.\n\nPlugins can be placed in:\n• ~/.lyricforge/plugins/\n• ./plugins/\n• ./internal/plugins/examples/")
+		Render("No plugins loaded.\n\nPlugins can be placed in:\n• ~/.noise/plugins/\n• ./plugins/\n• ./internal/plugins/examples/")
 
 	content.WriteString(emptyState)
 

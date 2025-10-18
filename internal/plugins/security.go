@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/logging"
+	"github.com/puente-labs/noise/internal/logging"
 )
 
 // SecurityManager handles plugin security validation and sandboxing
@@ -28,7 +28,7 @@ func NewSecurityManager(logger *logging.Logger) *SecurityManager {
 	return &SecurityManager{
 		logger: logger,
 		allowedPaths: []string{
-			filepath.Join(os.Getenv("HOME"), ".lyricforge", "plugins"),
+			filepath.Join(os.Getenv("HOME"), ".noise", "plugins"),
 			"./plugins",
 			"./internal/plugins/examples",
 		},

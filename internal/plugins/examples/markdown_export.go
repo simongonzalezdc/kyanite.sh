@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/plugins"
+	"github.com/puente-labs/noise/internal/plugins"
 )
 
 // MarkdownExportPlugin is an example plugin that adds Markdown export functionality
@@ -23,7 +23,7 @@ func NewMarkdownExportPlugin() *MarkdownExportPlugin {
 			Name:        "Markdown Export",
 			Version:     "1.0.0",
 			Description: "Export lyrics as formatted Markdown",
-			Author:      "LyricForge Team",
+			Author:      "noise.sh Team",
 			License:     "MIT",
 			Capabilities: []plugins.Capability{
 				plugins.CapabilityExportFormat,

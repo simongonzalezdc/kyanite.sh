@@ -1,5 +1,5 @@
 # Development Roadmap & Implementation Guide
-## LyricForge: AI-Powered Songwriting TUI
+## noise.sh: AI-Powered Songwriting TUI
 
 **Version:** 1.0  
 **Date:** October 17, 2025  
@@ -14,11 +14,11 @@
 
 ```bash
 # Create project
-mkdir lyricforge && cd lyricforge
+mkdir noise.sh && cd noise.sh
 git init
 
 # Initialize Go module
-go mod init github.com/puente-labs/lyricforge
+go mod init github.com/puente-labs/noise.sh
 
 # Install core dependencies
 go get github.com/charmbracelet/bubbletea@latest
@@ -54,9 +54,9 @@ go get github.com/stretchr/testify@latest
 ### 2. Project Structure
 
 ```
-lyricforge/
+noise.sh/
 ├── cmd/
-│   └── lyricforge/
+│   └── noise.sh/
 │       └── main.go              # Entry point
 ├── internal/
 │   ├── app/                     # Application layer
@@ -104,7 +104,7 @@ lyricforge/
 
 ### 3. Initial Code Scaffolding
 
-**Create `cmd/lyricforge/main.go`:**
+**Create `cmd/noise.sh/main.go`:**
 
 ```go
 package main
@@ -114,7 +114,7 @@ import (
     "os"
     
     tea "github.com/charmbracelet/bubbletea"
-    "github.com/puente-labs/lyricforge/internal/ui"
+    "github.com/puente-labs/noise.sh/internal/ui"
 )
 
 var (
@@ -225,7 +225,7 @@ func (m RootModel) renderSplash() string {
         Width(m.width).
         Height(m.height)
     
-    return style.Render("🎵 LyricForge 🎵\n\nLoading...")
+    return style.Render("🎵 noise.sh 🎵\n\nLoading...")
 }
 
 func checkOllamaCmd() tea.Cmd {
@@ -334,7 +334,7 @@ import (
     "strings"
     
     "gopkg.in/yaml.v2"
-    "github.com/puente-labs/lyricforge/internal/domain"
+    "github.com/puente-labs/noise.sh/internal/domain"
 )
 
 type Parser struct{}
@@ -594,7 +594,7 @@ type DB struct {
 }
 
 func New(dataDir string) (*DB, error) {
-    dbPath := filepath.Join(dataDir, "lyricforge.db")
+    dbPath := filepath.Join(dataDir, "noise.sh.db")
     
     conn, err := sql.Open("sqlite3", dbPath)
     if err != nil {
@@ -657,7 +657,7 @@ import (
     "github.com/charmbracelet/lipgloss"
     "github.com/charmbracelet/glamour"
     
-    "github.com/puente-labs/lyricforge/internal/domain"
+    "github.com/puente-labs/noise.sh/internal/domain"
 )
 
 type Model struct {

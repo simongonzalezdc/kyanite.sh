@@ -1,12 +1,12 @@
-package lyricforge_test
+package noise
 
 import (
 	"fmt"
 	"testing"
 	"time"
 
-	"github.com/puente-labs/lyricforge/internal/collaboration"
-	"github.com/puente-labs/lyricforge/internal/infra/db"
+	"github.com/puente-labs/noise/internal/collaboration"
+	"github.com/puente-labs/noise/internal/infra/db"
 )
 
 // TestCollaborationFramework tests the complete collaboration framework
