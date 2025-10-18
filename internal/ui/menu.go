@@ -27,6 +27,7 @@ func NewMenuModel() *MenuModel {
 	items := []list.Item{
 		item{title: "New Song", desc: "Create a new song", screen: screenEditor},
 		item{title: "Open Song", desc: "Open an existing song", screen: screenEditor},
+		item{title: "Export", desc: "Export current song to various formats", screen: screenExport},
 		item{title: "Theory Tools", desc: "Music theory and rhyme tools", screen: screenTheory},
 		item{title: "Audio Tools", desc: "Metronome and chord playback", screen: screenAudio},
 		item{title: "Project Manager", desc: "Manage songs and projects", screen: screenManager},
@@ -93,7 +94,10 @@ func (m *MenuModel) Update(msg tea.Msg) (*MenuModel, tea.Cmd) {
 			if ok {
 				// Start selection animation
 				m.animation.PulseAnimation("menu_selection", 1.0)
-				_ = selectedItem // Prevent unused variable warning
+				// Return screen change command
+				return m, func() tea.Msg {
+					return ScreenChangeMsg{Screen: selectedItem.screen}
+				}
 			}
 		case "up", "down":
 			// Track selection changes for animation
@@ -146,6 +150,8 @@ func (m *MenuModel) View() string {
 	if slideProgress > 0 && slideProgress < 1 {
 		// Smooth transition effect when changing selection
 		// This creates a subtle sliding effect
+		// TODO: Implement visual sliding animation
+		_ = slideProgress // Track animation progress for future implementation
 	}
 
 	return listStyle.View()

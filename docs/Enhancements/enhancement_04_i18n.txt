@@ -1,0 +1,585 @@
+# Enhancement #4: Multi-Language Support Viability Research
+**LyricForge - Spanish & International Expansion**
+
+**Status:** RESEARCH PHASE  
+**Date:** October 17, 2025  
+**Owner:** Simon (Puente Labs)  
+**Timeline:** Post-v2.0 (6+ months out)
+
+---
+
+## Purpose
+
+Evaluate the feasibility, effort, and strategy for adding multi-language support to LyricForge, with **Spanish as the first target language**.
+
+---
+
+## Key Questions to Answer
+
+### Technical Feasibility
+1. Can Ollama models handle Spanish lyrics well?
+2. Do Spanish-specific songwriting pedagogies exist?
+3. How much code needs internationalization?
+4. What about rhyme dictionaries and prosody tools?
+
+### Market Viability
+1. Is there demand for Spanish songwriting tools?
+2. What's the competitive landscape?
+3. Can open source community help with translations?
+4. Regional differences (Spain vs. Latin America)?
+
+### Effort Estimation
+1. Development time for Spanish support?
+2. Ongoing maintenance burden?
+3. Content creation (prompts, knowledge base)?
+4. Testing and quality assurance?
+
+---
+
+## Initial Research Findings
+
+### 1. LLM Spanish Capabilities
+
+**Good News:**
+- Most modern LLMs (Llama, Qwen, Mistral) have strong Spanish support
+- Training data includes significant Spanish text
+- Can generate creative Spanish content
+
+**Challenges:**
+- Rhyme detection more complex (different phonetic rules)
+- Prosody varies by region (Spanish vs. Mexican vs. Argentine)
+- Cultural references differ
+- Slang and colloquialisms vary widely
+
+**Models to Test:**
+```
+- Llama 3.1 8B Instruct (good Spanish support)
+- Qwen 2.5 7B (multilingual)
+- Mistral 7B (European languages)
+- ⚠️ Need bilingual testing for quality
+```
+
+---
+
+### 2. Spanish Songwriting Pedagogy
+
+**Research Needed:**
+- [ ] Spanish-language songwriting books
+- [ ] Latin music pedagogy (reggaeton, bachata, etc.)
+- [ ] Flamenco lyric traditions
+- [ ] Contemporary Spanish pop techniques
+
+**Known Differences:**
+- Syllable counting works differently
+- Rhyme schemes vary by genre
+- Regional music styles have different rules
+- Less formalized "Berklee Method" equivalent
+
+**Action Items:**
+- Research Spanish songwriting literature
+- Interview Spanish-speaking songwriters
+- Document regional style differences
+- Create Spanish knowledge base
+
+---
+
+### 3. Technical Components to Internationalize
+
+#### UI Strings (Easy)
+```go
+// Current
+statusBar := "Unsaved - Ctrl+K to Keep"
+
+// Internationalized
+statusBar := i18n.T("editor.statusbar.unsaved")
+```
+
+**Libraries:**
+- go-i18n (popular Go library)
+- JSON translation files
+- Fallback to English
+
+**Effort:** Low - ~2-3 days
+**Maintenance:** Low - community can contribute
+
+---
+
+#### Rhyme Dictionary (Hard)
+```
+Current: CMU Pronunciation Dictionary (English only)
+
+Spanish Options:
+- ❌ No equivalent CMU dict for Spanish
+- ✅ Can use IPA (International Phonetic Alphabet)
+- ✅ espeak-ng for Spanish pronunciation
+- ✅ Build custom Spanish rhyme database
+
+Effort: High - 2-3 weeks
+Maintenance: Medium - needs regional variants
+```
+
+---
+
+#### Syllable Counter (Medium)
+```python
+# English
+from pronouncing import syllable_count
+count = syllable_count("hello")  # 2
+
+# Spanish
+from syllable_es import contar_silabas
+count = contar_silabas("hola")  # 2
+```
+
+**Options:**
+- pyphen library (supports Spanish)
+- Custom rules-based counter
+- ML-based syllable detection
+
+**Effort:** Medium - 1 week
+**Maintenance:** Low - rules are stable
+
+---
+
+#### Prosody Analysis (Very Hard)
+```
+English: Stress-syllable alignment with melody
+Spanish: Complex stress patterns, regional variation
+
+Challenges:
+- Spanish stress is more consistent than English
+- But regional accents differ significantly
+- Different music genres have different prosody rules
+- Less formalized research than English
+
+Effort: Very High - 4-6 weeks
+Maintenance: High - ongoing research needed
+```
+
+---
+
+#### AI Prompts (Medium)
+```
+Current prompts are English-specific:
+- References English songwriting pedagogy
+- Uses English examples
+- English-centric metaphors
+
+Spanish prompts need:
+- Spanish songwriting pedagogy
+- Regional style awareness
+- Cultural appropriateness
+- Genre-specific techniques
+
+Effort: Medium - 2 weeks per major prompt
+Maintenance: Medium - community contributions
+```
+
+---
+
+### 4. Code Internationalization Strategy
+
+#### Option A: Full i18n from Start
+**Pros:**
+- Complete language support
+- Professional approach
+- Scales to many languages
+
+**Cons:**
+- High upfront cost
+- Slows development
+- Overkill for 2 languages
+
+**Effort:** 3-4 weeks
+
+---
+
+#### Option B: Spanish-Specific Fork
+**Pros:**
+- Fast to implement
+- Can experiment freely
+- Less complex codebase
+
+**Cons:**
+- Maintenance nightmare
+- Feature divergence
+- Not scalable
+
+**Effort:** 2-3 weeks
+
+---
+
+#### Option C: Gradual i18n (Recommended)
+**Pros:**
+- Start simple, grow over time
+- Focus on Spanish first
+- Learn what works before scaling
+
+**Cons:**
+- Some refactoring later
+- Not perfect from start
+
+**Effort:** 1-2 weeks initial, ongoing
+
+**Implementation:**
+```go
+// Phase 1: UI strings only
+type Language string
+const (
+    English Language = "en"
+    Spanish Language = "es"
+)
+
+// Phase 2: Add content translation
+type LocalizedPrompt struct {
+    English string
+    Spanish string
+}
+
+// Phase 3: Full i18n framework
+// Use go-i18n or similar
+```
+
+---
+
+### 5. Spanish Knowledge Base
+
+**Content Needed:**
+
+#### Songwriting Pedagogy
+- [ ] Spanish lyric writing techniques
+- [ ] Regional style guides
+- [ ] Genre-specific rules (reggaeton, bachata, rock en español)
+- [ ] Famous Spanish songwriters' methods
+
+#### Anti-Cliché Lists
+- [ ] Common Spanish lyric clichés
+- [ ] Overused phrases by genre
+- [ ] Regional differences
+
+#### Rhyme Schemes
+- [ ] Spanish rhyme patterns
+- [ ] Consonant vs. assonant rhyme
+- [ ] Genre conventions
+
+#### Cultural References
+- [ ] Appropriate metaphors
+- [ ] Regional sensitivities
+- [ ] Modern vs. traditional styles
+
+**Effort:** 3-4 weeks of research + writing
+**Maintenance:** Ongoing community contributions
+
+---
+
+### 6. Market Research
+
+#### Demand Indicators
+- [ ] Survey existing users about Spanish interest
+- [ ] Research Spanish songwriter communities
+- [ ] Analyze competition in Spanish markets
+- [ ] Estimate market size
+
+#### Target Markets
+- **Spain:** Pop, rock, indie
+- **Mexico:** Regional Mexican, pop, rock
+- **Argentina:** Rock, tango, folk
+- **Colombia:** Reggaeton, vallenato, pop
+- **United States:** Latin music, bilingual artists
+
+#### Competitive Landscape
+**Spanish Songwriting Tools:**
+- ❓ Research needed - very limited options found
+- Most tools are English-only
+- Opportunity for first-mover advantage
+
+---
+
+### 7. Community Contribution Strategy
+
+**GitHub Contributions:**
+```
+Areas where community can help:
+
+✅ Easy:
+- UI string translations
+- Documentation translation
+- Example songs
+
+⚠️ Medium:
+- Knowledge base content
+- Regional style guides
+- Cliché lists
+
+❌ Hard:
+- Core algorithms (rhyme, prosody)
+- AI prompt engineering
+- Quality assurance
+```
+
+**Contribution Guide Needed:**
+- Translation guidelines
+- Style guide
+- Review process
+- Credit/attribution
+
+---
+
+### 8. Regional Variations
+
+**Spanish is not monolithic:**
+
+| Region | Considerations |
+|--------|----------------|
+| **Spain** | European Spanish, flamenco influence, vosotros |
+| **Mexico** | Mexican Spanish, regional Mexican music, mariachi |
+| **Argentina** | Rioplatense Spanish, voseo, tango influence |
+| **Colombia** | Coastal vs. inland, reggaeton, vallenato |
+| **Caribbean** | Salsa, reggaeton, Caribbean Spanish |
+
+**Strategy:**
+- Start with "neutral" Spanish
+- Add regional variants later
+- Let community contribute regional content
+- Flag regional-specific features
+
+---
+
+### 9. Effort Estimation
+
+#### Minimal Viable Spanish Support
+**Features:**
+- UI strings translated
+- Basic Spanish AI prompts
+- Simple syllable counter
+- English rhyme dict (fallback)
+
+**Time:** 3-4 weeks  
+**Cost:** Low  
+**Quality:** Basic but functional
+
+---
+
+#### Full Spanish Support
+**Features:**
+- Complete UI translation
+- Spanish knowledge base
+- Spanish rhyme dictionary
+- Spanish prosody analysis
+- Regional style support
+
+**Time:** 3-4 months  
+**Cost:** High  
+**Quality:** Professional
+
+---
+
+#### Recommended: Phased Approach
+**Phase 1: Spanish Alpha (1 month)**
+- UI strings
+- Basic AI prompts
+- Simple tools
+- Beta testers feedback
+
+**Phase 2: Spanish Beta (1 month)**
+- Improved prompts
+- Spanish knowledge base
+- Better rhyme/syllable support
+- Community contributions start
+
+**Phase 3: Spanish v1 (1 month)**
+- Polish based on feedback
+- Regional variants
+- Full documentation
+- Public release
+
+**Total Time:** 3 months with 1 developer
+
+---
+
+### 10. Beyond Spanish
+
+**Other Languages to Consider:**
+
+#### High Priority (Similar Demand)
+- **Portuguese** (Brazil market, similar to Spanish)
+- **French** (European/African/Canadian markets)
+- **German** (Strong music scene)
+
+#### Medium Priority
+- **Italian** (Opera/classical background)
+- **Japanese** (Large music market, anime)
+- **Korean** (K-pop influence)
+
+#### Low Priority
+- **Mandarin** (Complex, different writing system)
+- **Arabic** (RTL, different poetic traditions)
+- **Hindi** (Bollywood, but niche for this tool)
+
+**Strategy:**
+- Focus on Spanish first
+- Validate i18n approach
+- Portuguese as second language (easy after Spanish)
+- Community-driven for other languages
+
+---
+
+## Recommended Approach
+
+### Short Term (Next 6 months)
+1. **Ship v2.0 English-only**
+   - Focus on core features
+   - Rapid prototyping mode
+   - Polish existing experience
+
+2. **Prepare for i18n**
+   - Extract hardcoded strings
+   - Design i18n architecture
+   - Document translation process
+
+### Medium Term (6-12 months)
+3. **Spanish Alpha**
+   - UI translation
+   - Basic Spanish prompts
+   - Beta tester group
+   - Gather feedback
+
+4. **Spanish Beta**
+   - Improve based on feedback
+   - Add Spanish knowledge base
+   - Recruit community contributors
+   - Regional testing
+
+### Long Term (12+ months)
+5. **Spanish v1 Release**
+   - Full feature parity
+   - Regional support
+   - Professional quality
+   - Marketing push
+
+6. **Other Languages**
+   - Portuguese next (leverage Spanish work)
+   - Community-driven translations
+   - Focus on high-demand languages
+
+---
+
+## Risk Assessment
+
+### High Risks
+- **Quality concerns:** Spanish output not as good as English
+- **Maintenance burden:** Double the content to maintain
+- **Fragmentation:** Regional variants cause confusion
+- **Expertise gap:** Lack of Spanish songwriting knowledge
+
+**Mitigation:**
+- Hire Spanish-speaking songwriter consultant
+- Start small, validate quality
+- Clear regional labeling
+- Community expert involvement
+
+### Medium Risks
+- **Market size uncertainty:** Is demand real?
+- **Competition emerges:** Others launch Spanish tools
+- **Technical complexity:** Rhyme/prosody harder than expected
+
+**Mitigation:**
+- Survey users before committing
+- First-mover advantage important
+- Phase 1 without advanced features OK
+
+### Low Risks
+- **UI translation:** Straightforward
+- **Open source contributions:** Can reject poor translations
+- **Infrastructure:** Already architected for growth
+
+---
+
+## Success Metrics
+
+### Spanish v1 Success Criteria
+- [ ] 100+ Spanish-speaking active users
+- [ ] Quality score comparable to English (≥65/100)
+- [ ] Community contributions (≥3 contributors)
+- [ ] Positive feedback from native speakers
+- [ ] No major cultural issues reported
+
+### Open Source Community Success
+- [ ] 10+ translation contributors
+- [ ] Spanish knowledge base completed
+- [ ] Regional style guides from natives
+- [ ] Active Spanish-language Discord/forum
+
+---
+
+## Immediate Next Steps
+
+1. **User Survey**
+   - Ask existing users about Spanish interest
+   - Gauge demand and willingness to help
+   - Identify Spanish-speaking beta testers
+
+2. **Expert Consultation**
+   - Find Spanish-speaking songwriter
+   - Interview about pedagogy differences
+   - Validate technical approach
+
+3. **Technical Spike**
+   - Test Ollama Spanish capabilities
+   - Prototype Spanish rhyme detection
+   - Measure quality gap vs. English
+
+4. **Community Research**
+   - Find Spanish songwriting forums
+   - Identify potential contributors
+   - Gauge open source interest
+
+---
+
+## Open Questions
+
+1. **Is Simon bilingual?**
+   - Can he quality-check Spanish output?
+   - Personal connection to Spanish market?
+
+2. **Budget for Spanish consultant?**
+   - Need expert songwriter input
+   - How much to invest before validating?
+
+3. **Regional focus?**
+   - Start with one region?
+   - Or try to be pan-Spanish?
+
+4. **Web UI timing?**
+   - Mobile more important for Latin America?
+   - Coordinate with Enhancement #3?
+
+---
+
+## Conclusion
+
+**Viability:** ✅ **FEASIBLE** but significant effort
+
+**Recommendation:** 
+- **Wait** until v2.0 ships and is stable
+- **Validate** demand through user survey
+- **Start small** with Spanish Alpha (UI + basic prompts)
+- **Leverage** open source community for scaling
+- **Expand** to other languages after Spanish proves out
+
+**Estimated Timeline:**
+- Start: 6 months post-v2.0
+- Spanish Alpha: +1 month
+- Spanish Beta: +1 month  
+- Spanish v1: +1 month
+- **Total: 9 months from today**
+
+---
+
+**Status:** Research complete, awaiting go/no-go decision
+
+**Next Review:** After v2.0 launch (3-6 months)
+
+---
+
+_Note: This is a research document. Spanish implementation is NOT committed yet. Awaiting user demand validation and resource allocation decision._

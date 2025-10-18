@@ -1,4 +1,4 @@
-package main
+package lyricforge_test
 
 import (
 	"testing"

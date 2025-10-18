@@ -1,3 +1,5 @@
+// Package ui provides user interface components and models for the LyricForge application.
+// It includes Bubble Tea models, styling, animations, and responsive layout management.
 package ui
 
 import (

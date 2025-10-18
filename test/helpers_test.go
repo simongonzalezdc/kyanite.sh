@@ -1,4 +1,4 @@
-package main
+package lyricforge_test
 
 // Helper function to check if string contains substring
 func contains(s, substr string) bool {

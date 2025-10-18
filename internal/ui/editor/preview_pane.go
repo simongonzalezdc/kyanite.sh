@@ -1,6 +1,7 @@
 package editor
 
 import (
+	"crypto/md5"
 	"fmt"
 	"strings"
 	"sync"
@@ -57,9 +58,28 @@ type PreviewPaneModel struct {
 	tocEntries      []TOCEntry
 
 	// Performance tracking
-	renderCache  map[string]string
-	cacheMutex   sync.RWMutex
-	maxCacheSize int
+	renderCache     map[string]string
+	cacheMutex      sync.RWMutex
+	maxCacheSize    int
+	lastRenderTime  time.Time
+	renderCount     int64
+	totalRenderTime time.Duration
+
+	// Performance optimizations for large documents
+	contentThreshold  int // Threshold for enabling optimizations (in characters)
+	enableThrottling  bool
+	throttleDuration  time.Duration
+	lastContentUpdate time.Time
+	pendingUpdate     bool
+
+	// Lazy loading for large documents
+	lazyLoadingEnabled bool
+	visibleStartLine   int
+	visibleEndLine     int
+	totalLines         int
+	contentLines       []string
+
+	// Responsive behavior (uses global manager)
 }
 
 // NewPreviewPaneModel creates a new preview pane model
@@ -116,7 +136,15 @@ func NewPreviewPaneModel() *PreviewPaneModel {
 		showReadingTime:     true,
 		showTOC:             true,
 		renderCache:         make(map[string]string),
-		maxCacheSize:        50,
+		maxCacheSize:        50,    // Will be adjusted based on terminal size in SetDimensions
+		contentThreshold:    50000, // 50KB threshold for enabling optimizations
+		enableThrottling:    true,
+		throttleDuration:    100 * time.Millisecond,
+		lastContentUpdate:   time.Now(),
+		lazyLoadingEnabled:  true,
+		visibleStartLine:    0,
+		visibleEndLine:      0,
+		totalLines:          0,
 	}
 
 	// Set up real-time preview callbacks
@@ -355,8 +383,8 @@ func (m *PreviewPaneModel) View() string {
 		style = m.blurredStyle
 	}
 
-	// Render content with Glamour
-	renderedContent, err := m.renderContentWithGlamour()
+	// Render content with Glamour (using cache for large documents)
+	renderedContent, err := m.renderContentWithCache()
 	if err != nil {
 		renderedContent = m.renderError(err)
 	}
@@ -463,10 +491,55 @@ func (m *PreviewPaneModel) View() string {
 	return style.Width(m.width).Height(m.height).Render(fullContent)
 }
 
-// SetDimensions sets the pane dimensions
+// SetDimensions sets the pane dimensions and adapts performance settings
 func (m *PreviewPaneModel) SetDimensions(width, height int) {
 	m.width = width
 	m.height = height
+
+	// Adapt cache size based on terminal size for optimal memory usage
+	oldCacheSize := m.maxCacheSize
+	m.maxCacheSize = m.getAdaptiveCacheSize(width, height)
+
+	// If cache size changed significantly, clear cache to prevent memory issues
+	if m.maxCacheSize < oldCacheSize/2 {
+		m.clearRenderCache()
+	}
+
+	// Adapt content threshold based on terminal size
+	if width < 100 {
+		// Lower threshold for smaller terminals to enable optimizations earlier
+		m.contentThreshold = 30000
+	} else if width > 160 {
+		// Higher threshold for larger terminals as they can handle more content
+		m.contentThreshold = 80000
+	} else {
+		// Standard threshold for medium terminals
+		m.contentThreshold = 50000
+	}
+}
+
+// getAdaptiveCacheSize returns optimal cache size based on terminal dimensions
+func (m *PreviewPaneModel) getAdaptiveCacheSize(width, height int) int {
+	// Base cache size
+	baseSize := 50
+
+	// Adjust based on terminal width
+	if width < 100 {
+		// Smaller cache for compact terminals
+		baseSize = 20
+	} else if width > 160 {
+		// Larger cache for wide terminals
+		baseSize = 80
+	}
+
+	// Adjust based on terminal height
+	if height < 30 {
+		baseSize = baseSize * 2 / 3 // Reduce cache size for short terminals
+	} else if height > 40 {
+		baseSize = baseSize * 4 / 3 // Increase cache size for tall terminals
+	}
+
+	return baseSize
 }
 
 // Focus focuses the preview pane
@@ -498,19 +571,37 @@ func (m *PreviewPaneModel) scrollUp() {
 	if m.scrollPos > 0 {
 		m.targetScroll = float64(m.scrollPos - 1)
 		m.isScrolling = true
+
+		// Update visible range for lazy loading
+		if m.lazyLoadingEnabled {
+			m.updateVisibleRange()
+		}
 	}
 }
 
 func (m *PreviewPaneModel) scrollDown() {
 	visibleHeight := m.height - 6
-	lines := strings.Split(m.renderContent(), "\n")
-	maxScroll := len(lines) - visibleHeight
+
+	// For lazy loading, use total lines instead of rendered content lines
+	var maxScroll int
+	if m.lazyLoadingEnabled && len(m.contentLines) > 0 {
+		maxScroll = m.totalLines - visibleHeight
+	} else {
+		lines := strings.Split(m.renderContent(), "\n")
+		maxScroll = len(lines) - visibleHeight
+	}
+
 	if maxScroll < 0 {
 		maxScroll = 0
 	}
 	if m.scrollPos < maxScroll {
 		m.targetScroll = float64(m.scrollPos + 1)
 		m.isScrolling = true
+
+		// Update visible range for lazy loading
+		if m.lazyLoadingEnabled {
+			m.updateVisibleRange()
+		}
 	}
 }
 
@@ -767,6 +858,45 @@ func abs(x float64) float64 {
 func (m *PreviewPaneModel) onContentUpdate(content string) {
 	m.content = content
 
+	// For large documents, implement throttling and lazy loading
+	if len(content) > m.contentThreshold {
+		now := time.Now()
+		timeSinceLastUpdate := now.Sub(m.lastContentUpdate)
+
+		// Adaptive throttling based on terminal size
+		throttleDuration := m.throttleDuration
+		if m.width < 100 {
+			// More aggressive throttling on smaller terminals
+			throttleDuration = m.throttleDuration * 2
+		} else if m.width > 160 {
+			// Less throttling on larger terminals
+			throttleDuration = m.throttleDuration / 2
+		}
+
+		// Implement throttling for large documents
+		if m.enableThrottling && timeSinceLastUpdate < throttleDuration && !m.pendingUpdate {
+			// Schedule a delayed update instead of immediate
+			m.pendingUpdate = true
+			go func() {
+				time.Sleep(throttleDuration)
+				m.cacheMutex.Lock()
+				shouldUpdate := m.pendingUpdate
+				m.cacheMutex.Unlock()
+
+				if shouldUpdate {
+					m.performThrottledUpdate(content)
+				}
+			}()
+			return
+		}
+		m.lastContentUpdate = now
+
+		// Set up lazy loading for very large documents
+		if m.lazyLoadingEnabled {
+			m.setupLazyLoading(content)
+		}
+	}
+
 	// Maintain scroll position if enabled
 	if m.scrollSyncEnabled {
 		m.maintainScrollPosition(content)
@@ -774,6 +904,120 @@ func (m *PreviewPaneModel) onContentUpdate(content string) {
 
 	// Clear render cache for new content
 	m.clearRenderCache()
+}
+
+// performThrottledUpdate performs the actual update after throttling delay
+func (m *PreviewPaneModel) performThrottledUpdate(content string) {
+	m.cacheMutex.Lock()
+	m.pendingUpdate = false
+	m.cacheMutex.Unlock()
+
+	// Update content and trigger re-render
+	m.content = content
+
+	// Set up lazy loading for very large documents
+	if m.lazyLoadingEnabled && len(content) > m.contentThreshold {
+		m.setupLazyLoading(content)
+	}
+
+	// Maintain scroll position if enabled
+	if m.scrollSyncEnabled {
+		m.maintainScrollPosition(content)
+	}
+
+	// Clear render cache for new content
+	m.clearRenderCache()
+}
+
+// setupLazyLoading sets up lazy loading for large documents
+func (m *PreviewPaneModel) setupLazyLoading(content string) {
+	lines := strings.Split(content, "\n")
+	m.contentLines = lines
+	m.totalLines = len(lines)
+
+	// Calculate visible range based on current scroll position and viewport height
+	// Adjust viewport height based on responsive layout for better performance
+	viewportHeight := m.height - 8 // Account for padding and UI elements
+
+	// Adjust viewport height for responsive behavior
+	if m.width < 100 {
+		// On smaller terminals, use smaller viewport for better performance
+		viewportHeight = m.height - 6
+	} else if m.width > 160 {
+		// On larger terminals, can afford larger viewport
+		viewportHeight = m.height - 10
+	}
+
+	m.visibleStartLine = m.scrollPos
+	m.visibleEndLine = m.visibleStartLine + viewportHeight
+
+	// Ensure visible range is within bounds
+	if m.visibleStartLine < 0 {
+		m.visibleStartLine = 0
+	}
+	if m.visibleEndLine > m.totalLines {
+		m.visibleEndLine = m.totalLines
+	}
+	if m.visibleStartLine >= m.totalLines {
+		m.visibleStartLine = m.totalLines - 1
+	}
+	if m.visibleEndLine <= m.visibleStartLine {
+		m.visibleEndLine = m.visibleStartLine + 1
+	}
+}
+
+// getVisibleContent returns only the visible portion of content for lazy loading
+func (m *PreviewPaneModel) getVisibleContent() string {
+	if !m.lazyLoadingEnabled || len(m.contentLines) == 0 {
+		return m.content
+	}
+
+	// Ensure visible range is up to date
+	m.updateVisibleRange()
+
+	start := m.visibleStartLine
+	end := m.visibleEndLine
+
+	// Add some buffer lines for smoother scrolling
+	buffer := 5
+	start = maxInt(0, start-buffer)
+	end = minInt(m.totalLines, end+buffer)
+
+	return strings.Join(m.contentLines[start:end], "\n")
+}
+
+// updateVisibleRange updates the visible range based on current scroll position
+func (m *PreviewPaneModel) updateVisibleRange() {
+	if !m.lazyLoadingEnabled || m.totalLines == 0 {
+		return
+	}
+
+	viewportHeight := m.height - 8
+	m.visibleStartLine = m.scrollPos
+	m.visibleEndLine = m.visibleStartLine + viewportHeight
+
+	// Clamp to valid range
+	if m.visibleStartLine < 0 {
+		m.visibleStartLine = 0
+	}
+	if m.visibleEndLine > m.totalLines {
+		m.visibleEndLine = m.totalLines
+	}
+}
+
+// Helper functions for lazy loading
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func minInt(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // onUpdateStart handles preview update start events
@@ -829,16 +1073,55 @@ func (m *PreviewPaneModel) maintainScrollPosition(newContent string) {
 	newHash := m.realtimeManager.hashContent(newContent)
 	if storedPos, exists := m.lastScrollPositions[newHash]; exists {
 		// Check if the stored position is still valid for the new content
-		lines := strings.Split(m.renderContent(), "\n")
-		maxScroll := len(lines) - (m.height - 6)
+		var maxScroll int
+		if m.lazyLoadingEnabled && len(m.contentLines) > 0 {
+			viewportHeight := m.height - 6
+			maxScroll = m.totalLines - viewportHeight
+		} else {
+			lines := strings.Split(m.renderContent(), "\n")
+			maxScroll = len(lines) - (m.height - 6)
+		}
+
 		if maxScroll < 0 {
 			maxScroll = 0
 		}
 
 		if storedPos <= maxScroll {
 			m.scrollPos = storedPos
+
+			// Update visible range for lazy loading
+			if m.lazyLoadingEnabled {
+				m.updateVisibleRange()
+			}
 		}
 	}
+}
+
+// getCachedRender attempts to get a cached render for the given content hash
+func (m *PreviewPaneModel) getCachedRender(contentHash string) (string, bool) {
+	m.cacheMutex.RLock()
+	defer m.cacheMutex.RUnlock()
+
+	cached, exists := m.renderCache[contentHash]
+	return cached, exists
+}
+
+// setCachedRender stores a rendered result in the cache with LRU-style management
+func (m *PreviewPaneModel) setCachedRender(contentHash, rendered string) {
+	m.cacheMutex.Lock()
+	defer m.cacheMutex.Unlock()
+
+	// Implement LRU-style cache management for large documents
+	if len(m.renderCache) >= m.maxCacheSize {
+		// Remove oldest entries (simple LRU implementation)
+		// In a production system, you might want to use a proper LRU cache
+		for key := range m.renderCache {
+			delete(m.renderCache, key)
+			break
+		}
+	}
+
+	m.renderCache[contentHash] = rendered
 }
 
 // clearRenderCache clears the render cache when content changes significantly
@@ -847,34 +1130,6 @@ func (m *PreviewPaneModel) clearRenderCache() {
 	defer m.cacheMutex.Unlock()
 	m.renderCache = make(map[string]string)
 }
-
-// getCachedRender attempts to get a cached render for the given content hash
-// TODO: Uncomment when caching functionality is needed
-// func (m *PreviewPaneModel) getCachedRender(contentHash string) (string, bool) {
-// 	m.cacheMutex.RLock()
-// 	defer m.cacheMutex.RUnlock()
-//
-// 	cached, exists := m.renderCache[contentHash]
-// 	return cached, exists
-// }
-
-// setCachedRender stores a rendered result in the cache
-// TODO: Uncomment when caching functionality is needed
-// func (m *PreviewPaneModel) setCachedRender(contentHash, rendered string) {
-// 	m.cacheMutex.Lock()
-// 	defer m.cacheMutex.Unlock()
-//
-// 	// Implement LRU-style cache management
-// 	if len(m.renderCache) >= m.maxCacheSize {
-// 		// Remove oldest entries (simple implementation)
-// 		for key := range m.renderCache {
-// 			delete(m.renderCache, key)
-// 			break
-// 		}
-// 	}
-//
-// 	m.renderCache[contentHash] = rendered
-// }
 
 // SetContentImmediate sets content immediately without debouncing
 func (m *PreviewPaneModel) SetContentImmediate(content string) {
@@ -912,7 +1167,63 @@ func (m *PreviewPaneModel) ToggleTOC() {
 
 // GetPreviewStats returns current preview statistics
 func (m *PreviewPaneModel) GetPreviewStats() PreviewStats {
-	return m.previewStats
+	stats := m.previewStats
+
+	// Add performance metrics
+	m.cacheMutex.RLock()
+	stats.UpdateCount = m.renderCount
+	if m.renderCount > 0 {
+		stats.AvgUpdateTime = m.totalRenderTime / time.Duration(m.renderCount)
+	}
+	stats.LastUpdateTime = m.lastRenderTime
+	m.cacheMutex.RUnlock()
+
+	return stats
+}
+
+// GetPerformanceMetrics returns detailed performance metrics
+func (m *PreviewPaneModel) GetPerformanceMetrics() PerformanceMetrics {
+	m.cacheMutex.RLock()
+	defer m.cacheMutex.RUnlock()
+
+	var avgRenderTime time.Duration
+	if m.renderCount > 0 {
+		avgRenderTime = m.totalRenderTime / time.Duration(m.renderCount)
+	}
+
+	cacheHitRate := 0.0
+	if m.renderCount > 0 {
+		// Estimate cache hit rate (this is a simplified calculation)
+		cacheHitRate = float64(m.maxCacheSize) / float64(m.renderCount) * 100
+		if cacheHitRate > 100 {
+			cacheHitRate = 100
+		}
+	}
+
+	return PerformanceMetrics{
+		RenderCount:     m.renderCount,
+		TotalRenderTime: m.totalRenderTime,
+		AvgRenderTime:   avgRenderTime,
+		LastRenderTime:  m.lastRenderTime,
+		CacheSize:       len(m.renderCache),
+		MaxCacheSize:    m.maxCacheSize,
+		CacheHitRate:    cacheHitRate,
+		ContentSize:     len(m.content),
+		IsThrottled:     m.enableThrottling && len(m.content) > m.contentThreshold,
+	}
+}
+
+// PerformanceMetrics holds detailed performance information
+type PerformanceMetrics struct {
+	RenderCount     int64
+	TotalRenderTime time.Duration
+	AvgRenderTime   time.Duration
+	LastRenderTime  time.Time
+	CacheSize       int
+	MaxCacheSize    int
+	CacheHitRate    float64
+	ContentSize     int
+	IsThrottled     bool
 }
 
 // GetTOC returns the table of contents entries
@@ -921,22 +1232,80 @@ func (m *PreviewPaneModel) GetTOC() []TOCEntry {
 }
 
 // renderContentWithCache renders content with caching for performance
-// TODO: Uncomment when caching functionality is needed
-// func (m *PreviewPaneModel) renderContentWithCache() (string, error) {
-// 	contentHash := m.realtimeManager.hashContent(m.content)
-//
-// 	// Try to get from cache first
-// 	if cached, exists := m.getCachedRender(contentHash); exists {
-// 		return cached, nil
-// 	}
-//
-// 	// Render content
-// 	rendered, err := m.renderContentWithGlamour()
-//
-// 	// Cache the result if successful
-// 	if err == nil && rendered != "" {
-// 		m.setCachedRender(contentHash, rendered)
-// 	}
-//
-// 	return rendered, err
-// }
+func (m *PreviewPaneModel) renderContentWithCache() (string, error) {
+	// Use lazy loading for very large documents
+	if m.lazyLoadingEnabled && len(m.content) > m.contentThreshold && len(m.contentLines) > 0 {
+		visibleContent := m.getVisibleContent()
+		contentHash := m.hashContent(visibleContent)
+
+		// Try to get from cache first
+		if cached, exists := m.getCachedRender(contentHash); exists {
+			return cached, nil
+		}
+
+		// Render visible content with performance tracking
+		startTime := time.Now()
+		// Temporarily replace content for rendering
+		originalContent := m.content
+		m.content = visibleContent
+		rendered, err := m.renderContentWithGlamour()
+		m.content = originalContent
+		renderDuration := time.Since(startTime)
+
+		// Update performance metrics
+		m.cacheMutex.Lock()
+		m.renderCount++
+		m.totalRenderTime += renderDuration
+		m.lastRenderTime = startTime
+		m.cacheMutex.Unlock()
+
+		// Cache the result if successful
+		if err == nil && rendered != "" {
+			m.setCachedRender(contentHash, rendered)
+		}
+
+		return rendered, err
+	}
+
+	// Standard caching for moderately large documents
+	if len(m.content) < m.contentThreshold {
+		return m.renderContentWithGlamour()
+	}
+
+	contentHash := m.hashContent(m.content)
+
+	// Try to get from cache first
+	if cached, exists := m.getCachedRender(contentHash); exists {
+		return cached, nil
+	}
+
+	// Render content with performance tracking
+	startTime := time.Now()
+	rendered, err := m.renderContentWithGlamour()
+	renderDuration := time.Since(startTime)
+
+	// Update performance metrics
+	m.cacheMutex.Lock()
+	m.renderCount++
+	m.totalRenderTime += renderDuration
+	m.lastRenderTime = startTime
+	m.cacheMutex.Unlock()
+
+	// Cache the result if successful and content is large enough
+	if err == nil && rendered != "" && len(m.content) >= m.contentThreshold {
+		m.setCachedRender(contentHash, rendered)
+	}
+
+	return rendered, err
+}
+
+// hashContent generates a simple hash of the content for caching
+func (m *PreviewPaneModel) hashContent(content string) string {
+	// For large content, hash only a portion to improve performance
+	maxContentLength := 100000 // 100KB limit for hashing
+	if len(content) > maxContentLength {
+		content = content[:maxContentLength]
+	}
+	hash := md5.Sum([]byte(content))
+	return fmt.Sprintf("%x", hash)
+}

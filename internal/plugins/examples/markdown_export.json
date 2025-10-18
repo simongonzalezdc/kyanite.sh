@@ -1,0 +1,19 @@
+{
+  "id": "markdown_export",
+  "name": "Markdown Export",
+  "version": "1.0.0",
+  "description": "Export lyrics as formatted Markdown",
+  "author": "LyricForge Team",
+  "license": "MIT",
+  "capabilities": [
+    "export_format"
+  ],
+  "config": {
+    "format_options": {
+      "include_timestamp": true,
+      "bold_chorus": true,
+      "section_breaks": true
+    }
+  },
+  "enabled": true
+}

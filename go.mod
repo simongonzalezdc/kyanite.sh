@@ -10,6 +10,8 @@ require (
 	github.com/charmbracelet/lipgloss v1.1.1-0.20250404203927-76690c660834
 	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/spf13/viper v1.21.0
+	golang.org/x/text v0.28.0
+	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.27.0
 )
 
@@ -60,7 +62,6 @@ require (
 	golang.org/x/sync v0.16.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/term v0.33.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/tools v0.35.0 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect
 	modernc.org/cc/v3 v3.40.0 // indirect

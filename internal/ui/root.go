@@ -6,7 +6,10 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/puente-labs/lyricforge/internal/collaboration"
+	"github.com/puente-labs/lyricforge/internal/config"
 	"github.com/puente-labs/lyricforge/internal/infra/db"
+	"github.com/puente-labs/lyricforge/internal/plugins"
 	"github.com/puente-labs/lyricforge/internal/ui/editor"
 	"github.com/puente-labs/lyricforge/internal/ui/styles"
 )
@@ -18,6 +21,7 @@ const (
 	screenSplash screen = iota
 	screenMenu
 	screenEditor
+	screenExport
 	screenTheory
 	screenAudio
 	screenManager
@@ -35,10 +39,14 @@ type RootModel struct {
 	// Database connection
 	database *db.DB
 
+	// Configuration
+	config *config.Config
+
 	// Child models
 	splash   *SplashModel
 	menu     *MenuModel
 	editor   *EditorModel
+	export   *ExportModel
 	theory   *TheoryModel
 	audio    *AudioModel
 	manager  *ManagerModel
@@ -58,20 +66,36 @@ type RootModel struct {
 
 	// Responsive layout system
 	responsiveManager *ResponsiveLayoutManager
+
+	// Collaboration system
+	collaborationManager *collaboration.CollaborationManager
+	presenceManager      *collaboration.PresenceManager
+	sessionManager       *collaboration.SessionManager
+	invitationManager    *collaboration.InvitationManager
+	conflictResolver     *collaboration.ConflictResolver
+
+	// Plugin system
+	pluginManager *plugins.DefaultManager
 }
 
 // NewRootModel creates a new root model with initialized state
-func NewRootModel() *RootModel {
+func NewRootModel(pluginManager *plugins.DefaultManager) *RootModel {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 	s.Style = lipgloss.NewStyle().Foreground(styles.Primary)
 
 	return &RootModel{
-		currentScreen:     screenSplash,
-		loading:           true,
-		spinner:           s,
-		animation:         NewAnimationManager(),
-		responsiveManager: NewResponsiveLayoutManager(),
+		currentScreen:        screenSplash,
+		loading:              true,
+		spinner:              s,
+		animation:            NewAnimationManager(),
+		responsiveManager:    NewResponsiveLayoutManager(),
+		collaborationManager: collaboration.NewCollaborationManager(nil), // Database will be set after initialization
+		presenceManager:      collaboration.NewPresenceManager(),
+		sessionManager:       collaboration.NewSessionManager(),
+		invitationManager:    collaboration.NewInvitationManager(),
+		conflictResolver:     collaboration.NewConflictResolver(),
+		pluginManager:        pluginManager,
 	}
 }
 
@@ -135,7 +159,7 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.currentScreen = screenMenu
 				return m, nil
 			}
-		case "f1":
+		case "f1", "?":
 			// Toggle help mode
 			m.helpMode = !m.helpMode
 			return m, nil
@@ -145,6 +169,10 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.database = msg.database
 		m.loading = false
 		m.currentScreen = screenMenu
+
+		// Initialize collaboration system
+		m.initializeCollaborationSystem()
+
 		// Initialize child models
 		m.initializeChildModels()
 
@@ -169,7 +197,14 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if !msg.IsValid {
 			// Could show a temporary warning overlay or log the warnings
 			// For now, we'll just ensure the app continues to work
+			// TODO: Implement size validation warnings display
+			// Log validation issues for debugging
+			fmt.Printf("Size validation issues detected for terminal size\n")
 		}
+
+	case ScreenChangeMsg:
+		// Handle screen changes from menu
+		m.currentScreen = msg.Screen
 	}
 
 	// Update current screen
@@ -183,16 +218,57 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // initializeChildModels initializes all child models
 func (m *RootModel) initializeChildModels() {
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		// Use default config if loading fails
+		cfg = config.DefaultConfig()
+	}
+	m.config = cfg
+
 	m.splash = NewSplashModel()
 	m.menu = NewMenuModel()
 	m.editor = NewEditorModel(m.database)
+	m.export = NewExportModel("") // Content will be set when entering export screen
 	m.theory = NewTheoryModel()
 	m.audio = NewAudioModel()
 	m.manager = NewManagerModel(m.database)
-	m.settings = NewSettingsModel()
+	m.settings = NewSettingsModel(m.config)
 
 	// Initialize help system
 	m.helpPane = editor.NewHelpPaneModel(nil) // Shortcut manager will be set when needed
+}
+
+// initializeCollaborationSystem initializes the collaboration system
+func (m *RootModel) initializeCollaborationSystem() {
+	// Set database for collaboration manager
+	m.collaborationManager = collaboration.NewCollaborationManager(m.database)
+
+	// Set up UI callbacks for collaboration events
+	m.collaborationManager.SetUICallbacks(
+		m.onSessionUpdate,
+		m.onPresenceUpdate,
+		m.onConflictDetected,
+	)
+
+	// Set up presence manager callbacks
+	m.presenceManager.SetPresenceCallbacks(
+		m.onPresenceUpdate,
+		func(sessionID, userID string) {
+			// Handle user joined for presence manager
+		},
+		func(sessionID, userID string) {
+			// Handle user left for presence manager
+		},
+	)
+
+	// Set up session manager callbacks
+	m.sessionManager.SetSessionCallbacks(
+		m.onSessionCreated,
+		m.onSessionEnded,
+		m.onUserJoined,
+		m.onUserLeft,
+	)
 }
 
 // updateCurrentScreen routes messages to the current screen's model
@@ -204,11 +280,30 @@ func (m *RootModel) updateCurrentScreen(msg tea.Msg) tea.Cmd {
 		return m.updateMenu(msg)
 	case screenEditor:
 		return m.updateEditor(msg)
+	case screenExport:
+		return m.updateExport(msg)
 	case screenTheory:
 		return m.updateTheory(msg)
 	case screenAudio:
 		return m.updateAudio(msg)
 	case screenManager:
+		// Propagate OpenSongMsg from manager to editor by setting editor state
+		switch v := msg.(type) {
+		case OpenSongMsg:
+			if m.editor != nil {
+				// Set the editor content and current song
+				if v.Song != nil {
+					// Set editor text and current song via exported helper
+					m.editor.SetEditorText(v.Song.RawContent)
+					if m.editor.GetSplitPane() != nil {
+						m.editor.GetSplitPane().SetCurrentSong(v.Song)
+					}
+					// Switch to editor screen
+					m.currentScreen = screenEditor
+					return nil
+				}
+			}
+		}
 		return m.updateManager(msg)
 	case screenSettings:
 		return m.updateSettings(msg)
@@ -240,6 +335,8 @@ func (m *RootModel) View() string {
 		content = m.renderManager()
 	case screenSettings:
 		content = m.renderSettings()
+	case screenExport:
+		content = m.renderExport()
 	case screenLoading:
 		content = m.renderLoading()
 	default:
@@ -343,6 +440,11 @@ type initErrorMsg struct {
 	err error
 }
 
+// Message type for screen changes
+type ScreenChangeMsg struct {
+	Screen screen
+}
+
 // Screen update methods (placeholders for now)
 func (m *RootModel) updateSplash(msg tea.Msg) tea.Cmd {
 	if m.splash != nil {
@@ -397,4 +499,67 @@ func (m *RootModel) updateSettings(msg tea.Msg) tea.Cmd {
 		return cmd
 	}
 	return nil
+}
+
+func (m *RootModel) updateExport(msg tea.Msg) tea.Cmd {
+	if m.export != nil {
+		// Handle special messages for export screen
+		switch msg.(type) {
+		case ExportCompleteMsg:
+			// Export completed, return to editor
+			m.currentScreen = screenEditor
+			return nil
+		case BackMsg:
+			// User pressed back, return to menu
+			m.currentScreen = screenMenu
+			return nil
+		}
+
+		_, cmd := m.export.Update(msg)
+		return cmd
+	}
+	return nil
+}
+
+func (m *RootModel) renderExport() string {
+	// Set export content from current editor content if available
+	if m.editor != nil {
+		content := m.editor.GetEditorText()
+		m.export.SetContent(content)
+	}
+
+	// Set dimensions for responsive layout
+	m.export.SetDimensions(m.width, m.height)
+
+	return m.export.View()
+}
+
+// Collaboration event handlers
+
+func (m *RootModel) onSessionUpdate(event collaboration.SessionUpdateEvent) {
+	// Handle session updates - could trigger UI refresh or notifications
+}
+
+func (m *RootModel) onPresenceUpdate(event collaboration.PresenceUpdateEvent) {
+	// Handle presence updates - could update presence indicators
+}
+
+func (m *RootModel) onConflictDetected(event collaboration.ConflictEvent) {
+	// Handle conflict detection - could show conflict resolution UI
+}
+
+func (m *RootModel) onUserJoined(session *collaboration.Session, participant *collaboration.Participant) {
+	// Handle user joining session
+}
+
+func (m *RootModel) onUserLeft(session *collaboration.Session, participant *collaboration.Participant) {
+	// Handle user leaving session
+}
+
+func (m *RootModel) onSessionCreated(session *collaboration.Session) {
+	// Handle session creation
+}
+
+func (m *RootModel) onSessionEnded(session *collaboration.Session) {
+	// Handle session ending
 }

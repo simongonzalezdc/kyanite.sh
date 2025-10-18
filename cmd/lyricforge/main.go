@@ -8,6 +8,7 @@ import (
 	"github.com/puente-labs/lyricforge/internal/config"
 	"github.com/puente-labs/lyricforge/internal/infra/db"
 	"github.com/puente-labs/lyricforge/internal/logging"
+	"github.com/puente-labs/lyricforge/internal/plugins"
 	"github.com/puente-labs/lyricforge/internal/ui"
 )
 
@@ -63,8 +64,16 @@ func main() {
 		logger.Debug("Skipping database initialization (dev mode)")
 	}
 
-	// Create root model
-	rootModel := ui.NewRootModel()
+	// Initialize plugin system
+	pluginManager := plugins.NewManager(cfg, logger)
+	if err := pluginManager.LoadPlugins(); err != nil {
+		logger.Warnf("Failed to load plugins: %v", err)
+	} else {
+		logger.Infof("Plugin system initialized with %d plugins", len(pluginManager.GetPlugins()))
+	}
+
+	// Create root model with plugin manager
+	rootModel := ui.NewRootModel(pluginManager)
 
 	// Set up the Bubble Tea program
 	p := tea.NewProgram(

@@ -2,8 +2,10 @@ package editor
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/puente-labs/lyricforge/internal/ui/styles"
@@ -18,13 +20,21 @@ type HelpPaneModel struct {
 	// Keyboard shortcuts
 	shortcutManager *ShortcutManager
 
+	// Search functionality
+	searchMode    bool
+	searchInput   textinput.Model
+	searchQuery   string
+	searchResults []*KeyBinding
+
 	// Styles
-	containerStyle lipgloss.Style
-	titleStyle     lipgloss.Style
-	categoryStyle  lipgloss.Style
-	shortcutStyle  lipgloss.Style
-	descStyle      lipgloss.Style
-	borderStyle    lipgloss.Style
+	containerStyle    lipgloss.Style
+	titleStyle        lipgloss.Style
+	categoryStyle     lipgloss.Style
+	shortcutStyle     lipgloss.Style
+	descStyle         lipgloss.Style
+	borderStyle       lipgloss.Style
+	searchInputStyle  lipgloss.Style
+	searchResultStyle lipgloss.Style
 
 	// Responsive layout
 	compactMode     bool
@@ -34,8 +44,21 @@ type HelpPaneModel struct {
 
 // NewHelpPaneModel creates a new help pane model
 func NewHelpPaneModel(shortcutManager *ShortcutManager) *HelpPaneModel {
+	// Initialize search input
+	searchInput := textinput.New()
+	searchInput.Placeholder = "Search shortcuts..."
+	searchInput.Prompt = "🔍 "
+	searchInput.PromptStyle = lipgloss.NewStyle().Foreground(styles.Accent)
+	searchInput.TextStyle = lipgloss.NewStyle().Foreground(styles.TextPrimary)
+	searchInput.Cursor.Style = lipgloss.NewStyle().Foreground(styles.Accent)
+	searchInput.CharLimit = 50
+	searchInput.Focus()
+
 	model := &HelpPaneModel{
 		shortcutManager: shortcutManager,
+		searchInput:     searchInput,
+		searchMode:      false,
+		searchQuery:     "",
 		containerStyle:  styles.BorderActive,
 		titleStyle: lipgloss.NewStyle().
 			Bold(true).
@@ -51,10 +74,12 @@ func NewHelpPaneModel(shortcutManager *ShortcutManager) *HelpPaneModel {
 			Bold(true),
 		descStyle: lipgloss.NewStyle().
 			Foreground(styles.TextSecondary),
-		borderStyle:     styles.Border,
-		compactMode:     false,
-		showMinimalHelp: false,
-		showShortKeys:   false,
+		borderStyle:       styles.Border,
+		searchInputStyle:  styles.BorderActive.Width(50).Padding(0, 1),
+		searchResultStyle: lipgloss.NewStyle().Foreground(styles.Success),
+		compactMode:       false,
+		showMinimalHelp:   false,
+		showShortKeys:     false,
 	}
 
 	return model
@@ -67,18 +92,55 @@ func (m *HelpPaneModel) Init() tea.Cmd {
 
 // Update handles messages for the help pane
 func (m *HelpPaneModel) Update(msg tea.Msg) (*HelpPaneModel, tea.Cmd) {
+	var cmd tea.Cmd
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "esc", "q", "enter":
+		case "esc":
+			if m.searchMode {
+				// Exit search mode but stay in help
+				m.searchMode = false
+				m.searchQuery = ""
+				m.searchInput.SetValue("")
+				m.searchInput.Blur()
+			} else {
+				// Exit help mode
+				if m.shortcutManager != nil {
+					m.shortcutManager.SetHelpMode(false)
+				}
+			}
+		case "q", "enter":
 			// Exit help mode
 			if m.shortcutManager != nil {
 				m.shortcutManager.SetHelpMode(false)
 			}
+		case "/":
+			// Toggle search mode
+			m.searchMode = !m.searchMode
+			if m.searchMode {
+				m.searchInput.Focus()
+				cmd = textinput.Blink
+			} else {
+				m.searchInput.Blur()
+				m.searchQuery = ""
+				m.searchInput.SetValue("")
+			}
+		default:
+			if m.searchMode {
+				// Handle search input
+				var searchCmd tea.Cmd
+				m.searchInput, searchCmd = m.searchInput.Update(msg)
+				m.searchQuery = m.searchInput.Value()
+				m.performSearch()
+				if searchCmd != nil {
+					cmd = searchCmd
+				}
+			}
 		}
 	}
 
-	return m, nil
+	return m, cmd
 }
 
 // View renders the help pane
@@ -98,21 +160,104 @@ func (m *HelpPaneModel) View() string {
 	return m.renderFullHelp()
 }
 
+// performSearch performs search on keyboard shortcuts
+func (m *HelpPaneModel) performSearch() {
+	if m.shortcutManager == nil || m.searchQuery == "" {
+		m.searchResults = nil
+		return
+	}
+
+	var results []*KeyBinding
+	allBindings := m.shortcutManager.GetAllBindings()
+
+	// Search in key, description, and category
+	query := strings.ToLower(m.searchQuery)
+	for _, binding := range allBindings {
+		keyStr := strings.ToLower(binding.Key.Help().Key)
+		desc := strings.ToLower(binding.Description)
+		category := strings.ToLower(binding.Category)
+
+		if strings.Contains(keyStr, query) ||
+			strings.Contains(desc, query) ||
+			strings.Contains(category, query) {
+			results = append(results, binding)
+		}
+	}
+
+	// Sort results by relevance (exact matches first)
+	sort.Slice(results, func(i, j int) bool {
+		keyI := strings.ToLower(results[i].Key.Help().Key)
+		descI := strings.ToLower(results[i].Description)
+		keyJ := strings.ToLower(results[j].Key.Help().Key)
+		descJ := strings.ToLower(results[j].Description)
+
+		// Prioritize exact matches
+		if strings.HasPrefix(keyI, query) && !strings.HasPrefix(keyJ, query) {
+			return true
+		}
+		if strings.HasPrefix(keyJ, query) && !strings.HasPrefix(keyI, query) {
+			return false
+		}
+
+		// Then prioritize description matches
+		if strings.Contains(descI, query) && !strings.Contains(descJ, query) {
+			return true
+		}
+		if strings.Contains(descJ, query) && !strings.Contains(descI, query) {
+			return false
+		}
+
+		return results[i].Description < results[j].Description
+	})
+
+	m.searchResults = results
+}
+
 // renderFullHelp renders the complete help content
 func (m *HelpPaneModel) renderFullHelp() string {
 	title := m.titleStyle.Render("🎹 Keyboard Shortcuts Reference")
 	title = lipgloss.NewStyle().Width(m.width - 4).Align(lipgloss.Center).Render(title)
 
-	content := m.renderShortcutsHelp()
+	var content string
+
+	if m.searchMode {
+		// Render search interface
+		searchTitle := m.categoryStyle.Render("🔍 Search Shortcuts")
+		searchInputView := m.searchInputStyle.Render(m.searchInput.View())
+
+		searchContent := lipgloss.JoinVertical(lipgloss.Left, searchTitle, searchInputView)
+
+		if m.searchQuery != "" {
+			if len(m.searchResults) > 0 {
+				searchResults := m.renderSearchResults()
+				searchContent = lipgloss.JoinVertical(lipgloss.Left, searchContent, searchResults)
+			} else {
+				noResults := m.descStyle.Foreground(styles.Warning).Render("No shortcuts found matching '" + m.searchQuery + "'")
+				searchContent = lipgloss.JoinVertical(lipgloss.Left, searchContent, noResults)
+			}
+		}
+
+		content = searchContent
+	} else {
+		// Render normal shortcuts help
+		content = m.renderShortcutsHelp()
+	}
 
 	fullContent := lipgloss.JoinVertical(lipgloss.Left, title, content)
 
-	// Add footer with navigation hint
+	// Add footer with navigation hints
+	var footerHints []string
+	if m.searchMode {
+		footerHints = append(footerHints, "ESC: exit search", "/: search", "Enter: select")
+	} else {
+		footerHints = append(footerHints, "ESC/Q/Enter: back", "/: search")
+	}
+
 	footer := lipgloss.NewStyle().
 		Foreground(styles.TextMuted).
 		Align(lipgloss.Center).
 		Width(m.width - 4).
-		Render("\nPress ESC, Q, or Enter to return to editor")
+		Render("\n" + strings.Join(footerHints, " | "))
 
 	fullContent = lipgloss.JoinVertical(lipgloss.Left, fullContent, footer)
 
@@ -128,16 +273,46 @@ func (m *HelpPaneModel) renderCompactHelp() string {
 	title := m.titleStyle.Render("🎹 Shortcuts")
 	title = lipgloss.NewStyle().Width(m.width - 4).Align(lipgloss.Center).Render(title)
 
-	content := m.renderCompactShortcutsHelp()
+	var content string
+
+	if m.searchMode {
+		// Render search interface in compact mode
+		searchTitle := m.categoryStyle.Render("🔍 Search")
+		searchInputView := m.searchInputStyle.Width(30).Render(m.searchInput.View())
+
+		searchContent := lipgloss.JoinVertical(lipgloss.Left, searchTitle, searchInputView)
+
+		if m.searchQuery != "" {
+			if len(m.searchResults) > 0 {
+				searchResults := m.renderCompactSearchResults()
+				searchContent = lipgloss.JoinVertical(lipgloss.Left, searchContent, searchResults)
+			} else {
+				noResults := m.descStyle.Foreground(styles.Warning).Render("No matches")
+				searchContent = lipgloss.JoinVertical(lipgloss.Left, searchContent, noResults)
+			}
+		}
+
+		content = searchContent
+	} else {
+		// Render normal compact shortcuts help
+		content = m.renderCompactShortcutsHelp()
+	}
 
 	fullContent := lipgloss.JoinVertical(lipgloss.Left, title, content)
 
 	// Add compact footer
+	var footerHints []string
+	if m.searchMode {
+		footerHints = append(footerHints, "ESC: exit search", "/: search")
+	} else {
+		footerHints = append(footerHints, "ESC/Q/Enter: back", "/: search")
+	}
+
 	footer := lipgloss.NewStyle().
 		Foreground(styles.TextMuted).
 		Align(lipgloss.Center).
 		Width(m.width - 4).
-		Render("\nESC/Q/Enter: back")
+		Render("\n" + strings.Join(footerHints, " | "))
 
 	fullContent = lipgloss.JoinVertical(lipgloss.Left, fullContent, footer)
 
@@ -153,16 +328,46 @@ func (m *HelpPaneModel) renderMinimalHelp() string {
 	title := m.titleStyle.Render("❓ Help")
 	title = lipgloss.NewStyle().Width(m.width - 4).Align(lipgloss.Center).Render(title)
 
-	content := m.renderMinimalShortcutsHelp()
+	var content string
+
+	if m.searchMode {
+		// Render minimal search interface
+		searchTitle := m.categoryStyle.Render("🔍")
+		searchInputView := m.searchInputStyle.Width(20).Render(m.searchInput.View())
+
+		searchContent := lipgloss.JoinVertical(lipgloss.Left, searchTitle, searchInputView)
+
+		if m.searchQuery != "" {
+			if len(m.searchResults) > 0 {
+				searchResults := m.renderMinimalSearchResults()
+				searchContent = lipgloss.JoinVertical(lipgloss.Left, searchContent, searchResults)
+			} else {
+				noResults := m.descStyle.Foreground(styles.Warning).Render("No")
+				searchContent = lipgloss.JoinVertical(lipgloss.Left, searchContent, noResults)
+			}
+		}
+
+		content = searchContent
+	} else {
+		// Render normal minimal shortcuts help
+		content = m.renderMinimalShortcutsHelp()
+	}
 
 	fullContent := lipgloss.JoinVertical(lipgloss.Left, title, content)
 
 	// Add minimal footer
+	var footerHints []string
+	if m.searchMode {
+		footerHints = append(footerHints, "ESC: exit", "/: search")
+	} else {
+		footerHints = append(footerHints, "ESC: back", "/: search")
+	}
+
 	footer := lipgloss.NewStyle().
 		Foreground(styles.TextMuted).
 		Align(lipgloss.Center).
 		Width(m.width - 4).
-		Render("\nESC: back")
+		Render("\n" + strings.Join(footerHints, " | "))
 
 	fullContent = lipgloss.JoinVertical(lipgloss.Left, fullContent, footer)
 
@@ -183,7 +388,7 @@ func (m *HelpPaneModel) renderShortcutsHelp() string {
 		context = m.shortcutManager.GetContext()
 	}
 
-	// Define categories in display order
+	// Define categories in display order with better organization
 	categories := []string{"Navigation", "Edit", "Search", "File", "View", "Application", "Tools"}
 
 	for _, category := range categories {
@@ -218,8 +423,22 @@ func (m *HelpPaneModel) getBindingsByCategory(category string, context KeyContex
 func (m *HelpPaneModel) renderCategorySection(category string, bindings []*KeyBinding) string {
 	var lines []string
 
-	// Category header
-	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("📂 %s", category)))
+	// Category header with description
+	categoryDescriptions := map[string]string{
+		"Navigation":  "Moving around in the editor and between panes",
+		"Edit":        "Text editing and manipulation",
+		"Search":      "Finding and replacing text",
+		"File":        "File operations and management",
+		"View":        "Editor display and appearance",
+		"Application": "Application-wide actions",
+		"Tools":       "Specialized tools and features",
+	}
+
+	header := fmt.Sprintf("📂 %s", category)
+	if desc, exists := categoryDescriptions[category]; exists {
+		header += fmt.Sprintf(" - %s", desc)
+	}
+	lines = append(lines, m.categoryStyle.Render(header))
 
 	// Bindings
 	for _, binding := range bindings {
@@ -232,6 +451,129 @@ func (m *HelpPaneModel) renderCategorySection(category string, bindings []*KeyBi
 	}
 
 	// Add spacing between categories
+	lines = append(lines, "")
+
+	return strings.Join(lines, "\n")
+}
+
+// renderMinimalSearchResults renders search results in minimal format
+func (m *HelpPaneModel) renderMinimalSearchResults() string {
+	var lines []string
+
+	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("📋 %d", len(m.searchResults))))
+
+	for i, binding := range m.searchResults {
+		keyStr := binding.Key.Help().Key
+
+		// Minimal format: just the key
+		line := fmt.Sprintf("  %s", m.shortcutStyle.Render(keyStr))
+		lines = append(lines, line)
+
+		// Limit results for minimal mode
+		if i >= 9 { // Show max 10 results in minimal mode
+			remaining := len(m.searchResults) - 10
+			if remaining > 0 {
+				lines = append(lines, m.descStyle.Foreground(styles.TextMuted).Render(fmt.Sprintf("  +%d", remaining)))
+			}
+			break
+		}
+	}
+
+	// Add spacing
+	lines = append(lines, "")
+
+	return strings.Join(lines, "\n")
+}
+
+// renderSearchResults renders search results
+func (m *HelpPaneModel) renderSearchResults() string {
+	var lines []string
+
+	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("📋 Search Results (%d found)", len(m.searchResults))))
+
+	for i, binding := range m.searchResults {
+		keyStr := binding.Key.Help().Key
+		desc := binding.Description
+		category := binding.Category
+
+		// Highlight search terms in results
+		keyStr = m.highlightSearchTerm(keyStr, m.searchQuery)
+		desc = m.highlightSearchTerm(desc, m.searchQuery)
+		category = m.highlightSearchTerm(category, m.searchQuery)
+
+		// Format: "Ctrl+C    Copy text    [Edit]"
+		line := fmt.Sprintf("  %-12s %-20s %s",
+			m.shortcutStyle.Render(keyStr),
+			m.descStyle.Render(desc),
+			m.searchResultStyle.Render("["+category+"]"))
+
+		lines = append(lines, line)
+
+		// Limit results for performance
+		if i >= 49 { // Show max 50 results
+			remaining := len(m.searchResults) - 50
+			if remaining > 0 {
+				lines = append(lines, m.descStyle.Foreground(styles.TextMuted).Render(fmt.Sprintf("  ... and %d more results", remaining)))
+			}
+			break
+		}
+	}
+
+	// Add spacing
+	lines = append(lines, "")
+
+	return strings.Join(lines, "\n")
+}
+
+// highlightSearchTerm highlights search terms in text
+func (m *HelpPaneModel) highlightSearchTerm(text, query string) string {
+	if query == "" {
+		return text
+	}
+
+	// Simple case-insensitive highlighting
+	lowerText := strings.ToLower(text)
+	lowerQuery := strings.ToLower(query)
+
+	if strings.Contains(lowerText, lowerQuery) {
+		// Replace all occurrences with highlighted version
+		result := strings.ReplaceAll(text, query, m.searchResultStyle.Bold(true).Render(query))
+		// Also handle case variations
+		if query != strings.ToLower(query) {
+			upperQuery := strings.ToUpper(query)
+			result = strings.ReplaceAll(result, upperQuery, m.searchResultStyle.Bold(true).Render(upperQuery))
+		}
+		return result
+	}
+
+	return text
+}
+
+// renderCompactSearchResults renders search results in compact format
+func (m *HelpPaneModel) renderCompactSearchResults() string {
+	var lines []string
+
+	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("📋 Results (%d)", len(m.searchResults))))
+
+	for i, binding := range m.searchResults {
+		keyStr := binding.Key.Help().Key
+		desc := binding.Description
+
+		// Compact format: "Ctrl+C Copy"
+		line := fmt.Sprintf("  %s %s", m.shortcutStyle.Render(keyStr), m.descStyle.Render(desc))
+		lines = append(lines, line)
+
+		// Limit results for compact mode
+		if i >= 19 { // Show max 20 results in compact mode
+			remaining := len(m.searchResults) - 20
+			if remaining > 0 {
+				lines = append(lines, m.descStyle.Foreground(styles.TextMuted).Render(fmt.Sprintf("  ... +%d more", remaining)))
+			}
+			break
+		}
+	}
+
+	// Add spacing
 	lines = append(lines, "")
 
 	return strings.Join(lines, "\n")

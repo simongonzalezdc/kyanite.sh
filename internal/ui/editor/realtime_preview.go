@@ -123,7 +123,7 @@ type UpdateIndicator struct {
 	isVisible bool
 	startTime time.Time
 	// duration  time.Duration // TODO: Uncomment when duration tracking is needed
-	style     lipgloss.Style
+	style lipgloss.Style
 }
 
 // NewRealTimePreviewManager creates a new real-time preview manager

@@ -1,3 +1,5 @@
+// Package app provides application services for the LyricForge application.
+// It includes services for AI assistance, auto-saving, theory analysis, and editor functionality.
 package app
 
 import (

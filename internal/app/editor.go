@@ -11,6 +11,7 @@ import (
 	"github.com/puente-labs/lyricforge/internal/errors"
 	"github.com/puente-labs/lyricforge/internal/infra/db"
 	"github.com/puente-labs/lyricforge/internal/logging"
+	"gopkg.in/yaml.v3"
 )
 
 // EditorService handles song editing operations
@@ -292,9 +293,12 @@ func (s *EditorService) AutoSave(song *domain.Song) error {
 	maxRetries := 2
 
 	for attempt := 1; attempt <= maxRetries; attempt++ {
-		// Create a simple content representation for auto-save
-		// In a full implementation, this would serialize the actual song content
-		content := fmt.Sprintf("Auto-saved: %s by %s", song.Metadata.Title, song.Metadata.Artist)
+		// Serialize full song content (YAML frontmatter + body)
+		content, err := serializeSongToMarkdown(song)
+		if err != nil {
+			logging.GetDefaultLogger().Error("Failed to serialize song for auto-save", "song_id", song.ID, "error", err)
+			return err
+		}
 
 		_, err = s.versionRepo.SaveVersion(song.ID, content, false, versionName)
 		if err == nil {
@@ -313,9 +317,9 @@ func (s *EditorService) AutoSave(song *domain.Song) error {
 
 				select {
 				case <-ctx.Done():
-					err = errors.NewDatabaseError("autosave_timeout", ctx.Err()).WithOperation("AutoSave").WithComponent("editor_service")
 					goto handleError
 				case <-time.After(wait):
+					// Continue to next retry attempt
 					continue
 				}
 			}
@@ -339,8 +343,33 @@ handleError:
 
 // CreateMilestone creates a milestone version of the song
 func (s *EditorService) CreateMilestone(song *domain.Song, name string) error {
-	// For foundation phase, just return success
-	// In a full implementation, this would serialize and save the song content as a milestone
+	// Input validation
+	if song == nil {
+		return errors.NewValidationError("song cannot be nil for milestone", nil)
+	}
+	if song.ID <= 0 {
+		return errors.NewValidationError("song must have valid ID for milestone", nil)
+	}
+
+	// Default milestone name
+	if strings.TrimSpace(name) == "" {
+		name = fmt.Sprintf("Milestone %s", time.Now().Format("2006-01-02 15:04:05"))
+	}
+
+	// Serialize full song content
+	content, serr := serializeSongToMarkdown(song)
+	if serr != nil {
+		logging.GetDefaultLogger().Error("Failed to serialize song for milestone", "song_id", song.ID, "error", serr)
+		return serr
+	}
+
+	_, err := s.versionRepo.SaveVersion(song.ID, content, true, name)
+	if err != nil {
+		logging.GetDefaultLogger().Error("Failed to save milestone version", "song_id", song.ID, "error", err)
+		return err
+	}
+
+	logging.GetDefaultLogger().Info("Milestone created successfully", "song_id", song.ID, "name", name)
 	return nil
 }
 
@@ -395,31 +424,157 @@ func (s *EditorService) RestoreVersion(songID int, versionID int) (*domain.Song,
 		return nil, err
 	}
 
-	// For foundation phase, create a basic song from the version
-	// In a full implementation, this would parse the markdown content
-	song := &domain.Song{
-		ID:       songID,
-		Filepath: "",
-		Metadata: domain.SongMetadata{
-			Title:     "Restored Song",
-			CreatedAt: version.CreatedAt,
-			UpdatedAt: version.CreatedAt,
-		},
-		Sections: []domain.Section{},
+	// Parse the version content (expected to be full markdown with YAML frontmatter)
+	restored, perr := parseMarkdownToSong(version.Content)
+	if perr != nil {
+		logging.GetDefaultLogger().Error("Failed to parse version content during restore", "version_id", versionID, "error", perr)
+		return nil, perr
 	}
 
+	// Assign canonical fields
+	restored.ID = songID
+	restored.Filepath = ""
+
+	// Ensure timestamps: prefer metadata but fall back to version created time
+	if restored.Metadata.CreatedAt.IsZero() {
+		restored.Metadata.CreatedAt = version.CreatedAt
+	}
+	if restored.Metadata.UpdatedAt.IsZero() {
+		restored.Metadata.UpdatedAt = version.CreatedAt
+	}
+
+	restored.RawContent = version.Content
+
 	// Validate restored song
-	if song.ID != songID {
+	if restored.ID != songID {
 		err := errors.NewValidationError("restored song ID mismatch", nil).WithOperation("RestoreVersion").WithComponent("editor_service")
-		logging.GetDefaultLogger().Error("Restored song ID mismatch", "expected", songID, "actual", song.ID, "error", err)
+		logging.GetDefaultLogger().Error("Restored song ID mismatch", "expected", songID, "actual", restored.ID, "error", err)
 		return nil, err
 	}
 
 	// Log successful restoration
-	logging.GetDefaultLogger().Info("Version restored successfully", "song_id", songID, "version_id", versionID, "title", song.Metadata.Title)
+	logging.GetDefaultLogger().Info("Version restored successfully", "song_id", songID, "version_id", versionID, "title", restored.Metadata.Title)
 
 	// Show success notification
 	errors.ShowGlobalSuccess("Version Restored", fmt.Sprintf("Song has been restored to version from %s.", version.CreatedAt.Format("2006-01-02 15:04:05")))
 
-	return song, nil
+	return restored, nil
+}
+
+// Helper: serialize a domain.Song into markdown with YAML frontmatter
+func serializeSongToMarkdown(song *domain.Song) (string, error) {
+	if song == nil {
+		return "", errors.NewValidationError("song cannot be nil", nil)
+	}
+
+	// YAML frontmatter for metadata
+	yamlBytes, err := yaml.Marshal(song.Metadata)
+	if err != nil {
+		return "", errors.NewParsingError("yaml marshal", err)
+	}
+
+	var sb strings.Builder
+	sb.WriteString("---\n")
+	sb.WriteString(string(yamlBytes))
+	sb.WriteString("---\n\n")
+
+	// If RawContent exists, prefer returning that (it's already full markdown)
+	if strings.TrimSpace(song.RawContent) != "" {
+		// Ensure frontmatter is present; RawContent may already include frontmatter.
+		// If RawContent already includes the same frontmatter, we still return RawContent to preserve user edits.
+		return song.RawContent, nil
+	}
+
+	// Otherwise serialize sections to a simple markdown body
+	for _, section := range song.Sections {
+		sb.WriteString("## ")
+		sb.WriteString(string(section.Type))
+		sb.WriteString(" ")
+		sb.WriteString(fmt.Sprintf("%d", section.Number))
+		sb.WriteString("\n\n")
+		for _, line := range section.Lines {
+			sb.WriteString(line.Text)
+			sb.WriteString("\n")
+		}
+		sb.WriteString("\n")
+	}
+
+	return sb.String(), nil
+}
+
+// Helper: parse markdown+YAML into domain.Song (simplified)
+func parseMarkdownToSong(content string) (*domain.Song, error) {
+	if strings.TrimSpace(content) == "" {
+		return &domain.Song{
+			Sections:   []domain.Section{},
+			RawContent: content,
+		}, nil
+	}
+
+	// Extract frontmatter
+	lines := strings.Split(content, "\n")
+	if len(lines) == 0 {
+		return &domain.Song{RawContent: content}, nil
+	}
+
+	var front string
+	var body string
+
+	if len(lines) >= 2 && strings.HasPrefix(lines[0], "---") {
+		// find closing ---
+		endIndex := 0
+		for i := 1; i < len(lines); i++ {
+			if strings.HasPrefix(lines[i], "---") {
+				endIndex = i
+				break
+			}
+		}
+		if endIndex > 0 {
+			front = strings.Join(lines[1:endIndex], "\n")
+			body = strings.Join(lines[endIndex+1:], "\n")
+		} else {
+			// no closing delimiter - treat all as body
+			body = content
+		}
+	} else {
+		body = content
+	}
+
+	var metadata domain.SongMetadata
+	if strings.TrimSpace(front) != "" {
+		if err := yaml.Unmarshal([]byte(front), &metadata); err != nil {
+			return nil, errors.NewParsingError("yaml unmarshal", err)
+		}
+	}
+
+	// Parse body into a single section (simplified)
+	var sectionLines []domain.Line
+	for _, ln := range strings.Split(body, "\n") {
+		ln = strings.TrimSpace(ln)
+		if ln == "" {
+			continue
+		}
+		sectionLines = append(sectionLines, domain.Line{
+			Text: ln,
+		})
+	}
+
+	var sections []domain.Section
+	if len(sectionLines) > 0 {
+		sections = []domain.Section{
+			{
+				Type:   domain.SectionVerse,
+				Number: 1,
+				Lines:  sectionLines,
+			},
+		}
+	} else {
+		sections = []domain.Section{}
+	}
+
+	return &domain.Song{
+		Metadata:   metadata,
+		Sections:   sections,
+		RawContent: content,
+	}, nil
 }

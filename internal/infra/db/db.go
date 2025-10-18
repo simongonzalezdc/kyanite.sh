@@ -1,6 +1,9 @@
+// Package db provides database persistence and repository implementations for the LyricForge application.
+// It supports both SQLite with CGO and in-memory fallback storage for environments where CGO is unavailable.
 package db
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -138,6 +141,7 @@ func (db *DB) enableVersionFallback() {
 	db.fallbackMu.Unlock()
 }
 
+// Close closes the database connection
 func (db *DB) Close() error {
 	if db.conn != nil {
 		return db.conn.Close()
@@ -181,9 +185,11 @@ func getHomeDir() (string, error) {
 // SongRepository defines the interface for song persistence operations
 type SongRepository interface {
 	InsertSong(song *domain.Song) (*domain.Song, error)
+	InsertSongWithVersion(song *domain.Song, initialContent string) (*domain.Song, *domain.Version, error)
 	GetSong(id int) (*domain.Song, error)
 	GetSongByFilepath(filepath string) (*domain.Song, error)
 	UpdateSong(song *domain.Song) error
+	UpdateSongWithVersion(song *domain.Song, newContent string, isMilestone bool, milestoneName string) error
 	DeleteSong(id int) error
 	ListSongs(limit, offset int) ([]*domain.Song, error)
 	SearchSongs(query string, limit int) ([]*domain.Song, error)
@@ -203,6 +209,7 @@ type StatsRepository interface {
 	GetStats(date time.Time) (*domain.WritingStats, error)
 	GetStatsRange(start, end time.Time) ([]*domain.WritingStats, error)
 	UpdateStats(stats *domain.WritingStats) error
+	BatchUpdateStats(statsList []*domain.WritingStats) error
 }
 
 // ProjectRepository defines the interface for project operations
@@ -216,11 +223,17 @@ type ProjectRepository interface {
 	RemoveSongFromProject(projectID, songID int) error
 }
 
+// TransactionRepository defines the interface for transaction operations
+type TransactionRepository interface {
+	ExecuteInTransaction(ctx context.Context, fn func(*sql.Tx) error) error
+}
+
 // Ensure DB implements the repository interfaces
 var _ SongRepository = (*DB)(nil)
 var _ VersionRepository = (*DB)(nil)
 var _ StatsRepository = (*DB)(nil)
 var _ ProjectRepository = (*DB)(nil)
+var _ TransactionRepository = (*DB)(nil)
 
 // Helper functions for JSON marshaling/unmarshaling
 
@@ -270,4 +283,90 @@ func marshalIntArray(arr []int) (string, error) {
 		return "", err
 	}
 	return string(jsonBytes), nil
+}
+
+// In-memory fallback methods for version management
+
+// saveVersionInMemory saves a version in memory when database is unavailable
+func (db *DB) saveVersionInMemory(songID int, content string, isMilestone bool, name string, createdAt time.Time) *domain.Version {
+	if db == nil {
+		return nil
+	}
+
+	db.versionMutex.Lock()
+	defer db.versionMutex.Unlock()
+
+	version := &domain.Version{
+		ID:            db.nextVersionID,
+		SongID:        songID,
+		Content:       content,
+		IsMilestone:   isMilestone,
+		MilestoneName: name,
+		CreatedAt:     createdAt,
+	}
+
+	db.versions = append(db.versions, version)
+	db.nextVersionID++
+
+	return version
+}
+
+// getVersionsInMemory retrieves version history for a song from memory
+func (db *DB) getVersionsInMemory(songID int, limit int) []*domain.Version {
+	if db == nil {
+		return nil
+	}
+
+	db.versionMutex.Lock()
+	defer db.versionMutex.Unlock()
+
+	var versions []*domain.Version
+	count := 0
+
+	// Get versions in reverse order (newest first)
+	for i := len(db.versions) - 1; i >= 0 && count < limit; i-- {
+		if db.versions[i].SongID == songID {
+			versions = append(versions, db.versions[i])
+			count++
+		}
+	}
+
+	return versions
+}
+
+// getVersionInMemory retrieves a specific version by ID from memory
+func (db *DB) getVersionInMemory(id int) (*domain.Version, error) {
+	if db == nil {
+		return nil, fmt.Errorf("database is nil")
+	}
+
+	db.versionMutex.Lock()
+	defer db.versionMutex.Unlock()
+
+	for _, version := range db.versions {
+		if version.ID == id {
+			return version, nil
+		}
+	}
+
+	return nil, fmt.Errorf("version with ID %d not found", id)
+}
+
+// deleteVersionInMemory deletes a version by ID from memory
+func (db *DB) deleteVersionInMemory(id int) error {
+	if db == nil {
+		return fmt.Errorf("database is nil")
+	}
+
+	db.versionMutex.Lock()
+	defer db.versionMutex.Unlock()
+
+	for i, version := range db.versions {
+		if version.ID == id {
+			db.versions = append(db.versions[:i], db.versions[i+1:]...)
+			return nil
+		}
+	}
+
+	return fmt.Errorf("version with ID %d not found", id)
 }

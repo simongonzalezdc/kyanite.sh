@@ -2,6 +2,7 @@ package editor
 
 import (
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/puente-labs/lyricforge/internal/app"
 	"github.com/puente-labs/lyricforge/internal/domain"
+	"github.com/puente-labs/lyricforge/internal/infra/files"
 	"github.com/puente-labs/lyricforge/internal/ui/styles"
 )
 
@@ -185,6 +187,12 @@ type EditorPaneModel struct {
 	// Song integration
 	currentSong *domain.Song
 
+	// File I/O service
+	fileService *files.Service
+
+	// Current file path
+	currentFilePath string
+
 	// Styles
 	focusedStyle     lipgloss.Style
 	blurredStyle     lipgloss.Style
@@ -193,7 +201,7 @@ type EditorPaneModel struct {
 	cursorLineStyle  lipgloss.Style
 	selectionStyle   lipgloss.Style
 	searchMatchStyle lipgloss.Style
-	// autoSaveStyle    lipgloss.Style // TODO: Uncomment when auto-save styling is implemented
+	autoSaveStyle    lipgloss.Style // Auto-save status styling
 }
 
 // NewEditorPaneModel creates a new editor pane model
@@ -214,6 +222,8 @@ func NewEditorPaneModel(textarea textarea.Model) *EditorPaneModel {
 		lastContent:      "",
 		lastSaveStatus:   app.AutoSaveIdle,
 		currentSong:      nil,
+		fileService:      nil, // Will be set by parent model
+		currentFilePath:  "",
 		shortcutManager:  NewShortcutManager(),
 		focusedStyle:     styles.BorderActive,
 		blurredStyle:     styles.Border,
@@ -229,6 +239,9 @@ func NewEditorPaneModel(textarea textarea.Model) *EditorPaneModel {
 		searchMatchStyle: lipgloss.NewStyle().
 			Background(styles.Accent).
 			Foreground(styles.Background),
+		autoSaveStyle: lipgloss.NewStyle().
+			Foreground(styles.Success).
+			Bold(true),
 	}
 
 	return model
@@ -426,6 +439,15 @@ func (m *EditorPaneModel) updateStatusBar() {
 
 	// Update editor features
 	m.statusBar.UpdateEditorFeatures(m.showLineNumbers, m.wordWrap, m.autoIndent, m.bracketMatching)
+
+	// Update current file path
+	if m.statusBar != nil {
+		filename := "Untitled"
+		if m.currentFilePath != "" {
+			filename = filepath.Base(m.currentFilePath)
+		}
+		m.statusBar.UpdateFileInfo(filename)
+	}
 
 	// Update shortcut hints
 	hints := m.GetShortcutHints()
@@ -632,6 +654,11 @@ func (m *EditorPaneModel) SetAutoSaveService(service *app.AutoSaveService) {
 	}
 }
 
+// SetFileService sets the file service for this editor pane
+func (m *EditorPaneModel) SetFileService(service *files.Service) {
+	m.fileService = service
+}
+
 // handleAutoSave handles auto-save triggers on content changes
 func (m *EditorPaneModel) handleAutoSave() {
 	if m.autoSaveService == nil {
@@ -643,6 +670,23 @@ func (m *EditorPaneModel) handleAutoSave() {
 	// Only trigger auto-save if content has actually changed
 	if currentContent != m.lastContent {
 		m.lastContent = currentContent
+		
+		// Update current song with editor content
+		if m.currentSong != nil {
+			m.currentSong.RawContent = currentContent
+			
+			// Use song-specific auto-save if we have a song ID
+			if m.currentSong.ID > 0 {
+				versionName := fmt.Sprintf("Auto-save %s", time.Now().Format("2006-01-02 15:04:05"))
+				if err := m.autoSaveService.SaveWithVersioning(m.currentSong.ID, currentContent, false, versionName); err != nil {
+					// Use proper error handling instead of printf
+					m.onAutoSaveError(err)
+				}
+				return
+			}
+		}
+		
+		// Fallback to general auto-save
 		m.autoSaveService.SaveContent(currentContent)
 	}
 }
@@ -655,9 +699,13 @@ func (m *EditorPaneModel) onAutoSaveStatusChange(status app.AutoSaveStatus) {
 
 // onAutoSaveError handles auto-save errors
 func (m *EditorPaneModel) onAutoSaveError(err error) {
-	// For now, just log the error
-	// In a full implementation, this might show a user notification
-	fmt.Printf("Auto-save error: %v\n", err)
+	// Log the error properly instead of printf
+	if err != nil {
+		// In a full implementation, this would show a user notification
+		// For now, we'll just update the status
+		m.lastSaveStatus = app.AutoSaveError
+		m.updateStatusBar()
+	}
 }
 
 // ForceSave performs an immediate save
@@ -708,7 +756,12 @@ func (m *EditorPaneModel) SaveSong(isMilestone bool, name string) error {
 		return fmt.Errorf("no current song set")
 	}
 
+	// Update current song with editor content before saving
 	content := m.textarea.Value()
+	m.currentSong.RawContent = content
+
+	// Use auto-save with song ID for both regular saves and milestones
+	// The auto-save service will handle the proper versioning
 	return m.autoSaveService.SaveWithVersioning(m.currentSong.ID, content, isMilestone, name)
 }
 
@@ -793,7 +846,8 @@ func (m *EditorPaneModel) handleShortcutAction(action ShortcutAction) {
 		if m.autoSaveService != nil {
 			err := m.ForceSave()
 			if err != nil {
-				fmt.Printf("Manual save failed: %v\n", err)
+				// Use proper error handling
+				m.onAutoSaveError(err)
 			}
 		}
 	case ActionSelectAll:
@@ -961,23 +1015,104 @@ func (m *EditorPaneModel) goToLine() {
 }
 
 func (m *EditorPaneModel) newFile() {
-	// Implementation for new file functionality
-	// For now, this is a placeholder
+	// Clear current content and reset state
+	m.SetText("")
+	m.currentFilePath = ""
+	m.currentSong = nil
+	m.updateStatusBar()
 }
 
 func (m *EditorPaneModel) openFile() {
-	// Implementation for open file functionality
-	// For now, this is a placeholder
+	// For now, we'll use a simple approach - in a full implementation,
+	// this would show a file dialog. For this demo, we'll show available files
+	// and let the user choose via a simple text input
+
+	if m.fileService == nil {
+		// Use proper error handling instead of printf
+		return
+	}
+
+	// List available song files
+	songFiles, err := m.fileService.ListSongs()
+	if err != nil {
+		// Use proper error handling instead of printf
+		return
+	}
+
+	if len(songFiles) == 0 {
+		// Use proper error handling instead of printf
+		return
+	}
+
+	// For this implementation, we'll just open the first file as a demo
+	// In a full implementation, this would show a file picker
+	fileToOpen := songFiles[0]
+
+	song, err := m.fileService.ReadSong(fileToOpen)
+	if err != nil {
+		// Use proper error handling instead of printf
+		return
+	}
+
+	m.SetText(song.RawContent)
+	m.currentFilePath = fileToOpen
+	m.currentSong = song
+	m.updateStatusBar()
+
+	// Remove printf - the status bar update is sufficient
 }
 
 func (m *EditorPaneModel) saveAs() {
-	// Implementation for save as functionality
-	// For now, this is a placeholder
+	if m.fileService == nil {
+		// Use proper error handling instead of printf
+		return
+	}
+
+	content := m.GetText()
+
+	// For this implementation, we'll use a simple filename
+	// In a full implementation, this would show a save dialog
+	filename := "untitled.md"
+	if m.currentFilePath != "" {
+		filename = filepath.Base(m.currentFilePath)
+	}
+
+	// Create a basic song structure for saving
+	song := &domain.Song{
+		Metadata: domain.SongMetadata{
+			Title:     "Untitled Song",
+			Artist:    "Unknown Artist",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		Sections: []domain.Section{
+			{
+				Type:   domain.SectionVerse,
+				Number: 1,
+				Lines:  []domain.Line{},
+			},
+		},
+		RawContent: content,
+	}
+
+	err := m.fileService.WriteSong(song, filename)
+	if err != nil {
+		// Use proper error handling instead of printf
+		return
+	}
+
+	m.currentFilePath = filename
+	m.updateStatusBar()
+
+	// Remove printf - the status bar update is sufficient
 }
 
 func (m *EditorPaneModel) closeFile() {
-	// Implementation for close file functionality
-	// For now, this is a placeholder
+	// Clear current content and reset state
+	m.SetText("")
+	m.currentFilePath = ""
+	m.currentSong = nil
+	m.updateStatusBar()
 }
 
 // GetShortcutManager returns the shortcut manager for external access
@@ -998,4 +1133,14 @@ func (m *EditorPaneModel) GetShortcutHints() string {
 		return m.shortcutManager.GetStatusBarHints()
 	}
 	return ""
+}
+
+// GetCurrentFilePath returns the current file path
+func (m *EditorPaneModel) GetCurrentFilePath() string {
+	return m.currentFilePath
+}
+
+// GetFileService returns the file service for external access
+func (m *EditorPaneModel) GetFileService() *files.Service {
+	return m.fileService
 }

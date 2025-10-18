@@ -8,9 +8,26 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/puente-labs/lyricforge/internal/app"
+	"github.com/puente-labs/lyricforge/internal/domain"
 	"github.com/puente-labs/lyricforge/internal/infra/db"
+	"github.com/puente-labs/lyricforge/internal/infra/files"
 	"github.com/puente-labs/lyricforge/internal/ui/styles"
 )
+
+// Screen represents different screens in the application (local copy to avoid import cycle)
+type screen int
+
+const (
+	screenEditor screen = iota
+	screenExport
+	screenTheory
+	screenAudio
+)
+
+// ScreenChangeMsg represents a message to change screens (local copy to avoid import cycle)
+type ScreenChangeMsg struct {
+	Screen screen
+}
 
 // SplitPaneModel represents the main split-pane editor layout
 type SplitPaneModel struct {
@@ -27,11 +44,15 @@ type SplitPaneModel struct {
 	focusedPane     FocusedPane
 	database        *db.DB
 	autoSaveService *app.AutoSaveService
+	fileService     *files.Service
 	ctx             context.Context
 	cancel          context.CancelFunc
 
 	// Keyboard shortcuts
 	shortcutManager *ShortcutManager
+
+	// Performance optimizations
+	lastUpdateLength int
 
 	// Styles
 	dividerStyle lipgloss.Style
@@ -55,9 +76,20 @@ func NewSplitPaneModel(database *db.DB) *SplitPaneModel {
 	// Default split ratio (50/50)
 	splitRatio := 0.5
 
-	// Initialize context and auto-save service
+	// Initialize context and services
 	ctx, cancel := context.WithCancel(context.Background())
 	autoSaveService := app.NewAutoSaveService(database, nil) // Use default config
+
+	// Initialize file service
+	fileService, err := files.New(files.Config{
+		BaseDir:  "./songs", // Default songs directory
+		AutoSave: false,     // We'll handle saving manually for now
+	})
+	if err != nil {
+		log.Printf("Failed to initialize file service: %v", err)
+		// Continue without file service - operations will be no-ops
+		fileService = nil
+	}
 
 	model := &SplitPaneModel{
 		splitRatio:      splitRatio,
@@ -66,14 +98,16 @@ func NewSplitPaneModel(database *db.DB) *SplitPaneModel {
 		focusedPane:     EditorPane,
 		database:        database,
 		autoSaveService: autoSaveService,
+		fileService:     fileService,
 		ctx:             ctx,
 		cancel:          cancel,
 		shortcutManager: NewShortcutManager(),
 		dividerStyle:    styles.Divider,
 	}
 
-	// Set up auto-save service for editor pane
+	// Set up services for editor pane
 	model.editorPane.SetAutoSaveService(autoSaveService)
+	model.editorPane.SetFileService(fileService)
 
 	// Start the auto-save service
 	if err := autoSaveService.Start(ctx); err != nil {
@@ -134,7 +168,20 @@ func (m *SplitPaneModel) Update(msg tea.Msg) (*SplitPaneModel, tea.Cmd) {
 		cmds = append(cmds, cmd)
 
 		// Update preview with current editor content for real-time preview
+		// Only update if content has actually changed to avoid unnecessary re-renders
 		editorContent := m.editorPane.GetText()
+		currentContent := m.previewPane.GetContent()
+
+		// Skip update if content hasn't changed (for large documents, this saves significant processing)
+		if editorContent == currentContent && len(editorContent) > 10000 { // 10KB threshold
+			// For very large documents, only update if content length has changed
+			if m.lastUpdateLength == len(editorContent) {
+				// Content length hasn't changed, skip update
+				return m, nil
+			}
+		}
+		m.lastUpdateLength = len(editorContent)
+
 		if m.previewPane.GetRealtimeManager() != nil {
 			m.previewPane.GetRealtimeManager().UpdateContent(editorContent, ChangeSourceEditor)
 		} else {
@@ -242,13 +289,33 @@ func (m *SplitPaneModel) SetEditorText(text string) {
 	m.editorPane.SetText(text)
 }
 
+// SetCurrentSong sets the given song into the editor pane and updates editor text.
+// This is an exported helper so callers in other packages (e.g., root UI) can open a song.
+func (m *SplitPaneModel) SetCurrentSong(song *domain.Song) {
+	if m.editorPane == nil {
+		return
+	}
+	if song == nil {
+		m.editorPane.SetSong(nil)
+		return
+	}
+	// Set song on editor pane (will populate RawContent into the textarea)
+	m.editorPane.SetSong(song)
+	// Update editor text explicitly if RawContent exists
+	if song.RawContent != "" {
+		m.editorPane.SetText(song.RawContent)
+	}
+}
+
 // Cleanup cleans up resources when the model is destroyed
 func (m *SplitPaneModel) Cleanup() {
 	if m.cancel != nil {
 		m.cancel()
 	}
 	if m.autoSaveService != nil {
-		m.autoSaveService.Stop()
+		if err := m.autoSaveService.Stop(); err != nil {
+			log.Printf("Error stopping auto-save service: %v", err)
+		}
 	}
 }
 
@@ -277,11 +344,15 @@ func (m *SplitPaneModel) handleShortcutAction(action ShortcutAction) (*SplitPane
 		// This should be handled by the root model
 		return m, nil
 	case ActionTheoryTools:
-		// This should be handled by the root model
-		return m, nil
+		// Navigate to theory tools screen
+		return m, func() tea.Msg {
+			return ScreenChangeMsg{Screen: screenTheory}
+		}
 	case ActionAudioTools:
-		// This should be handled by the root model
-		return m, nil
+		// Navigate to audio tools screen
+		return m, func() tea.Msg {
+			return ScreenChangeMsg{Screen: screenAudio}
+		}
 	case ActionNewFile:
 		// Clear current content
 		m.editorPane.SetText("")
@@ -295,7 +366,8 @@ func (m *SplitPaneModel) handleShortcutAction(action ShortcutAction) (*SplitPane
 		if m.autoSaveService != nil {
 			err := m.editorPane.ForceSave()
 			if err != nil {
-				// Handle save error
+				// Handle save error - could log or show user notification
+				log.Printf("Save failed: %v", err)
 			}
 		}
 		return m, nil
@@ -303,6 +375,11 @@ func (m *SplitPaneModel) handleShortcutAction(action ShortcutAction) (*SplitPane
 		// This would need file dialog implementation
 		// For now, this is a placeholder
 		return m, nil
+	case ActionExport:
+		// Navigate to export screen
+		return m, func() tea.Msg {
+			return ScreenChangeMsg{Screen: screenExport}
+		}
 	case ActionCloseFile:
 		// Clear current content
 		m.editorPane.SetText("")

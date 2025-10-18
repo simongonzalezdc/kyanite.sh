@@ -49,8 +49,8 @@ type StatusBarModel struct {
 	shortcutHints string
 
 	// Performance optimization
-	lastContentHash    uint64
-	lastUpdateTime     time.Time
+	lastContentHash        uint64
+	lastUpdateTime         time.Time
 	updateThrottleDuration time.Duration // Renamed from updateThrottleMs to avoid Ms suffix
 
 	// Responsive layout
@@ -74,29 +74,29 @@ type StatusBarModel struct {
 // NewStatusBarModel creates a new status bar model
 func NewStatusBarModel() *StatusBarModel {
 	model := &StatusBarModel{
-		width:            0,
-		height:           1,
-		content:          "",
-		cursorLine:       0,
-		cursorColumn:     0,
-		wordCount:        0,
-		characterCount:   0,
-		lineCount:        0,
-		autoSaveStatus:   app.AutoSaveIdle,
-		lastSaveTime:     time.Time{},
-		editorMode:       "Normal",
-		fileName:         "Untitled",
-		zoomLevel:        100,
-		showLineNumbers:  true,
-		wordWrap:         true,
-		autoIndent:       true,
-		bracketMatching:  true,
-		shortcutHints:    "",
-		lastContentHash:  0,
-		lastUpdateTime:   time.Time{},
+		width:                  0,
+		height:                 1,
+		content:                "",
+		cursorLine:             0,
+		cursorColumn:           0,
+		wordCount:              0,
+		characterCount:         0,
+		lineCount:              0,
+		autoSaveStatus:         app.AutoSaveIdle,
+		lastSaveTime:           time.Time{},
+		editorMode:             "Normal",
+		fileName:               "Untitled",
+		zoomLevel:              100,
+		showLineNumbers:        true,
+		wordWrap:               true,
+		autoIndent:             true,
+		bracketMatching:        true,
+		shortcutHints:          "",
+		lastContentHash:        0,
+		lastUpdateTime:         time.Time{},
 		updateThrottleDuration: 100 * time.Millisecond, // Throttle updates to 100ms
-		compactMode:      false,
-		showMinimalInfo:  false,
+		compactMode:            false,
+		showMinimalInfo:        false,
 
 		// Initialize styles using Midnight Jazz theme
 		leftSectionStyle: lipgloss.NewStyle().

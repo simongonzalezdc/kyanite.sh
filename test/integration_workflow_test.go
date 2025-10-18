@@ -1,4 +1,4 @@
-package main
+package lyricforge_test
 
 import (
 	"context"
@@ -27,7 +27,9 @@ func TestEditorWorkflow(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	_ = autoSvc.Start(ctx) // ignore error in test environment
-	defer autoSvc.Stop()
+	if err := autoSvc.Stop(); err != nil {
+		t.Logf("Warning: Failed to stop auto-save service: %v", err)
+	}
 
 	sp := editor.NewSplitPaneModel(database)
 	// send a window size to initialize dimensions
@@ -124,7 +126,9 @@ func TestDatabaseAndAutoSave(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	_ = autoSvc.Start(ctx)
-	defer autoSvc.Stop()
+	if err := autoSvc.Stop(); err != nil {
+		t.Logf("Warning: Failed to stop auto-save service: %v", err)
+	}
 
 	_, err = database.SaveVersion(song.ID, "autosave content", false, "auto-save")
 	if err != nil {

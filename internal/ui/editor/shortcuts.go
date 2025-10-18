@@ -100,6 +100,7 @@ func (sm *ShortcutManager) initializeDefaultBindings() {
 	sm.registerBinding("ctrl+s", key.NewBinding(key.WithKeys("ctrl+s"), key.WithHelp("ctrl+s", "save")), "Save", ContextGlobal, "File")
 	sm.registerBinding("ctrl+shift+s", key.NewBinding(key.WithKeys("ctrl+shift+s"), key.WithHelp("ctrl+shift+s", "save as")), "Save as", ContextGlobal, "File")
 	sm.registerBinding("ctrl+w", key.NewBinding(key.WithKeys("ctrl+w"), key.WithHelp("ctrl+w", "close")), "Close file", ContextGlobal, "File")
+	sm.registerBinding("ctrl+e", key.NewBinding(key.WithKeys("ctrl+e"), key.WithHelp("ctrl+e", "export")), "Export file", ContextGlobal, "File")
 
 	// Editor features
 	sm.registerBinding("ctrl+l", key.NewBinding(key.WithKeys("ctrl+l"), key.WithHelp("ctrl+l", "toggle line nums")), "Toggle line numbers", ContextEditor, "View")
@@ -111,6 +112,7 @@ func (sm *ShortcutManager) initializeDefaultBindings() {
 	// Application navigation
 	sm.registerBinding("esc", key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "back/menu")), "Back to menu", ContextGlobal, "Application")
 	sm.registerBinding("f1", key.NewBinding(key.WithKeys("f1"), key.WithHelp("f1", "help")), "Show help", ContextGlobal, "Application")
+	sm.registerBinding("?", key.NewBinding(key.WithKeys("?"), key.WithHelp("?", "help")), "Show help", ContextGlobal, "Application")
 	sm.registerBinding("ctrl+q", key.NewBinding(key.WithKeys("ctrl+q"), key.WithHelp("ctrl+q", "quit")), "Quit application", ContextGlobal, "Application")
 	sm.registerBinding("ctrl+,", key.NewBinding(key.WithKeys("ctrl+,"), key.WithHelp("ctrl+,", "settings")), "Settings", ContextGlobal, "Application")
 
@@ -169,7 +171,7 @@ func (sm *ShortcutManager) HandleKey(msg tea.KeyMsg) (ShortcutAction, bool) {
 	}
 
 	// Check for help mode toggle
-	if keyStr == "f1" {
+	if keyStr == "f1" || keyStr == "?" {
 		sm.helpMode = !sm.helpMode
 		return ShortcutAction{Type: ActionToggleHelp}, true
 	}
@@ -274,6 +276,8 @@ func (sm *ShortcutManager) createActionFromBinding(binding *KeyBinding, keyStr s
 		action.Type = ActionSave
 	case keyStr == "ctrl+shift+s":
 		action.Type = ActionSaveAs
+	case keyStr == "ctrl+e":
+		action.Type = ActionExport
 	case keyStr == "ctrl+w":
 		action.Type = ActionCloseFile
 
@@ -447,6 +451,7 @@ const (
 	ActionOpenFile
 	ActionSave
 	ActionSaveAs
+	ActionExport
 	ActionCloseFile
 	ActionToggleLineNumbers
 	ActionToggleWordWrap
@@ -536,6 +541,8 @@ func (sat ShortcutActionType) String() string {
 		return "Save"
 	case ActionSaveAs:
 		return "SaveAs"
+	case ActionExport:
+		return "Export"
 	case ActionCloseFile:
 		return "CloseFile"
 	case ActionToggleLineNumbers:

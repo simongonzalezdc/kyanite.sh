@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,9 +17,13 @@ import (
 type AutoSaveStatus int
 
 const (
+	// AutoSaveIdle represents the idle state when no save operation is in progress
 	AutoSaveIdle AutoSaveStatus = iota
+	// AutoSaveSaving represents the state when a save operation is in progress
 	AutoSaveSaving
+	// AutoSaveSuccess represents the state when a save operation completed successfully
 	AutoSaveSuccess
+	// AutoSaveError represents the state when a save operation failed
 	AutoSaveError
 )
 
@@ -62,6 +67,7 @@ func DefaultAutoSaveConfig() *AutoSaveConfig {
 	}
 }
 
+// ErrAutoSaveDBUnavailable indicates that the database is not available for auto-save operations
 var ErrAutoSaveDBUnavailable = errors.New("autosave database unavailable")
 
 // LoadAutoSaveConfigFromFile loads auto-save configuration from a file
@@ -127,6 +133,11 @@ type AutoSaveService struct {
 	// Callbacks
 	onStatusChange func(AutoSaveStatus)
 	onError        func(error)
+}
+
+// GetDB returns the database instance for external access
+func (s *AutoSaveService) GetDB() *db.DB {
+	return s.db
 }
 
 // NewAutoSaveService creates a new auto-save service
@@ -314,7 +325,9 @@ func (s *AutoSaveService) processSaves(ctx context.Context) {
 
 			// Start new debounce timer
 			debounceTimer = time.AfterFunc(time.Duration(s.config.DebounceMs)*time.Millisecond, func() {
-				s.performSave(content)
+				if err := s.performSave(content); err != nil {
+					log.Printf("Debounced save failed: %v", err)
+				}
 			})
 		}
 	}
@@ -393,7 +406,8 @@ func (s *AutoSaveService) performSave(content string) error {
 func (s *AutoSaveService) executeSave(content string) error {
 	// For now, we'll save as a version without a specific song ID
 	// In a full implementation, this would be associated with the current song
-	_, err := s.db.SaveVersion(0, content, false, "auto-save")
+	versionName := fmt.Sprintf("Auto-save %s", time.Now().Format("2006-01-02 15:04:05"))
+	_, err := s.db.SaveVersion(0, content, false, versionName)
 	if err != nil {
 		return fmt.Errorf("failed to save auto-save version: %w", err)
 	}
@@ -454,6 +468,15 @@ func (s *AutoSaveService) SaveWithVersioning(songID int, content string, isMiles
 
 // executeSaveWithVersioning performs the actual versioned save operation
 func (s *AutoSaveService) executeSaveWithVersioning(songID int, content string, isMilestone bool, name string) error {
+	// Ensure we have a proper version name
+	if strings.TrimSpace(name) == "" {
+		if isMilestone {
+			name = fmt.Sprintf("Milestone %s", time.Now().Format("2006-01-02 15:04:05"))
+		} else {
+			name = fmt.Sprintf("Auto-save %s", time.Now().Format("2006-01-02 15:04:05"))
+		}
+	}
+
 	_, err := s.db.SaveVersion(songID, content, isMilestone, name)
 	if err != nil {
 		return fmt.Errorf("failed to save versioned content: %w", err)
@@ -568,7 +591,7 @@ func (s *AutoSaveService) GetSaveStatistics(songID int) (*SaveStatistics, error)
 	for _, version := range versions {
 		if version.IsMilestone {
 			stats.MilestoneCount++
-		} else if version.MilestoneName == "auto-save" {
+		} else if strings.Contains(strings.ToLower(version.MilestoneName), "auto-save") {
 			stats.AutoSaveCount++
 		}
 	}
@@ -592,7 +615,10 @@ func (s *AutoSaveService) setStatus(status AutoSaveStatus) {
 
 // getLastSavedContent returns the last content that was successfully saved
 func (s *AutoSaveService) getLastSavedContent() string {
-	// This would typically query the database for the last saved version
-	// For now, return empty to ensure periodic saves work
-	return ""
+	// Return the raw content from the most recent version if available
+	versions, err := s.db.GetVersions(0, 1) // Get latest version for song ID 0 (general auto-save)
+	if err != nil || len(versions) == 0 {
+		return ""
+	}
+	return versions[0].Content
 }

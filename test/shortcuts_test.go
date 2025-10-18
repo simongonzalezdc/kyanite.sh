@@ -1,11 +1,17 @@
-package main
+package lyricforge_test
 
 import (
+	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/puente-labs/lyricforge/internal/ui/editor"
 )
+
+// containsString checks if a string contains a substring
+func containsString(s, substr string) bool {
+	return strings.Contains(s, substr)
+}
 
 // TestShortcutManagerCreation tests shortcut manager creation
 func TestShortcutManagerCreation(t *testing.T) {
@@ -285,7 +291,7 @@ func TestShortcutHelpText(t *testing.T) {
 	}
 
 	for _, category := range expectedCategories {
-		if !contains(helpText, category) {
+		if !containsString(helpText, category) {
 			t.Errorf("Expected help text to contain category: %s", category)
 		}
 	}
@@ -303,15 +309,15 @@ func TestShortcutStatusBarHints(t *testing.T) {
 	}
 
 	// Verify hints contain expected shortcuts
-	if !contains(hints, "Ctrl+F") {
+	if !containsString(hints, "Ctrl+F") {
 		t.Error("Expected hints to contain Ctrl+F")
 	}
 
-	if !contains(hints, "Ctrl+S") {
+	if !containsString(hints, "Ctrl+S") {
 		t.Error("Expected hints to contain Ctrl+S")
 	}
 
-	if !contains(hints, "Tab") {
+	if !containsString(hints, "Tab") {
 		t.Error("Expected hints to contain Tab")
 	}
 
@@ -323,7 +329,7 @@ func TestShortcutStatusBarHints(t *testing.T) {
 	}
 
 	// Verify hints contain expected shortcuts
-	if !contains(hints, "↑↓") {
+	if !containsString(hints, "↑↓") {
 		t.Error("Expected hints to contain arrow keys")
 	}
 
@@ -335,11 +341,11 @@ func TestShortcutStatusBarHints(t *testing.T) {
 	}
 
 	// Verify hints contain expected shortcuts
-	if !contains(hints, "F1") {
+	if !containsString(hints, "F1") {
 		t.Error("Expected hints to contain F1")
 	}
 
-	if !contains(hints, "Esc") {
+	if !containsString(hints, "Esc") {
 		t.Error("Expected hints to contain Esc")
 	}
 }

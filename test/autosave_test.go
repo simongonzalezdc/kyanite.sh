@@ -1,4 +1,4 @@
-package main
+package lyricforge_test
 
 import (
 	"context"
@@ -379,7 +379,9 @@ func TestAutoSaveDebouncing(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to start service: %v", err)
 	}
-	defer service.Stop()
+	if err := service.Stop(); err != nil {
+		t.Logf("Warning: Failed to stop auto-save service: %v", err)
+	}
 
 	// Test rapid content changes (should be debounced)
 	start := time.Now()
@@ -461,7 +463,9 @@ func TestAutoSavePeriodicSaving(t *testing.T) {
 		t.Fatalf("Failed to start service: %v", err)
 	}
 	defer func() {
-		service.Stop()
+	if err := service.Stop(); err != nil {
+		t.Logf("Warning: Failed to stop auto-save service: %v", err)
+	}
 		cancel()
 	}()
 
@@ -521,7 +525,9 @@ func TestAutoSaveConcurrency(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to start service: %v", err)
 	}
-	defer service.Stop()
+	if err := service.Stop(); err != nil {
+		t.Logf("Warning: Failed to stop auto-save service: %v", err)
+	}
 
 	// Test concurrent saves
 	done := make(chan bool, 10)
