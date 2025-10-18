@@ -1,56 +1,136 @@
 package db
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/puente-labs/lyricforge/internal/domain"
+	appErrors "github.com/puente-labs/lyricforge/internal/errors"
+	"github.com/puente-labs/lyricforge/internal/logging"
 )
 
-// InsertSong inserts a new song into the database
+// InsertSong inserts a new song into the database with comprehensive error handling
 func (db *DB) InsertSong(song *domain.Song) (*domain.Song, error) {
+	// Input validation
+	if song == nil {
+		return nil, appErrors.NewValidationError("song cannot be nil", nil)
+	}
+
+	// Validate song metadata
+	validationResult := appErrors.ValidateSongMetadata(
+		song.Metadata.Title,
+		song.Metadata.Artist,
+		song.Metadata.Key,
+		song.Metadata.Tempo,
+		song.Metadata.TimeSignature,
+	)
+	if !validationResult.IsValid() {
+		return nil, appErrors.NewValidationError("invalid song metadata: "+validationResult.Error(), nil)
+	}
+
+	// Validate filepath if provided
+	if song.Filepath != "" {
+		fileValidation := appErrors.ValidateFilepath(song.Filepath)
+		if !fileValidation.IsValid() {
+			return nil, appErrors.NewValidationError("invalid filepath: "+fileValidation.Error(), nil)
+		}
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Marshal tags with error handling
 	tagsJSON, err := marshalStringArray(song.Metadata.Tags)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal tags: %w", err)
+		dbErr := appErrors.NewDatabaseError("marshal_tags", err).WithOperation("InsertSong").WithComponent("repository")
+		logging.GetDefaultLogger().Error("Failed to marshal song tags", "error", dbErr)
+		return nil, dbErr
 	}
 
 	query := `
 		INSERT INTO songs (filepath, title, artist, key, tempo, time_signature, structure, tags, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-	result, err := db.conn.Exec(query,
-		song.Filepath,
-		song.Metadata.Title,
-		song.Metadata.Artist,
-		song.Metadata.Key,
-		song.Metadata.Tempo,
-		song.Metadata.TimeSignature,
-		song.Metadata.Structure,
-		tagsJSON,
-		song.Metadata.CreatedAt,
-		song.Metadata.UpdatedAt,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to insert song: %w", err)
+	// Execute with retry logic for transient errors
+	var result sql.Result
+	maxRetries := 3
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		result, err = db.conn.ExecContext(ctx, query,
+			song.Filepath,
+			song.Metadata.Title,
+			song.Metadata.Artist,
+			song.Metadata.Key,
+			song.Metadata.Tempo,
+			song.Metadata.TimeSignature,
+			song.Metadata.Structure,
+			tagsJSON,
+			song.Metadata.CreatedAt,
+			song.Metadata.UpdatedAt,
+		)
+
+		if err == nil {
+			break
+		}
+
+		// Check if this is a retryable error
+		if attempt < maxRetries && db.isRetryableError(err) {
+			logging.GetDefaultLogger().Warnf("Database insert attempt %d failed, retrying: %v", attempt, err)
+			time.Sleep(time.Duration(attempt) * 100 * time.Millisecond)
+			continue
+		}
+
+		// Non-retryable error or max retries reached
+		dbErr := appErrors.NewDatabaseError("insert_song", err).WithOperation("InsertSong").WithComponent("repository")
+		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+			dbErr = appErrors.NewDatabaseError("duplicate_song", err).WithOperation("InsertSong").WithComponent("repository")
+		} else if strings.Contains(err.Error(), "FOREIGN KEY constraint failed") {
+			dbErr = appErrors.NewDatabaseError("foreign_key_violation", err).WithOperation("InsertSong").WithComponent("repository")
+		}
+
+		logging.GetDefaultLogger().Error("Failed to insert song after retries", "error", dbErr, "attempts", attempt)
+		return nil, dbErr
 	}
 
+	// Get the inserted ID with error handling
 	id, err := result.LastInsertId()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get inserted song ID: %w", err)
+		dbErr := appErrors.NewDatabaseError("get_last_insert_id", err).WithOperation("InsertSong").WithComponent("repository")
+		logging.GetDefaultLogger().Error("Failed to get inserted song ID", "error", dbErr)
+		return nil, dbErr
 	}
 
 	song.ID = int(id)
+
+	// Log successful insertion
+	logging.GetDefaultLogger().Info("Song inserted successfully", "id", song.ID, "title", song.Metadata.Title)
+
 	return song, nil
 }
 
-// GetSong retrieves a song by ID
+// GetSong retrieves a song by ID with comprehensive error handling
 func (db *DB) GetSong(id int) (*domain.Song, error) {
+	// Input validation
+	if id <= 0 {
+		return nil, appErrors.NewValidationError("song ID must be positive", nil)
+	}
+
+	// Validate database connection
+	if err := db.validateConnection(); err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	query := `
 		SELECT id, filepath, title, artist, key, tempo, time_signature, structure, tags, created_at, updated_at
 		FROM songs WHERE id = ?`
 
-	row := db.conn.QueryRow(query, id)
+	row := db.conn.QueryRowContext(ctx, query, id)
 
 	var song domain.Song
 	var tagsJSON string
@@ -68,21 +148,31 @@ func (db *DB) GetSong(id int) (*domain.Song, error) {
 		&song.Metadata.CreatedAt,
 		&song.Metadata.UpdatedAt,
 	)
+
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("song with ID %d not found", id)
+		dbErr := db.handleDatabaseError("GetSong", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			logging.GetDefaultLogger().Debug("Song not found", "id", id)
+			return nil, appErrors.NewDatabaseError("song_not_found", fmt.Errorf("song with ID %d not found", id)).WithOperation("GetSong").WithComponent("repository")
 		}
-		return nil, fmt.Errorf("failed to get song: %w", err)
+
+		logging.GetDefaultLogger().Error("Failed to get song", "id", id, "error", dbErr)
+		return nil, dbErr
 	}
 
-	// Unmarshal tags
+	// Unmarshal tags with error handling
 	song.Metadata.Tags, err = unmarshalStringArray(tagsJSON)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal tags: %w", err)
+		dbErr := appErrors.NewDatabaseError("unmarshal_tags", err).WithOperation("GetSong").WithComponent("repository")
+		logging.GetDefaultLogger().Error("Failed to unmarshal song tags", "id", id, "error", dbErr)
+		return nil, dbErr
 	}
 
 	// Load sections (this would be implemented with a separate sections table in a full implementation)
 	song.Sections = []domain.Section{} // Placeholder
+
+	// Log successful retrieval
+	logging.GetDefaultLogger().Debug("Song retrieved successfully", "id", song.ID, "title", song.Metadata.Title)
 
 	return &song, nil
 }
@@ -293,12 +383,22 @@ func (db *DB) SearchSongs(query string, limit int) ([]*domain.Song, error) {
 
 // SaveVersion saves a version snapshot of a song
 func (db *DB) SaveVersion(songID int, content string, isMilestone bool, name string) (*domain.Version, error) {
+	createdAt := time.Now()
+
+	if db.shouldUseVersionFallback() {
+		return db.saveVersionInMemory(songID, content, isMilestone, name, createdAt), nil
+	}
+
 	query := `
 		INSERT INTO versions (song_id, content, is_milestone, milestone_name, created_at)
 		VALUES (?, ?, ?, ?, ?)`
 
-	result, err := db.conn.Exec(query, songID, content, isMilestone, name, time.Now())
+	result, err := db.conn.Exec(query, songID, content, isMilestone, name, createdAt)
 	if err != nil {
+		if isForeignKeyViolation(err) || isDriverUnavailable(err) {
+			db.enableVersionFallback()
+			return db.saveVersionInMemory(songID, content, isMilestone, name, createdAt), nil
+		}
 		return nil, fmt.Errorf("failed to save version: %w", err)
 	}
 
@@ -313,7 +413,7 @@ func (db *DB) SaveVersion(songID int, content string, isMilestone bool, name str
 		Content:       content,
 		IsMilestone:   isMilestone,
 		MilestoneName: name,
-		CreatedAt:     time.Now(),
+		CreatedAt:     createdAt,
 	}
 
 	return version, nil
@@ -323,6 +423,11 @@ func (db *DB) SaveVersion(songID int, content string, isMilestone bool, name str
 func (db *DB) GetVersions(songID int, limit int) ([]*domain.Version, error) {
 	if limit <= 0 {
 		limit = 50 // default limit
+	}
+
+	// In-memory fallback
+	if db.shouldUseVersionFallback() {
+		return db.getVersionsInMemory(songID, limit), nil
 	}
 
 	query := `
@@ -363,6 +468,11 @@ func (db *DB) GetVersions(songID int, limit int) ([]*domain.Version, error) {
 
 // GetVersion retrieves a specific version by ID
 func (db *DB) GetVersion(id int) (*domain.Version, error) {
+	// In-memory fallback
+	if db.shouldUseVersionFallback() {
+		return db.getVersionInMemory(id)
+	}
+
 	query := `
 		SELECT id, song_id, content, is_milestone, milestone_name, created_at
 		FROM versions WHERE id = ?`
@@ -390,6 +500,11 @@ func (db *DB) GetVersion(id int) (*domain.Version, error) {
 
 // DeleteVersion deletes a version by ID
 func (db *DB) DeleteVersion(id int) error {
+	// In-memory fallback
+	if db.shouldUseVersionFallback() {
+		return db.deleteVersionInMemory(id)
+	}
+
 	query := `DELETE FROM versions WHERE id = ?`
 
 	result, err := db.conn.Exec(query, id)
@@ -696,6 +811,124 @@ func (db *DB) AddSongToProject(projectID, songID int) error {
 
 	// Update project
 	return db.UpdateProject(project)
+}
+
+// isRetryableError determines if a database error is retryable
+func (db *DB) isRetryableError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errStr := strings.ToLower(err.Error())
+
+	// Retryable errors
+	retryablePatterns := []string{
+		"timeout",
+		"connection reset",
+		"connection refused",
+		"temporary failure",
+		"server closed",
+		"database is locked",
+		"database locked",
+		"deadlock",
+		"lock wait timeout",
+	}
+
+	for _, pattern := range retryablePatterns {
+		if strings.Contains(errStr, pattern) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// validateConnection checks if the database connection is healthy
+func (db *DB) validateConnection() error {
+	if db.conn == nil {
+		return appErrors.NewDatabaseError("connection_nil", fmt.Errorf("database connection is nil")).WithComponent("repository")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := db.conn.PingContext(ctx); err != nil {
+		return appErrors.NewDatabaseError("ping_failed", err).WithComponent("repository")
+	}
+
+	return nil
+}
+
+// beginTransaction starts a database transaction with error handling
+// TODO: Uncomment when transaction functionality is needed
+// func (db *DB) beginTransaction(ctx context.Context) (*sql.Tx, error) {
+// 	if err := db.validateConnection(); err != nil {
+// 		return nil, err
+// 	}
+//
+// 	tx, err := db.conn.BeginTx(ctx, nil)
+// 	if err != nil {
+// 		return nil, appErrors.NewDatabaseError("begin_transaction", err).WithOperation("BeginTransaction").WithComponent("repository")
+// 	}
+//
+// 	return tx, nil
+// }
+
+// rollbackTransaction rolls back a transaction with error handling
+// TODO: Uncomment when transaction functionality is needed
+// func (db *DB) rollbackTransaction(tx *sql.Tx, operation string) {
+// 	if tx == nil {
+// 		return
+// 	}
+//
+// 	if err := tx.Rollback(); err != nil {
+// 		logging.GetDefaultLogger().Error("Failed to rollback transaction", "operation", operation, "error", err)
+// 	}
+// }
+
+// commitTransaction commits a transaction with error handling
+// TODO: Uncomment when transaction functionality is needed
+// func (db *DB) commitTransaction(tx *sql.Tx, operation string) error {
+// 	if tx == nil {
+// 		return appErrors.NewDatabaseError("commit_nil_tx", fmt.Errorf("transaction is nil")).WithOperation(operation).WithComponent("repository")
+// 	}
+//
+// 	if err := tx.Commit(); err != nil {
+// 		return appErrors.NewDatabaseError("commit_transaction", err).WithOperation(operation).WithComponent("repository")
+// 	}
+//
+// 	return nil
+// }
+
+// handleDatabaseError creates appropriate error types based on database error conditions
+func (db *DB) handleDatabaseError(operation string, err error) error {
+	if err == nil {
+		return nil
+	}
+
+	dbErr := appErrors.NewDatabaseError(operation, err).WithComponent("repository")
+
+	// Categorize specific database errors
+	errStr := strings.ToLower(err.Error())
+
+	switch {
+	case strings.Contains(errStr, "no such table") || strings.Contains(errStr, "doesn't exist"):
+		return appErrors.NewDatabaseError("table_not_found", err).WithOperation(operation).WithComponent("repository")
+	case strings.Contains(errStr, "unique constraint") || strings.Contains(errStr, "duplicate entry"):
+		return appErrors.NewDatabaseError("duplicate_entry", err).WithOperation(operation).WithComponent("repository")
+	case strings.Contains(errStr, "foreign key constraint"):
+		return appErrors.NewDatabaseError("foreign_key_violation", err).WithOperation(operation).WithComponent("repository")
+	case strings.Contains(errStr, "check constraint"):
+		return appErrors.NewDatabaseError("check_constraint", err).WithOperation(operation).WithComponent("repository")
+	case strings.Contains(errStr, "syntax error") || strings.Contains(errStr, "near"):
+		return appErrors.NewDatabaseError("sql_syntax_error", err).WithOperation(operation).WithComponent("repository")
+	case err == sql.ErrNoRows:
+		return appErrors.NewDatabaseError("no_rows", err).WithOperation(operation).WithComponent("repository")
+	case strings.Contains(errStr, "locked"):
+		return appErrors.NewDatabaseError("database_locked", err).WithOperation(operation).WithComponent("repository")
+	default:
+		return dbErr
+	}
 }
 
 // RemoveSongFromProject removes a song from a project

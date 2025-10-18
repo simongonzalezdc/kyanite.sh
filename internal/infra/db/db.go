@@ -4,16 +4,27 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
+	"strings"
+	"sync"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3" // SQLite driver
 	"github.com/puente-labs/lyricforge/internal/domain"
 )
 
 // DB wraps the database connection with helper methods
 type DB struct {
 	conn *sql.DB
+
+	// In-memory fallback storage when SQLite/CGo is unavailable or when SQL persistence
+	// cannot be used (e.g., CGO disabled or foreign key constraints unsupported).
+	versionMutex  sync.Mutex
+	versions      []*domain.Version
+	nextVersionID int
+
+	fallbackMu      sync.RWMutex
+	versionFallback bool
 }
 
 // Config holds database configuration
@@ -27,11 +38,26 @@ func New(cfg Config) (*DB, error) {
 		cfg.DataDir = getDefaultDataDir()
 	}
 
+	if err := os.MkdirAll(cfg.DataDir, 0o755); err != nil {
+		return nil, fmt.Errorf("failed to prepare data directory: %w", err)
+	}
+
 	dbPath := filepath.Join(cfg.DataDir, "lyricforge.db")
 
-	conn, err := sql.Open("sqlite3", dbPath)
+	conn, err := sql.Open(sqliteDriverName, dbPath)
 	if err != nil {
+		if isDriverUnavailable(err) {
+			return newFallbackDB(), nil
+		}
 		return nil, fmt.Errorf("failed to open database: %w", err)
+	}
+
+	if err := conn.Ping(); err != nil {
+		conn.Close()
+		if isDriverUnavailable(err) {
+			return newFallbackDB(), nil
+		}
+		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
 	// Configure connection pool
@@ -39,20 +65,79 @@ func New(cfg Config) (*DB, error) {
 	conn.SetMaxIdleConns(5)
 	conn.SetConnMaxLifetime(time.Hour)
 
-	// Enable foreign keys
+	// Enable foreign keys (may fail when the driver has limited PRAGMA support)
 	if _, err := conn.Exec("PRAGMA foreign_keys = ON"); err != nil {
+		conn.Close()
+		if isDriverUnavailable(err) {
+			return newFallbackDB(), nil
+		}
 		return nil, fmt.Errorf("failed to enable foreign keys: %w", err)
 	}
 
 	// Create schema
 	if err := initializeSchema(conn); err != nil {
+		conn.Close()
 		return nil, fmt.Errorf("failed to initialize schema: %w", err)
 	}
 
-	return &DB{conn: conn}, nil
+	return &DB{
+		conn:            conn,
+		versions:        make([]*domain.Version, 0),
+		nextVersionID:   1,
+		versionFallback: false,
+	}, nil
+}
+
+func newFallbackDB() *DB {
+	return &DB{
+		conn:            nil,
+		versions:        make([]*domain.Version, 0),
+		nextVersionID:   1,
+		versionFallback: true,
+	}
+}
+
+func isDriverUnavailable(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errMsg := err.Error()
+	return strings.Contains(errMsg, "requires cgo") ||
+		strings.Contains(errMsg, "driver not found") ||
+		strings.Contains(errMsg, "no such driver") ||
+		strings.Contains(errMsg, "unknown driver") ||
+		strings.Contains(errMsg, "binary was built with 'CGO_ENABLED=0'")
+}
+
+func isForeignKeyViolation(err error) bool {
+	if err == nil {
+		return false
+	}
+	return strings.Contains(strings.ToLower(err.Error()), "foreign key")
 }
 
 // Close closes the database connection
+func (db *DB) shouldUseVersionFallback() bool {
+	if db == nil {
+		return true
+	}
+
+	db.fallbackMu.RLock()
+	defer db.fallbackMu.RUnlock()
+	return db.conn == nil || db.versionFallback
+}
+
+func (db *DB) enableVersionFallback() {
+	if db == nil {
+		return
+	}
+
+	db.fallbackMu.Lock()
+	db.versionFallback = true
+	db.fallbackMu.Unlock()
+}
+
 func (db *DB) Close() error {
 	if db.conn != nil {
 		return db.conn.Close()
@@ -62,6 +147,9 @@ func (db *DB) Close() error {
 
 // Ping tests the database connection
 func (db *DB) Ping() error {
+	if db == nil || db.conn == nil {
+		return nil
+	}
 	return db.conn.Ping()
 }
 

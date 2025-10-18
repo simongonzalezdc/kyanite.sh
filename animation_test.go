@@ -1,0 +1,436 @@
+package main
+
+import (
+	"fmt"
+	"testing"
+	"time"
+
+	"github.com/charmbracelet/lipgloss"
+	"github.com/puente-labs/lyricforge/internal/ui"
+	"github.com/puente-labs/lyricforge/internal/ui/styles"
+)
+
+// TestAnimationConfig tests animation configuration
+func TestAnimationConfig(t *testing.T) {
+	// Test default configuration
+	config := ui.DefaultAnimationConfig()
+
+	if !config.Enabled {
+		t.Error("Expected animations to be enabled by default")
+	}
+
+	if config.AngularFrequency != 6.0 {
+		t.Errorf("Expected angular frequency 6.0, got %f", config.AngularFrequency)
+	}
+
+	if config.DampingRatio != 0.5 {
+		t.Errorf("Expected damping ratio 0.5, got %f", config.DampingRatio)
+	}
+
+	if config.ReducedMotion {
+		t.Error("Expected reduced motion to be disabled by default")
+	}
+
+	if config.FrameRate != 60 {
+		t.Errorf("Expected frame rate 60, got %d", config.FrameRate)
+	}
+}
+
+// TestAnimationManagerCreation tests animation manager creation
+func TestAnimationManagerCreation(t *testing.T) {
+	manager := ui.NewAnimationManager()
+
+	if manager == nil {
+		t.Fatal("Expected animation manager to be created, got nil")
+	}
+
+	// Test default config
+	config := manager.GetConfig()
+	if !config.Enabled {
+		t.Error("Expected animations to be enabled by default")
+	}
+
+	// Test cleanup
+	manager.Close()
+}
+
+// TestAnimationManagerConfig tests configuration management
+func TestAnimationManagerConfig(t *testing.T) {
+	manager := ui.NewAnimationManager()
+	defer manager.Close()
+
+	// Test updating config
+	newConfig := ui.AnimationConfig{
+		Enabled:          false,
+		AngularFrequency: 8.0,
+		DampingRatio:     0.8,
+		ReducedMotion:    true,
+		FrameRate:        30,
+	}
+
+	manager.SetConfig(newConfig)
+
+	// Verify config was updated
+	config := manager.GetConfig()
+	if config.Enabled {
+		t.Error("Expected animations to be disabled")
+	}
+
+	if config.AngularFrequency != 8.0 {
+		t.Errorf("Expected angular frequency 8.0, got %f", config.AngularFrequency)
+	}
+
+	if config.DampingRatio != 0.8 {
+		t.Errorf("Expected damping ratio 0.8, got %f", config.DampingRatio)
+	}
+
+	if !config.ReducedMotion {
+		t.Error("Expected reduced motion to be enabled")
+	}
+
+	if config.FrameRate != 30 {
+		t.Errorf("Expected frame rate 30, got %d", config.FrameRate)
+	}
+}
+
+// TestAnimationStartStop tests starting and stopping animations
+func TestAnimationStartStop(t *testing.T) {
+	manager := ui.NewAnimationManager()
+	defer manager.Close()
+
+	// Test starting animation
+	manager.StartAnimation("test-fade", ui.AnimationFade, 1.0)
+
+	if !manager.IsAnimationActive("test-fade") {
+		t.Error("Expected animation to be active")
+	}
+
+	// Test getting animation progress
+	progress := manager.GetAnimationProgress("test-fade")
+	if progress < 0 || progress > 1 {
+		t.Errorf("Expected progress between 0 and 1, got %f", progress)
+	}
+
+	// Test stopping animation
+	manager.StopAnimation("test-fade")
+
+	if manager.IsAnimationActive("test-fade") {
+		t.Error("Expected animation to be stopped")
+	}
+
+	// Test getting progress for non-existent animation
+	progress = manager.GetAnimationProgress("non-existent")
+	if progress != 0.0 {
+		t.Errorf("Expected progress 0 for non-existent animation, got %f", progress)
+	}
+}
+
+// TestAnimationTypes tests different animation types
+func TestAnimationTypes(t *testing.T) {
+	manager := ui.NewAnimationManager()
+	defer manager.Close()
+
+	// Test different animation types
+	animationTypes := []struct {
+		id  string
+		typ ui.AnimationType
+		pos float64
+	}{
+		{"fade-test", ui.AnimationFade, 1.0},
+		{"slide-test", ui.AnimationSlide, 100.0},
+		{"scale-test", ui.AnimationScale, 1.5},
+		{"bounce-test", ui.AnimationBounce, 0.8},
+		{"pulse-test", ui.AnimationPulse, 1.2},
+	}
+
+	for _, anim := range animationTypes {
+		manager.StartAnimation(anim.id, anim.typ, anim.pos)
+
+		if !manager.IsAnimationActive(anim.id) {
+			t.Errorf("Expected animation %s to be active", anim.id)
+		}
+
+		progress := manager.GetAnimationProgress(anim.id)
+		if progress < 0 || progress > 1 {
+			t.Errorf("Expected progress between 0 and 1 for %s, got %f", anim.id, progress)
+		}
+	}
+}
+
+// TestAnimationConvenienceMethods tests convenience animation methods
+func TestAnimationConvenienceMethods(t *testing.T) {
+	manager := ui.NewAnimationManager()
+	defer manager.Close()
+
+	// Test fade transition
+	manager.FadeTransition("fade-test", 0.8)
+	if !manager.IsAnimationActive("fade-test") {
+		t.Error("Expected fade animation to be active")
+	}
+
+	// Test slide transition
+	manager.SlideTransition("slide-test", 50.0)
+	if !manager.IsAnimationActive("slide-test") {
+		t.Error("Expected slide animation to be active")
+	}
+
+	// Test pulse animation
+	manager.PulseAnimation("pulse-test", 1.5)
+	if !manager.IsAnimationActive("pulse-test") {
+		t.Error("Expected pulse animation to be active")
+	}
+}
+
+// TestAnimationClearAll tests clearing all animations
+func TestAnimationClearAll(t *testing.T) {
+	manager := ui.NewAnimationManager()
+	defer manager.Close()
+
+	// Start multiple animations
+	manager.StartAnimation("anim1", ui.AnimationFade, 1.0)
+	manager.StartAnimation("anim2", ui.AnimationSlide, 100.0)
+	manager.StartAnimation("anim3", ui.AnimationPulse, 1.5)
+
+	// Verify animations are active
+	if !manager.IsAnimationActive("anim1") || !manager.IsAnimationActive("anim2") || !manager.IsAnimationActive("anim3") {
+		t.Error("Expected all animations to be active")
+	}
+
+	// Clear all animations
+	manager.ClearAllAnimations()
+
+	// Verify all animations are stopped
+	if manager.IsAnimationActive("anim1") || manager.IsAnimationActive("anim2") || manager.IsAnimationActive("anim3") {
+		t.Error("Expected all animations to be stopped after clear")
+	}
+}
+
+// TestAnimationDisabled tests behavior when animations are disabled
+func TestAnimationDisabled(t *testing.T) {
+	manager := ui.NewAnimationManager()
+	defer manager.Close()
+
+	// Disable animations
+	config := ui.AnimationConfig{Enabled: false}
+	manager.SetConfig(config)
+
+	// Try to start animation
+	manager.StartAnimation("disabled-test", ui.AnimationFade, 1.0)
+
+	// Animation should not be active
+	if manager.IsAnimationActive("disabled-test") {
+		t.Error("Expected animation to not start when disabled")
+	}
+}
+
+// TestFadeEffect tests fade effect application
+func TestFadeEffect(t *testing.T) {
+	baseStyle := lipgloss.NewStyle().
+		Foreground(styles.TextPrimary).
+		Background(styles.Background)
+
+	// Test fully transparent
+	faded := ui.ApplyFadeEffect(baseStyle, 0.0)
+	// For fully transparent, we expect background color to be used for foreground
+	if faded.GetBackground() != styles.Background {
+		t.Error("Expected fully transparent style to have background color")
+	}
+
+	// Test fully opaque
+	faded = ui.ApplyFadeEffect(baseStyle, 1.0)
+	// For fully opaque, style should be unchanged
+	if faded.GetBackground() != baseStyle.GetBackground() {
+		t.Error("Expected fully opaque style to be unchanged")
+	}
+
+	// Test partial fade
+	faded = ui.ApplyFadeEffect(baseStyle, 0.5)
+	// Should have muted text color for partial fade
+	// We can't directly compare styles, so we'll check that the style is not nil
+	if faded.String() == "" {
+		t.Error("Expected style to be modified for partial fade")
+	}
+}
+
+// TestSlideEffect tests slide effect application
+func TestSlideEffect(t *testing.T) {
+	baseStyle := lipgloss.NewStyle()
+
+	// Test slide left
+	slid := ui.ApplySlideEffect(baseStyle, 0.0, "left")
+	// Should have negative left margin (or zero if the renderer clamps negatives)
+	if slid.GetMarginLeft() > 0 {
+		t.Error("Expected non-positive left margin for slide left at 0%")
+	}
+
+	// Test slide right
+	slid = ui.ApplySlideEffect(baseStyle, 0.0, "right")
+	// Should have negative right margin (or zero if the renderer clamps negatives)
+	if slid.GetMarginRight() > 0 {
+		t.Error("Expected non-positive right margin for slide right at 0%")
+	}
+
+	// Test slide up
+	slid = ui.ApplySlideEffect(baseStyle, 0.0, "up")
+	// Should have negative top margin (or zero if the renderer clamps negatives)
+	if slid.GetMarginTop() > 0 {
+		t.Error("Expected non-positive top margin for slide up at 0%")
+	}
+
+	// Test slide down
+	slid = ui.ApplySlideEffect(baseStyle, 0.0, "down")
+	// Should have negative bottom margin (or zero if the renderer clamps negatives)
+	if slid.GetMarginBottom() > 0 {
+		t.Error("Expected non-positive bottom margin for slide down at 0%")
+	}
+
+	// Test full progress (should have no margins)
+	slid = ui.ApplySlideEffect(baseStyle, 1.0, "left")
+	if slid.GetMarginLeft() != 0 || slid.GetMarginRight() != 0 ||
+		slid.GetMarginTop() != 0 || slid.GetMarginBottom() != 0 {
+		t.Error("Expected no margins at 100% progress")
+	}
+}
+
+// TestPulseEffect tests pulse effect application
+func TestPulseEffect(t *testing.T) {
+	baseStyle := lipgloss.NewStyle().
+		Foreground(styles.TextPrimary).
+		Background(styles.Background)
+
+	// Test no pulse at 0% progress
+	pulsed := ui.ApplyPulseEffect(baseStyle, 0.0)
+	// Should return the base style unchanged
+	if pulsed.String() == "" {
+		t.Error("Expected style to be returned at 0% progress")
+	}
+
+	// Test no pulse at 100% progress
+	pulsed = ui.ApplyPulseEffect(baseStyle, 1.0)
+	// Should return the base style unchanged
+	if pulsed.String() == "" {
+		t.Error("Expected style to be returned at 100% progress")
+	}
+
+	// Test pulse at 50% progress
+	pulsed = ui.ApplyPulseEffect(baseStyle, 0.5)
+	// Should modify the style
+	if pulsed.String() == baseStyle.String() {
+		t.Error("Expected background change at 50% progress")
+	}
+}
+
+// TestAnimationUpdate tests animation update mechanism
+func TestAnimationUpdate(t *testing.T) {
+	manager := ui.NewAnimationManager()
+	defer manager.Close()
+
+	// Start animation
+	manager.StartAnimation("update-test", ui.AnimationFade, 1.0)
+
+	// Get update command
+	cmd := manager.Update()
+	if cmd == nil {
+		t.Error("Expected update command to be returned")
+	}
+
+	// Execute command to advance animation
+	msg := cmd()
+	if msg == nil {
+		// Animation might have completed immediately in test environment
+		if manager.IsAnimationActive("update-test") {
+			t.Error("Expected animation to be active after update")
+		}
+	}
+}
+
+// TestReducedMotion tests reduced motion behavior
+func TestReducedMotion(t *testing.T) {
+	manager := ui.NewAnimationManager()
+	defer manager.Close()
+
+	// Enable reduced motion
+	config := ui.AnimationConfig{
+		Enabled:       true,
+		ReducedMotion: true,
+	}
+	manager.SetConfig(config)
+
+	// Start animation
+	manager.StartAnimation("reduced-test", ui.AnimationFade, 1.0)
+
+	// Animation should still start but with different behavior
+	if !manager.IsAnimationActive("reduced-test") {
+		t.Error("Expected animation to start even with reduced motion")
+	}
+}
+
+// TestAnimationPerformance tests performance with many animations
+func TestAnimationPerformance(t *testing.T) {
+	manager := ui.NewAnimationManager()
+	defer manager.Close()
+
+	// Start many animations
+	for i := 0; i < 100; i++ {
+		id := fmt.Sprintf("perf-test-%d", i)
+		manager.StartAnimation(id, ui.AnimationFade, 1.0)
+
+		if !manager.IsAnimationActive(id) {
+			t.Errorf("Expected animation %s to be active", id)
+		}
+	}
+
+	// Test clearing all animations
+	start := time.Now()
+	manager.ClearAllAnimations()
+	duration := time.Since(start)
+
+	// Should complete quickly
+	if duration > 10*time.Millisecond {
+		t.Errorf("Clearing animations took too long: %v", duration)
+	}
+
+	// Verify all animations are stopped
+	for i := 0; i < 100; i++ {
+		id := fmt.Sprintf("perf-test-%d", i)
+		if manager.IsAnimationActive(id) {
+			t.Errorf("Expected animation %s to be stopped", id)
+		}
+	}
+}
+
+// BenchmarkAnimationCreation benchmarks animation creation performance
+func BenchmarkAnimationCreation(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		manager := ui.NewAnimationManager()
+		manager.Close()
+	}
+}
+
+// BenchmarkAnimationStart benchmarks animation start performance
+func BenchmarkAnimationStart(b *testing.B) {
+	manager := ui.NewAnimationManager()
+	defer manager.Close()
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		id := fmt.Sprintf("bench-%d", i)
+		manager.StartAnimation(id, ui.AnimationFade, 1.0)
+	}
+}
+
+// BenchmarkAnimationProgress benchmarks progress retrieval performance
+func BenchmarkAnimationProgress(b *testing.B) {
+	manager := ui.NewAnimationManager()
+	defer manager.Close()
+
+	// Start an animation
+	manager.StartAnimation("bench-test", ui.AnimationFade, 1.0)
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		_ = manager.GetAnimationProgress("bench-test")
+	}
+}

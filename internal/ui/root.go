@@ -7,6 +7,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/puente-labs/lyricforge/internal/infra/db"
+	"github.com/puente-labs/lyricforge/internal/ui/editor"
+	"github.com/puente-labs/lyricforge/internal/ui/styles"
 )
 
 // Screen represents different screens in the application
@@ -42,22 +44,34 @@ type RootModel struct {
 	manager  *ManagerModel
 	settings *SettingsModel
 
+	// Help system
+	helpMode bool
+	helpPane *editor.HelpPaneModel
+
 	// Loading state
 	loading  bool
 	spinner  spinner.Model
 	errorMsg string
+
+	// Animation system
+	animation *AnimationManager
+
+	// Responsive layout system
+	responsiveManager *ResponsiveLayoutManager
 }
 
 // NewRootModel creates a new root model with initialized state
 func NewRootModel() *RootModel {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF69B4"))
+	s.Style = lipgloss.NewStyle().Foreground(styles.Primary)
 
 	return &RootModel{
-		currentScreen: screenSplash,
-		loading:       true,
-		spinner:       s,
+		currentScreen:     screenSplash,
+		loading:           true,
+		spinner:           s,
+		animation:         NewAnimationManager(),
+		responsiveManager: NewResponsiveLayoutManager(),
 	}
 }
 
@@ -92,18 +106,39 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 
+		// Handle responsive layout updates
+		sizeCmd := m.responsiveManager.HandleWindowSizeMsg(msg)
+		if sizeCmd != nil {
+			cmds = append(cmds, sizeCmd)
+		}
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
 			if m.database != nil {
 				m.database.Close()
 			}
+			// Clean up animation manager
+			if m.animation != nil {
+				m.animation.Close()
+			}
 			return m, tea.Quit
 		case "esc":
-			if m.currentScreen != screenMenu {
+			if m.helpMode {
+				m.helpMode = false
+				// Start fade out animation for help
+				m.animation.FadeTransition("help_fade_out", 1.0)
+				return m, nil
+			} else if m.currentScreen != screenMenu {
+				// Start screen transition animation
+				m.animation.SlideTransition("screen_transition", 1.0)
 				m.currentScreen = screenMenu
 				return m, nil
 			}
+		case "f1":
+			// Toggle help mode
+			m.helpMode = !m.helpMode
+			return m, nil
 		}
 
 	case initSuccessMsg:
@@ -121,6 +156,20 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var cmd tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
 		cmds = append(cmds, cmd)
+
+	case AnimationTickMsg:
+		// Update global animations
+		cmd := m.animation.Update()
+		if cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+
+	case SizeValidationMsg:
+		// Handle size validation results
+		if !msg.IsValid {
+			// Could show a temporary warning overlay or log the warnings
+			// For now, we'll just ensure the app continues to work
+		}
 	}
 
 	// Update current screen
@@ -141,6 +190,9 @@ func (m *RootModel) initializeChildModels() {
 	m.audio = NewAudioModel()
 	m.manager = NewManagerModel(m.database)
 	m.settings = NewSettingsModel()
+
+	// Initialize help system
+	m.helpPane = editor.NewHelpPaneModel(nil) // Shortcut manager will be set when needed
 }
 
 // updateCurrentScreen routes messages to the current screen's model
@@ -166,26 +218,44 @@ func (m *RootModel) updateCurrentScreen(msg tea.Msg) tea.Cmd {
 
 // View renders the current screen
 func (m *RootModel) View() string {
+	// Show help overlay if help mode is active
+	if m.helpMode {
+		return m.renderHelp()
+	}
+
+	var content string
+
 	switch m.currentScreen {
 	case screenSplash:
-		return m.renderSplash()
+		content = m.renderSplash()
 	case screenMenu:
-		return m.renderMenu()
+		content = m.renderMenu()
 	case screenEditor:
-		return m.renderEditor()
+		content = m.renderEditor()
 	case screenTheory:
-		return m.renderTheory()
+		content = m.renderTheory()
 	case screenAudio:
-		return m.renderAudio()
+		content = m.renderAudio()
 	case screenManager:
-		return m.renderManager()
+		content = m.renderManager()
 	case screenSettings:
-		return m.renderSettings()
+		content = m.renderSettings()
 	case screenLoading:
-		return m.renderLoading()
+		content = m.renderLoading()
 	default:
-		return "Unknown screen"
+		content = "Unknown screen"
 	}
+
+	// Add size warnings if terminal size is not optimal
+	if warnings := m.responsiveManager.GetSizeWarnings(); len(warnings) > 0 {
+		warningBox := m.responsiveManager.RenderSizeWarning()
+		if warningBox != "" {
+			// Add warning at the top of the content
+			content = warningBox + "\n" + content
+		}
+	}
+
+	return content
 }
 
 // renderSplash renders the splash screen
@@ -229,7 +299,7 @@ func (m *RootModel) renderSettings() string {
 // renderLoading renders the loading screen
 func (m *RootModel) renderLoading() string {
 	loadingStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FF69B4")).
+		Foreground(styles.Primary).
 		Bold(true).
 		Align(lipgloss.Center).
 		Width(m.width).
@@ -243,6 +313,25 @@ func (m *RootModel) renderLoading() string {
 	}
 
 	return loadingStyle.Render(loadingText)
+}
+
+// renderHelp renders the help screen
+func (m *RootModel) renderHelp() string {
+	// Set up help pane with current editor's shortcut manager if available
+	if m.editor != nil && m.editor.GetSplitPane() != nil {
+		shortcutManager := m.editor.GetSplitPane().GetShortcutManager()
+		if shortcutManager != nil {
+			m.helpPane.SetShortcutManager(shortcutManager)
+		}
+	}
+
+	// Set dimensions for help pane
+	m.helpPane.SetDimensions(m.width, m.height)
+
+	// Update help pane (for any animations or state changes)
+	_, _ = m.helpPane.Update(tea.WindowSizeMsg{Width: m.width, Height: m.height})
+
+	return m.helpPane.View()
 }
 
 // Message types for initialization

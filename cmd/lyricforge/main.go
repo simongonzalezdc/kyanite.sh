@@ -145,4 +145,3 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("For more information, visit: https://github.com/puente-labs/lyricforge")
 }
-

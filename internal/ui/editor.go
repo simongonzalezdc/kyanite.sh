@@ -1,59 +1,53 @@
 package ui
 
 import (
-	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/puente-labs/lyricforge/internal/infra/db"
+	"github.com/puente-labs/lyricforge/internal/ui/editor"
 )
 
-// EditorModel handles the song editor screen
-type EditorModel struct {
-	textarea textarea.Model
-	database *db.DB
-	width    int
-	height   int
+// GetSplitPane returns the split pane model for external access
+func (m *EditorModel) GetSplitPane() *editor.SplitPaneModel {
+	return m.splitPane
 }
 
-// NewEditorModel creates a new editor model
-func NewEditorModel(database *db.DB) *EditorModel {
-	ta := textarea.New()
-	ta.Placeholder = "Start writing your lyrics..."
-	ta.Focus()
+// EditorModel handles the song editor screen with split-pane layout
+type EditorModel struct {
+	splitPane *editor.SplitPaneModel
+	database  *db.DB
+}
 
+// NewEditorModel creates a new editor model with split-pane layout
+func NewEditorModel(database *db.DB) *EditorModel {
 	return &EditorModel{
-		textarea: ta,
-		database: database,
+		splitPane: editor.NewSplitPaneModel(database),
+		database:  database,
 	}
 }
 
 // Init initializes the editor model
 func (m *EditorModel) Init() tea.Cmd {
-	return textarea.Blink
+	return m.splitPane.Init()
 }
 
 // Update handles messages for the editor
 func (m *EditorModel) Update(msg tea.Msg) (*EditorModel, tea.Cmd) {
 	var cmd tea.Cmd
-
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
-		m.textarea.SetWidth(msg.Width - 4)
-		m.textarea.SetHeight(msg.Height - 4)
-
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+s":
-			// Save functionality would go here
-		}
-	}
-
-	m.textarea, cmd = m.textarea.Update(msg)
+	m.splitPane, cmd = m.splitPane.Update(msg)
 	return m, cmd
 }
 
 // View renders the editor
 func (m *EditorModel) View() string {
-	return m.textarea.View()
+	return m.splitPane.View()
+}
+
+// GetEditorText returns the current editor text (for compatibility)
+func (m *EditorModel) GetEditorText() string {
+	return m.splitPane.GetEditorText()
+}
+
+// SetEditorText sets the editor text (for compatibility)
+func (m *EditorModel) SetEditorText(text string) {
+	m.splitPane.SetEditorText(text)
 }

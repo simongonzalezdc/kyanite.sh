@@ -3,13 +3,23 @@ package ui
 import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/puente-labs/lyricforge/internal/ui/styles"
 )
 
 // MenuModel handles the main menu screen
 type MenuModel struct {
-	list   list.Model
-	width  int
-	height int
+	list      list.Model
+	width     int
+	height    int
+	animation *AnimationManager
+	selected  int
+	focused   bool
+
+	// Responsive layout
+	compactMode     bool
+	showShortTitles bool
+	showMinimalMenu bool
 }
 
 // NewMenuModel creates a new menu model
@@ -24,14 +34,40 @@ func NewMenuModel() *MenuModel {
 		item{title: "Exit", desc: "Exit LyricForge", screen: screenSplash},
 	}
 
-	l := list.New(items, list.NewDefaultDelegate(), 0, 0)
-	l.Title = "🎵 LyricForge"
+	// Create custom delegate with Midnight Jazz styling
+	delegate := list.NewDefaultDelegate()
+	delegate.Styles.SelectedTitle = lipgloss.NewStyle().
+		Foreground(styles.Background).
+		Background(styles.Primary).
+		Bold(true).
+		Padding(0, 1)
+	delegate.Styles.SelectedDesc = lipgloss.NewStyle().
+		Foreground(styles.TextMuted).
+		Background(styles.Primary).
+		Padding(0, 1)
+	delegate.Styles.DimmedTitle = lipgloss.NewStyle().
+		Foreground(styles.TextMuted)
+	delegate.Styles.DimmedDesc = lipgloss.NewStyle().
+		Foreground(styles.TextMuted)
+	delegate.Styles.NormalTitle = lipgloss.NewStyle().
+		Foreground(styles.TextPrimary)
+	delegate.Styles.NormalDesc = lipgloss.NewStyle().
+		Foreground(styles.TextSecondary)
+
+	l := list.New(items, delegate, 0, 0)
+	l.Title = styles.TitleGradient("🎵 LyricForge")
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.SetShowHelp(false)
 
 	return &MenuModel{
-		list: l,
+		list:            l,
+		animation:       NewAnimationManager(),
+		selected:        0,
+		focused:         false,
+		compactMode:     false,
+		showShortTitles: false,
+		showMinimalMenu: false,
 	}
 }
 
@@ -42,6 +78,8 @@ func (m *MenuModel) Init() tea.Cmd {
 
 // Update handles messages for the menu
 func (m *MenuModel) Update(msg tea.Msg) (*MenuModel, tea.Cmd) {
+	var cmds []tea.Cmd
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -53,22 +91,104 @@ func (m *MenuModel) Update(msg tea.Msg) (*MenuModel, tea.Cmd) {
 		case "enter":
 			selectedItem, ok := m.list.SelectedItem().(item)
 			if ok {
-				// Here you would navigate to the selected screen
-				// For now, just return the model
+				// Start selection animation
+				m.animation.PulseAnimation("menu_selection", 1.0)
 				_ = selectedItem // Prevent unused variable warning
 			}
+		case "up", "down":
+			// Track selection changes for animation
+			currentSelected := m.list.Index()
+			var cmd tea.Cmd
+			m.list, cmd = m.list.Update(msg)
+			cmds = append(cmds, cmd)
+
+			if currentSelected != m.list.Index() {
+				// Selection changed, start smooth transition
+				m.animation.SlideTransition("menu_selection_change", 1.0)
+			}
+			return m, tea.Batch(cmds...)
+		}
+
+	case AnimationTickMsg:
+		// Update animation states
+		cmd := m.animation.Update()
+		if cmd != nil {
+			cmds = append(cmds, cmd)
 		}
 	}
 
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
+	cmds = append(cmds, cmd)
 
-	return m, cmd
+	return m, tea.Batch(cmds...)
 }
 
 // View renders the menu
 func (m *MenuModel) View() string {
-	return m.list.View()
+	// Update responsive mode based on current dimensions
+	m.updateResponsiveMode()
+
+	// Get animation progress for visual effects
+	selectionProgress := m.animation.GetAnimationProgress("menu_selection")
+	slideProgress := m.animation.GetAnimationProgress("menu_selection_change")
+
+	// Apply responsive styling to the list
+	listStyle := m.applyResponsiveStyling()
+
+	// Add subtle animation effects based on current state
+	if selectionProgress > 0 && selectionProgress < 1 {
+		// Pulsing effect during selection - for now just track the intensity
+		// In a full implementation, this would modify the visual styling
+		_ = selectionProgress // Track animation progress
+	}
+
+	if slideProgress > 0 && slideProgress < 1 {
+		// Smooth transition effect when changing selection
+		// This creates a subtle sliding effect
+	}
+
+	return listStyle.View()
+}
+
+// updateResponsiveMode updates the responsive display mode based on terminal width
+func (m *MenuModel) updateResponsiveMode() {
+	// Enable compact mode for smaller terminals
+	compactMode := m.width < 90
+	shortTitles := m.width < 80
+	minimalMenu := m.width < 70
+
+	// Only update if mode has actually changed
+	if m.compactMode != compactMode || m.showShortTitles != shortTitles || m.showMinimalMenu != minimalMenu {
+		m.compactMode = compactMode
+		m.showShortTitles = shortTitles
+		m.showMinimalMenu = minimalMenu
+	}
+}
+
+// applyResponsiveStyling applies responsive styling to the list
+func (m *MenuModel) applyResponsiveStyling() list.Model {
+	// Create a copy of the list to modify
+	styledList := m.list
+
+	// Adjust title based on responsive mode
+	if m.showMinimalMenu {
+		styledList.Title = styles.TitleGradient("🎵 LF")
+	} else if m.showShortTitles {
+		styledList.Title = styles.TitleGradient("🎵 LyricForge")
+	} else {
+		styledList.Title = styles.TitleGradient("🎵 LyricForge")
+	}
+
+	// Adjust list dimensions for responsive layout
+	if m.compactMode {
+		// Reduce padding and spacing for compact mode
+		styledList.SetSize(m.width-4, m.height-4)
+	} else {
+		styledList.SetSize(m.width, m.height)
+	}
+
+	return styledList
 }
 
 // item represents a menu item
