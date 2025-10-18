@@ -88,11 +88,15 @@ func (sm *ShortcutManager) initializeDefaultBindings() {
 	sm.registerBinding("shift+down", key.NewBinding(key.WithKeys("shift+down"), key.WithHelp("shift+↓", "sel down")), "Select down", ContextEditor, "Edit")
 
 	// Search and replace
-	sm.registerBinding("ctrl+f", key.NewBinding(key.WithKeys("ctrl+f"), key.WithHelp("ctrl+f", "find")), "Find", ContextEditor, "Search")
+	sm.registerBinding("ctrl+shift+f", key.NewBinding(key.WithKeys("ctrl+shift+f"), key.WithHelp("ctrl+shift+f", "find")), "Find", ContextEditor, "Search")
 	sm.registerBinding("ctrl+h", key.NewBinding(key.WithKeys("ctrl+h"), key.WithHelp("ctrl+h", "replace")), "Replace", ContextEditor, "Search")
 	sm.registerBinding("f3", key.NewBinding(key.WithKeys("f3"), key.WithHelp("f3", "find next")), "Find next", ContextEditor, "Search")
 	sm.registerBinding("shift+f3", key.NewBinding(key.WithKeys("shift+f3"), key.WithHelp("shift+f3", "find prev")), "Find previous", ContextEditor, "Search")
 	sm.registerBinding("ctrl+g", key.NewBinding(key.WithKeys("ctrl+g"), key.WithHelp("ctrl+g", "goto line")), "Go to line", ContextEditor, "Search")
+	
+	// Quick tools
+	sm.registerBinding("ctrl+f", key.NewBinding(key.WithKeys("ctrl+f"), key.WithHelp("ctrl+f", "chord picker")), "Chord picker", ContextEditor, "Tools")
+	sm.registerBinding("ctrl+t", key.NewBinding(key.WithKeys("ctrl+t"), key.WithHelp("ctrl+t", "bpm tapper")), "BPM tapper", ContextEditor, "Tools")
 
 	// File operations
 	sm.registerBinding("ctrl+n", key.NewBinding(key.WithKeys("ctrl+n"), key.WithHelp("ctrl+n", "new file")), "New file", ContextGlobal, "File")
@@ -121,6 +125,9 @@ func (sm *ShortcutManager) initializeDefaultBindings() {
 	//  - ctrl+t       -> Cycle themes (new)
 	sm.registerBinding("ctrl+shift+t", key.NewBinding(key.WithKeys("ctrl+shift+t"), key.WithHelp("ctrl+shift+t", "theory tools")), "Theory tools", ContextGlobal, "Tools")
 	sm.registerBinding("ctrl+t", key.NewBinding(key.WithKeys("ctrl+t"), key.WithHelp("ctrl+t", "cycle themes")), "Cycle themes", ContextGlobal, "Tools")
+	// Additional theme shortcuts
+	sm.registerBinding("ctrl+shift+n", key.NewBinding(key.WithKeys("ctrl+shift+n"), key.WithHelp("ctrl+shift+n", "next theme")), "Next theme", ContextGlobal, "Tools")
+	sm.registerBinding("ctrl+shift+p", key.NewBinding(key.WithKeys("ctrl+shift+p"), key.WithHelp("ctrl+shift+p", "prev theme")), "Previous theme", ContextGlobal, "Tools")
 	sm.registerBinding("ctrl+m", key.NewBinding(key.WithKeys("ctrl+m"), key.WithHelp("ctrl+m", "audio tools")), "Audio tools", ContextGlobal, "Tools")
 
 	// Preview navigation
@@ -259,7 +266,7 @@ func (sm *ShortcutManager) createActionFromBinding(binding *KeyBinding, keyStr s
 		action.Type = ActionSelectDown
 
 	// Search actions
-	case keyStr == "ctrl+f":
+	case keyStr == "ctrl+shift+f":
 		action.Type = ActionFind
 	case keyStr == "ctrl+h":
 		action.Type = ActionReplace
@@ -269,6 +276,12 @@ func (sm *ShortcutManager) createActionFromBinding(binding *KeyBinding, keyStr s
 		action.Type = ActionFindPrev
 	case keyStr == "ctrl+g":
 		action.Type = ActionGoToLine
+	
+	// Quick tools actions
+	case keyStr == "ctrl+f":
+		action.Type = ActionChordPicker
+	case keyStr == "ctrl+t":
+		action.Type = ActionBPMTapper
 
 	// File operations
 	case keyStr == "ctrl+n":
@@ -303,6 +316,10 @@ func (sm *ShortcutManager) createActionFromBinding(binding *KeyBinding, keyStr s
 		action.Type = ActionTheoryTools
 	case keyStr == "ctrl+t":
 		action.Type = ActionThemeCycle
+	case keyStr == "ctrl+shift+n":
+		action.Type = ActionNextTheme
+	case keyStr == "ctrl+shift+p":
+		action.Type = ActionPreviousTheme
 	case keyStr == "ctrl+m":
 		action.Type = ActionAudioTools
 
@@ -391,7 +408,7 @@ func (sm *ShortcutManager) GetStatusBarHints() string {
 	// Context-specific hints
 	switch sm.context {
 	case ContextEditor:
-		editorHints := []string{"Ctrl+F:Find", "Ctrl+S:Save", "Tab:Next Pane"}
+		editorHints := []string{"Ctrl+F:Chords", "Ctrl+T:BPM", "Ctrl+S:Save", "Tab:Next Pane"}
 		hints = append(hints, editorHints...)
 	case ContextPreview:
 		previewHints := []string{"↑↓:Navigate", "Space:Next Page", "Tab:Next Pane"}
@@ -465,9 +482,13 @@ const (
 	ActionQuit
 	ActionSettings
 	ActionThemeCycle
+	ActionNextTheme
+	ActionPreviousTheme
 	ActionTheoryTools
 	ActionAudioTools
 	ActionToggleHelp
+	ActionChordPicker
+	ActionBPMTapper
 	ActionPreviewUp
 	ActionPreviewDown
 	ActionPreviewLeft
@@ -565,12 +586,20 @@ func (sat ShortcutActionType) String() string {
 		return "Settings"
 	case ActionThemeCycle:
 		return "ThemeCycle"
+	case ActionNextTheme:
+		return "NextTheme"
+	case ActionPreviousTheme:
+		return "PreviousTheme"
 	case ActionTheoryTools:
 		return "TheoryTools"
 	case ActionAudioTools:
 		return "AudioTools"
 	case ActionToggleHelp:
 		return "ToggleHelp"
+	case ActionChordPicker:
+		return "ChordPicker"
+	case ActionBPMTapper:
+		return "BPMTapper"
 	case ActionPreviewUp:
 		return "PreviewUp"
 	case ActionPreviewDown:

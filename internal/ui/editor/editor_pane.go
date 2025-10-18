@@ -15,6 +15,8 @@ import (
 	"github.com/puente-labs/noise/internal/domain"
 	"github.com/puente-labs/noise/internal/infra/files"
 	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/data"
+	"github.com/puente-labs/noise/internal/export"
 )
 
 // MarkdownElement represents a highlighted markdown element
@@ -215,6 +217,16 @@ type EditorPaneModel struct {
 	variationOriginal string
 	variationOptions  []string
 
+	// Quick tools
+	chordPicker *chordPickerModel
+	bpmTapper   *bpmTapperModel
+
+	// Export functionality
+	exportService *export.ExportService
+
+	// Theme management
+	themeManager *styles.ThemeManager
+
 	// Styles
 	focusedStyle     lipgloss.Style
 	blurredStyle     lipgloss.Style
@@ -252,6 +264,10 @@ func NewEditorPaneModel(textarea textarea.Model) *EditorPaneModel {
 		rapidBrainstorm:  false,
 		continueMode:     false,
 		variationMode:    false,
+		chordPicker:      newChordPickerModel(),
+		bpmTapper:        newBPMTapperModel(),
+		exportService:    nil, // Will be set by parent model
+		themeManager:     nil, // Will be set by parent model
 		focusedStyle:     styles.BorderActive,
 		blurredStyle:     styles.Border,
 		borderStyle:      styles.Border,
@@ -289,6 +305,22 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 	if cmd != nil {
 		cmds = append(cmds, cmd)
 	}
+	
+	// Handle chord picker updates
+	if m.chordPicker.IsVisible() {
+		m.chordPicker, cmd = m.chordPicker.Update(msg)
+		if cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+	
+	// Handle BPM tapper updates
+	if m.bpmTapper.IsVisible() {
+		m.bpmTapper, cmd = m.bpmTapper.Update(msg)
+		if cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
 
 	// Update cursor position
 	m.updateCursorPosition()
@@ -296,6 +328,42 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 	// Update status bar with current state
 	m.updateStatusBar()
 
+	// Handle chord picker messages
+	switch msg := msg.(type) {
+	case ShowChordPickerMsg:
+		if m.chordPicker != nil {
+			m.chordPicker.visible = true
+			m.chordPicker.insertCallback = msg.InsertCallback
+			m.chordPicker.selectedIdx = 0
+			m.chordPicker.activeMood = "all"
+			m.chordPicker.showAll = true
+			m.chordPicker.animationTime = time.Now()
+			
+			// Load progressions if not already loaded
+			if !m.chordPicker.loaded {
+				if progressions, err := data.GetAllChordProgressions(); err == nil {
+					m.chordPicker.progressions = progressions
+					m.chordPicker.filteredProg = progressions
+					m.chordPicker.loaded = true
+				}
+			}
+		}
+	case HideChordPickerMsg:
+		if m.chordPicker != nil {
+			m.chordPicker.visible = false
+		}
+	case ShowBPMTapperMsg:
+		if m.bpmTapper != nil {
+			m.bpmTapper.visible = true
+			m.bpmTapper.setBMPCallback = msg.SetBMPCallback
+			m.bpmTapper.reset()
+		}
+	case HideBPMTapperMsg:
+		if m.bpmTapper != nil {
+			m.bpmTapper.visible = false
+		}
+	}
+	
 	// Handle key events for editor features
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -498,6 +566,10 @@ func (m *EditorPaneModel) View() string {
 		overlayContent = m.renderContinueOverlay()
 	} else if m.variationMode {
 		overlayContent = m.renderVariationOverlay()
+	} else if m.chordPicker.IsVisible() {
+		overlayContent = m.chordPicker.View()
+	} else if m.bpmTapper.IsVisible() {
+		overlayContent = m.bpmTapper.View()
 	}
 	
 	// Combine content and overlay
@@ -806,6 +878,16 @@ func (m *EditorPaneModel) SetFileService(service *files.Service) {
 	m.fileService = service
 }
 
+// SetExportService sets the export service for this editor pane
+func (m *EditorPaneModel) SetExportService(service *export.ExportService) {
+	m.exportService = service
+}
+
+// SetThemeManager sets the theme manager for this editor pane
+func (m *EditorPaneModel) SetThemeManager(manager *styles.ThemeManager) {
+	m.themeManager = manager
+}
+
 // handleAutoSave handles auto-save triggers on content changes
 func (m *EditorPaneModel) handleAutoSave() {
 	if m.autoSaveService == nil {
@@ -1061,12 +1143,55 @@ func (m *EditorPaneModel) handleShortcutAction(action ShortcutAction) {
 		// This should be handled by parent model
 	case ActionSettings:
 		// This should be handled by parent model
+	case ActionExport:
+		// Export current content
+		if m.exportService != nil {
+			content := m.textarea.Value()
+			title := "Untitled"
+			if m.currentFilePath != "" {
+				title = filepath.Base(m.currentFilePath)
+				title = strings.TrimSuffix(title, filepath.Ext(title))
+			}
+			
+			// Perform quick export
+			_, err := m.exportService.QuickExport(content, title)
+			if err != nil {
+				// Use proper error handling
+				m.onAutoSaveError(err)
+			}
+		}
 	case ActionTheoryTools:
 		// This should be handled by parent model
 	case ActionAudioTools:
 		// This should be handled by parent model
 	case ActionToggleHelp:
 		// Help mode is handled by shortcut manager
+	case ActionChordPicker:
+		// Show chord picker
+		if m.chordPicker != nil {
+			m.chordPicker.visible = true
+			m.chordPicker.insertCallback = m.insertChords
+			m.chordPicker.selectedIdx = 0
+			m.chordPicker.activeMood = "all"
+			m.chordPicker.showAll = true
+			m.chordPicker.animationTime = time.Now()
+			
+			// Load progressions if not already loaded
+			if !m.chordPicker.loaded {
+				if progressions, err := data.GetAllChordProgressions(); err == nil {
+					m.chordPicker.progressions = progressions
+					m.chordPicker.filteredProg = progressions
+					m.chordPicker.loaded = true
+				}
+			}
+		}
+	case ActionBPMTapper:
+		// Show BPM tapper
+		if m.bpmTapper != nil {
+			m.bpmTapper.visible = true
+			m.bpmTapper.setBMPCallback = m.setBPM
+			m.bpmTapper.reset()
+		}
 	case ActionBackToMenu:
 		// This should be handled by parent model
 	}
@@ -1604,4 +1729,46 @@ func (m *EditorPaneModel) renderVariationOverlay() string {
 	content := lipgloss.JoinVertical(lipgloss.Left, title, "", originalText, "", variationsText, "", instructionsText)
 	
 	return overlayStyle.Render(content)
+}
+
+// insertChords inserts the selected chords into the editor
+func (m *EditorPaneModel) insertChords(chords []string) {
+	// Format chords as a string
+	chordStr := strings.Join(chords, " - ")
+	
+	// Get current content
+	currentContent := m.textarea.Value()
+	
+	// Add chords to content with proper formatting
+	if currentContent != "" {
+		chordStr = "\n\n" + chordStr
+	}
+	
+	// Insert chords at cursor position
+	m.textarea.SetValue(currentContent + chordStr)
+	
+	// Update syntax highlighting
+	m.updateSyntaxHighlighting()
+	
+	// Update status bar
+	m.updateStatusBar()
+}
+
+// setBPM sets the BPM in the current pattern
+func (m *EditorPaneModel) setBPM(bpm int) {
+	// For now, just add a comment with the BPM
+	// In a full implementation, this would update the pattern data
+	bpmComment := fmt.Sprintf("\n\n<!-- BPM: %d -->", bpm)
+	
+	// Get current content
+	currentContent := m.textarea.Value()
+	
+	// Add BPM comment to content
+	m.textarea.SetValue(currentContent + bpmComment)
+	
+	// Update syntax highlighting
+	m.updateSyntaxHighlighting()
+	
+	// Update status bar
+	m.updateStatusBar()
 }
