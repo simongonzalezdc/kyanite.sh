@@ -6,6 +6,8 @@ import (
 	"html"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,6 +25,7 @@ const (
 	FormatPlainText
 	FormatJSON
 	FormatMarkdown
+	FormatChordPro
 )
 
 // String returns the string representation of the export format
@@ -38,6 +41,8 @@ func (f ExportFormat) String() string {
 		return "JSON"
 	case FormatMarkdown:
 		return "Markdown"
+	case FormatChordPro:
+		return "ChordPro"
 	default:
 		return "Unknown"
 	}
@@ -108,7 +113,7 @@ func NewExportModel(content string) *ExportModel {
 	model := &ExportModel{
 		content:      content,
 		metadata:     metadata,
-		options:      []ExportFormat{FormatPDF, FormatHTML, FormatPlainText, FormatJSON, FormatMarkdown},
+		options:      []ExportFormat{FormatPDF, FormatHTML, FormatPlainText, FormatJSON, FormatMarkdown, FormatChordPro},
 		selected:     0,
 		showProgress: false,
 		focusedStyle: styles.BorderActive,
@@ -205,6 +210,8 @@ func (m *ExportModel) View() string {
 			option += " - Structured data format"
 		case FormatMarkdown:
 			option += " - Original markdown format"
+		case FormatChordPro:
+			option += " - ChordPro format for lyrics with chords"
 		}
 
 		options = append(options, option)
@@ -281,6 +288,8 @@ func (m *ExportModel) performExport() tea.Cmd {
 			success, errorMsg = m.exportToJSON()
 		case FormatMarkdown:
 			success, errorMsg = m.exportToMarkdown()
+		case FormatChordPro:
+			success, errorMsg = m.exportToChordPro()
 		}
 
 		m.showProgress = false
@@ -306,6 +315,8 @@ func (m *ExportModel) getFileExtension(format ExportFormat) string {
 		return "json"
 	case FormatMarkdown:
 		return "md"
+	case FormatChordPro:
+		return "cho"
 	default:
 		return "txt"
 	}
@@ -388,6 +399,206 @@ func (m *ExportModel) exportToMarkdown() (bool, string) {
 	}
 
 	return true, ""
+}
+
+// exportToChordPro exports content to ChordPro format
+func (m *ExportModel) exportToChordPro() (bool, string) {
+	// Convert content to ChordPro format
+	chordProContent := m.convertToChordPro(m.content)
+	
+	err := os.WriteFile(m.result.OutputPath, []byte(chordProContent), 0644)
+	if err != nil {
+		return false, fmt.Sprintf("Failed to write ChordPro file: %v", err)
+	}
+
+	return true, ""
+}
+
+// convertToChordPro converts content to ChordPro format
+func (m *ExportModel) convertToChordPro(content string) string {
+	var builder strings.Builder
+	
+	// Add ChordPro metadata directives
+	if m.metadata.Title != "" {
+		builder.WriteString("{title:")
+		builder.WriteString(m.metadata.Title)
+		builder.WriteString("}\n")
+	}
+	
+	// Add tempo if available (we don't have BPM in the UI metadata, so we'll extract it)
+	bpm := m.extractBPM(content)
+	if bpm > 0 {
+		builder.WriteString("{tempo:")
+		builder.WriteString(strconv.Itoa(bpm))
+		builder.WriteString("}\n")
+	}
+	
+	// Add key if detected
+	key := m.detectKey(content)
+	if key != "" {
+		builder.WriteString("{key:")
+		builder.WriteString(key)
+		builder.WriteString("}\n")
+	}
+	
+	builder.WriteString("\n")
+	
+	// Process content line by line
+	lines := strings.Split(content, "\n")
+	
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		
+		// Skip empty lines
+		if trimmed == "" {
+			builder.WriteString("\n")
+			continue
+		}
+		
+		// Check for section headers
+		if m.isSectionHeader(trimmed) {
+			// Convert to ChordPro directive
+			sectionType := m.extractSectionType(trimmed)
+			if sectionType != "" {
+				// Close previous section if open
+				builder.WriteString("{end_of_")
+				builder.WriteString(sectionType)
+				builder.WriteString("}\n")
+				// Start new section
+				builder.WriteString("{start_of_")
+				builder.WriteString(sectionType)
+				builder.WriteString("}\n")
+				continue
+			}
+		}
+		
+		// Check for chord lines and format them inline with lyrics
+		if m.isChordLine(trimmed) {
+			// Look ahead for the corresponding lyric line
+			chordLine := trimmed
+			builder.WriteString(chordLine)
+			builder.WriteString("\n")
+			continue
+		}
+		
+		// Regular lyric line
+		builder.WriteString(trimmed)
+		builder.WriteString("\n")
+	}
+	
+	return builder.String()
+}
+
+// Helper methods for ChordPro conversion
+
+// extractBPM extracts BPM from content
+func (m *ExportModel) extractBPM(content string) int {
+	bpmRegex := regexp.MustCompile(`(?i)(bpm|tempo)[:\s]+(\d+)`)
+	matches := bpmRegex.FindStringSubmatch(content)
+	
+	if len(matches) >= 3 {
+		bpm, err := strconv.Atoi(matches[2])
+		if err == nil && bpm > 0 && bpm < 300 {
+			return bpm
+		}
+	}
+	
+	return 0
+}
+
+// detectKey attempts to detect the key of the song from chords
+func (m *ExportModel) detectKey(content string) string {
+	chordRegex := regexp.MustCompile(`\b([A-G])(#|b)?\b`)
+	matches := chordRegex.FindAllStringSubmatch(content, -1)
+	
+	if len(matches) == 0 {
+		return ""
+	}
+	
+	// Simple key detection - find the most common root note
+	rootCount := make(map[string]int)
+	for _, match := range matches {
+		if len(match) > 1 {
+			root := match[1]
+			rootCount[root]++
+		}
+	}
+	
+	// Find the most common root
+	var mostCommonRoot string
+	maxCount := 0
+	for root, count := range rootCount {
+		if count > maxCount {
+			maxCount = count
+			mostCommonRoot = root
+		}
+	}
+	
+	return mostCommonRoot
+}
+
+// isSectionHeader checks if a line is a section header
+func (m *ExportModel) isSectionHeader(line string) bool {
+	sectionHeaders := []string{
+		"verse", "chorus", "bridge", "intro", "outro", "pre-chorus",
+		"[verse]", "[chorus]", "[bridge]", "[intro]", "[outro]", "[pre-chorus]",
+	}
+	
+	lowerLine := strings.ToLower(line)
+	for _, header := range sectionHeaders {
+		if strings.Contains(lowerLine, header) {
+			return true
+		}
+	}
+	return false
+}
+
+// extractSectionType extracts the section type from a header line
+func (m *ExportModel) extractSectionType(line string) string {
+	lowerLine := strings.ToLower(line)
+	
+	// Remove brackets if present
+	line = strings.ReplaceAll(line, "[", "")
+	line = strings.ReplaceAll(line, "]", "")
+	
+	sections := map[string]string{
+		"verse": "verse",
+		"chorus": "chorus",
+		"bridge": "bridge",
+		"intro": "intro",
+		"outro": "outro",
+		"pre-chorus": "pre-chorus",
+		"pre chorus": "pre-chorus",
+	}
+	
+	for key, value := range sections {
+		if strings.Contains(lowerLine, key) {
+			return value
+		}
+	}
+	return ""
+}
+
+// isChordLine checks if a line contains primarily chords
+func (m *ExportModel) isChordLine(line string) bool {
+	// Count chord symbols vs regular text
+	chordRegex := regexp.MustCompile(`\b[A-G](#|b)?(m|maj|min|dim|aug|sus|add)?[0-9]*\b`)
+	chords := chordRegex.FindAllString(line, -1)
+	
+	// If we have multiple chords and the line is short, it's likely a chord line
+	if len(chords) >= 2 && len(strings.TrimSpace(line)) < 30 {
+		return true
+	}
+	
+	// If we have chords and very few non-chord characters
+	nonChordChars := chordRegex.ReplaceAllString(line, "")
+	nonChordChars = strings.TrimSpace(nonChordChars)
+	
+	if len(chords) > 0 && len(nonChordChars) < 5 {
+		return true
+	}
+	
+	return false
 }
 
 // generateHTMLContent generates HTML content with optional styling

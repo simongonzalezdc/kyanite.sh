@@ -1,6 +1,7 @@
 package editor
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"regexp"
@@ -17,6 +18,7 @@ import (
 	"github.com/puente-labs/noise/internal/ui/styles"
 	"github.com/puente-labs/noise/internal/data"
 	"github.com/puente-labs/noise/internal/export"
+	"github.com/puente-labs/noise/internal/app/ai"
 )
 
 // MarkdownElement represents a highlighted markdown element
@@ -236,6 +238,13 @@ type EditorPaneModel struct {
 	selectionStyle   lipgloss.Style
 	searchMatchStyle lipgloss.Style
 	autoSaveStyle    lipgloss.Style // Auto-save status styling
+	
+	// Context detection
+	contextDetector *ai.ContextDetector
+	lastContentType  string
+	
+	// Knowledge base integration
+	aiAgent *ai.QuickIdeaAgent
 }
 
 // NewEditorPaneModel creates a new editor pane model
@@ -285,6 +294,9 @@ func NewEditorPaneModel(textarea textarea.Model) *EditorPaneModel {
 		autoSaveStyle: lipgloss.NewStyle().
 			Foreground(styles.Success).
 			Bold(true),
+		contextDetector: ai.NewContextDetector(),
+		lastContentType:  "Unknown",
+		aiAgent:        ai.NewQuickIdeaAgent(),
 	}
 
 	return model
@@ -649,6 +661,18 @@ func (m *EditorPaneModel) updateStatusBar() {
 	// Update cursor position
 	m.statusBar.UpdateCursorPosition(m.cursorLine, m.cursorColumn)
 
+	// Update content type detection
+	if m.contextDetector != nil {
+		contentType := m.contextDetector.AnalyzeContent(content)
+		contentTypeStr := string(contentType)
+		
+		// Only update if content type has changed
+		if contentTypeStr != m.lastContentType {
+			m.lastContentType = contentTypeStr
+			m.statusBar.UpdateContentType(contentTypeStr)
+		}
+	}
+
 	// Update auto-save status
 	if m.autoSaveService != nil {
 		status := m.GetAutoSaveStatus()
@@ -675,6 +699,9 @@ func (m *EditorPaneModel) updateStatusBar() {
 	// Update dimensions and responsive mode
 	m.statusBar.SetDimensions(m.width, 1)
 	m.statusBar.UpdateResponsiveMode(m.width)
+	
+	// Update knowledge base status
+	m.updateKnowledgeBaseStatus()
 }
 
 // updateSyntaxHighlighting updates the syntax highlighting elements
@@ -1194,6 +1221,24 @@ func (m *EditorPaneModel) handleShortcutAction(action ShortcutAction) {
 		}
 	case ActionBackToMenu:
 		// This should be handled by parent model
+	// AI Quick Actions
+	case ActionAIUnstick:
+		m.StartContinueMode()
+	case ActionAISpark:
+		m.StartRapidBrainstorm("new theme") // Will prompt user in full implementation
+	case ActionAITweak:
+		// Get current line or selected text for variation
+		content := m.textarea.Value()
+		lines := strings.Split(content, "\n")
+		if len(lines) > 0 {
+			lastLine := lines[len(lines)-1]
+			if lastLine != "" {
+				m.StartVariationMode(lastLine)
+			}
+		}
+	case ActionAICheck:
+		// Perform quality check on current content
+		m.performQualityCheck()
 	}
 }
 
@@ -1752,6 +1797,75 @@ func (m *EditorPaneModel) insertChords(chords []string) {
 	
 	// Update status bar
 	m.updateStatusBar()
+}
+
+// performQualityCheck performs a quality check on the current content
+func (m *EditorPaneModel) performQualityCheck() {
+	// For now, we'll use a placeholder implementation
+	// In a full implementation, this would call the AI service
+	content := m.textarea.Value()
+	if content == "" {
+		return
+	}
+	
+	// Placeholder quality check results
+	// In a full implementation, this would use the QuickIdeaAgent
+	qualityRating := "OKAY"
+	qualityTip := "Add vivid sensory image"
+	
+	// Create a simple overlay to show the quality check result
+	// For now, we'll just add it as a comment
+	qualityComment := fmt.Sprintf("\n\n<!-- Quality Check: %s - %s -->", qualityRating, qualityTip)
+	
+	// Get current content
+	currentContent := m.textarea.Value()
+	
+	// Add quality check result to content
+	m.textarea.SetValue(currentContent + qualityComment)
+	
+	// Update syntax highlighting
+	m.updateSyntaxHighlighting()
+	
+	// Update status bar
+	m.updateStatusBar()
+}
+
+// updateKnowledgeBaseStatus updates the knowledge base status in the status bar
+func (m *EditorPaneModel) updateKnowledgeBaseStatus() {
+	if m.aiAgent != nil && m.statusBar != nil {
+		ctx := context.Background()
+		available := m.aiAgent.IsKnowledgeBaseAvailable(ctx)
+		status := m.aiAgent.GetKnowledgeBaseStatus(ctx)
+		
+		if status != nil {
+			statusText := "KB: "
+			if available {
+				statusText += "Stub"
+				if status.CardCount > 0 {
+					statusText += fmt.Sprintf(" (%d cards)", status.CardCount)
+				}
+			} else {
+				statusText += "Unavailable"
+			}
+			
+			m.statusBar.UpdateKnowledgeBaseStatus(available, statusText)
+		} else {
+			m.statusBar.UpdateKnowledgeBaseStatus(false, "KB: Error")
+		}
+	}
+}
+
+// SetAIAgent sets the AI agent for this editor pane
+func (m *EditorPaneModel) SetAIAgent(agent *ai.QuickIdeaAgent) {
+	m.aiAgent = agent
+	if agent != nil {
+		m.updateKnowledgeBaseStatus()
+	}
+}
+
+// GetAIAgent returns the current AI agent
+func (m *EditorPaneModel) GetAIAgent() *ai.QuickIdeaAgent {
+	return m.aiAgent
 }
 
 // setBPM sets the BPM in the current pattern

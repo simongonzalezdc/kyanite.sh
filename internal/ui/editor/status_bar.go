@@ -39,6 +39,9 @@ type StatusBarModel struct {
 	editorMode     string
 	fileName       string
 	zoomLevel      int
+	contentType    string // New field for content type detection
+	kbAvailable    bool   // Knowledge base availability status
+	kbStatus       string // Knowledge base status message
 
 	// Editor features
 	showLineNumbers bool
@@ -88,6 +91,9 @@ func NewStatusBarModel() *StatusBarModel {
 		editorMode:             "Normal",
 		fileName:               "Untitled",
 		zoomLevel:              100,
+		contentType:            "Unknown",
+		kbAvailable:            false,
+		kbStatus:               "KB: Unavailable",
 		showLineNumbers:        true,
 		wordWrap:               true,
 		autoIndent:             true,
@@ -213,6 +219,23 @@ func (m *StatusBarModel) UpdateShortcutHints(hints string) {
 	m.shortcutHints = hints
 }
 
+// UpdateContentType updates the detected content type
+func (m *StatusBarModel) UpdateContentType(contentType string) {
+	// Only update if content type has actually changed
+	if m.contentType != contentType {
+		m.contentType = contentType
+	}
+}
+
+// UpdateKnowledgeBaseStatus updates the knowledge base availability status
+func (m *StatusBarModel) UpdateKnowledgeBaseStatus(available bool, status string) {
+	// Only update if status has actually changed
+	if m.kbAvailable != available || m.kbStatus != status {
+		m.kbAvailable = available
+		m.kbStatus = status
+	}
+}
+
 // hashContent calculates a simple hash of the content for change detection
 func (m *StatusBarModel) hashContent(content string) uint64 {
 	h := fnv.New64a()
@@ -247,6 +270,12 @@ func (m *StatusBarModel) renderLeftSection() StatusBarSection {
 	// Add mode indicator if not normal
 	if m.editorMode != "Normal" {
 		position = fmt.Sprintf("%s | %s", position, m.modeIndicatorStyle.Render(m.editorMode))
+	}
+
+	// Add content type indicator
+	if m.contentType != "" && m.contentType != "Unknown" {
+		contentTypeStyle := m.getContentTypeStyle(m.contentType)
+		position = fmt.Sprintf("%s | %s", position, contentTypeStyle.Render(m.contentType))
 	}
 
 	content := m.leftSectionStyle.Render(position)
@@ -317,6 +346,19 @@ func (m *StatusBarModel) renderRightSection() StatusBarSection {
 		if themeID != "" {
 			themeLabel := m.modeIndicatorStyle.Render("Theme: " + themeID)
 			indicators = append(indicators, themeLabel)
+		}
+	
+		// Add content type indicator if not already shown in left section
+		if m.contentType != "" && m.contentType != "Unknown" && m.editorMode == "Normal" {
+			contentTypeStyle := m.getCompactContentTypeStyle(m.contentType)
+			indicators = append(indicators, contentTypeStyle.Render(m.contentType))
+		}
+		
+		// Add knowledge base status indicator
+		if m.kbStatus != "" {
+			kbStyle := m.getKnowledgeBaseStatusStyle(m.kbAvailable)
+			kbIndicator := kbStyle.Render(m.kbStatus)
+			indicators = append(indicators, kbIndicator)
 		}
 	}
 
@@ -628,3 +670,60 @@ func (m *StatusBarModel) UpdateResponsiveMode(width int) {
 // 	// Full mode: show all information
 // 	return content
 // }
+
+
+// getContentTypeStyle returns the appropriate style for the content type
+func (m *StatusBarModel) getContentTypeStyle(contentType string) lipgloss.Style {
+	switch strings.ToLower(contentType) {
+	case "lyrics":
+		return lipgloss.NewStyle().
+			Foreground(styles.Success).
+			Bold(true)
+	case "patterns":
+		return lipgloss.NewStyle().
+			Foreground(styles.Info).
+			Bold(true)
+	case "mixed":
+		return lipgloss.NewStyle().
+			Foreground(styles.Warning).
+			Bold(true)
+	default:
+		return lipgloss.NewStyle().
+			Foreground(styles.TextMuted).
+			Bold(true)
+	}
+}
+
+// getCompactContentTypeStyle returns a compact style for content type indicators
+func (m *StatusBarModel) getCompactContentTypeStyle(contentType string) lipgloss.Style {
+	switch strings.ToLower(contentType) {
+	case "lyrics":
+		return lipgloss.NewStyle().
+			Foreground(styles.Success).
+			Bold(true)
+	case "patterns":
+		return lipgloss.NewStyle().
+			Foreground(styles.Info).
+			Bold(true)
+	case "mixed":
+		return lipgloss.NewStyle().
+			Foreground(styles.Warning).
+			Bold(true)
+	default:
+		return lipgloss.NewStyle().
+			Foreground(styles.TextMuted)
+	}
+}
+
+// getKnowledgeBaseStatusStyle returns the appropriate style for knowledge base status
+func (m *StatusBarModel) getKnowledgeBaseStatusStyle(available bool) lipgloss.Style {
+	if available {
+		return lipgloss.NewStyle().
+			Foreground(styles.Success).
+			Bold(true)
+	} else {
+		return lipgloss.NewStyle().
+			Foreground(styles.TextMuted).
+			Italic(true)
+	}
+}

@@ -31,6 +31,9 @@ const (
 	ExportTypeLyrics
 	ExportTypeChords
 	ExportTypeFull
+	ExportTypeMarkdown
+	ExportTypePlainText
+	ExportTypeChordPro
 )
 
 // String returns a string representation of the export type
@@ -44,6 +47,12 @@ func (et ExportType) String() string {
 		return "chords"
 	case ExportTypeFull:
 		return "full"
+	case ExportTypeMarkdown:
+		return "markdown"
+	case ExportTypePlainText:
+		return "plaintext"
+	case ExportTypeChordPro:
+		return "chordpro"
 	default:
 		return "unknown"
 	}

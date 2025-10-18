@@ -3,6 +3,7 @@ package editor
 import (
 	"context"
 	"log"
+	"sort"
 
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
@@ -368,6 +369,68 @@ func (m *SplitPaneModel) Cleanup() {
 }
 
 // handleShortcutAction handles actions from the keyboard shortcut system
+func getThemeCycleOrder() []string {
+	ids := theme.ListThemes()
+	if len(ids) == 0 {
+		return nil
+	}
+
+	sort.Strings(ids)
+
+	seenNames := make(map[string]struct{}, len(ids))
+	result := make([]string, 0, len(ids))
+
+	for _, id := range ids {
+		th := theme.GetTheme(id)
+		if _, exists := seenNames[th.Name]; exists {
+			continue
+		}
+		seenNames[th.Name] = struct{}{}
+		result = append(result, id)
+	}
+
+	return result
+}
+
+func (m *SplitPaneModel) rotateTheme(delta int) {
+	ids := getThemeCycleOrder()
+	if len(ids) == 0 {
+		return
+	}
+
+	currentID := theme.GetManager().CurrentID()
+	currentIdx := -1
+	for i, id := range ids {
+		if id == currentID {
+			currentIdx = i
+			break
+		}
+	}
+	if currentIdx == -1 {
+		currentIdx = 0
+	}
+
+	nextIdx := (currentIdx + delta) % len(ids)
+	if nextIdx < 0 {
+		nextIdx += len(ids)
+	}
+	nextID := ids[nextIdx]
+
+	theme.ApplyThemeByID(nextID)
+
+	if cfg, err := config.Load(); err == nil {
+		cfg.UI.Theme = nextID
+		_ = cfg.Save()
+	}
+
+	if m.editorPane != nil {
+		if m.editorPane.statusBar != nil {
+			m.editorPane.statusBar.UpdateShortcutHints("Theme: " + nextID)
+		}
+		m.editorPane.updateStatusBar()
+	}
+}
+
 func (m *SplitPaneModel) handleShortcutAction(action ShortcutAction) (*SplitPaneModel, tea.Cmd) {
 	switch action.Type {
 	case ActionNextPane:
@@ -402,34 +465,13 @@ func (m *SplitPaneModel) handleShortcutAction(action ShortcutAction) (*SplitPane
 			return ScreenChangeMsg{Screen: screenAudio}
 		}
 	case ActionThemeCycle:
-		// Cycle through registered themes, apply immediately and persist to config.
-		ids := theme.ListThemes()
-		if len(ids) == 0 {
-			return m, nil
-		}
-		currID := theme.GetManager().CurrentID()
-		nextID := ids[0]
-		for i, id := range ids {
-			if id == currID {
-				nextID = ids[(i+1)%len(ids)]
-				break
-			}
-		}
-
-		// Apply theme to styles and manager
-		theme.ApplyThemeByID(nextID)
-
-		// Persist to config if possible (best-effort)
-		if cfg, err := config.Load(); err == nil {
-			cfg.UI.Theme = nextID
-			_ = cfg.Save()
-		}
-
-		// Update status bar indicator if present
-		if m.editorPane != nil && m.editorPane.statusBar != nil {
-			m.editorPane.statusBar.UpdateShortcutHints("Theme: " + nextID)
-		}
-
+		m.rotateTheme(1)
+		return m, nil
+	case ActionNextTheme:
+		m.rotateTheme(1)
+		return m, nil
+	case ActionPreviousTheme:
+		m.rotateTheme(-1)
 		return m, nil
 	case ActionNewFile:
 		// Clear current content

@@ -91,6 +91,21 @@ func (ef *ExportFormatter) FormatExport(content string, options *ExportOptions) 
 				export.Metadata.BPM = bpm
 			}
 		}
+		
+	case ExportTypeMarkdown:
+		// For Markdown, we'll format the content directly
+		formattedContent := ef.formatAsMarkdown(content, options)
+		export.Lyrics = formattedContent
+		
+	case ExportTypePlainText:
+		// For Plain Text, we'll strip formatting
+		plainText := ef.formatAsPlainText(content)
+		export.Lyrics = plainText
+		
+	case ExportTypeChordPro:
+		// For ChordPro, we'll format with chord directives
+		chordPro := ef.formatAsChordPro(content, options)
+		export.Lyrics = chordPro
 	}
 	
 	// Add notes if requested
@@ -112,10 +127,28 @@ func (ef *ExportFormatter) SaveToFile(export *NoiseExport, outputPath string) er
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
 	
-	// Marshal to JSON with indentation
-	data, err := json.MarshalIndent(export, "", "  ")
-	if err != nil {
-		return fmt.Errorf("failed to marshal export: %w", err)
+	// Determine file format based on extension
+	ext := strings.ToLower(filepath.Ext(outputPath))
+	
+	var data []byte
+	var err error
+	
+	switch ext {
+	case ".md":
+		// For Markdown, save the lyrics content directly
+		data = []byte(export.Lyrics)
+	case ".txt":
+		// For Plain Text, save the lyrics content directly
+		data = []byte(export.Lyrics)
+	case ".cho":
+		// For ChordPro, save the lyrics content directly
+		data = []byte(export.Lyrics)
+	default:
+		// For existing formats, save as JSON
+		data, err = json.MarshalIndent(export, "", "  ")
+		if err != nil {
+			return fmt.Errorf("failed to marshal export: %w", err)
+		}
 	}
 	
 	// Write to file
@@ -339,4 +372,259 @@ func (ef *ExportFormatter) removeMarkdown(content string) string {
 	content = blockquoteRegex.ReplaceAllString(content, "")
 	
 	return content
+}
+
+// formatAsMarkdown formats content as Markdown
+func (ef *ExportFormatter) formatAsMarkdown(content string, options *ExportOptions) string {
+	var builder strings.Builder
+	
+	// Add title as header if provided
+	if options.Title != "" {
+		builder.WriteString("# ")
+		builder.WriteString(options.Title)
+		builder.WriteString("\n\n")
+	}
+	
+	// Add metadata if available
+	if options.BPM > 0 {
+		builder.WriteString("**BPM:** ")
+		builder.WriteString(strconv.Itoa(options.BPM))
+		builder.WriteString("\n\n")
+	}
+	
+	// Process content line by line
+	lines := strings.Split(content, "\n")
+	
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		
+		// Skip empty lines
+		if trimmed == "" {
+			builder.WriteString("\n")
+			continue
+		}
+		
+		// Check for section headers
+		if ef.isSectionHeader(trimmed) {
+			// Convert to markdown header
+			sectionType := ef.extractSectionType(trimmed)
+			if sectionType != "" {
+				builder.WriteString("## ")
+				builder.WriteString(strings.Title(sectionType))
+				builder.WriteString("\n\n")
+				continue
+			}
+		}
+		
+		// Check for chord lines
+		if ef.isChordLine(trimmed) {
+			// Format chords with code formatting for visibility
+			builder.WriteString("`")
+			builder.WriteString(trimmed)
+			builder.WriteString("`\n")
+			continue
+		}
+		
+		// Regular lyric line
+		builder.WriteString(trimmed)
+		builder.WriteString("\n")
+	}
+	
+	return builder.String()
+}
+
+// formatAsPlainText formats content as plain text
+func (ef *ExportFormatter) formatAsPlainText(content string) string {
+	var builder strings.Builder
+	
+	// Process content line by line
+	lines := strings.Split(content, "\n")
+	
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		
+		// Skip empty lines
+		if trimmed == "" {
+			builder.WriteString("\n")
+			continue
+		}
+		
+		// Remove markdown formatting
+		cleanLine := ef.removeMarkdown(trimmed)
+		
+		// Skip chord lines in plain text (optional - could include them)
+		if ef.isChordLine(trimmed) {
+			continue // Skip chord lines for cleaner lyrics
+		}
+		
+		builder.WriteString(cleanLine)
+		builder.WriteString("\n")
+	}
+	
+	return builder.String()
+}
+
+// formatAsChordPro formats content as ChordPro
+func (ef *ExportFormatter) formatAsChordPro(content string, options *ExportOptions) string {
+	var builder strings.Builder
+	
+	// Add ChordPro metadata directives
+	if options.Title != "" {
+		builder.WriteString("{title:")
+		builder.WriteString(options.Title)
+		builder.WriteString("}\n")
+	}
+	
+	if options.BPM > 0 {
+		builder.WriteString("{tempo:")
+		builder.WriteString(strconv.Itoa(options.BPM))
+		builder.WriteString("}\n")
+	}
+	
+	// Add key if detected
+	key := ef.detectKey(content)
+	if key != "" {
+		builder.WriteString("{key:")
+		builder.WriteString(key)
+		builder.WriteString("}\n")
+	}
+	
+	builder.WriteString("\n")
+	
+	// Process content line by line
+	lines := strings.Split(content, "\n")
+	
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		
+		// Skip empty lines
+		if trimmed == "" {
+			builder.WriteString("\n")
+			continue
+		}
+		
+		// Check for section headers
+		if ef.isSectionHeader(trimmed) {
+			// Convert to ChordPro directive
+			sectionType := ef.extractSectionType(trimmed)
+			if sectionType != "" {
+				builder.WriteString("{start_of_")
+				builder.WriteString(sectionType)
+				builder.WriteString("}\n")
+				continue
+			}
+		}
+		
+		// Check for chord lines and format them inline with lyrics
+		if ef.isChordLine(trimmed) {
+			// Look ahead for the corresponding lyric line
+			chordLine := trimmed
+			builder.WriteString(chordLine)
+			builder.WriteString("\n")
+			continue
+		}
+		
+		// Regular lyric line
+		builder.WriteString(trimmed)
+		builder.WriteString("\n")
+	}
+	
+	return builder.String()
+}
+
+// Helper methods for the new formatters
+
+// isSectionHeader checks if a line is a section header
+func (ef *ExportFormatter) isSectionHeader(line string) bool {
+	sectionHeaders := []string{
+		"verse", "chorus", "bridge", "intro", "outro", "pre-chorus",
+		"[verse]", "[chorus]", "[bridge]", "[intro]", "[outro]", "[pre-chorus]",
+	}
+	
+	lowerLine := strings.ToLower(line)
+	for _, header := range sectionHeaders {
+		if strings.Contains(lowerLine, header) {
+			return true
+		}
+	}
+	return false
+}
+
+// extractSectionType extracts the section type from a header line
+func (ef *ExportFormatter) extractSectionType(line string) string {
+	lowerLine := strings.ToLower(line)
+	
+	// Remove brackets if present
+	line = strings.ReplaceAll(line, "[", "")
+	line = strings.ReplaceAll(line, "]", "")
+	
+	sections := map[string]string{
+		"verse": "verse",
+		"chorus": "chorus",
+		"bridge": "bridge",
+		"intro": "intro",
+		"outro": "outro",
+		"pre-chorus": "pre-chorus",
+		"pre chorus": "pre-chorus",
+	}
+	
+	for key, value := range sections {
+		if strings.Contains(lowerLine, key) {
+			return value
+		}
+	}
+	return ""
+}
+
+// isChordLine checks if a line contains primarily chords
+func (ef *ExportFormatter) isChordLine(line string) bool {
+	// Count chord symbols vs regular text
+	chordRegex := regexp.MustCompile(`\b[A-G](#|b)?(m|maj|min|dim|aug|sus|add)?[0-9]*\b`)
+	chords := chordRegex.FindAllString(line, -1)
+	
+	// If we have multiple chords and the line is short, it's likely a chord line
+	if len(chords) >= 2 && len(strings.TrimSpace(line)) < 30 {
+		return true
+	}
+	
+	// If we have chords and very few non-chord characters
+	nonChordChars := chordRegex.ReplaceAllString(line, "")
+	nonChordChars = strings.TrimSpace(nonChordChars)
+	
+	if len(chords) > 0 && len(nonChordChars) < 5 {
+		return true
+	}
+	
+	return false
+}
+
+// detectKey attempts to detect the key of the song from chords
+func (ef *ExportFormatter) detectKey(content string) string {
+	chordRegex := regexp.MustCompile(`\b([A-G])(#|b)?\b`)
+	matches := chordRegex.FindAllStringSubmatch(content, -1)
+	
+	if len(matches) == 0 {
+		return ""
+	}
+	
+	// Simple key detection - find the most common root note
+	rootCount := make(map[string]int)
+	for _, match := range matches {
+		if len(match) > 1 {
+			root := match[1]
+			rootCount[root]++
+		}
+	}
+	
+	// Find the most common root
+	var mostCommonRoot string
+	maxCount := 0
+	for root, count := range rootCount {
+		if count > maxCount {
+			maxCount = count
+			mostCommonRoot = root
+		}
+	}
+	
+	return mostCommonRoot
 }

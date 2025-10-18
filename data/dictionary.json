@@ -1,0 +1,1024 @@
+{
+  "words": {
+    "love": {
+      "syllables": 1,
+      "pronunciation": "L AH1 V",
+      "rhymes": ["dove", "glove", "above", "shove", "of", "rough", "tough"],
+      "pos": ["verb", "noun"]
+    },
+    "time": {
+      "syllables": 1,
+      "pronunciation": "T AY1 M",
+      "rhymes": ["rhyme", "climb", "dime", "lime", "crime", "prime", "sublime"],
+      "pos": ["noun"]
+    },
+    "heart": {
+      "syllables": 1,
+      "pronunciation": "HH AA1 R T",
+      "rhymes": ["start", "part", "art", "chart", "smart", "cart", "depart"],
+      "pos": ["noun"]
+    },
+    "night": {
+      "syllables": 1,
+      "pronunciation": "N AY1 T",
+      "rhymes": ["light", "right", "fight", "bright", "sight", "might", "tight"],
+      "pos": ["noun"]
+    },
+    "blue": {
+      "syllables": 1,
+      "pronunciation": "B L UW1",
+      "rhymes": ["true", "new", "few", "shoe", "through", "you", "view"],
+      "pos": ["adjective", "noun"]
+    },
+    "day": {
+      "syllables": 1,
+      "pronunciation": "D EY1",
+      "rhymes": ["way", "say", "play", "stay", "away", "okay", "display"],
+      "pos": ["noun"]
+    },
+    "world": {
+      "syllables": 1,
+      "pronunciation": "W ER1 L D",
+      "rhymes": ["word", "heard", "bird", "third", "curved", "served", "learned"],
+      "pos": ["noun"]
+    },
+    "eyes": {
+      "syllables": 1,
+      "pronunciation": "AY1 Z",
+      "rhymes": ["skies", "lies", "rise", "wise", "size", "prize", "surprise"],
+      "pos": ["noun"]
+    },
+    "home": {
+      "syllables": 1,
+      "pronunciation": "HH OW1 M",
+      "rhymes": ["alone", "stone", "phone", "tone", "zone", "throne", "unknown"],
+      "pos": ["noun"]
+    },
+    "dream": {
+      "syllables": 1,
+      "pronunciation": "D R IY1 M",
+      "rhymes": ["seem", "team", "stream", "cream", "scheme", "theme", "supreme"],
+      "pos": ["noun", "verb"]
+    },
+    "rain": {
+      "syllables": 1,
+      "pronunciation": "R EY1 N",
+      "rhymes": ["pain", "main", "chain", "train", "brain", "explain", "maintain"],
+      "pos": ["noun", "verb"]
+    },
+    "song": {
+      "syllables": 1,
+      "pronunciation": "S AO1 NG",
+      "rhymes": ["long", "strong", "wrong", "along", "belong", "throng", "prolong"],
+      "pos": ["noun"]
+    },
+    "fire": {
+      "syllables": 2,
+      "pronunciation": "F AY1 ER0",
+      "rhymes": ["desire", "wire", "hire", "inspire", "entire", "require", "acquire"],
+      "pos": ["noun"]
+    },
+    "road": {
+      "syllables": 1,
+      "pronunciation": "R OW1 D",
+      "rhymes": ["load", "code", "mode", "node", "episode", "overload", "download"],
+      "pos": ["noun"]
+    },
+    "star": {
+      "syllables": 1,
+      "pronunciation": "S T AA1 R",
+      "rhymes": ["far", "car", "bar", "scar", "guitar", "cigar", "bizarre"],
+      "pos": ["noun"]
+    },
+    "light": {
+      "syllables": 1,
+      "pronunciation": "L AY1 T",
+      "rhymes": ["night", "right", "fight", "bright", "sight", "might", "tight"],
+      "pos": ["noun", "adjective", "verb"]
+    },
+    "music": {
+      "syllables": 2,
+      "pronunciation": "M Y UW1 Z IH0 K",
+      "rhymes": ["logic", "basic", "chronic", "topic", "trophic"],
+      "pos": ["noun"]
+    },
+    "dance": {
+      "syllables": 1,
+      "pronunciation": "D AE1 N S",
+      "rhymes": ["chance", "glance", "advance", "finance", "romance"],
+      "pos": ["noun", "verb"]
+    },
+    "soul": {
+      "syllables": 1,
+      "pronunciation": "S OW1 L",
+      "rhymes": ["goal", "control", "whole", "role", "stole", "toll"],
+      "pos": ["noun"]
+    },
+    "life": {
+      "syllables": 1,
+      "pronunciation": "L AY1 F",
+      "rhymes": ["wife", "knife", "strife", "rife", "fife"],
+      "pos": ["noun"]
+    },
+    "hope": {
+      "syllables": 1,
+      "pronunciation": "HH OW1 P",
+      "rhymes": ["scope", "rope", "slope", "grope", "envelope"],
+      "pos": ["noun", "verb"]
+    },
+    "fear": {
+      "syllables": 1,
+      "pronunciation": "F IH1 R",
+      "rhymes": ["tear", "year", "near", "clear", "dear", "appear"],
+      "pos": ["noun", "verb"]
+    },
+    "pain": {
+      "syllables": 1,
+      "pronunciation": "P EY1 N",
+      "rhymes": ["rain", "main", "chain", "train", "brain", "explain", "maintain"],
+      "pos": ["noun", "verb"]
+    },
+    "joy": {
+      "syllables": 1,
+      "pronunciation": "JH OY1",
+      "rhymes": ["boy", "toy", "enjoy", "destroy", "employ"],
+      "pos": ["noun"]
+    },
+    "tears": {
+      "syllables": 1,
+      "pronunciation": "T IH1 R Z",
+      "rhymes": ["years", "fears", "appears", "volunteers"],
+      "pos": ["noun"]
+    },
+    "smile": {
+      "syllables": 1,
+      "pronunciation": "S M AY1 L",
+      "rhymes": ["while", "style", "mile", "dial", "trial", "vial"],
+      "pos": ["noun", "verb"]
+    },
+    "laugh": {
+      "syllables": 1,
+      "pronunciation": "L AE1 F",
+      "rhymes": ["tough", "rough", "enough", "stuff", "bluff"],
+      "pos": ["noun", "verb"]
+    },
+    "cry": {
+      "syllables": 1,
+      "pronunciation": "K R AY1",
+      "rhymes": ["sky", "fly", "why", "try", "buy", "die"],
+      "pos": ["noun", "verb"]
+    },
+    "sky": {
+      "syllables": 1,
+      "pronunciation": "S K AY1",
+      "rhymes": ["cry", "fly", "why", "try", "buy", "die"],
+      "pos": ["noun"]
+    },
+    "sun": {
+      "syllables": 1,
+      "pronunciation": "S AH1 N",
+      "rhymes": ["run", "fun", "gun", "done", "won", "son"],
+      "pos": ["noun"]
+    },
+    "moon": {
+      "syllables": 1,
+      "pronunciation": "M UW1 N",
+      "rhymes": ["soon", "noon", "tune", "June", "spoon", "croon"],
+      "pos": ["noun"]
+    },
+    "wind": {
+      "syllables": 1,
+      "pronunciation": "W IH1 N D",
+      "rhymes": ["find", "kind", "mind", "blind", "behind", "signed"],
+      "pos": ["noun", "verb"]
+    },
+    "water": {
+      "syllables": 2,
+      "pronunciation": "W AO1 T ER0",
+      "rhymes": ["daughter", "slaughter", "caught", "taught"],
+      "pos": ["noun"]
+    },
+    "ocean": {
+      "syllables": 2,
+      "pronunciation": "OW1 SH AH0 N",
+      "rhymes": ["motion", "emotion", "devotion", "promotion"],
+      "pos": ["noun"]
+    },
+    "mountain": {
+      "syllables": 2,
+      "pronunciation": "M AW1 N T AH0 N",
+      "rhymes": ["fountain", "captain", "certain"],
+      "pos": ["noun"]
+    },
+    "river": {
+      "syllables": 2,
+      "pronunciation": "R IH1 V ER0",
+      "rhymes": ["give", "live", "forgive", "relieve"],
+      "pos": ["noun"]
+    },
+    "forest": {
+      "syllables": 2,
+      "pronunciation": "F AO1 R AH0 S T",
+      "rhymes": ["honest", "modest", "finest", "closest"],
+      "pos": ["noun"]
+    },
+    "flower": {
+      "syllables": 2,
+      "pronunciation": "F L AW1 ER0",
+      "rhymes": ["power", "hour", "shower", "tower", "devour"],
+      "pos": ["noun"]
+    },
+    "garden": {
+      "syllables": 2,
+      "pronunciation": "G AA1 R D AH0 N",
+      "rhymes": ["pardon", "hardened", "warden", "certain"],
+      "pos": ["noun"]
+    },
+    "city": {
+      "syllables": 2,
+      "pronunciation": "S IH1 T IY0",
+      "rhymes": ["pretty", "pity", "duty", "beauty"],
+      "pos": ["noun"]
+    },
+    "street": {
+      "syllables": 1,
+      "pronunciation": "S T R IY1 T",
+      "rhymes": ["feet", "meet", "sweet", "complete", "discrete"],
+      "pos": ["noun"]
+    },
+    "bridge": {
+      "syllables": 1,
+      "pronunciation": "B R IH1 JH",
+      "rhymes": ["ridge", "fridge", "midge", "privilege"],
+      "pos": ["noun"]
+    },
+    "door": {
+      "syllables": 1,
+      "pronunciation": "D AO1 R",
+      "rhymes": ["floor", "more", "before", "explore", "adore"],
+      "pos": ["noun"]
+    },
+    "window": {
+      "syllables": 2,
+      "pronunciation": "W IH1 N D OW0",
+      "rhymes": ["into", "unto", "piano", "video"],
+      "pos": ["noun"]
+    },
+    "house": {
+      "syllables": 1,
+      "pronunciation": "HH AW1 S",
+      "rhymes": ["mouse", "spouse", "blouse", "arouse"],
+      "pos": ["noun"]
+    },
+    "room": {
+      "syllables": 1,
+      "pronunciation": "R UW1 M",
+      "rhymes": ["bloom", "gloom", "doom", "tomb", "womb"],
+      "pos": ["noun"]
+    },
+    "wall": {
+      "syllables": 1,
+      "pronunciation": "W AO1 L",
+      "rhymes": ["fall", "call", "all", "ball", "tall", "small"],
+      "pos": ["noun"]
+    },
+    "floor": {
+      "syllables": 1,
+      "pronunciation": "F L AO1 R",
+      "rhymes": ["door", "more", "before", "explore", "adore"],
+      "pos": ["noun"]
+    },
+    "ceiling": {
+      "syllables": 2,
+      "pronunciation": "S IY1 L IH0 NG",
+      "rhymes": ["feeling", "healing", "revealing", "dealing"],
+      "pos": ["noun"]
+    },
+    "mirror": {
+      "syllables": 2,
+      "pronunciation": "M IH1 R ER0",
+      "rhymes": ["clearer", "nearer", "dearer", "sincere"],
+      "pos": ["noun"]
+    },
+    "memory": {
+      "syllables": 3,
+      "pronunciation": "M EH1 M ER0 IY0",
+      "rhymes": ["emery", "remedy", "enemy"],
+      "pos": ["noun"]
+    },
+    "moment": {
+      "syllables": 2,
+      "pronunciation": "M OW1 M AH0 N T",
+      "rhymes": ["tournament", "monument", "document"],
+      "pos": ["noun"]
+    },
+    "forever": {
+      "syllables": 3,
+      "pronunciation": "F ER0 EH1 V ER0",
+      "rhymes": ["never", "however", "clever", "endeavor"],
+      "pos": ["adverb"]
+    },
+    "always": {
+      "syllables": 2,
+      "pronunciation": "AO1 L W EY2 Z",
+      "rhymes": ["ways", "days", "praise", "maze", "phase"],
+      "pos": ["adverb"]
+    },
+    "never": {
+      "syllables": 2,
+      "pronunciation": "N EH1 V ER0",
+      "rhymes": ["forever", "however", "clever", "endeavor"],
+      "pos": ["adverb"]
+    },
+    "sometimes": {
+      "syllables": 2,
+      "pronunciation": "S AH1 M T AY2 M Z",
+      "rhymes": ["rhymes", "times", "crimes", "sublimes"],
+      "pos": ["adverb"]
+    },
+    "together": {
+      "syllables": 3,
+      "pronunciation": "T AH0 G EH1 DH ER0",
+      "rhymes": ["weather", "whether", "feather", "leather"],
+      "pos": ["adverb"]
+    },
+    "alone": {
+      "syllables": 2,
+      "pronunciation": "AH0 L OW1 N",
+      "rhymes": ["home", "stone", "phone", "tone", "zone", "throne", "unknown"],
+      "pos": ["adjective", "adverb"]
+    },
+    "together": {
+      "syllables": 3,
+      "pronunciation": "T AH0 G EH1 DH ER0",
+      "rhymes": ["weather", "whether", "feather", "leather"],
+      "pos": ["adverb"]
+    },
+    "beautiful": {
+      "syllables": 3,
+      "pronunciation": "B Y UW1 T AH0 F AH0 L",
+      "rhymes": ["dutiful", "grateful", "hateful", "painful"],
+      "pos": ["adjective"]
+    },
+    "wonderful": {
+      "syllables": 3,
+      "pronunciation": "W AH1 N D ER0 F AH0 L",
+      "rhymes": ["beautiful", "dutiful", "grateful", "hateful"],
+      "pos": ["adjective"]
+    },
+    "amazing": {
+      "syllables": 3,
+      "pronunciation": "AH0 M EY1 Z IH0 NG",
+      "rhymes": ["raising", "praising", "amazing", "phasing"],
+      "pos": ["adjective"]
+    },
+    "incredible": {
+      "syllables": 4,
+      "pronunciation": "IH0 N K R EH1 D AH0 B AH0 L",
+      "rhymes": ["edible", "eligible", "visible", "possible"],
+      "pos": ["adjective"]
+    },
+    "fantastic": {
+      "syllables": 3,
+      "pronunciation": "F AE0 N T AE1 S T IH0 K",
+      "rhymes": ["elastic", "drastic", "plastic", "enthusiastic"],
+      "pos": ["adjective"]
+    },
+    "perfect": {
+      "syllables": 2,
+      "pronunciation": "P ER1 F EH0 K T",
+      "rhymes": ["effect", "detect", "protect", "direct"],
+      "pos": ["adjective", "verb"]
+    },
+    "broken": {
+      "syllables": 2,
+      "pronunciation": "B R OW1 K AH0 N",
+      "rhymes": ["spoken", "token", "awoken", "unspoken"],
+      "pos": ["adjective"]
+    },
+    "empty": {
+      "syllables": 2,
+      "pronunciation": "EH1 M T IY0",
+      "rhymes": ["plenty", "twenty", "fifty", "empty"],
+      "pos": ["adjective"]
+    },
+    "silent": {
+      "syllables": 2,
+      "pronunciation": "S AY1 L AH0 N T",
+      "rhymes": ["violent", "talent", "elegant", "client"],
+      "pos": ["adjective"]
+    },
+    "whisper": {
+      "syllables": 2,
+      "pronunciation": "W IH1 S P ER0",
+      "rhymes": ["glimpse", "crisp", "wisp"],
+      "pos": ["noun", "verb"]
+    },
+    "shout": {
+      "syllables": 1,
+      "pronunciation": "SH AW1 T",
+      "rhymes": ["about", "doubt", "without", "scout"],
+      "pos": ["noun", "verb"]
+    },
+    "scream": {
+      "syllables": 1,
+      "pronunciation": "S K R IY1 M",
+      "rhymes": ["dream", "team", "stream", "cream", "scheme", "theme", "supreme"],
+      "pos": ["noun", "verb"]
+    },
+    "whisper": {
+      "syllables": 2,
+      "pronunciation": "W IH1 S P ER0",
+      "rhymes": ["glimpse", "crisp", "wisp"],
+      "pos": ["noun", "verb"]
+    },
+    "breathe": {
+      "syllables": 1,
+      "pronunciation": "B R IY1 DH",
+      "rhymes": ["seethe", "beneath", "underneath"],
+      "pos": ["verb"]
+    },
+    "touch": {
+      "syllables": 1,
+      "pronunciation": "T AH1 CH",
+      "rhymes": ["much", "such", "clutch", "dutch"],
+      "pos": ["noun", "verb"]
+    },
+    "feel": {
+      "syllables": 1,
+      "pronunciation": "F IY1 L",
+      "rhymes": ["real", "steel", "heel", "appeal", "conceal"],
+      "pos": ["verb"]
+    },
+    "see": {
+      "syllables": 1,
+      "pronunciation": "S IY1",
+      "rhymes": ["be", "me", "tree", "free", "key", "agree"],
+      "pos": ["verb"]
+    },
+    "hear": {
+      "syllables": 1,
+      "pronunciation": "HH IH1 R",
+      "rhymes": ["tear", "year", "near", "clear", "dear", "appear"],
+      "pos": ["verb"]
+    },
+    "taste": {
+      "syllables": 1,
+      "pronunciation": "T EY1 S T",
+      "rhymes": ["waste", "haste", "chaste", "disgrace"],
+      "pos": ["noun", "verb"]
+    },
+    "smell": {
+      "syllables": 1,
+      "pronunciation": "S M EH1 L",
+      "rhymes": ["tell", "well", "sell", "bell", "hell", "spell"],
+      "pos": ["noun", "verb"]
+    },
+    "think": {
+      "syllables": 1,
+      "pronunciation": "TH IH1 NG K",
+      "rhymes": ["drink", "sink", "pink", "blink", "wink"],
+      "pos": ["verb"]
+    },
+    "know": {
+      "syllables": 1,
+      "pronunciation": "N OW1",
+      "rhymes": ["show", "go", "flow", "grow", "snow", "slow"],
+      "pos": ["verb"]
+    },
+    "believe": {
+      "syllables": 2,
+      "pronunciation": "B IH0 L IY1 V",
+      "rhymes": ["relieve", "achieve", "receive", "perceive"],
+      "pos": ["verb"]
+    },
+    "remember": {
+      "syllables": 3,
+      "pronunciation": "R IH0 M EH1 M B ER0",
+      "rhymes": ["December", "member", "September", "November"],
+      "pos": ["verb"]
+    },
+    "forget": {
+      "syllables": 2,
+      "pronunciation": "F ER0 G EH1 T",
+      "rhymes": ["regret", "upset", "offset", "sunset"],
+      "pos": ["verb"]
+    },
+    "dream": {
+      "syllables": 1,
+      "pronunciation": "D R IY1 M",
+      "rhymes": ["seem", "team", "stream", "cream", "scheme", "theme", "supreme"],
+      "pos": ["noun", "verb"]
+    },
+    "wake": {
+      "syllables": 1,
+      "pronunciation": "W EY1 K",
+      "rhymes": ["take", "make", "lake", "cake", "fake", "shake"],
+      "pos": ["verb"]
+    },
+    "sleep": {
+      "syllables": 1,
+      "pronunciation": "S L IY1 P",
+      "rhymes": ["deep", "keep", "weep", "creep", "steep", "leap"],
+      "pos": ["noun", "verb"]
+    },
+    "rise": {
+      "syllables": 1,
+      "pronunciation": "R AY1 Z",
+      "rhymes": ["eyes", "skies", "lies", "wise", "size", "prize", "surprise"],
+      "pos": ["verb"]
+    },
+    "fall": {
+      "syllables": 1,
+      "pronunciation": "F AO1 L",
+      "rhymes": ["wall", "call", "all", "ball", "tall", "small"],
+      "pos": ["verb"]
+    },
+    "fly": {
+      "syllables": 1,
+      "pronunciation": "F L AY1",
+      "rhymes": ["cry", "sky", "why", "try", "buy", "die"],
+      "pos": ["verb"]
+    },
+    "run": {
+      "syllables": 1,
+      "pronunciation": "R AH1 N",
+      "rhymes": ["sun", "fun", "gun", "done", "won", "son"],
+      "pos": ["verb"]
+    },
+    "walk": {
+      "syllables": 1,
+      "pronunciation": "W AO1 K",
+      "rhymes": ["talk", "chalk", "balk", "stalk"],
+      "pos": ["verb"]
+    },
+    "dance": {
+      "syllables": 1,
+      "pronunciation": "D AE1 N S",
+      "rhymes": ["chance", "glance", "advance", "finance", "romance"],
+      "pos": ["noun", "verb"]
+    },
+    "sing": {
+      "syllables": 1,
+      "pronunciation": "S IH1 NG",
+      "rhymes": ["bring", "spring", "wing", "thing", "king", "ring"],
+      "pos": ["verb"]
+    },
+    "play": {
+      "syllables": 1,
+      "pronunciation": "P L EY1",
+      "rhymes": ["day", "way", "say", "stay", "away", "okay", "display"],
+      "pos": ["verb"]
+    },
+    "write": {
+      "syllables": 1,
+      "pronunciation": "R AY1 T",
+      "rhymes": ["night", "light", "right", "fight", "bright", "sight", "might", "tight"],
+      "pos": ["verb"]
+    },
+    "read": {
+      "syllables": 1,
+      "pronunciation": "R IY1 D",
+      "rhymes": ["seed", "need", "feed", "deed", "indeed", "bleed"],
+      "pos": ["verb"]
+    },
+    "listen": {
+      "syllables": 2,
+      "pronunciation": "L IH1 S AH0 N",
+      "rhymes": ["glisten", "christen", "wristen"],
+      "pos": ["verb"]
+    },
+    "watch": {
+      "syllables": 1,
+      "pronunciation": "W AA1 CH",
+      "rhymes": ["catch", "match", "patch", "dispatch"],
+      "pos": ["verb"]
+    },
+    "wait": {
+      "syllables": 1,
+      "pronunciation": "W EY1 T",
+      "rhymes": ["late", "gate", "fate", "state", "rate", "date"],
+      "pos": ["verb"]
+    },
+    "hope": {
+      "syllables": 1,
+      "pronunciation": "HH OW1 P",
+      "rhymes": ["scope", "rope", "slope", "grope", "envelope"],
+      "pos": ["noun", "verb"]
+    },
+    "wish": {
+      "syllables": 1,
+      "pronunciation": "W IH1 SH",
+      "rhymes": ["fish", "dish", "swish", "vanish", "finish"],
+      "pos": ["noun", "verb"]
+    },
+    "want": {
+      "syllables": 1,
+      "pronunciation": "W AA1 N T",
+      "rhymes": ["can't", "don't", "won't", "font", "hunt"],
+      "pos": ["verb"]
+    },
+    "need": {
+      "syllables": 1,
+      "pronunciation": "N IY1 D",
+      "rhymes": ["read", "seed", "feed", "deed", "indeed", "bleed"],
+      "pos": ["verb"]
+    },
+    "give": {
+      "syllables": 1,
+      "pronunciation": "G IH1 V",
+      "rhymes": ["live", "forgive", "relieve"],
+      "pos": ["verb"]
+    },
+    "take": {
+      "syllables": 1,
+      "pronunciation": "T EY1 K",
+      "rhymes": ["wake", "make", "lake", "cake", "fake", "shake"],
+      "pos": ["verb"]
+    },
+    "make": {
+      "syllables": 1,
+      "pronunciation": "M EY1 K",
+      "rhymes": ["wake", "take", "lake", "cake", "fake", "shake"],
+      "pos": ["verb"]
+    },
+    "break": {
+      "syllables": 1,
+      "pronunciation": "B R EY1 K",
+      "rhymes": ["wake", "take", "lake", "cake", "fake", "shake"],
+      "pos": ["verb"]
+    },
+    "find": {
+      "syllables": 1,
+      "pronunciation": "F AY1 N D",
+      "rhymes": ["wind", "kind", "mind", "blind", "behind", "signed"],
+      "pos": ["verb"]
+    },
+    "lose": {
+      "syllables": 1,
+      "pronunciation": "L UW1 Z",
+      "rhymes": ["choose", "muse", "news", "refuse"],
+      "pos": ["verb"]
+    },
+    "win": {
+      "syllables": 1,
+      "pronunciation": "W IH1 N",
+      "rhymes": ["begin", "sin", "chin", "spin", "within"],
+      "pos": ["verb"]
+    },
+    "try": {
+      "syllables": 1,
+      "pronunciation": "T R AY1",
+      "rhymes": ["cry", "sky", "fly", "why", "buy", "die"],
+      "pos": ["verb"]
+    },
+    "change": {
+      "syllables": 1,
+      "pronunciation": "CH EY1 N JH",
+      "rhymes": ["strange", "range", "arrange", "exchange"],
+      "pos": ["noun", "verb"]
+    },
+    "become": {
+      "syllables": 2,
+      "pronunciation": "B IH0 K AH1 M",
+      "rhymes": ["come", "some", "dumb", "hum", "strum"],
+      "pos": ["verb"]
+    },
+    "stay": {
+      "syllables": 1,
+      "pronunciation": "S T EY1",
+      "rhymes": ["day", "way", "say", "play", "away", "okay", "display"],
+      "pos": ["verb"]
+    },
+    "leave": {
+      "syllables": 1,
+      "pronunciation": "L IY1 V",
+      "rhymes": ["believe", "relieve", "achieve", "receive", "perceive"],
+      "pos": ["verb"]
+    },
+    "return": {
+      "syllables": 2,
+      "pronunciation": "R IH0 T ER1 N",
+      "rhymes": ["burn", "turn", "learn", "discern", "concern"],
+      "pos": ["verb"]
+    },
+    "begin": {
+      "syllables": 2,
+      "pronunciation": "B IH0 G IH1 N",
+      "rhymes": ["win", "sin", "chin", "spin", "within"],
+      "pos": ["verb"]
+    },
+    "end": {
+      "syllables": 1,
+      "pronunciation": "EH1 N D",
+      "rhymes": ["friend", "send", "mend", "bend", "tend", "lend"],
+      "pos": ["noun", "verb"]
+    },
+    "start": {
+      "syllables": 1,
+      "pronunciation": "S T AA1 R T",
+      "rhymes": ["heart", "part", "art", "chart", "smart", "cart", "depart"],
+      "pos": ["verb"]
+    },
+    "stop": {
+      "syllables": 1,
+      "pronunciation": "S T AA1 P",
+      "rhymes": ["top", "hop", "drop", "crop", "shop", "mop"],
+      "pos": ["verb"]
+    },
+    "continue": {
+      "syllables": 3,
+      "pronunciation": "K AH0 N T IH1 N Y UW0",
+      "rhymes": ["review", "pursue", "venue"],
+      "pos": ["verb"]
+    },
+    "finish": {
+      "syllables": 2,
+      "pronunciation": "F IH1 N IH0 SH",
+      "rhymes": ["diminish", "vanish", "astonish"],
+      "pos": ["verb"]
+    },
+    "complete": {
+      "syllables": 2,
+      "pronunciation": "K AH0 M P L IY1 T",
+      "rhymes": ["street", "feet", "meet", "sweet", "discrete"],
+      "pos": ["adjective", "verb"]
+    },
+    "create": {
+      "syllables": 2,
+      "pronunciation": "K R IY1 EY0 T",
+      "rhymes": ["fate", "late", "gate", "state", "rate", "date"],
+      "pos": ["verb"]
+    },
+    "destroy": {
+      "syllables": 2,
+      "pronunciation": "D IH0 S T R OY1",
+      "rhymes": ["joy", "boy", "toy", "enjoy", "employ"],
+      "pos": ["verb"]
+    },
+    "build": {
+      "syllables": 1,
+      "pronunciation": "B IH1 L D",
+      "rhymes": ["killed", "filled", "willed", "skilled"],
+      "pos": ["verb"]
+    },
+    "grow": {
+      "syllables": 1,
+      "pronunciation": "G R OW1",
+      "rhymes": ["know", "show", "go", "flow", "snow", "slow"],
+      "pos": ["verb"]
+    },
+    "live": {
+      "syllables": 1,
+      "pronunciation": "L IH1 V",
+      "rhymes": ["give", "forgive", "relieve"],
+      "pos": ["verb", "adjective"]
+    },
+    "die": {
+      "syllables": 1,
+      "pronunciation": "D AY1",
+      "rhymes": ["cry", "sky", "fly", "why", "try", "buy"],
+      "pos": ["verb"]
+    },
+    "born": {
+      "syllables": 1,
+      "pronunciation": "B AO1 R N",
+      "rhymes": ["corn", "thorn", "scorn", "mourn", "worn"],
+      "pos": ["adjective"]
+    },
+    "young": {
+      "syllables": 1,
+      "pronunciation": "Y AH1 NG",
+      "rhymes": ["song", "long", "strong", "wrong", "along", "belong", "throng", "prolong"],
+      "pos": ["adjective"]
+    },
+    "old": {
+      "syllables": 1,
+      "pronunciation": "OW1 L D",
+      "rhymes": ["cold", "bold", "told", "gold", "sold", "hold"],
+      "pos": ["adjective"]
+    },
+    "new": {
+      "syllables": 1,
+      "pronunciation": "N Y UW1",
+      "rhymes": ["blue", "true", "few", "shoe", "through", "you", "view"],
+      "pos": ["adjective"]
+    },
+    "good": {
+      "syllables": 1,
+      "pronunciation": "G AH1 D",
+      "rhymes": ["food", "wood", "stood", "could", "would", "should"],
+      "pos": ["adjective"]
+    },
+    "bad": {
+      "syllables": 1,
+      "pronunciation": "B AE1 D",
+      "rhymes": ["sad", "mad", "glad", "had", "dad"],
+      "pos": ["adjective"]
+    },
+    "happy": {
+      "syllables": 2,
+      "pronunciation": "HH AE1 P IY0",
+      "rhymes": ["sappy", "pappy", "snappy", "flappy"],
+      "pos": ["adjective"]
+    },
+    "sad": {
+      "syllables": 1,
+      "pronunciation": "S AE1 D",
+      "rhymes": ["bad", "mad", "glad", "had", "dad"],
+      "pos": ["adjective"]
+    },
+    "angry": {
+      "syllables": 2,
+      "pronunciation": "AE1 NG G R IY0",
+      "rhymes": ["hungry", "ungainly", "rangy"],
+      "pos": ["adjective"]
+    },
+    "scared": {
+      "syllables": 1,
+      "pronunciation": "S K EH1 R D",
+      "rhymes": ["prepared", "shared", "compared", "impaired"],
+      "pos": ["adjective"]
+    },
+    "brave": {
+      "syllables": 1,
+      "pronunciation": "B R EY1 V",
+      "rhymes": ["save", "wave", "grave", "behave", "crave"],
+      "pos": ["adjective"]
+    },
+    "strong": {
+      "syllables": 1,
+      "pronunciation": "S T R AO1 NG",
+      "rhymes": ["song", "long", "wrong", "along", "belong", "throng", "prolong"],
+      "pos": ["adjective"]
+    },
+    "weak": {
+      "syllables": 1,
+      "pronunciation": "W IY1 K",
+      "rhymes": ["seek", "speak", "week", "meek", "creek"],
+      "pos": ["adjective"]
+    },
+    "big": {
+      "syllables": 1,
+      "pronunciation": "B IH1 G",
+      "rhymes": ["dig", "fig", "jig", "pig", "wig"],
+      "pos": ["adjective"]
+    },
+    "small": {
+      "syllables": 1,
+      "pronunciation": "S M AO1 L",
+      "rhymes": ["wall", "call", "all", "ball", "tall"],
+      "pos": ["adjective"]
+    },
+    "fast": {
+      "syllables": 1,
+      "pronunciation": "F AE1 S T",
+      "rhymes": ["last", "past", "cast", "vast", "mast"],
+      "pos": ["adjective", "adverb"]
+    },
+    "slow": {
+      "syllables": 1,
+      "pronunciation": "S L OW1",
+      "rhymes": ["know", "show", "go", "flow", "grow", "snow"],
+      "pos": ["adjective", "adverb"]
+    },
+    "high": {
+      "syllables": 1,
+      "pronunciation": "HH AY1",
+      "rhymes": ["sky", "fly", "why", "try", "buy", "die", "cry"],
+      "pos": ["adjective"]
+    },
+    "low": {
+      "syllables": 1,
+      "pronunciation": "L OW1",
+      "rhymes": ["go", "show", "know", "flow", "grow", "snow"],
+      "pos": ["adjective"]
+    },
+    "hot": {
+      "syllables": 1,
+      "pronunciation": "HH AA1 T",
+      "rhymes": ["spot", "got", "knot", "dot", "lot"],
+      "pos": ["adjective"]
+    },
+    "cold": {
+      "syllables": 1,
+      "pronunciation": "K OW1 L D",
+      "rhymes": ["old", "bold", "told", "gold", "sold", "hold"],
+      "pos": ["adjective"]
+    },
+    "warm": {
+      "syllables": 1,
+      "pronunciation": "W AO1 R M",
+      "rhymes": ["storm", "form", "norm", "uniform"],
+      "pos": ["adjective"]
+    },
+    "cool": {
+      "syllables": 1,
+      "pronunciation": "K UW1 L",
+      "rhymes": ["pool", "tool", "fool", "school", "rule"],
+      "pos": ["adjective"]
+    },
+    "bright": {
+      "syllables": 1,
+      "pronunciation": "B R AY1 T",
+      "rhymes": ["night", "light", "right", "fight", "sight", "might", "tight"],
+      "pos": ["adjective"]
+    },
+    "dark": {
+      "syllables": 1,
+      "pronunciation": "D AA1 R K",
+      "rhymes": ["park", "spark", "mark", "shark", "stark"],
+      "pos": ["adjective"]
+    },
+    "light": {
+      "syllables": 1,
+      "pronunciation": "L AY1 T",
+      "rhymes": ["night", "right", "fight", "bright", "sight", "might", "tight"],
+      "pos": ["noun", "adjective", "verb"]
+    },
+    "heavy": {
+      "syllables": 2,
+      "pronunciation": "HH EH1 V IY0",
+      "rhymes": ["levy", "envy", "steavy"],
+      "pos": ["adjective"]
+    },
+    "light": {
+      "syllables": 1,
+      "pronunciation": "L AY1 T",
+      "rhymes": ["night", "right", "fight", "bright", "sight", "might", "tight"],
+      "pos": ["noun", "adjective", "verb"]
+    },
+    "hard": {
+      "syllables": 1,
+      "pronunciation": "HH AA1 R D",
+      "rhymes": ["card", "yard", "guard", "regard", "discard"],
+      "pos": ["adjective"]
+    },
+    "soft": {
+      "syllables": 1,
+      "pronunciation": "S AO1 F T",
+      "rhymes": ["often", "loft", "croft"],
+      "pos": ["adjective"]
+    },
+    "rough": {
+      "syllables": 1,
+      "pronunciation": "R AH1 F",
+      "rhymes": ["love", "dove", "glove", "above", "shove", "of", "tough"],
+      "pos": ["adjective"]
+    },
+    "smooth": {
+      "syllables": 1,
+      "pronunciation": "S M UW1 DH",
+      "rhymes": ["truth", "youth", "booth", "uncouth"],
+      "pos": ["adjective"]
+    },
+    "clean": {
+      "syllables": 1,
+      "pronunciation": "K L IY1 N",
+      "rhymes": ["mean", "green", "scene", "queen", "between"],
+      "pos": ["adjective", "verb"]
+    },
+    "dirty": {
+      "syllables": 2,
+      "pronunciation": "D ER1 T IY0",
+      "rhymes": ["thirty", "flirty", "quirky"],
+      "pos": ["adjective"]
+    },
+    "clear": {
+      "syllables": 1,
+      "pronunciation": "K L IH1 R",
+      "rhymes": ["tear", "year", "near", "fear", "dear", "appear"],
+      "pos": ["adjective"]
+    },
+    "cloudy": {
+      "syllables": 2,
+      "pronunciation": "K L AW1 D IY0",
+      "rhymes": ["shroudy", "loudly"],
+      "pos": ["adjective"]
+    },
+    "sunny": {
+      "syllables": 2,
+      "pronunciation": "S AH1 N IY0",
+      "rhymes": ["funny", "money", "honey", "runny"],
+      "pos": ["adjective"]
+    },
+    "rainy": {
+      "syllables": 2,
+      "pronunciation": "R EY1 N IY0",
+      "rhymes": ["painy", "chainy", "mainly"],
+      "pos": ["adjective"]
+    },
+    "windy": {
+      "syllables": 2,
+      "pronunciation": "W IH1 N D IY0",
+      "rhymes": ["bindy", "findy", "mindy"],
+      "pos": ["adjective"]
+    },
+    "stormy": {
+      "syllables": 2,
+      "pronunciation": "S T AO1 R M IY0",
+      "rhymes": ["warmy", "swarmy"],
+      "pos": ["adjective"]
+    }
+  }
+}

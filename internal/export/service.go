@@ -95,6 +95,33 @@ func (es *ExportService) ExportFull(content string, title string, bpm int, inclu
 	return es.Export(content, options)
 }
 
+// ExportToMarkdown exports content as Markdown
+func (es *ExportService) ExportToMarkdown(content string, title string) (string, error) {
+	options := DefaultExportOptions()
+	options.Type = ExportTypeMarkdown
+	options.Title = title
+	
+	return es.Export(content, options)
+}
+
+// ExportToPlainText exports content as plain text
+func (es *ExportService) ExportToPlainText(content string, title string) (string, error) {
+	options := DefaultExportOptions()
+	options.Type = ExportTypePlainText
+	options.Title = title
+	
+	return es.Export(content, options)
+}
+
+// ExportToChordPro exports content as ChordPro
+func (es *ExportService) ExportToChordPro(content string, title string) (string, error) {
+	options := DefaultExportOptions()
+	options.Type = ExportTypeChordPro
+	options.Title = title
+	
+	return es.Export(content, options)
+}
+
 // ListExports returns a list of all exports in the output directory
 func (es *ExportService) ListExports() ([]string, error) {
 	var exports []string
@@ -166,7 +193,21 @@ func (es *ExportService) generateOutputPath(options *ExportOptions) string {
 	
 	// Add timestamp
 	timestamp := time.Now().Format("20060102_150405")
-	filename := fmt.Sprintf("%s_%s.json", sanitized, timestamp)
+	
+	// Determine file extension based on export type
+	var extension string
+	switch options.Type {
+	case ExportTypeMarkdown:
+		extension = "md"
+	case ExportTypePlainText:
+		extension = "txt"
+	case ExportTypeChordPro:
+		extension = "cho"
+	default:
+		extension = "json" // Keep JSON for existing formats
+	}
+	
+	filename := fmt.Sprintf("%s_%s.%s", sanitized, timestamp, extension)
 	
 	return filename
 }

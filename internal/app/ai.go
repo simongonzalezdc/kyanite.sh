@@ -4,6 +4,8 @@ package app
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/puente-labs/noise/internal/app/ai"
@@ -12,19 +14,13 @@ import (
 
 // AIService handles AI-powered assistance
 type AIService struct {
-	continuationAgent   *ai.ContinuationAgent
-	variationAgent      *ai.VariationAgent
-	rapidBrainstormAgent *ai.RapidBrainstormAgent
-	qualityAgent        *ai.QualityAgent
+	quickAgent *ai.QuickIdeaAgent
 }
 
 // NewAIService creates a new AI service
 func NewAIService() *AIService {
 	return &AIService{
-		continuationAgent:    ai.NewContinuationAgent(),
-		variationAgent:       ai.NewVariationAgent(),
-		rapidBrainstormAgent: ai.NewRapidBrainstormAgent(),
-		qualityAgent:         ai.NewQualityAgent(),
+		quickAgent: ai.NewQuickIdeaAgent(),
 	}
 }
 
@@ -115,110 +111,189 @@ func (s *AIService) GetModelStatus() map[string]interface{} {
 
 // GenerateContinuations generates line continuations for rapid prototyping
 func (s *AIService) GenerateContinuations(ctx context.Context, previousLines []string, sectionType string) ([]string, error) {
-	req := &ai.ContinuationRequest{
-		PreviousLines: previousLines,
-		SectionType:   sectionType,
-		RhymeScheme:   "AABB", // Default, would be determined by context
-		Syllables:     10,     // Default, would be determined by context
-		Style:         "conversational",
+	content := strings.Join(previousLines, "\n")
+	
+	// Detect content type for context-aware suggestions
+	if s.quickAgent != nil {
+		resp, err := s.quickAgent.Generate(ctx, ai.QuickRequest{
+			Mode:    ai.QuickIdeaModeUnstick,
+			Context: content,
+			Options: map[string]string{
+				"section": sectionType,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+		return resp.Suggestions, nil
 	}
 	
-	resp, err := s.continuationAgent.GenerateContinuations(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	
-	return resp.Lines, nil
+	// Fallback to basic suggestions
+	return []string{
+		content + " and the story continues",
+		content + " while the music plays on",
+		content + " as the rhythm takes hold",
+	}, nil
 }
 
 // GenerateVariations generates line variations for rapid prototyping
 func (s *AIService) GenerateVariations(ctx context.Context, line, section, constraint string) ([]string, error) {
-	req := &ai.VariationRequest{
-		Line:       line,
-		Section:    section,
-		Constraint: constraint,
-		Syllables:  10, // Default, would be determined by context
+	// Detect content type for context-aware suggestions
+	if s.quickAgent != nil {
+		resp, err := s.quickAgent.Generate(ctx, ai.QuickRequest{
+			Mode:    ai.QuickIdeaModeTweak,
+			Context: line,
+			Options: map[string]string{
+				"section":    section,
+				"constraint": constraint,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+		return resp.Suggestions, nil
 	}
 	
-	resp, err := s.variationAgent.GenerateVariations(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	
-	return resp.Variations, nil
+	// Fallback to basic variations
+	return []string{
+		line,
+		"Rewrite with stronger imagery",
+		"Add more emotional depth",
+	}, nil
 }
 
 // GenerateRapidBrainstorm generates brainstorming angles for rapid prototyping
 func (s *AIService) GenerateRapidBrainstorm(ctx context.Context, theme string, maxAngles int) ([]string, error) {
-	req := &ai.RapidBrainstormRequest{
-		Theme:    theme,
-		MaxAngles: maxAngles,
+	// Detect content type for context-aware suggestions
+	if s.quickAgent != nil {
+		resp, err := s.quickAgent.Generate(ctx, ai.QuickRequest{
+			Mode:    ai.QuickIdeaModeSpark,
+			Context: theme,
+			Options: map[string]string{
+				"theme": theme,
+				"limit": fmt.Sprintf("%d", maxAngles),
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+		if len(resp.Suggestions) > maxAngles && maxAngles > 0 {
+			return resp.Suggestions[:maxAngles], nil
+		}
+		return resp.Suggestions, nil
 	}
 	
-	resp, err := s.rapidBrainstormAgent.GenerateBrainstorm(ctx, req)
-	if err != nil {
-		return nil, err
+	// Fallback to basic brainstorming
+	suggestions := []string{
+		"Explore " + theme + " through personal memories",
+		"Use nature imagery to symbolize " + theme,
+		"Focus on sensory details related to " + theme,
 	}
-	
-	return resp.Angles, nil
+	if len(suggestions) > maxAngles && maxAngles > 0 {
+		return suggestions[:maxAngles], nil
+	}
+	return suggestions, nil
 }
 
 // GenerateOpeningLine generates an opening line based on a selected angle
 func (s *AIService) GenerateOpeningLine(ctx context.Context, theme, angle string) (string, error) {
-	return s.rapidBrainstormAgent.GenerateOpeningLine(ctx, theme, angle)
+	// Detect content type for context-aware suggestions
+	if s.quickAgent != nil {
+		resp, err := s.quickAgent.Generate(ctx, ai.QuickRequest{
+			Mode:    ai.QuickIdeaModeSpark,
+			Context: theme,
+			Options: map[string]string{
+				"theme": theme,
+				"angle": angle,
+			},
+		})
+		if err != nil {
+			return "", err
+		}
+		if len(resp.Suggestions) == 0 {
+			return "", nil
+		}
+		return resp.Suggestions[0], nil
+	}
+	
+	// Fallback to basic opening line
+	return "In the heart of " + theme + ", a story begins", nil
 }
 
 // Tiered quality checking methods
 
 // CheckQualityRedFlags performs red flag checking for sketch mode
-func (s *AIService) CheckQualityRedFlags(ctx context.Context, content string) (*ai.QualityReport, error) {
-	req := &ai.QualityRequest{
-		Content: content,
-		Mode:    ai.CheckRedFlags,
+func (s *AIService) CheckQualityRedFlags(ctx context.Context, content string) (*ai.QuickResponse, error) {
+	if s.quickAgent != nil {
+		return s.quickAgent.Generate(ctx, ai.QuickRequest{
+			Mode:    ai.QuickIdeaModeCheck,
+			Context: content,
+			Options: map[string]string{
+				"mode": "sketch",
+			},
+		})
 	}
 	
-	return s.qualityAgent.RunQualityCheck(ctx, req)
+	// Fallback to basic quality check
+	return &ai.QuickResponse{
+		Rating: "OKAY",
+		Tip:    "Add more specific details",
+	}, nil
 }
 
 // CheckQualityBasic performs basic quality checking for draft mode
-func (s *AIService) CheckQualityBasic(ctx context.Context, content string) (*ai.QualityReport, error) {
-	req := &ai.QualityRequest{
-		Content: content,
-		Mode:    ai.CheckBasic,
+func (s *AIService) CheckQualityBasic(ctx context.Context, content string) (*ai.QuickResponse, error) {
+	if s.quickAgent != nil {
+		return s.quickAgent.Generate(ctx, ai.QuickRequest{
+			Mode:    ai.QuickIdeaModeCheck,
+			Context: content,
+			Options: map[string]string{
+				"mode": "draft",
+			},
+		})
 	}
 	
-	return s.qualityAgent.RunQualityCheck(ctx, req)
+	// Fallback to basic quality check
+	return &ai.QuickResponse{
+		Rating: "OKAY",
+		Tip:    "Strengthen the main idea",
+	}, nil
 }
 
 // CheckQualityFull performs full quality checking for polish mode
-func (s *AIService) CheckQualityFull(ctx context.Context, content string) (*ai.QualityReport, error) {
-	req := &ai.QualityRequest{
-		Content: content,
-		Mode:    ai.CheckFull,
+func (s *AIService) CheckQualityFull(ctx context.Context, content string) (*ai.QuickResponse, error) {
+	if s.quickAgent != nil {
+		return s.quickAgent.Generate(ctx, ai.QuickRequest{
+			Mode:    ai.QuickIdeaModeCheck,
+			Context: content,
+			Options: map[string]string{
+				"mode": "polish",
+			},
+		})
 	}
 	
-	return s.qualityAgent.RunQualityCheck(ctx, req)
+	// Fallback to basic quality check
+	return &ai.QuickResponse{
+		Rating: "OKAY",
+		Tip:    "Refine the emotional impact",
+	}, nil
 }
 
 // CheckQualityByMode performs quality checking based on the editor mode
-func (s *AIService) CheckQualityByMode(ctx context.Context, content string, mode string) (*ai.QualityReport, error) {
-	var checkMode ai.QualityCheckMode
-	
-	switch mode {
-	case "sketch":
-		checkMode = ai.CheckRedFlags
-	case "draft":
-		checkMode = ai.CheckBasic
-	case "polish":
-		checkMode = ai.CheckFull
-	default:
-		checkMode = ai.CheckBasic
+func (s *AIService) CheckQualityByMode(ctx context.Context, content string, mode string) (*ai.QuickResponse, error) {
+	if s.quickAgent != nil {
+		return s.quickAgent.Generate(ctx, ai.QuickRequest{
+			Mode:    ai.QuickIdeaModeCheck,
+			Context: content,
+			Options: map[string]string{
+				"mode": mode,
+			},
+		})
 	}
 	
-	req := &ai.QualityRequest{
-		Content: content,
-		Mode:    checkMode,
-	}
-	
-	return s.qualityAgent.RunQualityCheck(ctx, req)
+	// Fallback to basic quality check
+	return &ai.QuickResponse{
+		Rating: "OKAY",
+		Tip:    "Continue developing this idea",
+	}, nil
 }

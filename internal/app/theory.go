@@ -11,7 +11,9 @@ import (
 )
 
 // TheoryService handles music theory operations
-type TheoryService struct{}
+type TheoryService struct{
+	dictionary *Dictionary
+}
 
 // ChordInfo represents information about a chord
 type ChordInfo struct {
@@ -49,7 +51,16 @@ type ChordAnalysis struct {
 
 // NewTheoryService creates a new theory service
 func NewTheoryService() *TheoryService {
-	return &TheoryService{}
+	dict := NewDictionary()
+	// Try to load the dictionary file
+	if err := dict.LoadDictionary("data/dictionary.json"); err != nil {
+		// If loading fails, continue with empty dictionary (will use fallbacks)
+		// In production, you might want to log this error
+	}
+	
+	return &TheoryService{
+		dictionary: dict,
+	}
 }
 
 // GetScale returns notes for a given scale
@@ -532,7 +543,12 @@ func (s *TheoryService) GetCommonScales() []*ScaleInfo {
 
 // FindRhymes finds rhyming words for a given word
 func (s *TheoryService) FindRhymes(word string) ([]string, error) {
-	// Enhanced rhyme dictionary
+	// Use the enhanced dictionary if available
+	if s.dictionary != nil && s.dictionary.IsLoaded() {
+		return s.dictionary.FindRhymes(word)
+	}
+	
+	// Fallback to static rhyme dictionary
 	rhymes := map[string][]string{
 		"love":  {"dove", "glove", "above", "shove", "of", "rough", "tough"},
 		"time":  {"rhyme", "climb", "dime", "lime", "crime", "prime", "sublime"},
@@ -564,10 +580,12 @@ func (s *TheoryService) FindRhymes(word string) ([]string, error) {
 
 // CountSyllables counts syllables in a word
 func (s *TheoryService) CountSyllables(word string) (int, error) {
-	// Placeholder implementation
-	// In a full implementation, this would use the pronouncing library
-
-	// Simple heuristic-based syllable counting
+	// Use the enhanced dictionary if available
+	if s.dictionary != nil && s.dictionary.IsLoaded() {
+		return s.dictionary.CountSyllables(word)
+	}
+	
+	// Fallback to heuristic-based syllable counting
 	vowels := "aeiouy"
 	syllables := 0
 	prevWasVowel := false
@@ -601,9 +619,12 @@ func (s *TheoryService) CountSyllables(word string) (int, error) {
 
 // AnalyzeProsody analyzes the prosody of a line
 func (s *TheoryService) AnalyzeProsody(line string) (int, error) {
-	// Placeholder implementation for prosody analysis
-	// In a full implementation, this would analyze stress patterns
-
+	// Use the enhanced dictionary if available
+	if s.dictionary != nil && s.dictionary.IsLoaded() {
+		return s.dictionary.CountSyllablesInText(line)
+	}
+	
+	// Fallback to word-by-word analysis
 	words := strings.Fields(line)
 	syllableCount := 0
 
@@ -613,4 +634,41 @@ func (s *TheoryService) AnalyzeProsody(line string) (int, error) {
 	}
 
 	return syllableCount, nil
+}
+
+// GetDictionaryStats returns statistics about the dictionary
+func (s *TheoryService) GetDictionaryStats() (DictionaryStats, error) {
+	if s.dictionary != nil && s.dictionary.IsLoaded() {
+		return s.dictionary.GetStats(), nil
+	}
+	
+	return DictionaryStats{}, fmt.Errorf("dictionary not loaded")
+}
+
+// ValidateWord checks if a word exists in the dictionary
+func (s *TheoryService) ValidateWord(word string) bool {
+	if s.dictionary != nil && s.dictionary.IsLoaded() {
+		return s.dictionary.ValidateWord(word)
+	}
+	
+	// Fallback: check if it's a non-empty string
+	return strings.TrimSpace(word) != ""
+}
+
+// SearchWords searches for words matching a pattern
+func (s *TheoryService) SearchWords(pattern string, limit int) ([]string, error) {
+	if s.dictionary != nil && s.dictionary.IsLoaded() {
+		return s.dictionary.SearchWords(pattern, limit)
+	}
+	
+	return []string{}, fmt.Errorf("dictionary not loaded")
+}
+
+// GetWordsBySyllableCount returns words with a specific syllable count
+func (s *TheoryService) GetWordsBySyllableCount(syllables int, limit int) ([]string, error) {
+	if s.dictionary != nil && s.dictionary.IsLoaded() {
+		return s.dictionary.GetWordsBySyllableCount(syllables, limit)
+	}
+	
+	return []string{}, fmt.Errorf("dictionary not loaded")
 }

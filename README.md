@@ -11,6 +11,7 @@ noise.sh is a terminal-based songwriting application that leverages AI to help m
 - **AI-Powered Lyrics**: Generate and refine lyrics with AI assistance
 - **Song Management**: Organize songs with metadata and versioning
 - **Auto-save**: Never lose your work with automatic saving
+- **Multiple Export Formats**: Export to Markdown, Plain Text, ChordPro, and more
 - **Plugin System**: Extensible architecture for custom functionality
 - **Terminal UI**: Clean, responsive interface that works in any terminal
 - **Real-time Preview**: See your changes as you type
@@ -67,6 +68,39 @@ export NOISE_DEV_DEBUG="true"
 # Set AI API key
 export NOISE_AI_API_KEY="your-api-key"
 ```
+
+## Export Formats
+
+noise.sh supports multiple export formats for your songs and lyrics:
+
+### Available Formats
+
+- **Markdown (.md)**: Clean, readable format with proper headers and chord formatting
+- **Plain Text (.txt)**: Format-free lyrics without chord clutter
+- **ChordPro (.cho)**: Standardized format for lyrics with chords, compatible with music software
+- **JSON (.json)**: Structured data format with metadata (existing format)
+
+### Export Shortcuts
+
+- `Ctrl+E`: Open export menu
+- `Ctrl+Shift+M`: Export as Markdown
+- `Ctrl+Shift+T`: Export as Plain Text
+- `Ctrl+Shift+P`: Export as ChordPro
+
+### Example Usage
+
+```bash
+# Export current song as Markdown
+Ctrl+Shift+M
+
+# Export current song as ChordPro for band collaboration
+Ctrl+Shift+P
+
+# Export as Plain Text for clean lyrics
+Ctrl+Shift+T
+```
+
+For detailed information about export formats, see [Export Formats Documentation](docs/export_formats.md).
 
 ## Development
 
