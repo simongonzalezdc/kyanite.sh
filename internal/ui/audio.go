@@ -296,7 +296,8 @@ func (m *AudioModel) updatePlaybackKeys(msg tea.KeyMsg) tea.Cmd {
 	switch msg.String() {
 	case "c":
 		m.currentChord = m.getNextChord()
-	case "s":
+	case "n":
+		// Use 'n' for Next Scale to avoid conflicting with Stop (s)
 		m.currentScale = m.getNextScale()
 	}
 	return nil
@@ -359,6 +360,11 @@ func (m *AudioModel) stopRecording() {
 
 func (m *AudioModel) updateRecordingKeys(msg tea.KeyMsg) tea.Cmd {
 	// Recording-specific key handling could be added here
+	switch msg.String() {
+	case "r":
+		// Reset recording duration
+		m.recordingDuration = 0
+	}
 	return nil
 }
 
@@ -393,16 +399,17 @@ func (m *AudioModel) renderPlaybackTool() string {
 	sections = append(sections, chordInfo)
 
 	// Playback controls
-	controls := []string{"Play/Pause: Space", "Stop: S", "Next Chord: C", "Next Scale: S"}
+	controls := []string{"Play/Pause: Space", "Stop: S", "Next Chord: C", "Next Scale: N"}
 	sections = append(sections, "Controls: "+strings.Join(controls, " | "))
 
 	// Progress indicator
 	progress := strings.Repeat("█", m.playbackProgress%20) +
 		strings.Repeat("░", 20-(m.playbackProgress%20))
 	playbackState := "Stopped"
-	if m.playbackState == StatePlaying {
+	switch m.playbackState {
+	case StatePlaying:
 		playbackState = "Playing"
-	} else if m.playbackState == StatePaused {
+	case StatePaused:
 		playbackState = "Paused"
 	}
 	sections = append(sections, fmt.Sprintf("Progress: [%s] %s", progress, playbackState))
@@ -458,9 +465,10 @@ func (m *AudioModel) renderRecordingTool() string {
 
 	// Recording state
 	state := "Stopped"
-	if m.recordingState == RecordingRecording {
+	switch m.recordingState {
+	case RecordingRecording:
 		state = "Recording"
-	} else if m.recordingState == RecordingPaused {
+	case RecordingPaused:
 		state = "Paused"
 	}
 	sections = append(sections, fmt.Sprintf("Status: %s", state))
@@ -495,7 +503,7 @@ Playback Tool:
   Space             Play/Pause chord/scale
   S                 Stop playback
   C                 Next chord
-  S                 Next scale
+  N                 Next scale
 
 Metronome Tool:
   Space             Start/Stop metronome

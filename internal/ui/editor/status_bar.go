@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/puente-labs/noise/internal/app"
 	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/theme"
 )
 
 // StatusBarSection represents a section of the status bar
@@ -148,22 +149,23 @@ func (m *StatusBarModel) SetDimensions(width, height int) {
 
 // UpdateContent updates the content and recalculates statistics
 func (m *StatusBarModel) UpdateContent(content string) {
-	// Performance optimization: throttle updates and check for actual changes
-	now := time.Now()
-	if now.Sub(m.lastUpdateTime) < m.updateThrottleDuration {
-		return
-	}
-
-	// Check if content has actually changed using hash
+	// Compute hash and detect actual change first
 	currentHash := m.hashContent(content)
-	if currentHash == m.lastContentHash && content == m.content {
+	changed := !(currentHash == m.lastContentHash && content == m.content)
+
+	// If nothing changed and we updated recently, skip work
+	now := time.Now()
+	if !changed && now.Sub(m.lastUpdateTime) < m.updateThrottleDuration {
 		return
 	}
 
-	m.content = content
-	m.lastContentHash = currentHash
-	m.lastUpdateTime = now
-	m.calculateStatistics()
+	// Always update when content changed; otherwise only when throttle window passed
+	if changed || now.Sub(m.lastUpdateTime) >= m.updateThrottleDuration {
+		m.content = content
+		m.lastContentHash = currentHash
+		m.lastUpdateTime = now
+		m.calculateStatistics()
+	}
 }
 
 // UpdateCursorPosition updates the cursor position
@@ -307,6 +309,15 @@ func (m *StatusBarModel) renderRightSection() StatusBarSection {
 	if m.shortcutHints != "" {
 		hints := m.shortcutHintStyle.Render(m.shortcutHints)
 		indicators = append(indicators, hints)
+	}
+
+	// Theme indicator (shows active theme id)
+	if mgr := theme.GetManager(); mgr != nil {
+		themeID := mgr.CurrentID()
+		if themeID != "" {
+			themeLabel := m.modeIndicatorStyle.Render("Theme: " + themeID)
+			indicators = append(indicators, themeLabel)
+		}
 	}
 
 	content := strings.Join(indicators, " | ")

@@ -39,12 +39,12 @@ Implement a dynamic theme system with 12 professionally designed, WCAG AA compli
 
 ### Naming Pattern
 All themes use **Element/Nature** naming:
-- **Materials/Elements:** Slate, Amber, Clay, Iron, Jade, Indigo, Sage, Plasma
+- **Materials/Elements:** Slate Mist, Amber, Clay, Iron, Jade, Indigo, Sage, Plasma
 - **Natural Phenomena:** Night, Storm, Tide, Ember, Whisper, Bloom, Depths, Meadow
 - **Energy Modifiers:** Molten, Electric, Sunset, Forest
 
 ### Color Distinctions
-- **Slate** - Grayscale (neutral)
+- **Slate Mist** - Grayscale (neutral)
 - **Amber Night** - Tan/Purple (warm sophistication)
 - **Molten Gold** - Gold/Orange/Purple (bold energy)
 - **Clay Roads** - Burnt Orange/Brown (rustic)
@@ -61,7 +61,7 @@ All themes use **Element/Nature** naming:
 
 ## Complete Theme Definitions
 
-### 1. Slate (Universal - Minimal)
+### 1. Slate Mist (Universal - Minimal)
 
 ```go
 type Theme struct {
@@ -74,8 +74,8 @@ type Theme struct {
     Success    lipgloss.Color
 }
 
-var Slate = Theme{
-    Name:       "Slate",
+var SlateMist = Theme{
+    Name:       "Slate Mist",
     Primary:    lipgloss.Color("#E0E0E0"),
     Secondary:  lipgloss.Color("#B0B0B0"),
     Accent:     lipgloss.Color("#FFFFFF"),
@@ -165,8 +165,8 @@ var IronStorm = Theme{
 ```
 
 **Use Cases:** Metal, hard rock, dark themes  
-**Mood:** Dark, powerful, intense  
-**Note:** Crimson + slate gray with FIRE ORANGE accent for explosive pop
+**Mood:** Dark, powerful, intense
+**Note:** Crimson + slate mist gray with FIRE ORANGE accent for explosive pop
 
 ---
 
@@ -393,7 +393,7 @@ package theme
 
 // Registry holds all available themes
 var Registry = map[string]Theme{
-    "slate":         Slate,
+    "slate":         SlateMist,
     "amber-night":   AmberNight,
     "molten-gold":   MoltenGold,
     "clay-roads":    ClayRoads,
@@ -428,8 +428,8 @@ func ListThemes() []string {
 }
 
 // Define all 12 themes
-var Slate = Theme{
-    Name:       "Slate",
+var SlateMist = Theme{
+    Name:       "Slate Mist",
     Primary:    lipgloss.Color("#E0E0E0"),
     Secondary:  lipgloss.Color("#B0B0B0"),
     Accent:     lipgloss.Color("#FFFFFF"),
@@ -1046,12 +1046,12 @@ Implement a dynamic theme system with 12 professionally designed, WCAG AA compli
 
 ### Naming Pattern
 All themes use **Element/Nature** naming:
-- **Materials/Elements:** Slate, Amber, Clay, Iron, Jade, Indigo, Sage, Plasma
+- **Materials/Elements:** Slate Mist, Amber, Clay, Iron, Jade, Indigo, Sage, Plasma
 - **Natural Phenomena:** Night, Storm, Tide, Ember, Whisper, Bloom, Depths, Meadow
 - **Energy Modifiers:** Molten, Electric, Sunset, Forest
 
 ### Color Distinctions
-- **Slate** - Grayscale (neutral)
+- **Slate Mist** - Grayscale (neutral)
 - **Amber Night** - Tan/Purple (warm sophistication)
 - **Molten Gold** - Gold/Orange/Purple (bold energy)
 - **Clay Roads** - Burnt Orange/Brown (rustic)
@@ -1068,7 +1068,7 @@ All themes use **Element/Nature** naming:
 
 ## Complete Theme Definitions
 
-### 1. Slate (Universal - Minimal)
+### 1. Slate Mist (Universal - Minimal)
 
 ```go
 type Theme struct {
@@ -1081,8 +1081,8 @@ type Theme struct {
     Success    lipgloss.Color
 }
 
-var Slate = Theme{
-    Name:       "Slate",
+var SlateMist = Theme{
+    Name:       "Slate Mist",
     Primary:    lipgloss.Color("#E0E0E0"),
     Secondary:  lipgloss.Color("#B0B0B0"),
     Accent:     lipgloss.Color("#FFFFFF"),
@@ -1172,8 +1172,8 @@ var IronStorm = Theme{
 ```
 
 **Use Cases:** Metal, hard rock, dark themes  
-**Mood:** Dark, powerful, intense  
-**Note:** Crimson + slate gray with FIRE ORANGE accent for explosive pop
+**Mood:** Dark, powerful, intense
+**Note:** Crimson + slate mist gray with FIRE ORANGE accent for explosive pop
 
 ---
 
@@ -1400,7 +1400,7 @@ package theme
 
 // Registry holds all available themes
 var Registry = map[string]Theme{
-    "slate":         Slate,
+    "slate":         SlateMist,
     "amber-night":   AmberNight,
     "molten-gold":   MoltenGold,
     "clay-roads":    ClayRoads,
@@ -1435,8 +1435,8 @@ func ListThemes() []string {
 }
 
 // Define all 12 themes
-var Slate = Theme{
-    Name:       "Slate",
+var SlateMist = Theme{
+    Name:       "Slate Mist",
     Primary:    lipgloss.Color("#E0E0E0"),
     Secondary:  lipgloss.Color("#B0B0B0"),
     Accent:     lipgloss.Color("#FFFFFF"),
@@ -2065,7 +2065,7 @@ var Registry = make(map[string]Theme)
 // Initialize built-in themes
 func init() {
     // Register all 12 built-in themes
-    Registry["slate"] = Slate
+    Registry["slate"] = SlateMist
     Registry["amber-night"] = AmberNight
     Registry["molten-gold"] = MoltenGold
     Registry["clay-roads"] = ClayRoads
@@ -2247,7 +2247,7 @@ This creates a config section with placeholder colors that users can edit.
 
 ### Auto Theme Detection
 Detect system dark/light mode and suggest appropriate theme:
-- Light mode → Slate, Forest Whisper
+- Light mode → Slate Mist, Forest Whisper
 - Dark mode → Amber Night, Iron Storm
 
 ### Theme Preview Mode

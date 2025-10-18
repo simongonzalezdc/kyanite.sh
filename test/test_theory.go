@@ -1,6 +1,6 @@
 //go:build ignore
 
-package noise
+package main
 
 import (
 	"fmt"

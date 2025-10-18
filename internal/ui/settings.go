@@ -160,8 +160,8 @@ func (m *SettingsModel) initSettings() {
 		Description: "Color theme for the application",
 		Type:        TypeSelect,
 		Value:       m.config.UI.Theme,
-		Default:     "midnight_jazz",
-		Options:     []string{"midnight_jazz", "light", "dark", "solarized", "dracula", "nord", "gruvbox"},
+		Default:     "violet-dusk",
+		Options:     []string{"violet-dusk", "light", "dark", "solarized", "dracula", "nord", "gruvbox"},
 		Callback:    m.onThemeChange,
 	})
 

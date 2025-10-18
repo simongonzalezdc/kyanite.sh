@@ -301,7 +301,7 @@ internal/
 func TestThemeSwitching(t *testing.T) {
     manager := theme.NewManager()
     manager.SetTheme("slate")
-    assert.Equal(t, "slate", manager.Current().Name)
+    assert.Equal(t, "Slate Mist", manager.Current().Name)
     
     manager.SetTheme("invalid-theme")
     assert.Equal(t, "amber-night", manager.Current().Name) // fallback

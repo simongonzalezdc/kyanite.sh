@@ -116,8 +116,11 @@ func (sm *ShortcutManager) initializeDefaultBindings() {
 	sm.registerBinding("ctrl+q", key.NewBinding(key.WithKeys("ctrl+q"), key.WithHelp("ctrl+q", "quit")), "Quit application", ContextGlobal, "Application")
 	sm.registerBinding("ctrl+,", key.NewBinding(key.WithKeys("ctrl+,"), key.WithHelp("ctrl+,", "settings")), "Settings", ContextGlobal, "Application")
 
-	// Theory tools (when available)
-	sm.registerBinding("ctrl+t", key.NewBinding(key.WithKeys("ctrl+t"), key.WithHelp("ctrl+t", "theory tools")), "Theory tools", ContextGlobal, "Tools")
+	// Theory tools (when available) - rebind:
+	//  - ctrl+shift+t -> Theory Tools (preserve original behavior)
+	//  - ctrl+t       -> Cycle themes (new)
+	sm.registerBinding("ctrl+shift+t", key.NewBinding(key.WithKeys("ctrl+shift+t"), key.WithHelp("ctrl+shift+t", "theory tools")), "Theory tools", ContextGlobal, "Tools")
+	sm.registerBinding("ctrl+t", key.NewBinding(key.WithKeys("ctrl+t"), key.WithHelp("ctrl+t", "cycle themes")), "Cycle themes", ContextGlobal, "Tools")
 	sm.registerBinding("ctrl+m", key.NewBinding(key.WithKeys("ctrl+m"), key.WithHelp("ctrl+m", "audio tools")), "Audio tools", ContextGlobal, "Tools")
 
 	// Preview navigation
@@ -296,8 +299,10 @@ func (sm *ShortcutManager) createActionFromBinding(binding *KeyBinding, keyStr s
 		action.Type = ActionQuit
 	case keyStr == "ctrl+,":
 		action.Type = ActionSettings
-	case keyStr == "ctrl+t":
+	case keyStr == "ctrl+shift+t":
 		action.Type = ActionTheoryTools
+	case keyStr == "ctrl+t":
+		action.Type = ActionThemeCycle
 	case keyStr == "ctrl+m":
 		action.Type = ActionAudioTools
 
@@ -459,6 +464,7 @@ const (
 	ActionToggleBracketMatching
 	ActionQuit
 	ActionSettings
+	ActionThemeCycle
 	ActionTheoryTools
 	ActionAudioTools
 	ActionToggleHelp
@@ -557,6 +563,8 @@ func (sat ShortcutActionType) String() string {
 		return "Quit"
 	case ActionSettings:
 		return "Settings"
+	case ActionThemeCycle:
+		return "ThemeCycle"
 	case ActionTheoryTools:
 		return "TheoryTools"
 	case ActionAudioTools:

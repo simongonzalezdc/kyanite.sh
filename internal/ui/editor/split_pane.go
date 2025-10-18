@@ -12,6 +12,8 @@ import (
 	"github.com/puente-labs/noise/internal/infra/db"
 	"github.com/puente-labs/noise/internal/infra/files"
 	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/theme"
+	"github.com/puente-labs/noise/internal/config"
 )
 
 // Screen represents different screens in the application (local copy to avoid import cycle)
@@ -353,6 +355,36 @@ func (m *SplitPaneModel) handleShortcutAction(action ShortcutAction) (*SplitPane
 		return m, func() tea.Msg {
 			return ScreenChangeMsg{Screen: screenAudio}
 		}
+	case ActionThemeCycle:
+		// Cycle through registered themes, apply immediately and persist to config.
+		ids := theme.ListThemes()
+		if len(ids) == 0 {
+			return m, nil
+		}
+		currID := theme.GetManager().CurrentID()
+		nextID := ids[0]
+		for i, id := range ids {
+			if id == currID {
+				nextID = ids[(i+1)%len(ids)]
+				break
+			}
+		}
+
+		// Apply theme to styles and manager
+		theme.ApplyThemeByID(nextID)
+
+		// Persist to config if possible (best-effort)
+		if cfg, err := config.Load(); err == nil {
+			cfg.UI.Theme = nextID
+			_ = cfg.Save()
+		}
+
+		// Update status bar indicator if present
+		if m.editorPane != nil && m.editorPane.statusBar != nil {
+			m.editorPane.statusBar.UpdateShortcutHints("Theme: " + nextID)
+		}
+
+		return m, nil
 	case ActionNewFile:
 		// Clear current content
 		m.editorPane.SetText("")

@@ -9,7 +9,7 @@
 
 ## Table of Contents
 
-1. [Selected Theme: Midnight Jazz](#selected-theme-midnight-jazz)
+1. [Selected Theme: Violet Dusk](#selected-theme-violet-dusk)
 2. [Color Palette](#color-palette)
 3. [Lipgloss Style Definitions](#lipgloss-style-definitions)
 4. [Typography System](#typography-system)

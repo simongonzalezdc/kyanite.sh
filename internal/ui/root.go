@@ -12,6 +12,7 @@ import (
 	"github.com/puente-labs/noise/internal/plugins"
 	"github.com/puente-labs/noise/internal/ui/editor"
 	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/puente-labs/noise/internal/theme"
 )
 
 // Screen represents different screens in the application
@@ -225,6 +226,9 @@ func (m *RootModel) initializeChildModels() {
 		cfg = config.DefaultConfig()
 	}
 	m.config = cfg
+
+	// Initialize theme system from config (applies styles globally)
+	theme.InitFromConfig(cfg)
 
 	m.splash = NewSplashModel()
 	m.menu = NewMenuModel()

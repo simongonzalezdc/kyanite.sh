@@ -115,7 +115,7 @@ func DefaultConfig() *Config {
 			SSLMode:  "disable",
 		},
 		UI: UIConfig{
-			Theme:           "midnight_jazz",
+			Theme:           "violet-dusk",
 			FontSize:        12,
 			ShowLineNumbers: true,
 			WordWrap:        true,

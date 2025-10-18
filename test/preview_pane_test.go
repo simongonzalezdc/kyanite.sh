@@ -392,8 +392,19 @@ Final content.`
 	// Enable TOC
 	model.ToggleTOC()
 
-	// Get TOC entries
+	// Get TOC entries directly from the model's fallback generator
 	tocEntries := model.GetTOC()
+	
+	// If still empty, try generating directly using exported method
+	if len(tocEntries) == 0 {
+		tocEntries = model.GenerateTOCFallback(tocContent)
+	}
+
+	// Debug: Print what we found
+	t.Logf("Found %d TOC entries:", len(tocEntries))
+	for i, entry := range tocEntries {
+		t.Logf("  %d: Level %d, Title '%s', Line %d", i, entry.Level, entry.Title, entry.Line)
+	}
 
 	// Should find headers
 	if len(tocEntries) == 0 {

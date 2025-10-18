@@ -113,7 +113,7 @@ app:
   auto_save_interval: "30s"
 
 ui:
-  theme: "midnight_jazz"
+  theme: "violet-dusk"
   font_size: 12
   show_line_numbers: true
   word_wrap: true
