@@ -15,6 +15,13 @@ import (
 	"github.com/puente-labs/noise/internal/theme"
 )
 
+// QuickStartConfig contains configuration for quick start mode
+type QuickStartConfig struct {
+	Theme          string
+	ScratchMode    bool
+	AutoBrainstorm bool
+}
+
 // Screen represents different screens in the application
 type screen int
 
@@ -77,6 +84,9 @@ type RootModel struct {
 
 	// Plugin system
 	pluginManager *plugins.DefaultManager
+
+	// Quick start configuration
+	quickStartConfig *QuickStartConfig
 }
 
 // NewRootModel creates a new root model with initialized state
@@ -169,13 +179,24 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case initSuccessMsg:
 		m.database = msg.database
 		m.loading = false
-		m.currentScreen = screenMenu
+		
+		// If quick start is configured, go directly to editor
+		if m.quickStartConfig != nil {
+			m.currentScreen = screenEditor
+		} else {
+			m.currentScreen = screenMenu
+		}
 
 		// Initialize collaboration system
 		m.initializeCollaborationSystem()
 
 		// Initialize child models
 		m.initializeChildModels()
+		
+		// If quick start is configured, configure the editor
+		if m.quickStartConfig != nil {
+			m.configureQuickStart()
+		}
 
 	case initErrorMsg:
 		m.errorMsg = msg.err.Error()
@@ -566,4 +587,28 @@ func (m *RootModel) onSessionCreated(session *collaboration.Session) {
 
 func (m *RootModel) onSessionEnded(session *collaboration.Session) {
 	// Handle session ending
+}
+
+// SetQuickStart configures the application for quick start mode
+func (m *RootModel) SetQuickStart(config *QuickStartConfig) {
+	m.quickStartConfig = config
+}
+
+// configureQuickStart applies quick start configuration to the editor
+func (m *RootModel) configureQuickStart() {
+	if m.quickStartConfig == nil || m.editor == nil {
+		return
+	}
+	
+	// Configure editor for scratch mode
+	if m.editor.GetSplitPane() != nil {
+		// Set scratch mode - this will be implemented in the editor pane
+		// For now, we'll use a placeholder method that will be added later
+		splitPane := m.editor.GetSplitPane()
+		if splitPane != nil {
+			// Set scratch mode and trigger brainstorm if needed
+			// These methods will be implemented in the editor package
+			splitPane.SetQuickStartConfig(m.quickStartConfig.Theme, m.quickStartConfig.ScratchMode, m.quickStartConfig.AutoBrainstorm)
+		}
+	}
 }

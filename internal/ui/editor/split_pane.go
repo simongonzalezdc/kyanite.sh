@@ -56,6 +56,11 @@ type SplitPaneModel struct {
 	// Performance optimizations
 	lastUpdateLength int
 
+	// Mode-specific layouts
+	sketchLayout *SketchLayout
+	draftLayout  *DraftLayout
+	polishLayout *PolishLayout
+
 	// Styles
 	dividerStyle lipgloss.Style
 }
@@ -105,6 +110,9 @@ func NewSplitPaneModel(database *db.DB) *SplitPaneModel {
 		cancel:          cancel,
 		shortcutManager: NewShortcutManager(),
 		dividerStyle:    styles.Divider,
+		sketchLayout:    NewSketchLayout(),
+		draftLayout:     NewDraftLayout(),
+		polishLayout:    NewPolishLayout(),
 	}
 
 	// Set up services for editor pane
@@ -210,6 +218,44 @@ func (m *SplitPaneModel) View() string {
 		return "Initializing..."
 	}
 
+	// Get the current editor mode
+	editorMode := m.editorPane.GetEditorMode()
+	
+	// Set dimensions for layouts
+	m.sketchLayout.SetDimensions(m.width, m.height)
+	m.draftLayout.SetDimensions(m.width, m.height)
+	m.polishLayout.SetDimensions(m.width, m.height)
+	
+	// Get content from panes
+	editorContent := m.editorPane.View()
+	previewContent := m.previewPane.View()
+	
+	// Render based on mode
+	switch editorMode {
+	case ModeSketch:
+		// Sketch mode: Editor + AI panel
+		brainstormContent := "AI Assistant\n\nCtrl+G: Continue\nCtrl+V: Variations\n\nTheme brainstorming will appear here..."
+		return m.sketchLayout.Render(editorContent, brainstormContent)
+		
+	case ModeDraft:
+		// Draft mode: Editor + Preview + Theory
+		theoryContent := "Theory Tools\n\nRhyme Dictionary\nSyllable Counter\n\nTools will appear here..."
+		return m.draftLayout.Render(editorContent, previewContent, theoryContent)
+		
+	case ModePolish:
+		// Polish mode: Full suite
+		theoryContent := "Theory Tools\n\nCircle of Fifths\nChord Progressions\n\nTools will appear here..."
+		critiqueContent := "AI Critique\n\nQuality analysis will appear here..."
+		return m.polishLayout.Render(editorContent, previewContent, theoryContent, critiqueContent)
+		
+	default:
+		// Fallback to original layout
+		return m.renderDefaultLayout()
+	}
+}
+
+// renderDefaultLayout renders the default split-pane layout
+func (m *SplitPaneModel) renderDefaultLayout() string {
 	// Calculate responsive split ratio based on terminal width
 	splitRatio := m.calculateResponsiveSplitRatio()
 
@@ -466,4 +512,19 @@ func (m *SplitPaneModel) getMinimumPaneWidth() int {
 		return 10 // Smaller minimum for compact terminals
 	}
 	return 15 // Standard minimum for larger terminals
+}
+
+// SetQuickStartConfig configures the split pane for quick start mode
+func (m *SplitPaneModel) SetQuickStartConfig(theme string, scratchMode bool, autoBrainstorm bool) {
+	if m.editorPane == nil {
+		return
+	}
+	
+	// Set scratch mode
+	m.editorPane.SetScratchMode(scratchMode)
+	
+	// If auto-brainstorm is enabled and theme is provided, start brainstorm
+	if autoBrainstorm && theme != "" {
+		m.editorPane.StartRapidBrainstorm(theme)
+	}
 }

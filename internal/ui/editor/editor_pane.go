@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -38,6 +39,15 @@ const (
 	ElementLink
 	ElementList
 	ElementBlockquote
+)
+
+// EditorMode represents the different editing modes for rapid prototyping
+type EditorMode int
+
+const (
+	ModeSketch EditorMode = iota
+	ModeDraft
+	ModePolish
 )
 
 // SyntaxHighlighter handles markdown parsing and styling
@@ -193,6 +203,18 @@ type EditorPaneModel struct {
 	// Current file path
 	currentFilePath string
 
+	// Rapid prototyping mode
+	scratchMode       bool
+	editorMode        EditorMode // Sketch/Draft/Polish
+	rapidBrainstorm   bool
+	brainstormTheme   string
+	brainstormAngles  []string
+	continueMode      bool
+	continueSuggestions []string
+	variationMode     bool
+	variationOriginal string
+	variationOptions  []string
+
 	// Styles
 	focusedStyle     lipgloss.Style
 	blurredStyle     lipgloss.Style
@@ -225,6 +247,11 @@ func NewEditorPaneModel(textarea textarea.Model) *EditorPaneModel {
 		fileService:      nil, // Will be set by parent model
 		currentFilePath:  "",
 		shortcutManager:  NewShortcutManager(),
+		scratchMode:      false,
+		editorMode:       ModeSketch, // Default to sketch mode
+		rapidBrainstorm:  false,
+		continueMode:     false,
+		variationMode:    false,
 		focusedStyle:     styles.BorderActive,
 		blurredStyle:     styles.Border,
 		borderStyle:      styles.Border,
@@ -282,6 +309,93 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 		// Handle shortcuts
 		if action, handled := m.shortcutManager.HandleKey(msg); handled {
 			m.handleShortcutAction(action)
+			return m, tea.Batch(cmds...)
+		}
+
+		// Handle rapid prototyping key events
+		if m.rapidBrainstorm {
+			// Handle brainstorm angle selection
+			switch msg.String() {
+			case "1", "2", "3":
+				index, _ := strconv.Atoi(msg.String())
+				m.SelectBrainstormAngle(index - 1)
+				return m, tea.Batch(cmds...)
+			case "esc":
+				// Cancel brainstorm
+				m.rapidBrainstorm = false
+				m.brainstormTheme = ""
+				m.brainstormAngles = nil
+				m.updateStatusBar()
+				return m, tea.Batch(cmds...)
+			}
+		}
+		
+		if m.continueMode {
+			// Handle continue suggestion selection
+			switch msg.String() {
+			case "1", "2", "3":
+				index, _ := strconv.Atoi(msg.String())
+				m.SelectContinueSuggestion(index - 1)
+				return m, tea.Batch(cmds...)
+			case "esc":
+				// Cancel continue mode
+				m.CancelContinueMode()
+				return m, tea.Batch(cmds...)
+			}
+		}
+		
+		if m.variationMode {
+			// Handle variation option selection
+			switch msg.String() {
+			case "1", "2", "3":
+				index, _ := strconv.Atoi(msg.String())
+				m.SelectVariation(index - 1)
+				return m, tea.Batch(cmds...)
+			case "esc":
+				// Cancel variation mode
+				m.CancelVariationMode()
+				return m, tea.Batch(cmds...)
+			}
+		}
+		
+		// Handle rapid prototyping hotkeys
+		switch msg.String() {
+		case "ctrl+g":
+			// Continue writing
+			m.StartContinueMode()
+			return m, tea.Batch(cmds...)
+		case "ctrl+v":
+			// Line variation (for now, we'll use the last line as selection)
+			// In a full implementation, this would use the actual text selection
+			content := m.textarea.Value()
+			lines := strings.Split(content, "\n")
+			if len(lines) > 0 {
+				lastLine := lines[len(lines)-1]
+				if lastLine != "" {
+					m.StartVariationMode(lastLine)
+				}
+			}
+			return m, tea.Batch(cmds...)
+		case "ctrl+1":
+			// Switch to Sketch mode
+			m.SetEditorMode(ModeSketch)
+			return m, tea.Batch(cmds...)
+		case "ctrl+2":
+			// Switch to Draft mode
+			m.SetEditorMode(ModeDraft)
+			return m, tea.Batch(cmds...)
+		case "ctrl+3":
+			// Switch to Polish mode
+			m.SetEditorMode(ModePolish)
+			return m, tea.Batch(cmds...)
+		case "ctrl+k":
+			// Keep draft (save from scratch mode)
+			if m.scratchMode {
+				// For now, just show a notification
+				// In a full implementation, this would prompt for title and save
+				m.scratchMode = false
+				m.updateStatusBar()
+			}
 			return m, tea.Batch(cmds...)
 		}
 
@@ -343,11 +457,29 @@ func (m *EditorPaneModel) View() string {
 		highlightedContent = m.addLineNumbers(highlightedContent)
 	}
 
-	// Add title
+	// Add title with mode and scratch indicators
 	title := "Editor"
 	if m.focused {
 		title = "Editor (Focused)"
 	}
+	
+	// Add mode indicator
+	modeStr := ""
+	switch m.editorMode {
+	case ModeSketch:
+		modeStr = " [SKETCH]"
+	case ModeDraft:
+		modeStr = " [DRAFT]"
+	case ModePolish:
+		modeStr = " [POLISH]"
+	}
+	
+	// Add scratch mode indicator
+	if m.scratchMode {
+		modeStr += " [SCRATCH]"
+	}
+	
+	title += modeStr
 
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
@@ -357,6 +489,21 @@ func (m *EditorPaneModel) View() string {
 		Width(m.width - 4)
 
 	titleBar := titleStyle.Render(title)
+	
+	// Add rapid prototyping UI overlays
+	var overlayContent string
+	if m.rapidBrainstorm {
+		overlayContent = m.renderBrainstormOverlay()
+	} else if m.continueMode {
+		overlayContent = m.renderContinueOverlay()
+	} else if m.variationMode {
+		overlayContent = m.renderVariationOverlay()
+	}
+	
+	// Combine content and overlay
+	if overlayContent != "" {
+		highlightedContent = lipgloss.JoinVertical(lipgloss.Left, highlightedContent, overlayContent)
+	}
 
 	// Add status bar with editor features info
 	statusBar := m.renderStatusBar()
@@ -1143,4 +1290,318 @@ func (m *EditorPaneModel) GetCurrentFilePath() string {
 // GetFileService returns the file service for external access
 func (m *EditorPaneModel) GetFileService() *files.Service {
 	return m.fileService
+}
+
+// SetScratchMode sets the scratch mode for the editor
+func (m *EditorPaneModel) SetScratchMode(scratchMode bool) {
+	m.scratchMode = scratchMode
+	m.updateStatusBar()
+}
+
+// IsScratchMode returns whether the editor is in scratch mode
+func (m *EditorPaneModel) IsScratchMode() bool {
+	return m.scratchMode
+}
+
+// SetEditorMode sets the editor mode (Sketch/Draft/Polish)
+func (m *EditorPaneModel) SetEditorMode(mode EditorMode) {
+	m.editorMode = mode
+	m.updateStatusBar()
+}
+
+// GetEditorMode returns the current editor mode
+func (m *EditorPaneModel) GetEditorMode() EditorMode {
+	return m.editorMode
+}
+
+// StartRapidBrainstorm starts the rapid brainstorm flow with the given theme
+func (m *EditorPaneModel) StartRapidBrainstorm(theme string) {
+	m.rapidBrainstorm = true
+	m.brainstormTheme = theme
+	
+	// For now, we'll use placeholder angles
+	// In a full implementation, this would call the AI service
+	m.brainstormAngles = []string{
+		"Explore " + theme + " through personal memories",
+		"Use nature imagery to symbolize " + theme,
+		"Focus on sensory details related to " + theme,
+	}
+	
+	m.updateStatusBar()
+}
+
+// GetBrainstormAngles returns the current brainstorm angles
+func (m *EditorPaneModel) GetBrainstormAngles() []string {
+	return m.brainstormAngles
+}
+
+// SelectBrainstormAngle selects a brainstorm angle and generates an opening line
+func (m *EditorPaneModel) SelectBrainstormAngle(index int) {
+	if index < 0 || index >= len(m.brainstormAngles) {
+		return
+	}
+	
+	selectedAngle := m.brainstormAngles[index]
+	
+	// For now, we'll use a placeholder opening line
+	// In a full implementation, this would call the AI service
+	openingLine := "Opening line for: " + selectedAngle
+	
+	// Insert the opening line at the current cursor position
+	currentContent := m.textarea.Value()
+	if currentContent != "" {
+		openingLine = "\n" + openingLine
+	}
+	m.textarea.SetValue(currentContent + openingLine)
+	
+	// Clear brainstorm state
+	m.rapidBrainstorm = false
+	m.brainstormTheme = ""
+	m.brainstormAngles = nil
+	
+	m.updateStatusBar()
+}
+
+// StartContinueMode starts the continue writing mode
+func (m *EditorPaneModel) StartContinueMode() {
+	m.continueMode = true
+	
+	// For now, we'll use placeholder suggestions
+	// In a full implementation, this would call the AI service
+	m.continueSuggestions = []string{
+		"Continue with this line...",
+		"Or try this alternative...",
+		"Perhaps this direction...",
+	}
+}
+
+// GetContinueSuggestions returns the current continue suggestions
+func (m *EditorPaneModel) GetContinueSuggestions() []string {
+	return m.continueSuggestions
+}
+
+// SelectContinueSuggestion selects a continue suggestion
+func (m *EditorPaneModel) SelectContinueSuggestion(index int) {
+	if index < 0 || index >= len(m.continueSuggestions) {
+		return
+	}
+	
+	selectedLine := m.continueSuggestions[index]
+	
+	// Insert the selected line at the current cursor position
+	currentContent := m.textarea.Value()
+	if currentContent != "" {
+		selectedLine = "\n" + selectedLine
+	}
+	m.textarea.SetValue(currentContent + selectedLine)
+	
+	// Clear continue mode
+	m.continueMode = false
+	m.continueSuggestions = nil
+	
+	m.updateStatusBar()
+}
+
+// CancelContinueMode cancels the continue writing mode
+func (m *EditorPaneModel) CancelContinueMode() {
+	m.continueMode = false
+	m.continueSuggestions = nil
+	m.updateStatusBar()
+}
+
+// StartVariationMode starts the variation mode for the selected text
+func (m *EditorPaneModel) StartVariationMode(selectedText string) {
+	m.variationMode = true
+	m.variationOriginal = selectedText
+	
+	// For now, we'll use placeholder variations
+	// In a full implementation, this would call the AI service
+	m.variationOptions = []string{
+		"Variation 1 of: " + selectedText,
+		"Variation 2 of: " + selectedText,
+		"Variation 3 of: " + selectedText,
+	}
+}
+
+// GetVariationOptions returns the current variation options
+func (m *EditorPaneModel) GetVariationOptions() []string {
+	return m.variationOptions
+}
+
+// SelectVariation selects a variation option
+func (m *EditorPaneModel) SelectVariation(index int) {
+	if index < 0 || index >= len(m.variationOptions) {
+		return
+	}
+	
+	selectedVariation := m.variationOptions[index]
+	
+	// Replace the original text with the selected variation
+	// For now, we'll just append it
+	// In a full implementation, this would replace the selected text
+	currentContent := m.textarea.Value()
+	if currentContent != "" {
+		selectedVariation = "\n" + selectedVariation
+	}
+	m.textarea.SetValue(currentContent + selectedVariation)
+	
+	// Clear variation mode
+	m.variationMode = false
+	m.variationOriginal = ""
+	m.variationOptions = nil
+	
+	m.updateStatusBar()
+}
+
+// CancelVariationMode cancels the variation mode
+func (m *EditorPaneModel) CancelVariationMode() {
+	m.variationMode = false
+	m.variationOriginal = ""
+	m.variationOptions = nil
+	m.updateStatusBar()
+}
+
+// renderBrainstormOverlay renders the brainstorm overlay UI
+func (m *EditorPaneModel) renderBrainstormOverlay() string {
+	if !m.rapidBrainstorm || len(m.brainstormAngles) == 0 {
+		return ""
+	}
+	
+	// Create overlay style
+	overlayStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(styles.Accent).
+		Padding(0, 1).
+		Width(m.width - 8).
+		Background(styles.Dark2)
+	
+	// Create title
+	titleStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(styles.Primary).
+		Align(lipgloss.Center)
+	
+	title := titleStyle.Render("Theme: " + m.brainstormTheme)
+	
+	// Create angle options
+	var angleOptions []string
+	for i, angle := range m.brainstormAngles {
+		angleOption := fmt.Sprintf("[%d] %s", i+1, angle)
+		angleOptions = append(angleOptions, angleOption)
+	}
+	
+	anglesText := strings.Join(angleOptions, "\n")
+	
+	// Create instructions
+	instructions := "Press 1-3 to select, Esc to cancel"
+	instructionStyle := lipgloss.NewStyle().
+		Foreground(styles.TextMuted).
+		Align(lipgloss.Center).
+		Italic(true)
+	
+	instructionsText := instructionStyle.Render(instructions)
+	
+	// Combine all elements
+	content := lipgloss.JoinVertical(lipgloss.Left, title, "", anglesText, "", instructionsText)
+	
+	return overlayStyle.Render(content)
+}
+
+// renderContinueOverlay renders the continue writing overlay UI
+func (m *EditorPaneModel) renderContinueOverlay() string {
+	if !m.continueMode || len(m.continueSuggestions) == 0 {
+		return ""
+	}
+	
+	// Create overlay style
+	overlayStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(styles.Info).
+		Padding(0, 1).
+		Width(m.width - 8).
+		Background(styles.Dark2)
+	
+	// Create title
+	titleStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(styles.Info).
+		Align(lipgloss.Center)
+	
+	title := titleStyle.Render("Continue with:")
+	
+	// Create suggestion options
+	var suggestionOptions []string
+	for i, suggestion := range m.continueSuggestions {
+		suggestionOption := fmt.Sprintf("[%d] %s", i+1, suggestion)
+		suggestionOptions = append(suggestionOptions, suggestionOption)
+	}
+	
+	suggestionsText := strings.Join(suggestionOptions, "\n")
+	
+	// Create instructions
+	instructions := "Press 1-3 to select, Esc to write manually"
+	instructionStyle := lipgloss.NewStyle().
+		Foreground(styles.TextMuted).
+		Align(lipgloss.Center).
+		Italic(true)
+	
+	instructionsText := instructionStyle.Render(instructions)
+	
+	// Combine all elements
+	content := lipgloss.JoinVertical(lipgloss.Left, title, "", suggestionsText, "", instructionsText)
+	
+	return overlayStyle.Render(content)
+}
+
+// renderVariationOverlay renders the variation overlay UI
+func (m *EditorPaneModel) renderVariationOverlay() string {
+	if !m.variationMode || len(m.variationOptions) == 0 {
+		return ""
+	}
+	
+	// Create overlay style
+	overlayStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(styles.Success).
+		Padding(0, 1).
+		Width(m.width - 8).
+		Background(styles.Dark2)
+	
+	// Create title
+	titleStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(styles.Success).
+		Align(lipgloss.Center)
+	
+	title := titleStyle.Render("Variations for:")
+	
+	// Show original text
+	originalStyle := lipgloss.NewStyle().
+		Foreground(styles.TextSecondary).
+		Italic(true)
+	
+	originalText := originalStyle.Render(m.variationOriginal)
+	
+	// Create variation options
+	var variationOptions []string
+	for i, variation := range m.variationOptions {
+		variationOption := fmt.Sprintf("[%d] %s", i+1, variation)
+		variationOptions = append(variationOptions, variationOption)
+	}
+	
+	variationsText := strings.Join(variationOptions, "\n")
+	
+	// Create instructions
+	instructions := "Press 1-3 to replace, Enter to keep original, Esc to cancel"
+	instructionStyle := lipgloss.NewStyle().
+		Foreground(styles.TextMuted).
+		Align(lipgloss.Center).
+		Italic(true)
+	
+	instructionsText := instructionStyle.Render(instructions)
+	
+	// Combine all elements
+	content := lipgloss.JoinVertical(lipgloss.Left, title, "", originalText, "", variationsText, "", instructionsText)
+	
+	return overlayStyle.Render(content)
 }

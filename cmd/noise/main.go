@@ -12,6 +12,7 @@ import (
 	"github.com/puente-labs/noise/internal/ui"
 )
 
+
 var (
 	// Version information (set during build)
 	version = "dev"
@@ -22,7 +23,8 @@ var (
 // main is the entry point for the noise.sh application
 func main() {
 	// Parse command line arguments
-	if err := parseArgs(); err != nil {
+	quickConfig, err := parseArgs()
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
@@ -75,6 +77,11 @@ func main() {
 	// Create root model with plugin manager
 	rootModel := ui.NewRootModel(pluginManager)
 
+	// If quick start is requested, configure it
+	if quickConfig != nil {
+		rootModel.SetQuickStart(quickConfig)
+	}
+
 	// Set up the Bubble Tea program
 	p := tea.NewProgram(
 		rootModel,
@@ -101,9 +108,11 @@ func main() {
 }
 
 // parseArgs parses command line arguments
-func parseArgs() error {
+func parseArgs() (*ui.QuickStartConfig, error) {
 	// Simple argument parsing for foundation phase
 	// In a full implementation, this would use cobra CLI framework
+
+	var quickConfig *ui.QuickStartConfig
 
 	for i, arg := range os.Args[1:] {
 		switch arg {
@@ -116,6 +125,19 @@ func parseArgs() error {
 		case "--debug":
 			// Enable debug mode via environment variable
 			os.Setenv("NOISE_DEV_DEBUG", "true")
+		case "quick":
+			// Quick start command - check if theme is provided
+			quickConfig = &ui.QuickStartConfig{
+				ScratchMode:   true,
+				AutoBrainstorm: false,
+			}
+			
+			// Check if next argument is a theme (not a flag)
+			if i+1 < len(os.Args[1:]) && !isFlag(os.Args[1:][i+1]) {
+				quickConfig.Theme = os.Args[1:][i+1]
+				quickConfig.AutoBrainstorm = true
+			}
+			return quickConfig, nil
 		default:
 			if i == 0 && !isFlag(arg) {
 				// First non-flag argument might be a file to open
@@ -124,7 +146,7 @@ func parseArgs() error {
 		}
 	}
 
-	return nil
+	return quickConfig, nil
 }
 
 // isFlag checks if a string is a command line flag
@@ -137,7 +159,10 @@ func printHelp() {
 	fmt.Println("noise.sh - AI-Powered Songwriting Terminal Interface")
 	fmt.Println()
 	fmt.Println("USAGE:")
-	fmt.Println("  noise [OPTIONS] [FILE]")
+	fmt.Println("  noise [OPTIONS] [COMMAND] [ARGS]")
+	fmt.Println()
+	fmt.Println("COMMANDS:")
+	fmt.Println("  quick [theme]            Start rapid prototyping mode")
 	fmt.Println()
 	fmt.Println("OPTIONS:")
 	fmt.Println("  -v, --version    Show version information")
@@ -146,11 +171,14 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("ARGUMENTS:")
 	fmt.Println("  FILE             Song file to open (optional)")
+	fmt.Println("  theme            Theme for quick start (optional)")
 	fmt.Println()
 	fmt.Println("EXAMPLES:")
 	fmt.Println("  noise                    Start noise.sh")
 	fmt.Println("  noise --debug            Start with debug logging")
 	fmt.Println("  noise song.md            Open a specific song file")
+	fmt.Println("  noise quick              Start in scratch mode")
+	fmt.Println("  noise quick \"lost love\"  Start with theme brainstorm")
 	fmt.Println()
 	fmt.Println("For more information, visit: https://github.com/puente-labs/noise")
 }

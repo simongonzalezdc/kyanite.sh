@@ -72,6 +72,30 @@ type AIConfig struct {
 	Enabled       bool              `mapstructure:"enabled"`
 	LocalModels   []string          `mapstructure:"local_models"`
 	CustomPrompts map[string]string `mapstructure:"custom_prompts"`
+	
+	// Rapid prototyping settings
+	Temperatures map[string]float64 `mapstructure:"temperatures"`
+	RapidBrainstorm RapidBrainstormConfig `mapstructure:"rapid_brainstorm"`
+	Continuation  ContinuationConfig  `mapstructure:"continuation"`
+	Variation     VariationConfig     `mapstructure:"variation"`
+}
+
+// RapidBrainstormConfig contains settings for rapid brainstorming
+type RapidBrainstormConfig struct {
+	MaxAngles          int  `mapstructure:"max_angles"`
+	GenerateFirstLine  bool `mapstructure:"generate_first_line"`
+}
+
+// ContinuationConfig contains settings for line continuation
+type ContinuationConfig struct {
+	Variations        int `mapstructure:"variations"`
+	MaxContextLines   int `mapstructure:"max_context_lines"`
+}
+
+// VariationConfig contains settings for line variation
+type VariationConfig struct {
+	Variations        int `mapstructure:"variations"`
+	DefaultConstraint string `mapstructure:"default_constraint"`
 }
 
 // AudioConfig contains audio settings
@@ -132,6 +156,25 @@ func DefaultConfig() *Config {
 			Enabled:       true,
 			LocalModels:   []string{"qwen2.5:7b-instruct", "llama3.1:8b"},
 			CustomPrompts: make(map[string]string),
+			
+			// Rapid prototyping settings
+			Temperatures: map[string]float64{
+				"sketch": 0.9,
+				"draft":  0.7,
+				"polish": 0.5,
+			},
+			RapidBrainstorm: RapidBrainstormConfig{
+				MaxAngles:         3,
+				GenerateFirstLine: true,
+			},
+			Continuation: ContinuationConfig{
+				Variations:      3,
+				MaxContextLines: 5,
+			},
+			Variation: VariationConfig{
+				Variations:        3,
+				DefaultConstraint: "more concrete",
+			},
 		},
 		Audio: AudioConfig{
 			Enabled:         true,
