@@ -1,201 +1,86 @@
-# noise.sh
-
-AI-powered songwriting assistant - *From chaos to song*
+# noise.sh — rapid-capture songwriting studio
 
 ## Overview
+noise.sh is a local-first, AI-assisted TUI that turns inspiration into captured lyrics in under a minute. The terminal interface combines embedded songwriting pedagogy, deterministic AI prompts, and a modular monolith architecture so contributors and artists can create, iterate, and export without ever leaving their machine or leaking creative work.
 
-noise.sh is a terminal-based songwriting application that leverages AI to help musicians and lyricists create, refine, and perfect their lyrics. Built with Go and the Bubble Tea TUI framework, it provides a clean, efficient interface for creative work.
+- ⚡ **Instant idea-to-lyrics workflow** – launch straight into scratch mode with live autosave.
+- 🧠 **Right-sized AI** – the QuickIdeaAgent delivers unstick, spark, tweak, and check flows in <2 seconds while respecting context.
+- 🎨 **Theme + export pipeline** – twelve curated themes, custom theme loading, and JSON/Markdown exports ready for downstream tooling.
+- 🔒 **Local-only privacy** – all processing happens on-device; Ollama models are optional and configurable.
 
-## Features
+For the strategic roadmap and long-term milestones, see [`docs/roadmap.md`](docs/roadmap.md).
 
-- **AI-Powered Lyrics**: Generate and refine lyrics with AI assistance
-- **Song Management**: Organize songs with metadata and versioning
-- **Auto-save**: Never lose your work with automatic saving
-- **Multiple Export Formats**: Export to Markdown, Plain Text, ChordPro, and more
-- **Plugin System**: Extensible architecture for custom functionality
-- **Terminal UI**: Clean, responsive interface that works in any terminal
-- **Real-time Preview**: See your changes as you type
-- **Collaboration**: Work together with other songwriters
+## Key Features
+1. **Instant capture** – Split-pane editor, live mode pattern parser, BPM tapper, and chord picker shipped in Enhancement 6 Weeks 1-2.
+2. **Smart suggestions** – QuickIdeaAgent modes (unstick, spark, tweak, check) replace the legacy multi-agent stack with faster, context-aware responses.
+3. **Theme-ready exports** – Markdown + JSON export services deliver wave.sh-compatible payloads and theme-preserving drafts.
+4. **Low-latency AI** – Cached prompts, 3B local models, and 2s timeouts keep writing momentum intact.
+
+## Quickstart (15 seconds)
+```bash
+# Launch scratch mode with instant brainstorming
+noise.exe quick "lost my dog"
+
+# Start pattern live coding
+noise live
+
+# Export current draft to Markdown + JSON bundle
+noise export draft --output drafts/lost-my-dog.md
+```
+
+### Editor shortcuts
+| Action | Keys |
+| --- | --- |
+| AI unstick / next line | `Ctrl+G` |
+| Spark ideas | `Ctrl+R` |
+| Tweak selected line | `Ctrl+V` |
+| Quick chord picker | `Ctrl+F` |
+| BPM tapper | `Ctrl+T` |
+| Theme switcher | `Ctrl+Shift+T` |
+| Keep scratch draft | `Ctrl+K` |
 
 ## Installation
-
-### From Source
-
-```bash
-git clone https://github.com/puente-labs/noise.git
-cd noise
-go build -o noise cmd/noise/main.go
-```
-
-### Binary Download
-
-Download the latest release from the [GitHub releases page](https://github.com/puente-labs/noise/releases).
-
-## Usage
-
-### Basic Usage
+Clone the repository and build the single binary:
 
 ```bash
-# Start noise.sh
-noise
-
-# Start with debug logging
-noise --debug
-
-# Open a specific song file
-noise song.md
-
-# Show version information
-noise --version
-
-# Show help
-noise --help
+git clone https://github.com/puente-labs/noise.sh.git
+cd noise.sh
+go build -o noise.exe ./cmd/noise
 ```
 
-### Configuration
+### Requirements
+- Go 1.21+
+- (Optional) Ollama running locally for AI features
+- SQLite bundled via `modernc.org/sqlite`
 
-noise.sh stores configuration in `~/.config/noise/noise.yaml` and data in `~/.noise/`.
+## Workflow essentials
+1. **Capture** – `noise.exe` or `noise.exe quick` drops you into the split-pane editor with autosave.
+2. **Shape** – Use QuickIdeaAgent shortcuts, chord picker, BPM tapper, and theme manager to iterate rapidly.
+3. **Export** – `noise export pattern` or `noise export draft` generates JSON + Markdown ready for wave.sh or sharing.
+4. **Extend** – Plugins live under `internal/plugins/`; see [`internal/plugins/README.md`](internal/plugins/README.md) for capabilities.
 
-Environment variables can be used to override configuration:
+## Roadmap snapshot
+- 📍 **Week 4 (current):** Documentation unification, README refresh, archival cleanup.
+- 🧭 **Mid-term:** Theme accessibility QA, QuickIdeaAgent observability, end-to-end workflow stitching.
+- 🚀 **Long-term:** Mobile companion capture app, i18n expansion, plugin ecosystem growth.
 
-```bash
-# Set data directory
-export NOISE_APP_DATA_DIR="/path/to/data"
+Details and cross-team dependencies are tracked in [`docs/roadmap.md`](docs/roadmap.md) and [`docs/Enhancements/enhancement_06_complete (2).md`](docs/Enhancements/enhancement_06_complete%20(2).md).
 
-# Enable debug mode
-export NOISE_DEV_DEBUG="true"
-
-# Set AI API key
-export NOISE_AI_API_KEY="your-api-key"
-```
-
-## Export Formats
-
-noise.sh supports multiple export formats for your songs and lyrics:
-
-### Available Formats
-
-- **Markdown (.md)**: Clean, readable format with proper headers and chord formatting
-- **Plain Text (.txt)**: Format-free lyrics without chord clutter
-- **ChordPro (.cho)**: Standardized format for lyrics with chords, compatible with music software
-- **JSON (.json)**: Structured data format with metadata (existing format)
-
-### Export Shortcuts
-
-- `Ctrl+E`: Open export menu
-- `Ctrl+Shift+M`: Export as Markdown
-- `Ctrl+Shift+T`: Export as Plain Text
-- `Ctrl+Shift+P`: Export as ChordPro
-
-### Example Usage
-
-```bash
-# Export current song as Markdown
-Ctrl+Shift+M
-
-# Export current song as ChordPro for band collaboration
-Ctrl+Shift+P
-
-# Export as Plain Text for clean lyrics
-Ctrl+Shift+T
-```
-
-For detailed information about export formats, see [Export Formats Documentation](docs/export_formats.md).
-
-## Development
-
-### Prerequisites
-
-- Go 1.25.3 or later
-- SQLite3
-
-### Building
-
-```bash
-# Build for current platform
-go build -o noise cmd/noise/main.go
-
-# Build for multiple platforms
-go build -o noise-linux-amd64 -GOOS=linux -GOARCH=amd64 cmd/noise/main.go
-go build -o noise-darwin-amd64 -GOOS=darwin -GOARCH=amd64 cmd/noise/main.go
-go build -o noise-windows-amd64 -GOOS=windows -GOARCH=amd64 cmd/noise/main.go
-```
-
-### Testing
-
-```bash
-# Run all tests
-go test ./...
-
-# Run tests with coverage
-go test -cover ./...
-
-# Run integration tests
-go test -tags=integration ./...
-```
-
-## Configuration
-
-noise.sh uses YAML configuration files. The default configuration looks like:
-
-```yaml
-app:
-  name: "noise.sh"
-  version: "1.0.0"
-  data_dir: "~/.noise"
-  auto_save: true
-  auto_save_interval: "30s"
-
-ui:
-  theme: "violet-dusk"
-  font_size: 12
-  show_line_numbers: true
-  word_wrap: true
-  animations: true
-
-ai:
-  provider: "ollama"
-  model: "qwen2.5:7b-instruct"
-  base_url: "http://localhost:11434"
-  temperature: 0.7
-  max_tokens: 2048
-  enabled: true
-```
-
-## Plugin Development
-
-noise.sh supports plugins for extending functionality. Plugins can be placed in:
-
-- `~/.noise/plugins/`
-- `./plugins/`
-- `./internal/plugins/examples/`
-
-See `internal/plugins/examples/` for example plugins.
+## Privacy & telemetry
+noise.sh is local-first by design:
+- No analytics or outbound network traffic.
+- AI models run through Ollama locally (optional).
+- Exports stay on disk unless you explicitly share them.
 
 ## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+1. Review the architecture reference in [`docs/architecture.md`](docs/architecture.md) for layering and design conventions.
+2. Submit enhancements or documentation updates via pull requests.
+3. Tests: `go test ./...`
+4. Markdown lint (manual review): ensure internal links remain relative after doc moves.
 
 ## Support
+- Issues & feature requests: [GitHub Issues](https://github.com/puente-labs/noise.sh/issues)
+- Documentation index: [`docs/`](docs/)
+- Archived legacy material: [`docs/archive/`](docs/archive/)
 
-- **Documentation**: [Project Wiki](https://github.com/puente-labs/noise/wiki)
-- **Issues**: [GitHub Issues](https://github.com/puente-labs/noise/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/puente-labs/noise/discussions)
-
-## Acknowledgments
-
-- Built with [Bubble Tea](https://github.com/charmbracelet/bubbletea)
-- UI styling with [Lip Gloss](https://github.com/charmbracelet/lipgloss)
-- Database operations with [SQLite](https://sqlite.org/)
-
----
-
-**noise.sh** - From chaos to song 🎵
+noise.sh keeps creativity private, fast, and repeatable—capture on the spot, ship when ready.
