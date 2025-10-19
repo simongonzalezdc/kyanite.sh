@@ -30,6 +30,15 @@ func NewLexer(input string) *Lexer {
 	return l
 }
 
+// Reset resets the lexer to the beginning state for re-tokenization
+func (l *Lexer) Reset() {
+	l.position = 0
+	l.readPosition = 0
+	l.line = 1
+	l.column = 1
+	l.readChar()
+}
+
 // readChar reads the next character from input
 func (l *Lexer) readChar() {
 	if l.readPosition >= len(l.input) {

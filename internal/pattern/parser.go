@@ -667,11 +667,19 @@ func ParseWithMetrics(input string) (*Program, []PatternError, PerformanceMetric
 	lexerTime := time.Since(lexerStart)
 
 	parserStart := time.Now()
-	parser := NewParser(NewLexer(input))
+	// Reset lexer to beginning state for parsing
+	lex.Reset()
+	parser := NewParser(lex)
 	program := parser.Parse()
 	parserTime := time.Since(parserStart)
+	if parserTime <= 0 {
+		parserTime = time.Nanosecond
+	}
 
 	totalTime := time.Since(start)
+	if totalTime <= 0 {
+		totalTime = time.Nanosecond
+	}
 
 	metrics := PerformanceMetrics{
 		ParseTime:   parserTime,
