@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+
+	errutil "github.com/puente-labs/noise/internal/errutil"
 	"strings"
 	"time"
 
@@ -54,7 +56,7 @@ func (sm *SecurityManager) ValidatePluginPath(path string) error {
 	// Check if path is absolute and within allowed directories
 	absPath, err := filepath.Abs(path)
 	if err != nil {
-		return fmt.Errorf("invalid path: %w", err)
+		return errutil.Wrap(err, "invalid path")
 	}
 
 	// Check against blocked paths
@@ -102,7 +104,7 @@ func (sm *SecurityManager) ValidatePluginFile(path string) error {
 	// Check file size
 	info, err := os.Stat(path)
 	if err != nil {
-		return fmt.Errorf("cannot access plugin file: %w", err)
+		return errutil.Wrap(err, "access plugin file")
 	}
 
 	if info.Size() > sm.maxFileSize {
@@ -186,13 +188,13 @@ func (sm *SecurityManager) isValidCapability(capability Capability) bool {
 func (sm *SecurityManager) CalculatePluginHash(path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return "", fmt.Errorf("cannot open plugin file: %w", err)
+		return "", errutil.Wrap(err, "open plugin file")
 	}
 	defer file.Close()
 
 	hash := md5.New()
 	if _, err := io.Copy(hash, file); err != nil {
-		return "", fmt.Errorf("cannot hash plugin file: %w", err)
+		return "", errutil.Wrap(err, "hash plugin file")
 	}
 
 	return fmt.Sprintf("%x", hash.Sum(nil)), nil
@@ -202,7 +204,7 @@ func (sm *SecurityManager) CalculatePluginHash(path string) (string, error) {
 func (sm *SecurityManager) VerifyPluginIntegrity(path string) error {
 	currentHash, err := sm.CalculatePluginHash(path)
 	if err != nil {
-		return fmt.Errorf("cannot calculate plugin hash: %w", err)
+		return errutil.Wrap(err, "calculate plugin hash")
 	}
 
 	// For now, we'll just log the hash
@@ -224,7 +226,7 @@ func (sm *SecurityManager) SandboxPlugin(plugin Plugin) error {
 
 	// Basic validation
 	if err := sm.ValidatePluginManifest(plugin.Metadata()); err != nil {
-		return fmt.Errorf("plugin validation failed: %w", err)
+		return errutil.Wrap(err, "plugin validation failed")
 	}
 
 	return nil

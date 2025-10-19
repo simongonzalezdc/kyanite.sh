@@ -9,12 +9,12 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/puente-labs/noise/internal/app"
+	"github.com/puente-labs/noise/internal/config"
 	"github.com/puente-labs/noise/internal/domain"
 	"github.com/puente-labs/noise/internal/infra/db"
 	"github.com/puente-labs/noise/internal/infra/files"
-	"github.com/puente-labs/noise/internal/ui/styles"
 	"github.com/puente-labs/noise/internal/theme"
-	"github.com/puente-labs/noise/internal/config"
+	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
 // Screen represents different screens in the application (local copy to avoid import cycle)
@@ -200,9 +200,9 @@ func (m *SplitPaneModel) Update(msg tea.Msg) (*SplitPaneModel, tea.Cmd) {
 		}
 
 		// Update status bar with current zoom level
-		if m.editorPane.statusBar != nil {
+		if m.editorPane.HasStatusBar() {
 			zoomLevel := m.previewPane.GetZoomLevel()
-			m.editorPane.statusBar.UpdateZoomLevel(zoomLevel)
+			m.editorPane.UpdateZoomLevel(zoomLevel)
 		}
 
 	case PreviewPane:
@@ -221,34 +221,34 @@ func (m *SplitPaneModel) View() string {
 
 	// Get the current editor mode
 	editorMode := m.editorPane.GetEditorMode()
-	
+
 	// Set dimensions for layouts
 	m.sketchLayout.SetDimensions(m.width, m.height)
 	m.draftLayout.SetDimensions(m.width, m.height)
 	m.polishLayout.SetDimensions(m.width, m.height)
-	
+
 	// Get content from panes
 	editorContent := m.editorPane.View()
 	previewContent := m.previewPane.View()
-	
+
 	// Render based on mode
 	switch editorMode {
 	case ModeSketch:
 		// Sketch mode: Editor + AI panel
 		brainstormContent := "AI Assistant\n\nCtrl+G: Continue\nCtrl+V: Variations\n\nTheme brainstorming will appear here..."
 		return m.sketchLayout.Render(editorContent, brainstormContent)
-		
+
 	case ModeDraft:
 		// Draft mode: Editor + Preview + Theory
 		theoryContent := "Theory Tools\n\nRhyme Dictionary\nSyllable Counter\n\nTools will appear here..."
 		return m.draftLayout.Render(editorContent, previewContent, theoryContent)
-		
+
 	case ModePolish:
 		// Polish mode: Full suite
 		theoryContent := "Theory Tools\n\nCircle of Fifths\nChord Progressions\n\nTools will appear here..."
 		critiqueContent := "AI Critique\n\nQuality analysis will appear here..."
 		return m.polishLayout.Render(editorContent, previewContent, theoryContent, critiqueContent)
-		
+
 	default:
 		// Fallback to original layout
 		return m.renderDefaultLayout()
@@ -424,10 +424,10 @@ func (m *SplitPaneModel) rotateTheme(delta int) {
 	}
 
 	if m.editorPane != nil {
-		if m.editorPane.statusBar != nil {
-			m.editorPane.statusBar.UpdateShortcutHints("Theme: " + nextID)
+		if m.editorPane.HasStatusBar() {
+			m.editorPane.UpdateShortcutHints("Theme: " + nextID)
 		}
-		m.editorPane.updateStatusBar()
+		m.editorPane.UpdateStatusBar()
 	}
 }
 
@@ -561,10 +561,10 @@ func (m *SplitPaneModel) SetQuickStartConfig(theme string, scratchMode bool, aut
 	if m.editorPane == nil {
 		return
 	}
-	
+
 	// Set scratch mode
 	m.editorPane.SetScratchMode(scratchMode)
-	
+
 	// If auto-brainstorm is enabled and theme is provided, start brainstorm
 	if autoBrainstorm && theme != "" {
 		m.editorPane.StartRapidBrainstorm(theme)

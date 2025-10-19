@@ -9,6 +9,7 @@ import (
 
 	"github.com/puente-labs/noise/internal/domain"
 	"github.com/puente-labs/noise/internal/errors"
+	errutil "github.com/puente-labs/noise/internal/errutil"
 	"github.com/puente-labs/noise/internal/infra/db"
 	"github.com/puente-labs/noise/internal/logging"
 	"gopkg.in/yaml.v3"
@@ -94,7 +95,7 @@ func (s *EditorService) LoadSongByFilepath(filepath string) (*domain.Song, error
 		// Save to database
 		song, err = s.songRepo.InsertSong(song)
 		if err != nil {
-			return nil, fmt.Errorf("failed to save song to database: %w", err)
+			return nil, errutil.Wrap(err, "save song to database")
 		}
 	}
 

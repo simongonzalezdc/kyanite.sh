@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	errutil "github.com/puente-labs/noise/internal/errutil"
 )
 
 // ThemeManager handles theme switching and persistence
@@ -124,7 +126,7 @@ func (tm *ThemeManager) saveThemePreference() error {
 	// Ensure directory exists
 	dir := filepath.Dir(tm.themeFilePath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("failed to create theme directory: %w", err)
+		return errutil.Wrap(err, "create theme directory")
 	}
 	
 	// Create theme preference data
@@ -136,12 +138,12 @@ func (tm *ThemeManager) saveThemePreference() error {
 	// Marshal to JSON
 	data, err := json.MarshalIndent(pref, "", "  ")
 	if err != nil {
-		return fmt.Errorf("failed to marshal theme preference: %w", err)
+		return errutil.Wrap(err, "marshal theme preference")
 	}
 	
 	// Write to file
 	if err := os.WriteFile(tm.themeFilePath, data, 0644); err != nil {
-		return fmt.Errorf("failed to write theme preference: %w", err)
+		return errutil.Wrap(err, "write theme preference")
 	}
 	
 	return nil
@@ -161,13 +163,13 @@ func (tm *ThemeManager) loadThemePreference() error {
 	// Read file
 	data, err := os.ReadFile(tm.themeFilePath)
 	if err != nil {
-		return fmt.Errorf("failed to read theme preference: %w", err)
+		return errutil.Wrap(err, "read theme preference")
 	}
 	
 	// Unmarshal JSON
 	var pref ThemePreference
 	if err := json.Unmarshal(data, &pref); err != nil {
-		return fmt.Errorf("failed to unmarshal theme preference: %w", err)
+		return errutil.Wrap(err, "unmarshal theme preference")
 	}
 	
 	// Apply theme if found

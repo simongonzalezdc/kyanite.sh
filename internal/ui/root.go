@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/puente-labs/noise/internal/collaboration"
 	"github.com/puente-labs/noise/internal/config"
+	errutil "github.com/puente-labs/noise/internal/errutil"
 	"github.com/puente-labs/noise/internal/infra/db"
 	"github.com/puente-labs/noise/internal/plugins"
 	"github.com/puente-labs/noise/internal/ui/editor"
@@ -125,7 +126,7 @@ func (m *RootModel) initializeApp() tea.Cmd {
 		// Initialize database
 		database, err := db.New(db.Config{})
 		if err != nil {
-			return initErrorMsg{err: fmt.Errorf("failed to initialize database: %w", err)}
+			return initErrorMsg{err: errutil.Wrap(err, "initialize database")}
 		}
 
 		return initSuccessMsg{database: database}

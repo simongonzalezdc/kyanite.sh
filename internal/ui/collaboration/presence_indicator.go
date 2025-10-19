@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/puente-labs/noise/internal/collaboration"
+	"github.com/puente-labs/noise/internal/ui/dimension"
 	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
@@ -62,8 +63,11 @@ func NewPresenceIndicatorModel() *PresenceIndicatorModel {
 
 // SetDimensions sets the dimensions for the presence indicator
 func (m *PresenceIndicatorModel) SetDimensions(width, height int) {
-	m.width = width
-	m.height = height
+	dimension.Set(&m.width, &m.height, width, height)
+}
+
+func (m *PresenceIndicatorModel) GetDimensions() (int, int) {
+	return m.width, m.height
 }
 
 // UpdateIndicators updates the presence indicators

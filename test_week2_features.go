@@ -46,7 +46,7 @@ func testChordPicker() {
 	}
 
 	// Create chord picker model
-	chordPicker := editor.newChordPickerModel()
+	chordPicker := editor.NewChordPickerModel()
 	if chordPicker == nil {
 		log.Println("Failed to create chord picker model")
 		return
@@ -95,7 +95,7 @@ func testInsertChords(chords []string) bool {
 // testBPMTapper tests the BPM tapper functionality
 func testBPMTapper() {
 	// Create BPM tapper model
-	bpmTapper := editor.newBPMTapperModel()
+	bpmTapper := editor.NewBPMTapperModel()
 	if bpmTapper == nil {
 		log.Println("Failed to create BPM tapper model")
 		return

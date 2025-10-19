@@ -10,6 +10,7 @@ import (
 
 	"github.com/puente-labs/noise/internal/domain"
 	appErrors "github.com/puente-labs/noise/internal/errors"
+	errutil "github.com/puente-labs/noise/internal/errutil"
 	"github.com/puente-labs/noise/internal/logging"
 )
 
@@ -143,7 +144,7 @@ func (db *DB) InsertSongWithVersion(song *domain.Song, initialContent string) (*
 
 	tx, err := db.beginTransaction(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to begin transaction: %w", err)
+		return nil, nil, errutil.Wrap(err, "begin transaction")
 	}
 	defer func() {
 		if err != nil {
@@ -252,7 +253,7 @@ func (db *DB) InsertSongWithVersion(song *domain.Song, initialContent string) (*
 
 	// Commit transaction
 	if err = db.commitTransaction(tx, "InsertSongWithVersion"); err != nil {
-		return nil, nil, fmt.Errorf("failed to commit transaction: %w", err)
+		return nil, nil, errutil.Wrap(err, "commit transaction")
 	}
 
 	// Log successful insertion
@@ -358,13 +359,13 @@ func (db *DB) GetSongByFilepath(filepath string) (*domain.Song, error) {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("song with filepath %s not found", filepath)
 		}
-		return nil, fmt.Errorf("failed to get song by filepath: %w", err)
+		return nil, errutil.Wrap(err, "get song by filepath")
 	}
 
 	// Unmarshal tags
 	song.Metadata.Tags, err = unmarshalStringArray(tagsJSON)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal tags: %w", err)
+		return nil, errutil.Wrap(err, "unmarshal tags")
 	}
 
 	return &song, nil
@@ -374,7 +375,7 @@ func (db *DB) GetSongByFilepath(filepath string) (*domain.Song, error) {
 func (db *DB) UpdateSong(song *domain.Song) error {
 	tagsJSON, err := marshalStringArray(song.Metadata.Tags)
 	if err != nil {
-		return fmt.Errorf("failed to marshal tags: %w", err)
+		return errutil.Wrap(err, "marshal tags")
 	}
 
 	query := `
@@ -395,7 +396,7 @@ func (db *DB) UpdateSong(song *domain.Song) error {
 		song.ID,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to update song: %w", err)
+		return errutil.Wrap(err, "update song")
 	}
 
 	return nil
@@ -407,12 +408,12 @@ func (db *DB) DeleteSong(id int) error {
 
 	result, err := db.conn.Exec(query, id)
 	if err != nil {
-		return fmt.Errorf("failed to delete song: %w", err)
+		return errutil.Wrap(err, "delete song")
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
+		return errutil.Wrap(err, "get rows affected")
 	}
 
 	if rowsAffected == 0 {
@@ -434,7 +435,7 @@ func (db *DB) ListSongs(limit, offset int) ([]*domain.Song, error) {
 
 	rows, err := db.conn.Query(query, limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("failed to list songs: %w", err)
+		return nil, errutil.Wrap(err, "list songs")
 	}
 	defer rows.Close()
 
@@ -457,20 +458,20 @@ func (db *DB) ListSongs(limit, offset int) ([]*domain.Song, error) {
 			&song.Metadata.UpdatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan song row: %w", err)
+			return nil, errutil.Wrap(err, "scan song row")
 		}
 
 		// Unmarshal tags
 		song.Metadata.Tags, err = unmarshalStringArray(tagsJSON)
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal tags: %w", err)
+			return nil, errutil.Wrap(err, "unmarshal tags")
 		}
 
 		songs = append(songs, &song)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating song rows: %w", err)
+		return nil, errutil.Wrap(err, "iterate song rows")
 	}
 
 	return songs, nil
@@ -492,7 +493,7 @@ func (db *DB) SearchSongs(query string, limit int) ([]*domain.Song, error) {
 
 	rows, err := db.conn.Query(sqlQuery, searchQuery, searchQuery, searchQuery, limit)
 	if err != nil {
-		return nil, fmt.Errorf("failed to search songs: %w", err)
+		return nil, errutil.Wrap(err, "search songs")
 	}
 	defer rows.Close()
 
@@ -515,20 +516,20 @@ func (db *DB) SearchSongs(query string, limit int) ([]*domain.Song, error) {
 			&song.Metadata.UpdatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan song row: %w", err)
+			return nil, errutil.Wrap(err, "scan song row")
 		}
 
 		// Unmarshal tags
 		song.Metadata.Tags, err = unmarshalStringArray(tagsJSON)
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal tags: %w", err)
+			return nil, errutil.Wrap(err, "unmarshal tags")
 		}
 
 		songs = append(songs, &song)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating search results: %w", err)
+		return nil, errutil.Wrap(err, "iterate search results")
 	}
 
 	return songs, nil
@@ -552,12 +553,12 @@ func (db *DB) SaveVersion(songID int, content string, isMilestone bool, name str
 			db.enableVersionFallback()
 			return db.saveVersionInMemory(songID, content, isMilestone, name, createdAt), nil
 		}
-		return nil, fmt.Errorf("failed to save version: %w", err)
+		return nil, errutil.Wrap(err, "save version")
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get inserted version ID: %w", err)
+		return nil, errutil.Wrap(err, "get inserted version ID")
 	}
 
 	version := &domain.Version{
@@ -589,7 +590,7 @@ func (db *DB) GetVersions(songID int, limit int) ([]*domain.Version, error) {
 
 	rows, err := db.conn.Query(query, songID, limit)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get versions: %w", err)
+		return nil, errutil.Wrap(err, "get versions")
 	}
 	defer rows.Close()
 
@@ -606,14 +607,14 @@ func (db *DB) GetVersions(songID int, limit int) ([]*domain.Version, error) {
 			&version.CreatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan version row: %w", err)
+			return nil, errutil.Wrap(err, "scan version row")
 		}
 
 		versions = append(versions, &version)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating version rows: %w", err)
+		return nil, errutil.Wrap(err, "iterate version rows")
 	}
 
 	return versions, nil
@@ -645,7 +646,7 @@ func (db *DB) GetVersion(id int) (*domain.Version, error) {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("version with ID %d not found", id)
 		}
-		return nil, fmt.Errorf("failed to get version: %w", err)
+		return nil, errutil.Wrap(err, "get version")
 	}
 
 	return &version, nil
@@ -662,12 +663,12 @@ func (db *DB) DeleteVersion(id int) error {
 
 	result, err := db.conn.Exec(query, id)
 	if err != nil {
-		return fmt.Errorf("failed to delete version: %w", err)
+		return errutil.Wrap(err, "delete version")
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
+		return errutil.Wrap(err, "get rows affected")
 	}
 
 	if rowsAffected == 0 {
@@ -684,7 +685,7 @@ func (db *DB) UpdateSongWithVersion(song *domain.Song, newContent string, isMile
 
 	tx, err := db.beginTransaction(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		return errutil.Wrap(err, "begin transaction")
 	}
 	defer func() {
 		if err != nil {
@@ -697,7 +698,7 @@ func (db *DB) UpdateSongWithVersion(song *domain.Song, newContent string, isMile
 	// Update song within transaction
 	tagsJSON, err := marshalStringArray(song.Metadata.Tags)
 	if err != nil {
-		return fmt.Errorf("failed to marshal tags: %w", err)
+		return errutil.Wrap(err, "marshal tags")
 	}
 
 	query := `
@@ -718,7 +719,7 @@ func (db *DB) UpdateSongWithVersion(song *domain.Song, newContent string, isMile
 		song.ID,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to update song: %w", err)
+		return errutil.Wrap(err, "update song")
 	}
 
 	// Create version snapshot within the same transaction
@@ -744,12 +745,12 @@ func (db *DB) UpdateSongWithVersion(song *domain.Song, newContent string, isMile
 	if err != nil {
 		dbErr := appErrors.NewDatabaseError("insert_version", err).WithOperation("UpdateSongWithVersion").WithComponent("repository")
 		logging.GetDefaultLogger().Error("Failed to insert version", "error", dbErr)
-		return fmt.Errorf("failed to save version: %w", err)
+		return errutil.Wrap(err, "save version")
 	}
 
 	// Commit transaction
 	if err = db.commitTransaction(tx, "UpdateSongWithVersion"); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+		return errutil.Wrap(err, "commit transaction")
 	}
 
 	logging.GetDefaultLogger().Info("Song updated with version successfully",
@@ -772,7 +773,7 @@ func (db *DB) BatchUpdateStats(statsList []*domain.WritingStats) error {
 
 	tx, err := db.beginTransaction(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		return errutil.Wrap(err, "begin transaction")
 	}
 	defer func() {
 		if err != nil {
@@ -797,13 +798,13 @@ func (db *DB) BatchUpdateStats(statsList []*domain.WritingStats) error {
 			stats.TimeSpentMinutes,
 		)
 		if err != nil {
-			return fmt.Errorf("failed to update stats for date %s: %w", stats.Date.Format("2006-01-02"), err)
+			return errutil.Wrapf(err, "update stats for date %s", stats.Date.Format("2006-01-02"))
 		}
 	}
 
 	// Commit transaction
 	if err = db.commitTransaction(tx, "BatchUpdateStats"); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+		return errutil.Wrap(err, "commit transaction")
 	}
 
 	logging.GetDefaultLogger().Info("Batch stats update completed successfully", "count", len(statsList))
@@ -815,7 +816,7 @@ func (db *DB) BatchUpdateStats(statsList []*domain.WritingStats) error {
 func (db *DB) ExecuteInTransaction(ctx context.Context, fn func(*sql.Tx) error) error {
 	tx, err := db.beginTransaction(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		return errutil.Wrap(err, "begin transaction")
 	}
 	defer func() {
 		if err != nil {
@@ -830,7 +831,7 @@ func (db *DB) ExecuteInTransaction(ctx context.Context, fn func(*sql.Tx) error) 
 	}
 
 	if err = db.commitTransaction(tx, "ExecuteInTransaction"); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+		return errutil.Wrap(err, "commit transaction")
 	}
 
 	return nil
@@ -852,7 +853,7 @@ func (db *DB) RecordStats(stats *domain.WritingStats) error {
 		stats.TimeSpentMinutes,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to record stats: %w", err)
+		return errutil.Wrap(err, "record stats")
 	}
 
 	return nil
@@ -878,7 +879,7 @@ func (db *DB) GetStats(date time.Time) (*domain.WritingStats, error) {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("stats for date %s not found", date.Format("2006-01-02"))
 		}
-		return nil, fmt.Errorf("failed to get stats: %w", err)
+		return nil, errutil.Wrap(err, "get stats")
 	}
 
 	return &stats, nil
@@ -892,7 +893,7 @@ func (db *DB) GetStatsRange(start, end time.Time) ([]*domain.WritingStats, error
 
 	rows, err := db.conn.Query(query, start, end)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get stats range: %w", err)
+		return nil, errutil.Wrap(err, "get stats range")
 	}
 	defer rows.Close()
 
@@ -910,14 +911,14 @@ func (db *DB) GetStatsRange(start, end time.Time) ([]*domain.WritingStats, error
 			&stat.TimeSpentMinutes,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan stats row: %w", err)
+			return nil, errutil.Wrap(err, "scan stats row")
 		}
 
 		stats = append(stats, &stat)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating stats rows: %w", err)
+		return nil, errutil.Wrap(err, "iterate stats rows")
 	}
 
 	return stats, nil
@@ -939,7 +940,7 @@ func (db *DB) UpdateStats(stats *domain.WritingStats) error {
 		stats.ID,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to update stats: %w", err)
+		return errutil.Wrap(err, "update stats")
 	}
 
 	return nil
@@ -949,7 +950,7 @@ func (db *DB) UpdateStats(stats *domain.WritingStats) error {
 func (db *DB) CreateProject(project *domain.Project) (*domain.Project, error) {
 	songIDsJSON, err := marshalIntArray(project.SongIDs)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal song IDs: %w", err)
+		return nil, errutil.Wrap(err, "marshal song IDs")
 	}
 
 	query := `
@@ -964,12 +965,12 @@ func (db *DB) CreateProject(project *domain.Project) (*domain.Project, error) {
 		project.UpdatedAt,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create project: %w", err)
+		return nil, errutil.Wrap(err, "create project")
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get inserted project ID: %w", err)
+		return nil, errutil.Wrap(err, "get inserted project ID")
 	}
 
 	project.ID = int(id)
@@ -999,13 +1000,13 @@ func (db *DB) GetProject(id int) (*domain.Project, error) {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("project with ID %d not found", id)
 		}
-		return nil, fmt.Errorf("failed to get project: %w", err)
+		return nil, errutil.Wrap(err, "get project")
 	}
 
 	// Unmarshal song IDs
 	project.SongIDs, err = unmarshalIntArray(songIDsJSON)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal song IDs: %w", err)
+		return nil, errutil.Wrap(err, "unmarshal song IDs")
 	}
 
 	return &project, nil
@@ -1015,7 +1016,7 @@ func (db *DB) GetProject(id int) (*domain.Project, error) {
 func (db *DB) UpdateProject(project *domain.Project) error {
 	songIDsJSON, err := marshalIntArray(project.SongIDs)
 	if err != nil {
-		return fmt.Errorf("failed to marshal song IDs: %w", err)
+		return errutil.Wrap(err, "marshal song IDs")
 	}
 
 	query := `
@@ -1031,7 +1032,7 @@ func (db *DB) UpdateProject(project *domain.Project) error {
 		project.ID,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to update project: %w", err)
+		return errutil.Wrap(err, "update project")
 	}
 
 	return nil
@@ -1043,12 +1044,12 @@ func (db *DB) DeleteProject(id int) error {
 
 	result, err := db.conn.Exec(query, id)
 	if err != nil {
-		return fmt.Errorf("failed to delete project: %w", err)
+		return errutil.Wrap(err, "delete project")
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
+		return errutil.Wrap(err, "get rows affected")
 	}
 
 	if rowsAffected == 0 {
@@ -1066,7 +1067,7 @@ func (db *DB) ListProjects() ([]*domain.Project, error) {
 
 	rows, err := db.conn.Query(query)
 	if err != nil {
-		return nil, fmt.Errorf("failed to list projects: %w", err)
+		return nil, errutil.Wrap(err, "list projects")
 	}
 	defer rows.Close()
 
@@ -1084,20 +1085,20 @@ func (db *DB) ListProjects() ([]*domain.Project, error) {
 			&project.UpdatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan project row: %w", err)
+			return nil, errutil.Wrap(err, "scan project row")
 		}
 
 		// Unmarshal song IDs
 		project.SongIDs, err = unmarshalIntArray(songIDsJSON)
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal song IDs: %w", err)
+			return nil, errutil.Wrap(err, "unmarshal song IDs")
 		}
 
 		projects = append(projects, &project)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating project rows: %w", err)
+		return nil, errutil.Wrap(err, "iterate project rows")
 	}
 
 	return projects, nil
@@ -1110,7 +1111,7 @@ func (db *DB) AddSongToProject(projectID, songID int) error {
 
 	tx, err := db.beginTransaction(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		return errutil.Wrap(err, "begin transaction")
 	}
 	defer func() {
 		if err != nil {
@@ -1123,7 +1124,7 @@ func (db *DB) AddSongToProject(projectID, songID int) error {
 	// Get current project within transaction
 	project, err := db.getProjectInTx(tx, projectID)
 	if err != nil {
-		return fmt.Errorf("failed to get project: %w", err)
+		return errutil.Wrap(err, "get project")
 	}
 
 	// Check if song is already in project
@@ -1131,7 +1132,7 @@ func (db *DB) AddSongToProject(projectID, songID int) error {
 		if id == songID {
 			// Commit the transaction since no changes are needed
 			if commitErr := db.commitTransaction(tx, "AddSongToProject"); commitErr != nil {
-				return fmt.Errorf("failed to commit transaction: %w", commitErr)
+				return errutil.Wrap(commitErr, "commit transaction")
 			}
 			return nil // Already in project
 		}
@@ -1142,12 +1143,12 @@ func (db *DB) AddSongToProject(projectID, songID int) error {
 
 	// Update project within transaction
 	if err = db.updateProjectInTx(tx, project); err != nil {
-		return fmt.Errorf("failed to update project: %w", err)
+		return errutil.Wrap(err, "update project")
 	}
 
 	// Commit transaction
 	if err = db.commitTransaction(tx, "AddSongToProject"); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+		return errutil.Wrap(err, "commit transaction")
 	}
 
 	logging.GetDefaultLogger().Info("Song added to project successfully", "project_id", projectID, "song_id", songID)
@@ -1159,7 +1160,7 @@ func (db *DB) AddSongToProjectNonTx(projectID, songID int) error {
 	// Get current project
 	project, err := db.GetProject(projectID)
 	if err != nil {
-		return fmt.Errorf("failed to get project: %w", err)
+		return errutil.Wrap(err, "get project")
 	}
 
 	// Check if song is already in project
@@ -1314,13 +1315,13 @@ func (db *DB) getProjectInTx(tx *sql.Tx, id int) (*domain.Project, error) {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("project with ID %d not found", id)
 		}
-		return nil, fmt.Errorf("failed to get project: %w", err)
+		return nil, errutil.Wrap(err, "get project")
 	}
 
 	// Unmarshal song IDs
 	project.SongIDs, err = unmarshalIntArray(songIDsJSON)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal song IDs: %w", err)
+		return nil, errutil.Wrap(err, "unmarshal song IDs")
 	}
 
 	return &project, nil
@@ -1330,7 +1331,7 @@ func (db *DB) getProjectInTx(tx *sql.Tx, id int) (*domain.Project, error) {
 func (db *DB) updateProjectInTx(tx *sql.Tx, project *domain.Project) error {
 	songIDsJSON, err := marshalIntArray(project.SongIDs)
 	if err != nil {
-		return fmt.Errorf("failed to marshal song IDs: %w", err)
+		return errutil.Wrap(err, "marshal song IDs")
 	}
 
 	query := `
@@ -1346,7 +1347,7 @@ func (db *DB) updateProjectInTx(tx *sql.Tx, project *domain.Project) error {
 		project.ID,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to update project: %w", err)
+		return errutil.Wrap(err, "update project")
 	}
 
 	return nil
@@ -1359,7 +1360,7 @@ func (db *DB) RemoveSongFromProject(projectID, songID int) error {
 
 	tx, err := db.beginTransaction(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		return errutil.Wrap(err, "begin transaction")
 	}
 	defer func() {
 		if err != nil {
@@ -1372,7 +1373,7 @@ func (db *DB) RemoveSongFromProject(projectID, songID int) error {
 	// Get current project within transaction
 	project, err := db.getProjectInTx(tx, projectID)
 	if err != nil {
-		return fmt.Errorf("failed to get project: %w", err)
+		return errutil.Wrap(err, "get project")
 	}
 
 	// Remove song ID from project
@@ -1388,19 +1389,19 @@ func (db *DB) RemoveSongFromProject(projectID, songID int) error {
 	if !removed {
 		// Song wasn't in project, commit and return success
 		if commitErr := db.commitTransaction(tx, "RemoveSongFromProject"); commitErr != nil {
-			return fmt.Errorf("failed to commit transaction: %w", commitErr)
+			return errutil.Wrap(commitErr, "commit transaction")
 		}
 		return nil
 	}
 
 	// Update project within transaction
 	if err = db.updateProjectInTx(tx, project); err != nil {
-		return fmt.Errorf("failed to update project: %w", err)
+		return errutil.Wrap(err, "update project")
 	}
 
 	// Commit transaction
 	if err = db.commitTransaction(tx, "RemoveSongFromProject"); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+		return errutil.Wrap(err, "commit transaction")
 	}
 
 	logging.GetDefaultLogger().Info("Song removed from project successfully", "project_id", projectID, "song_id", songID)
@@ -1412,7 +1413,7 @@ func (db *DB) RemoveSongFromProjectNonTx(projectID, songID int) error {
 	// Get current project
 	project, err := db.GetProject(projectID)
 	if err != nil {
-		return fmt.Errorf("failed to get project: %w", err)
+		return errutil.Wrap(err, "get project")
 	}
 
 	// Remove song ID from project

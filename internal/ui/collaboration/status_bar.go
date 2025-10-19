@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/puente-labs/noise/internal/ui/dimension"
 	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
@@ -20,6 +21,7 @@ type CollaborationStatusBar struct {
 
 	// UI state
 	width       int
+	height      int
 	showDetails bool
 
 	// Styles
@@ -54,8 +56,12 @@ func NewCollaborationStatusBar() *CollaborationStatusBar {
 }
 
 // SetDimensions sets the dimensions for the status bar
-func (csb *CollaborationStatusBar) SetDimensions(width int) {
-	csb.width = width
+func (csb *CollaborationStatusBar) SetDimensions(width, height int) {
+	dimension.Set(&csb.width, &csb.height, width, height)
+}
+
+func (csb *CollaborationStatusBar) GetDimensions() (int, int) {
+	return csb.width, csb.height
 }
 
 // UpdateCollaborationState updates the collaboration state

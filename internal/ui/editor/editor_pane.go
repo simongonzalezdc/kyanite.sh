@@ -1,10 +1,7 @@
 package editor
 
 import (
-	"context"
 	"fmt"
-	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -13,221 +10,34 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/puente-labs/noise/internal/app"
-	"github.com/puente-labs/noise/internal/domain"
-	"github.com/puente-labs/noise/internal/infra/files"
-	"github.com/puente-labs/noise/internal/ui/styles"
-	"github.com/puente-labs/noise/internal/data"
-	"github.com/puente-labs/noise/internal/export"
 	"github.com/puente-labs/noise/internal/app/ai"
+	"github.com/puente-labs/noise/internal/data"
+	"github.com/puente-labs/noise/internal/domain"
+	"github.com/puente-labs/noise/internal/export"
+	"github.com/puente-labs/noise/internal/infra/files"
+	"github.com/puente-labs/noise/internal/ui/dimension"
+	"github.com/puente-labs/noise/internal/ui/styles"
 )
-
-// MarkdownElement represents a highlighted markdown element
-type MarkdownElement struct {
-	Type    ElementType
-	Content string
-	Start   int
-	End     int
-	Style   lipgloss.Style
-}
-
-// ElementType represents different types of markdown elements
-type ElementType int
-
-const (
-	ElementText ElementType = iota
-	ElementHeader
-	ElementBold
-	ElementItalic
-	ElementCode
-	ElementCodeBlock
-	ElementLink
-	ElementList
-	ElementBlockquote
-)
-
-// EditorMode represents the different editing modes for rapid prototyping
-type EditorMode int
-
-const (
-	ModeSketch EditorMode = iota
-	ModeDraft
-	ModePolish
-)
-
-// SyntaxHighlighter handles markdown parsing and styling
-type SyntaxHighlighter struct {
-	patterns map[ElementType]*regexp.Regexp
-	styles   map[ElementType]lipgloss.Style
-}
-
-// NewSyntaxHighlighter creates a new syntax highlighter
-func NewSyntaxHighlighter() *SyntaxHighlighter {
-	sh := &SyntaxHighlighter{
-		patterns: make(map[ElementType]*regexp.Regexp),
-		styles:   make(map[ElementType]lipgloss.Style),
-	}
-
-	// Define regex patterns for markdown elements
-	sh.patterns[ElementHeader] = regexp.MustCompile(`^(#{1,6})\s+(.+)$`)
-	sh.patterns[ElementBold] = regexp.MustCompile(`\*\*(.+?)\*\*`)
-	sh.patterns[ElementItalic] = regexp.MustCompile(`\*([^*]+?)\*`)
-	sh.patterns[ElementCode] = regexp.MustCompile("`([^`]+?)`")
-	sh.patterns[ElementCodeBlock] = regexp.MustCompile("(?s)```[\\s\\S]*?```")
-	sh.patterns[ElementLink] = regexp.MustCompile(`\[([^\]]+)\]\(([^)]+)\)`)
-	sh.patterns[ElementList] = regexp.MustCompile(`(?m)^(\s*)([-*+]|\d+\.)\s+(.+)$`)
-	sh.patterns[ElementBlockquote] = regexp.MustCompile(`(?m)^>\s+(.+)$`)
-
-	// Define styles for each element type using Midnight Jazz theme
-	sh.styles[ElementHeader] = lipgloss.NewStyle().Bold(true).Foreground(styles.Accent)
-	sh.styles[ElementBold] = lipgloss.NewStyle().Bold(true).Foreground(styles.Primary)
-	sh.styles[ElementItalic] = lipgloss.NewStyle().Italic(true).Foreground(styles.TextSecondary)
-	sh.styles[ElementCode] = lipgloss.NewStyle().Background(styles.Dark2).Foreground(styles.Success).Padding(0, 1)
-	sh.styles[ElementCodeBlock] = lipgloss.NewStyle().Background(styles.Dark1).Foreground(styles.TextPrimary)
-	sh.styles[ElementLink] = lipgloss.NewStyle().Foreground(styles.Info).Underline(true)
-	sh.styles[ElementList] = lipgloss.NewStyle().Foreground(styles.TextSecondary)
-	sh.styles[ElementBlockquote] = lipgloss.NewStyle().Foreground(styles.TextMuted).Italic(true)
-
-	return sh
-}
-
-// ParseMarkdown parses markdown content and returns highlighted elements
-func (sh *SyntaxHighlighter) ParseMarkdown(content string) []MarkdownElement {
-	var elements []MarkdownElement
-	processed := make([]bool, len(content))
-
-	// Process code blocks first (they take precedence)
-	codeBlockMatches := sh.patterns[ElementCodeBlock].FindAllStringIndex(content, -1)
-	for _, match := range codeBlockMatches {
-		if !processed[match[0]] && !processed[match[1]-1] {
-			elements = append(elements, MarkdownElement{
-				Type:    ElementCodeBlock,
-				Content: content[match[0]:match[1]],
-				Start:   match[0],
-				End:     match[1],
-				Style:   sh.styles[ElementCodeBlock],
-			})
-			for i := match[0]; i < match[1]; i++ {
-				processed[i] = true
-			}
-		}
-	}
-
-	// Process other elements
-	for elementType, pattern := range sh.patterns {
-		if elementType == ElementCodeBlock {
-			continue // Already processed
-		}
-
-		matches := pattern.FindAllStringSubmatchIndex(content, -1)
-		for _, match := range matches {
-			if len(match) >= 4 && match[0] >= 0 && match[1] <= len(content) {
-				start, end := match[0], match[1]
-				if !processed[start] && !processed[end-1] {
-					var contentPart string
-					if len(match) > 2 {
-						contentPart = content[match[2]:match[3]]
-					} else {
-						contentPart = content[start:end]
-					}
-
-					elements = append(elements, MarkdownElement{
-						Type:    elementType,
-						Content: contentPart,
-						Start:   start,
-						End:     end,
-						Style:   sh.styles[elementType],
-					})
-
-					for i := start; i < end; i++ {
-						processed[i] = true
-					}
-				}
-			}
-		}
-	}
-
-	// Sort elements by start position
-	for i := 0; i < len(elements)-1; i++ {
-		for j := i + 1; j < len(elements); j++ {
-			if elements[i].Start > elements[j].Start {
-				elements[i], elements[j] = elements[j], elements[i]
-			}
-		}
-	}
-
-	return elements
-}
 
 // EditorPaneModel handles the text editing pane with syntax highlighting
+// This is the refactored version that coordinates between components
 type EditorPaneModel struct {
-	textarea textarea.Model
-	width    int
-	height   int
-	focused  bool
+	// Component instances
+	state     *EditorState
+	shortcuts *EditorShortcuts
+	ai        *EditorAI
+	metrics   *EditorMetrics
+
+	// UI components that remain in main model
+	chordPicker *chordPickerModel
+	bpmTapper   *bpmTapperModel
 
 	// Syntax highlighting
 	highlighter *SyntaxHighlighter
 	elements    []MarkdownElement
 
-	// Editor features
-	showLineNumbers  bool
-	lineNumbersWidth int
-	wordWrap         bool
-	autoIndent       bool
-	bracketMatching  bool
-
-	// Search and replace
-	searchMode    bool
-	searchQuery   string
-	replaceQuery  string
-	searchMatches []int
-	currentMatch  int
-
-	// Keyboard shortcuts
-	shortcutManager *ShortcutManager
-
-	// Cursor and selection
-	cursorLine   int
-	cursorColumn int
-
-	// Status bar component
-	statusBar *StatusBarModel
-
-	// Auto-save functionality
-	autoSaveService *app.AutoSaveService
-	lastContent     string
-	lastSaveStatus  app.AutoSaveStatus
-
-	// Song integration
-	currentSong *domain.Song
-
-	// File I/O service
-	fileService *files.Service
-
-	// Current file path
-	currentFilePath string
-
-	// Rapid prototyping mode
-	scratchMode       bool
-	editorMode        EditorMode // Sketch/Draft/Polish
-	rapidBrainstorm   bool
-	brainstormTheme   string
-	brainstormAngles  []string
-	continueMode      bool
-	continueSuggestions []string
-	variationMode     bool
-	variationOriginal string
-	variationOptions  []string
-
-	// Quick tools
-	chordPicker *chordPickerModel
-	bpmTapper   *bpmTapperModel
-
-	// Export functionality
-	exportService *export.ExportService
-
 	// Theme management
-	themeManager *styles.ThemeManager
+	themeManager interface{} // Using interface{} to avoid import cycle
 
 	// Styles
 	focusedStyle     lipgloss.Style
@@ -237,49 +47,29 @@ type EditorPaneModel struct {
 	cursorLineStyle  lipgloss.Style
 	selectionStyle   lipgloss.Style
 	searchMatchStyle lipgloss.Style
-	autoSaveStyle    lipgloss.Style // Auto-save status styling
-	
-	// Context detection
-	contextDetector *ai.ContextDetector
-	lastContentType  string
-	
-	// Knowledge base integration
-	aiAgent *ai.QuickIdeaAgent
+	autoSaveStyle    lipgloss.Style
+
+	// Dimensions
+	width  int
+	height int
 }
 
-// NewEditorPaneModel creates a new editor pane model
+// NewEditorPaneModel creates a new editor pane model with refactored components
 func NewEditorPaneModel(textarea textarea.Model) *EditorPaneModel {
+	teaModel := &textarea
 	model := &EditorPaneModel{
-		textarea:         textarea,
-		focused:          true,
-		highlighter:      NewSyntaxHighlighter(),
-		showLineNumbers:  true,
-		lineNumbersWidth: 4,
-		wordWrap:         true,
-		autoIndent:       true,
-		bracketMatching:  true,
-		cursorLine:       0,
-		cursorColumn:     0,
-		statusBar:        NewStatusBarModel(),
-		autoSaveService:  nil, // Will be set by parent model
-		lastContent:      "",
-		lastSaveStatus:   app.AutoSaveIdle,
-		currentSong:      nil,
-		fileService:      nil, // Will be set by parent model
-		currentFilePath:  "",
-		shortcutManager:  NewShortcutManager(),
-		scratchMode:      false,
-		editorMode:       ModeSketch, // Default to sketch mode
-		rapidBrainstorm:  false,
-		continueMode:     false,
-		variationMode:    false,
-		chordPicker:      newChordPickerModel(),
-		bpmTapper:        newBPMTapperModel(),
-		exportService:    nil, // Will be set by parent model
-		themeManager:     nil, // Will be set by parent model
-		focusedStyle:     styles.BorderActive,
-		blurredStyle:     styles.Border,
-		borderStyle:      styles.Border,
+		state:     NewEditorState(teaModel),
+		shortcuts: NewEditorShortcuts(),
+		ai:        NewEditorAI(),
+		metrics:   NewEditorMetrics(),
+
+		highlighter: NewSyntaxHighlighter(),
+		chordPicker: NewChordPickerModel(),
+		bpmTapper:   NewBPMTapperModel(),
+
+		focusedStyle: styles.BorderActive,
+		blurredStyle: styles.Border,
+		borderStyle:  styles.Border,
 		lineNumberStyle: lipgloss.NewStyle().
 			Foreground(styles.TextMuted).
 			Width(4).
@@ -294,9 +84,6 @@ func NewEditorPaneModel(textarea textarea.Model) *EditorPaneModel {
 		autoSaveStyle: lipgloss.NewStyle().
 			Foreground(styles.Success).
 			Bold(true),
-		contextDetector: ai.NewContextDetector(),
-		lastContentType:  "Unknown",
-		aiAgent:        ai.NewQuickIdeaAgent(),
 	}
 
 	return model
@@ -304,7 +91,7 @@ func NewEditorPaneModel(textarea textarea.Model) *EditorPaneModel {
 
 // Init initializes the editor pane
 func (m *EditorPaneModel) Init() tea.Cmd {
-	return textarea.Blink
+	return m.state.Init()
 }
 
 // Update handles messages for the editor pane
@@ -312,12 +99,12 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-	// Handle text area updates
-	m.textarea, cmd = m.textarea.Update(msg)
-	if cmd != nil {
-		cmds = append(cmds, cmd)
+	// Handle state component updates
+	stateCmd := m.state.Update(msg)
+	if stateCmd != nil {
+		cmds = append(cmds, stateCmd)
 	}
-	
+
 	// Handle chord picker updates
 	if m.chordPicker.IsVisible() {
 		m.chordPicker, cmd = m.chordPicker.Update(msg)
@@ -325,7 +112,7 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		}
 	}
-	
+
 	// Handle BPM tapper updates
 	if m.bpmTapper.IsVisible() {
 		m.bpmTapper, cmd = m.bpmTapper.Update(msg)
@@ -335,10 +122,10 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 	}
 
 	// Update cursor position
-	m.updateCursorPosition()
+	m.state.UpdateCursorPosition()
 
 	// Update status bar with current state
-	m.updateStatusBar()
+	m.metrics.UpdateStatusBar(m.state, m.ai)
 
 	// Handle chord picker messages
 	switch msg := msg.(type) {
@@ -350,7 +137,7 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 			m.chordPicker.activeMood = "all"
 			m.chordPicker.showAll = true
 			m.chordPicker.animationTime = time.Now()
-			
+
 			// Load progressions if not already loaded
 			if !m.chordPicker.loaded {
 				if progressions, err := data.GetAllChordProgressions(); err == nil {
@@ -367,7 +154,7 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 	case ShowBPMTapperMsg:
 		if m.bpmTapper != nil {
 			m.bpmTapper.visible = true
-			m.bpmTapper.setBMPCallback = msg.SetBMPCallback
+			m.bpmTapper.setBMPCallback = m.setBPM
 			m.bpmTapper.reset()
 		}
 	case HideBPMTapperMsg:
@@ -375,124 +162,115 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 			m.bpmTapper.visible = false
 		}
 	}
-	
+
 	// Handle key events for editor features
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		// Set context for shortcuts
-		if m.focused {
-			m.shortcutManager.SetContext(ContextEditor)
+		if m.state.IsFocused() {
+			m.shortcuts.SetShortcutContext(ContextEditor)
 		} else {
-			m.shortcutManager.SetContext(ContextGlobal)
+			m.shortcuts.SetShortcutContext(ContextGlobal)
+		}
+
+		// Cancel active AI overlays with Escape even if the shortcut is handled elsewhere
+		if msg.Type == tea.KeyEsc {
+			if m.cancelActiveAIModes() {
+				m.metrics.UpdateStatusBar(m.state, m.ai)
+				return m, tea.Batch(cmds...)
+			}
 		}
 
 		// Handle shortcuts
-		if action, handled := m.shortcutManager.HandleKey(msg); handled {
-			m.handleShortcutAction(action)
+		if action, handled := m.shortcuts.HandleKey(msg); handled {
+			if m.handleAIShortcut(action) {
+				m.metrics.UpdateStatusBar(m.state, m.ai)
+				return m, tea.Batch(cmds...)
+			}
+
+			cmd = m.shortcuts.HandleShortcutAction(action, m.state)
+			if cmd != nil {
+				cmds = append(cmds, cmd)
+			}
 			return m, tea.Batch(cmds...)
 		}
 
 		// Handle rapid prototyping key events
-		if m.rapidBrainstorm {
+		if m.ai.IsRapidBrainstorm() {
 			// Handle brainstorm angle selection
 			switch msg.String() {
 			case "1", "2", "3":
 				index, _ := strconv.Atoi(msg.String())
-				m.SelectBrainstormAngle(index - 1)
+				m.ai.SelectBrainstormAngle(index-1, m.state)
 				return m, tea.Batch(cmds...)
 			case "esc":
 				// Cancel brainstorm
-				m.rapidBrainstorm = false
-				m.brainstormTheme = ""
-				m.brainstormAngles = nil
-				m.updateStatusBar()
+				m.ai.CancelBrainstormMode()
 				return m, tea.Batch(cmds...)
 			}
 		}
-		
-		if m.continueMode {
+
+		if m.ai.IsContinueMode() {
 			// Handle continue suggestion selection
 			switch msg.String() {
 			case "1", "2", "3":
 				index, _ := strconv.Atoi(msg.String())
-				m.SelectContinueSuggestion(index - 1)
+				m.ai.SelectContinueSuggestion(index-1, m.state)
 				return m, tea.Batch(cmds...)
 			case "esc":
 				// Cancel continue mode
-				m.CancelContinueMode()
+				m.ai.CancelContinueMode()
 				return m, tea.Batch(cmds...)
 			}
 		}
-		
-		if m.variationMode {
+
+		if m.ai.IsVariationMode() {
 			// Handle variation option selection
 			switch msg.String() {
 			case "1", "2", "3":
 				index, _ := strconv.Atoi(msg.String())
-				m.SelectVariation(index - 1)
+				m.ai.SelectVariation(index-1, m.state)
 				return m, tea.Batch(cmds...)
 			case "esc":
 				// Cancel variation mode
-				m.CancelVariationMode()
+				m.ai.CancelVariationMode()
 				return m, tea.Batch(cmds...)
 			}
 		}
-		
+
 		// Handle rapid prototyping hotkeys
 		switch msg.String() {
-		case "ctrl+g":
-			// Continue writing
-			m.StartContinueMode()
-			return m, tea.Batch(cmds...)
-		case "ctrl+v":
-			// Line variation (for now, we'll use the last line as selection)
-			// In a full implementation, this would use the actual text selection
-			content := m.textarea.Value()
-			lines := strings.Split(content, "\n")
-			if len(lines) > 0 {
-				lastLine := lines[len(lines)-1]
-				if lastLine != "" {
-					m.StartVariationMode(lastLine)
-				}
-			}
-			return m, tea.Batch(cmds...)
 		case "ctrl+1":
 			// Switch to Sketch mode
-			m.SetEditorMode(ModeSketch)
+			m.state.SetEditorMode(ModeSketch)
 			return m, tea.Batch(cmds...)
 		case "ctrl+2":
 			// Switch to Draft mode
-			m.SetEditorMode(ModeDraft)
+			m.state.SetEditorMode(ModeDraft)
 			return m, tea.Batch(cmds...)
 		case "ctrl+3":
 			// Switch to Polish mode
-			m.SetEditorMode(ModePolish)
+			m.state.SetEditorMode(ModePolish)
 			return m, tea.Batch(cmds...)
 		case "ctrl+k":
 			// Keep draft (save from scratch mode)
-			if m.scratchMode {
+			if m.state.IsScratchMode() {
 				// For now, just show a notification
 				// In a full implementation, this would prompt for title and save
-				m.scratchMode = false
-				m.updateStatusBar()
+				m.state.SetScratchMode(false)
 			}
 			return m, tea.Batch(cmds...)
 		}
 
 		// Handle legacy key events for backward compatibility
 		switch msg.String() {
-		case "ctrl+r":
-			// Enter replace mode
-			if m.searchMode {
-				m.replaceQuery = ""
-			}
 		case "enter":
-			if m.searchMode {
+			if m.state.IsSearchMode() {
 				// Perform search
-				m.performSearch()
-			} else if m.autoIndent {
+				m.state.PerformSearch()
+			} else if m.state.AutoIndentEnabled() {
 				// Handle auto-indentation
-				m.handleAutoIndent()
+				m.state.HandleAutoIndent()
 			}
 		}
 	}
@@ -501,7 +279,7 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 	m.updateSyntaxHighlighting()
 
 	// Handle auto-save on content changes
-	m.handleAutoSave()
+	m.state.HandleAutoSave()
 
 	return m, tea.Batch(cmds...)
 }
@@ -510,7 +288,7 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 func (m *EditorPaneModel) View() string {
 	var style lipgloss.Style
 
-	if m.focused {
+	if m.state.IsFocused() {
 		style = m.focusedStyle
 	} else {
 		style = m.blurredStyle
@@ -520,32 +298,33 @@ func (m *EditorPaneModel) View() string {
 	contentWidth := m.width - 4
 	contentHeight := m.height - 4
 
-	if m.showLineNumbers {
-		contentWidth -= m.lineNumbersWidth + 1 // Account for line numbers and spacing
+	if m.state.ShowLineNumbers() {
+		contentWidth -= 4 // Account for line numbers and spacing
 	}
 
 	// Set textarea dimensions
-	m.textarea.SetWidth(contentWidth)
-	m.textarea.SetHeight(contentHeight)
+	textarea := m.state.GetTextarea()
+	textarea.SetWidth(contentWidth)
+	textarea.SetHeight(contentHeight)
 
 	// Get content and apply syntax highlighting
-	content := m.textarea.Value()
+	content := m.state.GetText()
 	highlightedContent := m.renderHighlightedContent(content, contentWidth)
 
 	// Add line numbers if enabled
-	if m.showLineNumbers {
+	if m.state.ShowLineNumbers() {
 		highlightedContent = m.addLineNumbers(highlightedContent)
 	}
 
 	// Add title with mode and scratch indicators
 	title := "Editor"
-	if m.focused {
+	if m.state.IsFocused() {
 		title = "Editor (Focused)"
 	}
-	
+
 	// Add mode indicator
 	modeStr := ""
-	switch m.editorMode {
+	switch m.state.GetEditorMode() {
 	case ModeSketch:
 		modeStr = " [SKETCH]"
 	case ModeDraft:
@@ -553,12 +332,12 @@ func (m *EditorPaneModel) View() string {
 	case ModePolish:
 		modeStr = " [POLISH]"
 	}
-	
+
 	// Add scratch mode indicator
-	if m.scratchMode {
+	if m.state.IsScratchMode() {
 		modeStr += " [SCRATCH]"
 	}
-	
+
 	title += modeStr
 
 	titleStyle := lipgloss.NewStyle().
@@ -569,28 +348,28 @@ func (m *EditorPaneModel) View() string {
 		Width(m.width - 4)
 
 	titleBar := titleStyle.Render(title)
-	
+
 	// Add rapid prototyping UI overlays
 	var overlayContent string
-	if m.rapidBrainstorm {
-		overlayContent = m.renderBrainstormOverlay()
-	} else if m.continueMode {
-		overlayContent = m.renderContinueOverlay()
-	} else if m.variationMode {
-		overlayContent = m.renderVariationOverlay()
+	if m.ai.IsRapidBrainstorm() {
+		overlayContent = m.ai.RenderOverlays(m.width)
+	} else if m.ai.IsContinueMode() {
+		overlayContent = m.ai.RenderOverlays(m.width)
+	} else if m.ai.IsVariationMode() {
+		overlayContent = m.ai.RenderOverlays(m.width)
 	} else if m.chordPicker.IsVisible() {
 		overlayContent = m.chordPicker.View()
 	} else if m.bpmTapper.IsVisible() {
 		overlayContent = m.bpmTapper.View()
 	}
-	
+
 	// Combine content and overlay
 	if overlayContent != "" {
 		highlightedContent = lipgloss.JoinVertical(lipgloss.Left, highlightedContent, overlayContent)
 	}
 
 	// Add status bar with editor features info
-	statusBar := m.renderStatusBar()
+	statusBar := m.metrics.RenderStatusBar()
 
 	// Combine title, content, and status bar
 	fullContent := lipgloss.JoinVertical(lipgloss.Left, titleBar, highlightedContent, statusBar)
@@ -600,113 +379,223 @@ func (m *EditorPaneModel) View() string {
 
 // SetDimensions sets the pane dimensions
 func (m *EditorPaneModel) SetDimensions(width, height int) {
-	m.width = width
-	m.height = height
-	if m.statusBar != nil {
-		m.statusBar.SetDimensions(width, 1)
-	}
+	dimension.Set(&m.width, &m.height, width, height)
+	m.state.SetDimensions(width, height)
+	m.metrics.SetDimensions(width, height)
+}
+
+// GetDimensions returns the pane dimensions
+func (m *EditorPaneModel) GetDimensions() (int, int) {
+	return m.width, m.height
 }
 
 // Focus focuses the editor pane
 func (m *EditorPaneModel) Focus() {
-	m.focused = true
-	m.textarea.Focus()
+	m.state.Focus()
 }
 
 // Blur blurs the editor pane
 func (m *EditorPaneModel) Blur() {
-	m.focused = false
-	m.textarea.Blur()
+	m.state.Blur()
 }
+
+// Public API methods - delegate to components
 
 // GetText returns the current text content
 func (m *EditorPaneModel) GetText() string {
-	return m.textarea.Value()
+	return m.state.GetText()
 }
 
 // SetText sets the text content
 func (m *EditorPaneModel) SetText(text string) {
-	m.textarea.SetValue(text)
+	m.state.SetText(text)
 	m.updateSyntaxHighlighting()
-	m.updateStatusBar()
 }
 
-// Helper methods for enhanced editor features
+// GetSong returns the current song being edited
+func (m *EditorPaneModel) GetSong() *domain.Song {
+	return m.state.GetSong()
+}
 
-// updateCursorPosition updates the current cursor position
-func (m *EditorPaneModel) updateCursorPosition() {
-	content := m.textarea.Value()
-	// For now, use a simple approximation of cursor position
-	// In a full implementation, this would track cursor position more accurately
-	lines := strings.Split(content, "\n")
-	m.cursorLine = len(lines) - 1
+// SetSong sets the current song being edited
+func (m *EditorPaneModel) SetSong(song *domain.Song) {
+	m.state.SetSong(song)
+}
 
-	if m.cursorLine < len(lines) {
-		m.cursorColumn = len(lines[m.cursorLine])
-	} else {
-		m.cursorColumn = 0
+// Service injection methods
+
+// SetAutoSaveService sets the auto-save service
+func (m *EditorPaneModel) SetAutoSaveService(service *app.AutoSaveService) {
+	m.state.SetAutoSaveService(service)
+}
+
+// SetFileService sets the file service
+func (m *EditorPaneModel) SetFileService(service *files.Service) {
+	m.state.SetFileService(service)
+}
+
+// SetExportService sets the export service
+func (m *EditorPaneModel) SetExportService(service *export.ExportService) {
+	m.state.SetExportService(service)
+}
+
+// SetThemeManager sets the theme manager
+func (m *EditorPaneModel) SetThemeManager(manager interface{}) {
+	m.themeManager = manager
+	m.state.SetThemeManager(manager)
+}
+
+// SetAIAgent sets the AI agent
+func (m *EditorPaneModel) SetAIAgent(agent *ai.QuickIdeaAgent) {
+	m.ai.SetAIAgent(agent)
+	if m.metrics != nil {
+		m.metrics.UpdateKnowledgeBaseStatus(false, "")
+		m.metrics.UpdateStatusBar(m.state, m.ai)
 	}
 }
 
-// updateStatusBar updates the status bar with current editor state
-func (m *EditorPaneModel) updateStatusBar() {
-	if m.statusBar == nil {
-		return
-	}
-
-	// Update content and statistics
-	content := m.textarea.Value()
-	m.statusBar.UpdateContent(content)
-
-	// Update cursor position
-	m.statusBar.UpdateCursorPosition(m.cursorLine, m.cursorColumn)
-
-	// Update content type detection
-	if m.contextDetector != nil {
-		contentType := m.contextDetector.AnalyzeContent(content)
-		contentTypeStr := string(contentType)
-		
-		// Only update if content type has changed
-		if contentTypeStr != m.lastContentType {
-			m.lastContentType = contentTypeStr
-			m.statusBar.UpdateContentType(contentTypeStr)
-		}
-	}
-
-	// Update auto-save status
-	if m.autoSaveService != nil {
-		status := m.GetAutoSaveStatus()
-		lastSaveTime := m.GetLastSaveTime()
-		m.statusBar.UpdateAutoSaveStatus(status, lastSaveTime)
-	}
-
-	// Update editor features
-	m.statusBar.UpdateEditorFeatures(m.showLineNumbers, m.wordWrap, m.autoIndent, m.bracketMatching)
-
-	// Update current file path
-	if m.statusBar != nil {
-		filename := "Untitled"
-		if m.currentFilePath != "" {
-			filename = filepath.Base(m.currentFilePath)
-		}
-		m.statusBar.UpdateFileInfo(filename)
-	}
-
-	// Update shortcut hints
-	hints := m.GetShortcutHints()
-	m.statusBar.UpdateShortcutHints(hints)
-
-	// Update dimensions and responsive mode
-	m.statusBar.SetDimensions(m.width, 1)
-	m.statusBar.UpdateResponsiveMode(m.width)
-	
-	// Update knowledge base status
-	m.updateKnowledgeBaseStatus()
+// GetAIAgent returns the current AI agent
+func (m *EditorPaneModel) GetAIAgent() *ai.QuickIdeaAgent {
+	return m.ai.GetAIAgent()
 }
+
+// Shortcut management methods
+
+// GetShortcutManager returns the shortcut manager
+func (m *EditorPaneModel) GetShortcutManager() *ShortcutManager {
+	return m.shortcuts.GetShortcutManager()
+}
+
+// SetShortcutContext sets the keyboard shortcut context
+func (m *EditorPaneModel) SetShortcutContext(context KeyContext) {
+	m.shortcuts.SetShortcutContext(context)
+}
+
+// GetShortcutHints returns shortcut hints for the status bar
+func (m *EditorPaneModel) GetShortcutHints() string {
+	return m.shortcuts.GetShortcutHints()
+}
+
+// HasStatusBar indicates whether the editor has an initialized status bar component
+func (m *EditorPaneModel) HasStatusBar() bool {
+	return m.metrics != nil && m.metrics.GetStatusBar() != nil
+}
+
+// IsContinueMode reports whether the AI continue mode is active.
+func (m *EditorPaneModel) IsContinueMode() bool {
+	return m.ai.IsContinueMode()
+}
+
+// IsVariationMode reports whether the AI variation mode is active.
+func (m *EditorPaneModel) IsVariationMode() bool {
+	return m.ai.IsVariationMode()
+}
+
+// IsRapidBrainstorm reports whether the AI rapid brainstorm mode is active.
+func (m *EditorPaneModel) IsRapidBrainstorm() bool {
+	return m.ai.IsRapidBrainstorm()
+}
+
+// GetBrainstormTheme returns the current brainstorm theme.
+func (m *EditorPaneModel) GetBrainstormTheme() string {
+	return m.ai.GetBrainstormTheme()
+}
+
+// GetVariationOriginal returns the original text used for variation mode.
+func (m *EditorPaneModel) GetVariationOriginal() string {
+	return m.ai.GetVariationOriginal()
+}
+
+// UpdateStatusBar refreshes status metrics manually
+func (m *EditorPaneModel) UpdateStatusBar() {
+	if m.metrics != nil {
+		m.metrics.UpdateStatusBar(m.state, m.ai)
+	}
+}
+
+// UpdateZoomLevel propagates preview zoom level to the status bar
+func (m *EditorPaneModel) UpdateZoomLevel(zoomLevel int) {
+	if m.metrics != nil {
+		m.metrics.UpdateZoomLevel(zoomLevel)
+	}
+}
+
+// UpdateShortcutHints updates shortcut hints in the status bar
+func (m *EditorPaneModel) UpdateShortcutHints(hints string) {
+	if m.metrics != nil {
+		m.metrics.UpdateShortcutHints(hints)
+	}
+}
+
+// GetStatusBar exposes the underlying status bar for package-level consumers
+func (m *EditorPaneModel) GetStatusBar() *StatusBarModel {
+	if m.metrics == nil {
+		return nil
+	}
+	return m.metrics.GetStatusBar()
+}
+
+// File operations
+
+// GetCurrentFilePath returns the current file path
+func (m *EditorPaneModel) GetCurrentFilePath() string {
+	return m.state.GetCurrentFilePath()
+}
+
+// GetFileService returns the file service
+func (m *EditorPaneModel) GetFileService() *files.Service {
+	return m.state.GetFileService()
+}
+
+// Editor mode methods
+
+// SetScratchMode sets the scratch mode
+func (m *EditorPaneModel) SetScratchMode(scratchMode bool) {
+	m.state.SetScratchMode(scratchMode)
+}
+
+// IsScratchMode returns whether the editor is in scratch mode
+func (m *EditorPaneModel) IsScratchMode() bool {
+	return m.state.IsScratchMode()
+}
+
+// SetEditorMode sets the editor mode
+func (m *EditorPaneModel) SetEditorMode(mode EditorMode) {
+	m.state.SetEditorMode(mode)
+}
+
+// GetEditorMode returns the current editor mode
+func (m *EditorPaneModel) GetEditorMode() EditorMode {
+	return m.state.GetEditorMode()
+}
+
+// AI methods
+
+// StartRapidBrainstorm starts rapid brainstorm
+func (m *EditorPaneModel) StartRapidBrainstorm(theme string) {
+	m.ai.StartRapidBrainstorm(theme)
+}
+
+// StartContinueMode starts continue mode
+func (m *EditorPaneModel) StartContinueMode() {
+	m.ai.StartContinueMode()
+}
+
+// StartVariationMode starts variation mode
+func (m *EditorPaneModel) StartVariationMode(selectedText string) {
+	m.ai.StartVariationMode(selectedText)
+}
+
+// ForceSave performs an immediate save through the state component
+func (m *EditorPaneModel) ForceSave() error {
+	return m.state.ForceSave()
+}
+
+// Private helper methods
 
 // updateSyntaxHighlighting updates the syntax highlighting elements
 func (m *EditorPaneModel) updateSyntaxHighlighting() {
-	content := m.textarea.Value()
+	content := m.state.GetText()
 	m.elements = m.highlighter.ParseMarkdown(content)
 }
 
@@ -740,7 +629,7 @@ func (m *EditorPaneModel) addLineNumbers(content string) string {
 	var numberedLines []string
 
 	for i, line := range lines {
-		lineNum := fmt.Sprintf("%*d", m.lineNumbersWidth, i+1)
+		lineNum := fmt.Sprintf("%*d", 4, i+1)
 		lineNumber := m.lineNumberStyle.Render(lineNum)
 		numberedLine := lineNumber + " " + line
 		numberedLines = append(numberedLines, numberedLine)
@@ -749,1123 +638,24 @@ func (m *EditorPaneModel) addLineNumbers(content string) string {
 	return strings.Join(numberedLines, "\n")
 }
 
-// renderStatusBar renders the status bar with editor features info
-func (m *EditorPaneModel) renderStatusBar() string {
-	if m.statusBar == nil {
-		// Fallback to old implementation if status bar not initialized
-		var features []string
-
-		if m.showLineNumbers {
-			features = append(features, "L")
-		}
-		if m.wordWrap {
-			features = append(features, "W")
-		}
-		if m.autoIndent {
-			features = append(features, "I")
-		}
-		if m.bracketMatching {
-			features = append(features, "B")
-		}
-
-		featuresStr := strings.Join(features, " ")
-
-		// Add auto-save status
-		autoSaveStatus := ""
-		if m.autoSaveService != nil {
-			status := m.GetAutoSaveStatus()
-			switch status {
-			case app.AutoSaveSaving:
-				autoSaveStatus = " Saving..."
-			case app.AutoSaveSuccess:
-				autoSaveStatus = " Saved"
-			case app.AutoSaveError:
-				autoSaveStatus = " Save Error"
-			default:
-				// Show last save time for idle status
-				if !m.GetLastSaveTime().IsZero() {
-					autoSaveStatus = fmt.Sprintf(" Saved %s", m.GetLastSaveTime().Format("15:04:05"))
-				}
-			}
-		}
-
-		// Combine editor status and auto-save status
-		editorStatus := fmt.Sprintf("Ln %d, Col %d | %s", m.cursorLine+1, m.cursorColumn+1, featuresStr)
-		if autoSaveStatus != "" {
-			editorStatus = fmt.Sprintf("%s |%s", editorStatus, autoSaveStatus)
-		}
-
-		// Add shortcut hints if available
-		if m.shortcutManager != nil {
-			hints := m.shortcutManager.GetStatusBarHints()
-			if hints != "" {
-				editorStatus = fmt.Sprintf("%s | %s", editorStatus, hints)
-			}
-		}
-
-		statusStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#888888")).
-			Background(lipgloss.Color("#2D2D2D")).
-			Padding(0, 1).
-			Width(m.width - 4)
-
-		return statusStyle.Render(editorStatus)
-	}
-
-	// Use the new status bar component
-	return m.statusBar.View()
-}
-
-// performSearch performs search operation
-func (m *EditorPaneModel) performSearch() {
-	content := m.textarea.Value()
-	m.searchMatches = nil
-
-	if m.searchQuery == "" {
-		return
-	}
-
-	// Simple search implementation
-	lines := strings.Split(content, "\n")
-	for i, line := range lines {
-		if strings.Contains(line, m.searchQuery) {
-			m.searchMatches = append(m.searchMatches, i)
-		}
-	}
-
-	m.currentMatch = 0
-	if len(m.searchMatches) > 0 {
-		m.cursorLine = m.searchMatches[0]
-	}
-}
-
-// nextSearchMatch moves to the next search match
-func (m *EditorPaneModel) nextSearchMatch() {
-	if len(m.searchMatches) == 0 {
-		return
-	}
-
-	m.currentMatch = (m.currentMatch + 1) % len(m.searchMatches)
-	m.cursorLine = m.searchMatches[m.currentMatch]
-}
-
-// previousSearchMatch moves to the previous search match
-func (m *EditorPaneModel) previousSearchMatch() {
-	if len(m.searchMatches) == 0 {
-		return
-	}
-
-	m.currentMatch = (m.currentMatch - 1 + len(m.searchMatches)) % len(m.searchMatches)
-	m.cursorLine = m.searchMatches[m.currentMatch]
-}
-
-// handleAutoIndent handles automatic indentation for new lines
-func (m *EditorPaneModel) handleAutoIndent() {
-	content := m.textarea.Value()
-	lines := strings.Split(content, "\n")
-
-	if m.cursorLine > 0 {
-		prevLine := lines[m.cursorLine-1]
-		indent := ""
-
-		// Count leading spaces and tabs
-		for _, r := range prevLine {
-			if r == ' ' || r == '\t' {
-				indent += string(r)
-			} else {
-				break
-			}
-		}
-
-		if indent != "" {
-			// Insert indentation at cursor position
-			m.textarea.InsertString(indent)
-		}
-	}
-}
-
-// insertTab inserts a tab or handles indentation
-// TODO: Uncomment when tab insertion functionality is needed
-// func (m *EditorPaneModel) insertTab() {
-// 	// Insert 2 spaces instead of tab
-// 	m.textarea.InsertString("  ")
-// }
-
-// SetAutoSaveService sets the auto-save service for this editor pane
-func (m *EditorPaneModel) SetAutoSaveService(service *app.AutoSaveService) {
-	m.autoSaveService = service
-	if service != nil {
-		service.SetStatusChangeCallback(m.onAutoSaveStatusChange)
-		service.SetErrorCallback(m.onAutoSaveError)
-	}
-}
-
-// SetFileService sets the file service for this editor pane
-func (m *EditorPaneModel) SetFileService(service *files.Service) {
-	m.fileService = service
-}
-
-// SetExportService sets the export service for this editor pane
-func (m *EditorPaneModel) SetExportService(service *export.ExportService) {
-	m.exportService = service
-}
-
-// SetThemeManager sets the theme manager for this editor pane
-func (m *EditorPaneModel) SetThemeManager(manager *styles.ThemeManager) {
-	m.themeManager = manager
-}
-
-// handleAutoSave handles auto-save triggers on content changes
-func (m *EditorPaneModel) handleAutoSave() {
-	if m.autoSaveService == nil {
-		return
-	}
-
-	currentContent := m.textarea.Value()
-
-	// Only trigger auto-save if content has actually changed
-	if currentContent != m.lastContent {
-		m.lastContent = currentContent
-		
-		// Update current song with editor content
-		if m.currentSong != nil {
-			m.currentSong.RawContent = currentContent
-			
-			// Use song-specific auto-save if we have a song ID
-			if m.currentSong.ID > 0 {
-				versionName := fmt.Sprintf("Auto-save %s", time.Now().Format("2006-01-02 15:04:05"))
-				if err := m.autoSaveService.SaveWithVersioning(m.currentSong.ID, currentContent, false, versionName); err != nil {
-					// Use proper error handling instead of printf
-					m.onAutoSaveError(err)
-				}
-				return
-			}
-		}
-		
-		// Fallback to general auto-save
-		m.autoSaveService.SaveContent(currentContent)
-	}
-}
-
-// onAutoSaveStatusChange handles auto-save status changes
-func (m *EditorPaneModel) onAutoSaveStatusChange(status app.AutoSaveStatus) {
-	m.lastSaveStatus = status
-	m.updateStatusBar()
-}
-
-// onAutoSaveError handles auto-save errors
-func (m *EditorPaneModel) onAutoSaveError(err error) {
-	// Log the error properly instead of printf
-	if err != nil {
-		// In a full implementation, this would show a user notification
-		// For now, we'll just update the status
-		m.lastSaveStatus = app.AutoSaveError
-		m.updateStatusBar()
-	}
-}
-
-// ForceSave performs an immediate save
-func (m *EditorPaneModel) ForceSave() error {
-	if m.autoSaveService == nil {
-		return fmt.Errorf("auto-save service not initialized")
-	}
-
-	content := m.textarea.Value()
-	return m.autoSaveService.ForceSave(content)
-}
-
-// GetAutoSaveStatus returns the current auto-save status
-func (m *EditorPaneModel) GetAutoSaveStatus() app.AutoSaveStatus {
-	if m.autoSaveService == nil {
-		return app.AutoSaveIdle
-	}
-	return m.autoSaveService.GetStatus()
-}
-
-// GetLastSaveTime returns when the last save occurred
-func (m *EditorPaneModel) GetLastSaveTime() time.Time {
-	if m.autoSaveService == nil {
-		return time.Time{}
-	}
-	return m.autoSaveService.GetLastSaveTime()
-}
-
-// SetSong sets the current song being edited
-func (m *EditorPaneModel) SetSong(song *domain.Song) {
-	m.currentSong = song
-	if song != nil {
-		m.SetText(song.RawContent)
-	}
-}
-
-// GetSong returns the current song being edited
-func (m *EditorPaneModel) GetSong() *domain.Song {
-	return m.currentSong
-}
-
-// SaveSong saves the current content as a version of the current song
-func (m *EditorPaneModel) SaveSong(isMilestone bool, name string) error {
-	if m.autoSaveService == nil {
-		return fmt.Errorf("auto-save service not initialized")
-	}
-	if m.currentSong == nil {
-		return fmt.Errorf("no current song set")
-	}
-
-	// Update current song with editor content before saving
-	content := m.textarea.Value()
-	m.currentSong.RawContent = content
-
-	// Use auto-save with song ID for both regular saves and milestones
-	// The auto-save service will handle the proper versioning
-	return m.autoSaveService.SaveWithVersioning(m.currentSong.ID, content, isMilestone, name)
-}
-
-// CreateMilestone creates a milestone version of the current song
-func (m *EditorPaneModel) CreateMilestone(name string) error {
-	return m.SaveSong(true, name)
-}
-
-// GetVersionHistory returns the version history for the current song
-func (m *EditorPaneModel) GetVersionHistory() ([]*domain.Version, error) {
-	if m.autoSaveService == nil {
-		return nil, fmt.Errorf("auto-save service not initialized")
-	}
-	if m.currentSong == nil {
-		return nil, fmt.Errorf("no current song set")
-	}
-
-	return m.autoSaveService.GetVersionHistory(m.currentSong.ID, 0)
-}
-
-// RecoverFromLastSave recovers content from the last auto-save for the current song
-func (m *EditorPaneModel) RecoverFromLastSave() error {
-	if m.autoSaveService == nil {
-		return fmt.Errorf("auto-save service not initialized")
-	}
-	if m.currentSong == nil {
-		return fmt.Errorf("no current song set")
-	}
-
-	content, err := m.autoSaveService.RecoverFromLastSave(m.currentSong.ID)
-	if err != nil {
-		return err
-	}
-
-	m.SetText(content)
-	return nil
-}
-
-// GetSaveStatistics returns save statistics for the current song
-func (m *EditorPaneModel) GetSaveStatistics() (*app.SaveStatistics, error) {
-	if m.autoSaveService == nil {
-		return nil, fmt.Errorf("auto-save service not initialized")
-	}
-	if m.currentSong == nil {
-		return nil, fmt.Errorf("no current song set")
-	}
-
-	return m.autoSaveService.GetSaveStatistics(m.currentSong.ID)
-}
-
-// handleShortcutAction handles actions from the keyboard shortcut system
-func (m *EditorPaneModel) handleShortcutAction(action ShortcutAction) {
-	switch action.Type {
-	case ActionToggleLineNumbers:
-		m.showLineNumbers = !m.showLineNumbers
-		m.updateStatusBar()
-	case ActionToggleWordWrap:
-		m.wordWrap = !m.wordWrap
-		m.updateStatusBar()
-	case ActionToggleAutoIndent:
-		m.autoIndent = !m.autoIndent
-		m.updateStatusBar()
-	case ActionToggleBracketMatching:
-		m.bracketMatching = !m.bracketMatching
-		m.updateStatusBar()
-	case ActionFind:
-		m.searchMode = true
-		m.searchQuery = ""
-	case ActionReplace:
-		if m.searchMode {
-			m.replaceQuery = ""
-		}
-	case ActionFindNext:
-		if m.searchMode {
-			m.nextSearchMatch()
-		}
-	case ActionFindPrev:
-		if m.searchMode {
-			m.previousSearchMatch()
-		}
-	case ActionSave:
-		if m.autoSaveService != nil {
-			err := m.ForceSave()
-			if err != nil {
-				// Use proper error handling
-				m.onAutoSaveError(err)
-			}
-		}
-	case ActionSelectAll:
-		// Select all text - implementation depends on textarea capabilities
-		// For now, this is a placeholder that would need custom implementation
-	case ActionCopy:
-		// Copy selected text - implementation depends on textarea capabilities
-		// For now, this is a placeholder that would need custom implementation
-	case ActionPaste:
-		// Paste from clipboard - implementation depends on textarea capabilities
-		// For now, this is a placeholder that would need custom implementation
-	case ActionCut:
-		// Cut selected text - implementation depends on textarea capabilities
-		// For now, this is a placeholder that would need custom implementation
-	case ActionUndo:
-		// Note: Bubble Tea textarea doesn't have built-in undo/redo
-		// This would need custom implementation
-	case ActionRedo:
-		// Note: Bubble Tea textarea doesn't have built-in undo/redo
-		// This would need custom implementation
-	case ActionStartOfLine:
-		m.moveCursorToStartOfLine()
-	case ActionEndOfLine:
-		m.moveCursorToEndOfLine()
-	case ActionStartOfFile:
-		m.moveCursorToStartOfFile()
-	case ActionEndOfFile:
-		m.moveCursorToEndOfFile()
-	case ActionPrevWord:
-		m.moveCursorToPrevWord()
-	case ActionNextWord:
-		m.moveCursorToNextWord()
-	case ActionSelectToStartOfLine:
-		m.selectToStartOfLine()
-	case ActionSelectToEndOfLine:
-		m.selectToEndOfLine()
-	case ActionSelectToStartOfFile:
-		m.selectToStartOfFile()
-	case ActionSelectToEndOfFile:
-		m.selectToEndOfFile()
-	case ActionSelectLeft:
-		m.selectLeft()
-	case ActionSelectRight:
-		m.selectRight()
-	case ActionSelectUp:
-		m.selectUp()
-	case ActionSelectDown:
-		m.selectDown()
-	case ActionPageUp:
-		m.pageUp()
-	case ActionPageDown:
-		m.pageDown()
-	case ActionGoToLine:
-		m.goToLine()
-	case ActionNewFile:
-		m.newFile()
-	case ActionOpenFile:
-		m.openFile()
-	case ActionSaveAs:
-		m.saveAs()
-	case ActionCloseFile:
-		m.closeFile()
-	case ActionQuit:
-		// This should be handled by parent model
-	case ActionSettings:
-		// This should be handled by parent model
-	case ActionExport:
-		// Export current content
-		if m.exportService != nil {
-			content := m.textarea.Value()
-			title := "Untitled"
-			if m.currentFilePath != "" {
-				title = filepath.Base(m.currentFilePath)
-				title = strings.TrimSuffix(title, filepath.Ext(title))
-			}
-			
-			// Perform quick export
-			_, err := m.exportService.QuickExport(content, title)
-			if err != nil {
-				// Use proper error handling
-				m.onAutoSaveError(err)
-			}
-		}
-	case ActionTheoryTools:
-		// This should be handled by parent model
-	case ActionAudioTools:
-		// This should be handled by parent model
-	case ActionToggleHelp:
-		// Help mode is handled by shortcut manager
-	case ActionChordPicker:
-		// Show chord picker
-		if m.chordPicker != nil {
-			m.chordPicker.visible = true
-			m.chordPicker.insertCallback = m.insertChords
-			m.chordPicker.selectedIdx = 0
-			m.chordPicker.activeMood = "all"
-			m.chordPicker.showAll = true
-			m.chordPicker.animationTime = time.Now()
-			
-			// Load progressions if not already loaded
-			if !m.chordPicker.loaded {
-				if progressions, err := data.GetAllChordProgressions(); err == nil {
-					m.chordPicker.progressions = progressions
-					m.chordPicker.filteredProg = progressions
-					m.chordPicker.loaded = true
-				}
-			}
-		}
-	case ActionBPMTapper:
-		// Show BPM tapper
-		if m.bpmTapper != nil {
-			m.bpmTapper.visible = true
-			m.bpmTapper.setBMPCallback = m.setBPM
-			m.bpmTapper.reset()
-		}
-	case ActionBackToMenu:
-		// This should be handled by parent model
-	// AI Quick Actions
-	case ActionAIUnstick:
-		m.StartContinueMode()
-	case ActionAISpark:
-		m.StartRapidBrainstorm("new theme") // Will prompt user in full implementation
-	case ActionAITweak:
-		// Get current line or selected text for variation
-		content := m.textarea.Value()
-		lines := strings.Split(content, "\n")
-		if len(lines) > 0 {
-			lastLine := lines[len(lines)-1]
-			if lastLine != "" {
-				m.StartVariationMode(lastLine)
-			}
-		}
-	case ActionAICheck:
-		// Perform quality check on current content
-		m.performQualityCheck()
-	}
-}
-
-// Cursor movement helper methods
-func (m *EditorPaneModel) moveCursorToStartOfLine() {
-	// Implementation would depend on textarea capabilities
-	// For now, this is a placeholder
-}
-
-func (m *EditorPaneModel) moveCursorToEndOfLine() {
-	// Implementation would depend on textarea capabilities
-	// For now, this is a placeholder
-}
-
-func (m *EditorPaneModel) moveCursorToStartOfFile() {
-	// Implementation would depend on textarea capabilities
-	// For now, this is a placeholder
-}
-
-func (m *EditorPaneModel) moveCursorToEndOfFile() {
-	// Implementation would depend on textarea capabilities
-	// For now, this is a placeholder
-}
-
-func (m *EditorPaneModel) moveCursorToPrevWord() {
-	// Implementation would depend on textarea capabilities
-	// For now, this is a placeholder
-}
-
-func (m *EditorPaneModel) moveCursorToNextWord() {
-	// Implementation would depend on textarea capabilities
-	// For now, this is a placeholder
-}
-
-// Text selection helper methods
-func (m *EditorPaneModel) selectToStartOfLine() {
-	// Implementation would depend on textarea capabilities
-	// For now, this is a placeholder
-}
-
-func (m *EditorPaneModel) selectToEndOfLine() {
-	// Implementation would depend on textarea capabilities
-	// For now, this is a placeholder
-}
-
-func (m *EditorPaneModel) selectToStartOfFile() {
-	// Implementation would depend on textarea capabilities
-	// For now, this is a placeholder
-}
-
-func (m *EditorPaneModel) selectToEndOfFile() {
-	// Implementation would depend on textarea capabilities
-	// For now, this is a placeholder
-}
-
-func (m *EditorPaneModel) selectLeft() {
-	// Implementation would depend on textarea capabilities
-	// For now, this is a placeholder
-}
-
-func (m *EditorPaneModel) selectRight() {
-	// Implementation would depend on textarea capabilities
-	// For now, this is a placeholder
-}
-
-func (m *EditorPaneModel) selectUp() {
-	// Implementation would depend on textarea capabilities
-	// For now, this is a placeholder
-}
-
-func (m *EditorPaneModel) selectDown() {
-	// Implementation would depend on textarea capabilities
-	// For now, this is a placeholder
-}
-
-// Navigation helper methods
-func (m *EditorPaneModel) pageUp() {
-	// Implementation would depend on textarea capabilities
-	// For now, this is a placeholder
-}
-
-func (m *EditorPaneModel) pageDown() {
-	// Implementation would depend on textarea capabilities
-	// For now, this is a placeholder
-}
-
-// Feature helper methods
-func (m *EditorPaneModel) goToLine() {
-	// Implementation for go to line functionality
-	// For now, this is a placeholder
-}
-
-func (m *EditorPaneModel) newFile() {
-	// Clear current content and reset state
-	m.SetText("")
-	m.currentFilePath = ""
-	m.currentSong = nil
-	m.updateStatusBar()
-}
-
-func (m *EditorPaneModel) openFile() {
-	// For now, we'll use a simple approach - in a full implementation,
-	// this would show a file dialog. For this demo, we'll show available files
-	// and let the user choose via a simple text input
-
-	if m.fileService == nil {
-		// Use proper error handling instead of printf
-		return
-	}
-
-	// List available song files
-	songFiles, err := m.fileService.ListSongs()
-	if err != nil {
-		// Use proper error handling instead of printf
-		return
-	}
-
-	if len(songFiles) == 0 {
-		// Use proper error handling instead of printf
-		return
-	}
-
-	// For this implementation, we'll just open the first file as a demo
-	// In a full implementation, this would show a file picker
-	fileToOpen := songFiles[0]
-
-	song, err := m.fileService.ReadSong(fileToOpen)
-	if err != nil {
-		// Use proper error handling instead of printf
-		return
-	}
-
-	m.SetText(song.RawContent)
-	m.currentFilePath = fileToOpen
-	m.currentSong = song
-	m.updateStatusBar()
-
-	// Remove printf - the status bar update is sufficient
-}
-
-func (m *EditorPaneModel) saveAs() {
-	if m.fileService == nil {
-		// Use proper error handling instead of printf
-		return
-	}
-
-	content := m.GetText()
-
-	// For this implementation, we'll use a simple filename
-	// In a full implementation, this would show a save dialog
-	filename := "untitled.md"
-	if m.currentFilePath != "" {
-		filename = filepath.Base(m.currentFilePath)
-	}
-
-	// Create a basic song structure for saving
-	song := &domain.Song{
-		Metadata: domain.SongMetadata{
-			Title:     "Untitled Song",
-			Artist:    "Unknown Artist",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		},
-		Sections: []domain.Section{
-			{
-				Type:   domain.SectionVerse,
-				Number: 1,
-				Lines:  []domain.Line{},
-			},
-		},
-		RawContent: content,
-	}
-
-	err := m.fileService.WriteSong(song, filename)
-	if err != nil {
-		// Use proper error handling instead of printf
-		return
-	}
-
-	m.currentFilePath = filename
-	m.updateStatusBar()
-
-	// Remove printf - the status bar update is sufficient
-}
-
-func (m *EditorPaneModel) closeFile() {
-	// Clear current content and reset state
-	m.SetText("")
-	m.currentFilePath = ""
-	m.currentSong = nil
-	m.updateStatusBar()
-}
-
-// GetShortcutManager returns the shortcut manager for external access
-func (m *EditorPaneModel) GetShortcutManager() *ShortcutManager {
-	return m.shortcutManager
-}
-
-// SetShortcutContext sets the keyboard shortcut context
-func (m *EditorPaneModel) SetShortcutContext(context KeyContext) {
-	if m.shortcutManager != nil {
-		m.shortcutManager.SetContext(context)
-	}
-}
-
-// GetShortcutHints returns shortcut hints for the status bar
-func (m *EditorPaneModel) GetShortcutHints() string {
-	if m.shortcutManager != nil {
-		return m.shortcutManager.GetStatusBarHints()
-	}
-	return ""
-}
-
-// GetCurrentFilePath returns the current file path
-func (m *EditorPaneModel) GetCurrentFilePath() string {
-	return m.currentFilePath
-}
-
-// GetFileService returns the file service for external access
-func (m *EditorPaneModel) GetFileService() *files.Service {
-	return m.fileService
-}
-
-// SetScratchMode sets the scratch mode for the editor
-func (m *EditorPaneModel) SetScratchMode(scratchMode bool) {
-	m.scratchMode = scratchMode
-	m.updateStatusBar()
-}
-
-// IsScratchMode returns whether the editor is in scratch mode
-func (m *EditorPaneModel) IsScratchMode() bool {
-	return m.scratchMode
-}
-
-// SetEditorMode sets the editor mode (Sketch/Draft/Polish)
-func (m *EditorPaneModel) SetEditorMode(mode EditorMode) {
-	m.editorMode = mode
-	m.updateStatusBar()
-}
-
-// GetEditorMode returns the current editor mode
-func (m *EditorPaneModel) GetEditorMode() EditorMode {
-	return m.editorMode
-}
-
-// StartRapidBrainstorm starts the rapid brainstorm flow with the given theme
-func (m *EditorPaneModel) StartRapidBrainstorm(theme string) {
-	m.rapidBrainstorm = true
-	m.brainstormTheme = theme
-	
-	// For now, we'll use placeholder angles
-	// In a full implementation, this would call the AI service
-	m.brainstormAngles = []string{
-		"Explore " + theme + " through personal memories",
-		"Use nature imagery to symbolize " + theme,
-		"Focus on sensory details related to " + theme,
-	}
-	
-	m.updateStatusBar()
-}
-
-// GetBrainstormAngles returns the current brainstorm angles
-func (m *EditorPaneModel) GetBrainstormAngles() []string {
-	return m.brainstormAngles
-}
-
-// SelectBrainstormAngle selects a brainstorm angle and generates an opening line
-func (m *EditorPaneModel) SelectBrainstormAngle(index int) {
-	if index < 0 || index >= len(m.brainstormAngles) {
-		return
-	}
-	
-	selectedAngle := m.brainstormAngles[index]
-	
-	// For now, we'll use a placeholder opening line
-	// In a full implementation, this would call the AI service
-	openingLine := "Opening line for: " + selectedAngle
-	
-	// Insert the opening line at the current cursor position
-	currentContent := m.textarea.Value()
-	if currentContent != "" {
-		openingLine = "\n" + openingLine
-	}
-	m.textarea.SetValue(currentContent + openingLine)
-	
-	// Clear brainstorm state
-	m.rapidBrainstorm = false
-	m.brainstormTheme = ""
-	m.brainstormAngles = nil
-	
-	m.updateStatusBar()
-}
-
-// StartContinueMode starts the continue writing mode
-func (m *EditorPaneModel) StartContinueMode() {
-	m.continueMode = true
-	
-	// For now, we'll use placeholder suggestions
-	// In a full implementation, this would call the AI service
-	m.continueSuggestions = []string{
-		"Continue with this line...",
-		"Or try this alternative...",
-		"Perhaps this direction...",
-	}
-}
-
-// GetContinueSuggestions returns the current continue suggestions
-func (m *EditorPaneModel) GetContinueSuggestions() []string {
-	return m.continueSuggestions
-}
-
-// SelectContinueSuggestion selects a continue suggestion
-func (m *EditorPaneModel) SelectContinueSuggestion(index int) {
-	if index < 0 || index >= len(m.continueSuggestions) {
-		return
-	}
-	
-	selectedLine := m.continueSuggestions[index]
-	
-	// Insert the selected line at the current cursor position
-	currentContent := m.textarea.Value()
-	if currentContent != "" {
-		selectedLine = "\n" + selectedLine
-	}
-	m.textarea.SetValue(currentContent + selectedLine)
-	
-	// Clear continue mode
-	m.continueMode = false
-	m.continueSuggestions = nil
-	
-	m.updateStatusBar()
-}
-
-// CancelContinueMode cancels the continue writing mode
-func (m *EditorPaneModel) CancelContinueMode() {
-	m.continueMode = false
-	m.continueSuggestions = nil
-	m.updateStatusBar()
-}
-
-// StartVariationMode starts the variation mode for the selected text
-func (m *EditorPaneModel) StartVariationMode(selectedText string) {
-	m.variationMode = true
-	m.variationOriginal = selectedText
-	
-	// For now, we'll use placeholder variations
-	// In a full implementation, this would call the AI service
-	m.variationOptions = []string{
-		"Variation 1 of: " + selectedText,
-		"Variation 2 of: " + selectedText,
-		"Variation 3 of: " + selectedText,
-	}
-}
-
-// GetVariationOptions returns the current variation options
-func (m *EditorPaneModel) GetVariationOptions() []string {
-	return m.variationOptions
-}
-
-// SelectVariation selects a variation option
-func (m *EditorPaneModel) SelectVariation(index int) {
-	if index < 0 || index >= len(m.variationOptions) {
-		return
-	}
-	
-	selectedVariation := m.variationOptions[index]
-	
-	// Replace the original text with the selected variation
-	// For now, we'll just append it
-	// In a full implementation, this would replace the selected text
-	currentContent := m.textarea.Value()
-	if currentContent != "" {
-		selectedVariation = "\n" + selectedVariation
-	}
-	m.textarea.SetValue(currentContent + selectedVariation)
-	
-	// Clear variation mode
-	m.variationMode = false
-	m.variationOriginal = ""
-	m.variationOptions = nil
-	
-	m.updateStatusBar()
-}
-
-// CancelVariationMode cancels the variation mode
-func (m *EditorPaneModel) CancelVariationMode() {
-	m.variationMode = false
-	m.variationOriginal = ""
-	m.variationOptions = nil
-	m.updateStatusBar()
-}
-
-// renderBrainstormOverlay renders the brainstorm overlay UI
-func (m *EditorPaneModel) renderBrainstormOverlay() string {
-	if !m.rapidBrainstorm || len(m.brainstormAngles) == 0 {
-		return ""
-	}
-	
-	// Create overlay style
-	overlayStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(styles.Accent).
-		Padding(0, 1).
-		Width(m.width - 8).
-		Background(styles.Dark2)
-	
-	// Create title
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(styles.Primary).
-		Align(lipgloss.Center)
-	
-	title := titleStyle.Render("Theme: " + m.brainstormTheme)
-	
-	// Create angle options
-	var angleOptions []string
-	for i, angle := range m.brainstormAngles {
-		angleOption := fmt.Sprintf("[%d] %s", i+1, angle)
-		angleOptions = append(angleOptions, angleOption)
-	}
-	
-	anglesText := strings.Join(angleOptions, "\n")
-	
-	// Create instructions
-	instructions := "Press 1-3 to select, Esc to cancel"
-	instructionStyle := lipgloss.NewStyle().
-		Foreground(styles.TextMuted).
-		Align(lipgloss.Center).
-		Italic(true)
-	
-	instructionsText := instructionStyle.Render(instructions)
-	
-	// Combine all elements
-	content := lipgloss.JoinVertical(lipgloss.Left, title, "", anglesText, "", instructionsText)
-	
-	return overlayStyle.Render(content)
-}
-
-// renderContinueOverlay renders the continue writing overlay UI
-func (m *EditorPaneModel) renderContinueOverlay() string {
-	if !m.continueMode || len(m.continueSuggestions) == 0 {
-		return ""
-	}
-	
-	// Create overlay style
-	overlayStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(styles.Info).
-		Padding(0, 1).
-		Width(m.width - 8).
-		Background(styles.Dark2)
-	
-	// Create title
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(styles.Info).
-		Align(lipgloss.Center)
-	
-	title := titleStyle.Render("Continue with:")
-	
-	// Create suggestion options
-	var suggestionOptions []string
-	for i, suggestion := range m.continueSuggestions {
-		suggestionOption := fmt.Sprintf("[%d] %s", i+1, suggestion)
-		suggestionOptions = append(suggestionOptions, suggestionOption)
-	}
-	
-	suggestionsText := strings.Join(suggestionOptions, "\n")
-	
-	// Create instructions
-	instructions := "Press 1-3 to select, Esc to write manually"
-	instructionStyle := lipgloss.NewStyle().
-		Foreground(styles.TextMuted).
-		Align(lipgloss.Center).
-		Italic(true)
-	
-	instructionsText := instructionStyle.Render(instructions)
-	
-	// Combine all elements
-	content := lipgloss.JoinVertical(lipgloss.Left, title, "", suggestionsText, "", instructionsText)
-	
-	return overlayStyle.Render(content)
-}
-
-// renderVariationOverlay renders the variation overlay UI
-func (m *EditorPaneModel) renderVariationOverlay() string {
-	if !m.variationMode || len(m.variationOptions) == 0 {
-		return ""
-	}
-	
-	// Create overlay style
-	overlayStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(styles.Success).
-		Padding(0, 1).
-		Width(m.width - 8).
-		Background(styles.Dark2)
-	
-	// Create title
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(styles.Success).
-		Align(lipgloss.Center)
-	
-	title := titleStyle.Render("Variations for:")
-	
-	// Show original text
-	originalStyle := lipgloss.NewStyle().
-		Foreground(styles.TextSecondary).
-		Italic(true)
-	
-	originalText := originalStyle.Render(m.variationOriginal)
-	
-	// Create variation options
-	var variationOptions []string
-	for i, variation := range m.variationOptions {
-		variationOption := fmt.Sprintf("[%d] %s", i+1, variation)
-		variationOptions = append(variationOptions, variationOption)
-	}
-	
-	variationsText := strings.Join(variationOptions, "\n")
-	
-	// Create instructions
-	instructions := "Press 1-3 to replace, Enter to keep original, Esc to cancel"
-	instructionStyle := lipgloss.NewStyle().
-		Foreground(styles.TextMuted).
-		Align(lipgloss.Center).
-		Italic(true)
-	
-	instructionsText := instructionStyle.Render(instructions)
-	
-	// Combine all elements
-	content := lipgloss.JoinVertical(lipgloss.Left, title, "", originalText, "", variationsText, "", instructionsText)
-	
-	return overlayStyle.Render(content)
-}
-
 // insertChords inserts the selected chords into the editor
 func (m *EditorPaneModel) insertChords(chords []string) {
 	// Format chords as a string
 	chordStr := strings.Join(chords, " - ")
-	
+
 	// Get current content
-	currentContent := m.textarea.Value()
-	
+	currentContent := m.state.GetText()
+
 	// Add chords to content with proper formatting
 	if currentContent != "" {
 		chordStr = "\n\n" + chordStr
 	}
-	
+
 	// Insert chords at cursor position
-	m.textarea.SetValue(currentContent + chordStr)
-	
+	m.state.SetText(currentContent + chordStr)
+
 	// Update syntax highlighting
 	m.updateSyntaxHighlighting()
-	
-	// Update status bar
-	m.updateStatusBar()
-}
-
-// performQualityCheck performs a quality check on the current content
-func (m *EditorPaneModel) performQualityCheck() {
-	// For now, we'll use a placeholder implementation
-	// In a full implementation, this would call the AI service
-	content := m.textarea.Value()
-	if content == "" {
-		return
-	}
-	
-	// Placeholder quality check results
-	// In a full implementation, this would use the QuickIdeaAgent
-	qualityRating := "OKAY"
-	qualityTip := "Add vivid sensory image"
-	
-	// Create a simple overlay to show the quality check result
-	// For now, we'll just add it as a comment
-	qualityComment := fmt.Sprintf("\n\n<!-- Quality Check: %s - %s -->", qualityRating, qualityTip)
-	
-	// Get current content
-	currentContent := m.textarea.Value()
-	
-	// Add quality check result to content
-	m.textarea.SetValue(currentContent + qualityComment)
-	
-	// Update syntax highlighting
-	m.updateSyntaxHighlighting()
-	
-	// Update status bar
-	m.updateStatusBar()
-}
-
-// updateKnowledgeBaseStatus updates the knowledge base status in the status bar
-func (m *EditorPaneModel) updateKnowledgeBaseStatus() {
-	if m.aiAgent != nil && m.statusBar != nil {
-		ctx := context.Background()
-		available := m.aiAgent.IsKnowledgeBaseAvailable(ctx)
-		status := m.aiAgent.GetKnowledgeBaseStatus(ctx)
-		
-		if status != nil {
-			statusText := "KB: "
-			if available {
-				statusText += "Stub"
-				if status.CardCount > 0 {
-					statusText += fmt.Sprintf(" (%d cards)", status.CardCount)
-				}
-			} else {
-				statusText += "Unavailable"
-			}
-			
-			m.statusBar.UpdateKnowledgeBaseStatus(available, statusText)
-		} else {
-			m.statusBar.UpdateKnowledgeBaseStatus(false, "KB: Error")
-		}
-	}
-}
-
-// SetAIAgent sets the AI agent for this editor pane
-func (m *EditorPaneModel) SetAIAgent(agent *ai.QuickIdeaAgent) {
-	m.aiAgent = agent
-	if agent != nil {
-		m.updateKnowledgeBaseStatus()
-	}
-}
-
-// GetAIAgent returns the current AI agent
-func (m *EditorPaneModel) GetAIAgent() *ai.QuickIdeaAgent {
-	return m.aiAgent
 }
 
 // setBPM sets the BPM in the current pattern
@@ -1873,16 +663,152 @@ func (m *EditorPaneModel) setBPM(bpm int) {
 	// For now, just add a comment with the BPM
 	// In a full implementation, this would update the pattern data
 	bpmComment := fmt.Sprintf("\n\n<!-- BPM: %d -->", bpm)
-	
+
 	// Get current content
-	currentContent := m.textarea.Value()
-	
+	currentContent := m.state.GetText()
+
 	// Add BPM comment to content
-	m.textarea.SetValue(currentContent + bpmComment)
-	
+	m.state.SetText(currentContent + bpmComment)
+
 	// Update syntax highlighting
 	m.updateSyntaxHighlighting()
-	
-	// Update status bar
-	m.updateStatusBar()
+}
+
+// AI helper methods for backward compatibility
+
+// CancelBrainstormMode cancels brainstorm mode
+func (m *EditorPaneModel) CancelBrainstormMode() {
+	m.ai.CancelBrainstormMode()
+}
+
+// CancelContinueMode cancels continue mode
+func (m *EditorPaneModel) CancelContinueMode() {
+	m.ai.CancelContinueMode()
+}
+
+// CancelVariationMode cancels variation mode
+func (m *EditorPaneModel) CancelVariationMode() {
+	m.ai.CancelVariationMode()
+}
+
+// GetBrainstormAngles returns brainstorm angles
+func (m *EditorPaneModel) GetBrainstormAngles() []string {
+	return m.ai.GetBrainstormAngles()
+}
+
+// GetContinueSuggestions returns continue suggestions
+func (m *EditorPaneModel) GetContinueSuggestions() []string {
+	return m.ai.GetContinueSuggestions()
+}
+
+// GetVariationOptions returns variation options
+func (m *EditorPaneModel) GetVariationOptions() []string {
+	return m.ai.GetVariationOptions()
+}
+
+// handleAIShortcut processes AI-related shortcut actions.
+func (m *EditorPaneModel) handleAIShortcut(action ShortcutAction) bool {
+	switch action.Type {
+	case ActionAIUnstick:
+		m.ai.StartContinueMode()
+		return true
+
+	case ActionAISpark:
+		theme := m.deriveBrainstormTheme()
+		m.ai.StartRapidBrainstorm(theme)
+		return true
+
+	case ActionAITweak:
+		selection := m.deriveVariationSelection()
+		if selection == "" {
+			return true
+		}
+		m.ai.StartVariationMode(selection)
+		return true
+
+	case ActionAICheck:
+		m.ai.PerformQualityCheck(m.state)
+		return true
+
+	case ActionBackToMenu:
+		return m.cancelActiveAIModes()
+	}
+
+	return false
+}
+
+func (m *EditorPaneModel) cancelActiveAIModes() bool {
+	var cancelled bool
+
+	if m.ai.IsContinueMode() {
+		m.ai.CancelContinueMode()
+		cancelled = true
+	}
+
+	if m.ai.IsVariationMode() {
+		m.ai.CancelVariationMode()
+		cancelled = true
+	}
+
+	if m.ai.IsRapidBrainstorm() {
+		m.ai.CancelBrainstormMode()
+		cancelled = true
+	}
+
+	return cancelled
+}
+
+// deriveBrainstormTheme returns a non-empty theme for brainstorm mode.
+func (m *EditorPaneModel) deriveBrainstormTheme() string {
+	text := strings.TrimSpace(m.state.GetText())
+	if text == "" {
+		return "Song Inspiration"
+	}
+
+	for _, line := range strings.Split(text, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if trimmed != "" {
+			return trimmed
+		}
+	}
+
+	return "Song Inspiration"
+}
+
+// deriveVariationSelection returns representative text for variation mode.
+func (m *EditorPaneModel) deriveVariationSelection() string {
+	text := m.state.GetText()
+	if strings.TrimSpace(text) == "" {
+		return ""
+	}
+
+	lines := strings.Split(text, "\n")
+	for i := len(lines) - 1; i >= 0; i-- {
+		trimmed := strings.TrimSpace(lines[i])
+		if trimmed != "" {
+			return trimmed
+		}
+	}
+
+	return ""
+}
+
+// SelectBrainstormAngle selects a brainstorm angle
+func (m *EditorPaneModel) SelectBrainstormAngle(index int) {
+	m.ai.SelectBrainstormAngle(index, m.state)
+}
+
+// SelectContinueSuggestion selects a continue suggestion
+func (m *EditorPaneModel) SelectContinueSuggestion(index int) {
+	m.ai.SelectContinueSuggestion(index, m.state)
+}
+
+// SelectVariation selects a variation
+func (m *EditorPaneModel) SelectVariation(index int) {
+	m.ai.SelectVariation(index, m.state)
+}
+
+// PerformQualityCheck performs a quality check
+func (m *EditorPaneModel) PerformQualityCheck() {
+	m.ai.PerformQualityCheck(m.state)
 }

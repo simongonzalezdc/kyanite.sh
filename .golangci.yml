@@ -1,0 +1,88 @@
+run:
+  timeout: 5m
+  issues-exit-code: 1
+  tests: true
+  modules-download-mode: readonly
+
+output:
+  formats:
+    - format: colored-line-number
+  sort-results: true
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-use-default: false
+  exclude-dirs:
+    - vendor
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gosec
+        - funlen
+        - gocyclo
+    - path: internal/ui/.*\.go
+      text: "(cyclomatic complexity|function is too long)"
+      linters:
+        - gocyclo
+        - funlen
+
+linters:
+  disable-all: true
+  enable:
+    - govet
+    - staticcheck
+    - gosimple
+    - unused
+    - errcheck
+    - ineffassign
+    - typecheck
+    - gofmt
+    - gofumpt
+    - goimports
+    - revive
+    - gocyclo
+    - dupl
+    - unparam
+    - prealloc
+    - goconst
+    - gocritic
+    - misspell
+    - gosec
+    - funlen
+    - nolintlint
+
+linters-settings:
+  gocyclo:
+    min-complexity: 20
+  funlen:
+    lines: 120
+    statements: 80
+  govet:
+    enable:
+      - fieldalignment
+  revive:
+    severity: warning
+    ignore-generated-header: true
+    rules:
+      - name: exported
+        arguments:
+          - disableStutteringCheck
+  gosec:
+    severity: medium
+    confidence: medium
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - performance
+      - style
+    disabled-checks:
+      - dupImport
+  misspell:
+    locale: US
+    ignore-words:
+      - noop
+  dupl:
+    threshold: 150
+  prealloc:
+    simple: true

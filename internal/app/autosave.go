@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	errutil "github.com/puente-labs/noise/internal/errutil"
 	"github.com/puente-labs/noise/internal/domain"
 	"github.com/puente-labs/noise/internal/infra/db"
 )
@@ -121,6 +122,9 @@ type AutoSaveService struct {
 	lastSaveTime time.Time
 	lastContent  string
 	contentMutex sync.RWMutex
+
+	// Write serialization mutex to prevent concurrent database operations
+	writeMutex sync.Mutex
 
 	// Internal lifecycle
 	started bool
@@ -404,12 +408,42 @@ func (s *AutoSaveService) performSave(content string) error {
 
 // executeSave performs the actual database save operation
 func (s *AutoSaveService) executeSave(content string) error {
+	// Serialize database writes to prevent "database is locked" errors
+	s.writeMutex.Lock()
+	defer s.writeMutex.Unlock()
+
 	// For now, we'll save as a version without a specific song ID
 	// In a full implementation, this would be associated with the current song
 	versionName := fmt.Sprintf("Auto-save %s", time.Now().Format("2006-01-02 15:04:05"))
-	_, err := s.db.SaveVersion(0, content, false, versionName)
-	if err != nil {
-		return fmt.Errorf("failed to save auto-save version: %w", err)
+
+	// Add retry logic specifically for lock errors
+	var lastErr error
+	maxLockRetries := 3
+	lockRetryDelay := 50 * time.Millisecond
+
+	for attempt := 0; attempt <= maxLockRetries; attempt++ {
+		if attempt > 0 {
+			log.Printf("Database lock retry attempt %d/%d", attempt, maxLockRetries)
+			time.Sleep(lockRetryDelay)
+			lockRetryDelay *= 2 // Exponential backoff
+		}
+
+		_, err := s.db.SaveVersion(0, content, false, versionName)
+		if err != nil {
+			lastErr = err
+			// Check if it's a database lock error
+			if strings.Contains(err.Error(), "database is locked") ||
+			   strings.Contains(err.Error(), "locked") ||
+			   strings.Contains(err.Error(), "busy") {
+				if attempt < maxLockRetries {
+					continue // Retry on lock errors
+				}
+			}
+			return errutil.Wrapf(lastErr, "save auto-save version after %d attempts", attempt+1)
+		}
+
+		// Success - break out of retry loop
+		break
 	}
 
 	s.contentMutex.Lock()
@@ -468,6 +502,10 @@ func (s *AutoSaveService) SaveWithVersioning(songID int, content string, isMiles
 
 // executeSaveWithVersioning performs the actual versioned save operation
 func (s *AutoSaveService) executeSaveWithVersioning(songID int, content string, isMilestone bool, name string) error {
+	// Serialize database writes to prevent "database is locked" errors
+	s.writeMutex.Lock()
+	defer s.writeMutex.Unlock()
+
 	// Ensure we have a proper version name
 	if strings.TrimSpace(name) == "" {
 		if isMilestone {
@@ -477,9 +515,34 @@ func (s *AutoSaveService) executeSaveWithVersioning(songID int, content string, 
 		}
 	}
 
-	_, err := s.db.SaveVersion(songID, content, isMilestone, name)
-	if err != nil {
-		return fmt.Errorf("failed to save versioned content: %w", err)
+	// Add retry logic specifically for lock errors
+	var lastErr error
+	maxLockRetries := 3
+	lockRetryDelay := 50 * time.Millisecond
+
+	for attempt := 0; attempt <= maxLockRetries; attempt++ {
+		if attempt > 0 {
+			log.Printf("Versioned save lock retry attempt %d/%d", attempt, maxLockRetries)
+			time.Sleep(lockRetryDelay)
+			lockRetryDelay *= 2 // Exponential backoff
+		}
+
+		_, err := s.db.SaveVersion(songID, content, isMilestone, name)
+		if err != nil {
+			lastErr = err
+			// Check if it's a database lock error
+			if strings.Contains(err.Error(), "database is locked") ||
+			   strings.Contains(err.Error(), "locked") ||
+			   strings.Contains(err.Error(), "busy") {
+				if attempt < maxLockRetries {
+					continue // Retry on lock errors
+				}
+			}
+			return errutil.Wrapf(lastErr, "save versioned content after %d attempts", attempt+1)
+		}
+
+		// Success - break out of retry loop
+		break
 	}
 
 	s.contentMutex.Lock()
@@ -500,17 +563,45 @@ func (s *AutoSaveService) GetVersionHistory(songID int, limit int) ([]*domain.Ve
 
 // CleanupOldVersions removes old versions beyond the configured limit
 func (s *AutoSaveService) CleanupOldVersions(songID int) error {
+	// Serialize database writes to prevent "database is locked" errors
+	s.writeMutex.Lock()
+	defer s.writeMutex.Unlock()
+
 	versions, err := s.db.GetVersions(songID, s.config.MaxVersions+1)
 	if err != nil {
-		return fmt.Errorf("failed to get versions for cleanup: %w", err)
+		return errutil.Wrap(err, "get versions for cleanup")
 	}
 
 	// Keep the latest MaxVersions, delete the rest
 	if len(versions) > s.config.MaxVersions {
 		for _, version := range versions[s.config.MaxVersions:] {
-			err := s.db.DeleteVersion(version.ID)
-			if err != nil {
-				log.Printf("Failed to delete old version %d: %v", version.ID, err)
+			// Add retry logic for delete operations too
+			var deleteErr error
+			maxDeleteRetries := 3
+			deleteRetryDelay := 50 * time.Millisecond
+
+			for attempt := 0; attempt <= maxDeleteRetries; attempt++ {
+				if attempt > 0 {
+					time.Sleep(deleteRetryDelay)
+					deleteRetryDelay *= 2
+				}
+
+				deleteErr = s.db.DeleteVersion(version.ID)
+				if deleteErr == nil {
+					break // Success
+				}
+
+				// Check if it's a lock error
+				if strings.Contains(deleteErr.Error(), "database is locked") ||
+				   strings.Contains(deleteErr.Error(), "locked") ||
+				   strings.Contains(deleteErr.Error(), "busy") {
+					if attempt < maxDeleteRetries {
+						continue // Retry on lock errors
+					}
+				}
+
+				log.Printf("Failed to delete old version %d after %d attempts: %v", version.ID, attempt+1, deleteErr)
+				break
 			}
 		}
 	}
@@ -522,7 +613,7 @@ func (s *AutoSaveService) CleanupOldVersions(songID int) error {
 func (s *AutoSaveService) RecoverFromLastSave(songID int) (string, error) {
 	versions, err := s.db.GetVersions(songID, 1)
 	if err != nil {
-		return "", fmt.Errorf("failed to get last version for recovery: %w", err)
+		return "", errutil.Wrap(err, "get last version for recovery")
 	}
 
 	if len(versions) == 0 {
@@ -541,7 +632,7 @@ func (s *AutoSaveService) CreateMilestone(songID int, content string, name strin
 func (s *AutoSaveService) GetMilestones(songID int) ([]*domain.Version, error) {
 	versions, err := s.db.GetVersions(songID, 100) // Get more versions to filter milestones
 	if err != nil {
-		return nil, fmt.Errorf("failed to get versions: %w", err)
+		return nil, errutil.Wrap(err, "get versions")
 	}
 
 	var milestones []*domain.Version
@@ -558,7 +649,7 @@ func (s *AutoSaveService) GetMilestones(songID int) ([]*domain.Version, error) {
 func (s *AutoSaveService) RestoreVersion(versionID int) (string, error) {
 	version, err := s.db.GetVersion(versionID)
 	if err != nil {
-		return "", fmt.Errorf("failed to get version for restore: %w", err)
+		return "", errutil.Wrap(err, "get version for restore")
 	}
 
 	return version.Content, nil
@@ -568,7 +659,7 @@ func (s *AutoSaveService) RestoreVersion(versionID int) (string, error) {
 func (s *AutoSaveService) GetSaveStatistics(songID int) (*SaveStatistics, error) {
 	versions, err := s.db.GetVersions(songID, 1000)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get versions for statistics: %w", err)
+		return nil, errutil.Wrap(err, "get versions for statistics")
 	}
 
 	stats := &SaveStatistics{

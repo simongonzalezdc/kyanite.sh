@@ -36,8 +36,8 @@ type bpmTapperModel struct {
 	instructionStyle lipgloss.Style
 }
 
-// newBPMTapperModel creates a new BPM tapper model
-func newBPMTapperModel() *bpmTapperModel {
+// NewBPMTapperModel creates a new BPM tapper model
+func NewBPMTapperModel() *bpmTapperModel {
 	return &bpmTapperModel{
 		visible:     false,
 		currentBPM:  120, // Default 120 BPM

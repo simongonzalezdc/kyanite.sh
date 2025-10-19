@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	errutil "github.com/puente-labs/noise/internal/errutil"
 )
 
 // ExportService handles the export functionality
@@ -27,7 +29,7 @@ func (es *ExportService) Export(content string, options *ExportOptions) (string,
 	// Format the export
 	export, err := es.formatter.FormatExport(content, options)
 	if err != nil {
-		return "", fmt.Errorf("failed to format export: %w", err)
+		return "", errutil.Wrap(err, "format export")
 	}
 	
 	// Generate output path if not provided
@@ -43,7 +45,7 @@ func (es *ExportService) Export(content string, options *ExportOptions) (string,
 	
 	// Save to file
 	if err := es.formatter.SaveToFile(export, outputPath); err != nil {
-		return "", fmt.Errorf("failed to save export: %w", err)
+		return "", errutil.Wrap(err, "save export")
 	}
 	
 	return outputPath, nil
@@ -128,13 +130,13 @@ func (es *ExportService) ListExports() ([]string, error) {
 	
 	// Ensure output directory exists
 	if err := os.MkdirAll(es.outputDir, 0755); err != nil {
-		return nil, fmt.Errorf("failed to create output directory: %w", err)
+		return nil, errutil.Wrap(err, "create output directory")
 	}
 	
 	// Read directory
 	entries, err := os.ReadDir(es.outputDir)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read output directory: %w", err)
+		return nil, errutil.Wrap(err, "read output directory")
 	}
 	
 	// Filter for JSON files
@@ -156,7 +158,7 @@ func (es *ExportService) DeleteExport(filename string) error {
 	
 	// Delete file
 	if err := os.Remove(filename); err != nil {
-		return fmt.Errorf("failed to delete export: %w", err)
+		return errutil.Wrap(err, "delete export")
 	}
 	
 	return nil

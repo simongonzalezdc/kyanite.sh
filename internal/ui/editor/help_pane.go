@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/puente-labs/noise/internal/ui/dimension"
 	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
@@ -581,8 +582,11 @@ func (m *HelpPaneModel) renderCompactSearchResults() string {
 
 // SetDimensions sets the pane dimensions
 func (m *HelpPaneModel) SetDimensions(width, height int) {
-	m.width = width
-	m.height = height
+	dimension.Set(&m.width, &m.height, width, height)
+}
+
+func (m *HelpPaneModel) GetDimensions() (int, int) {
+	return m.width, m.height
 }
 
 // Focus focuses the help pane

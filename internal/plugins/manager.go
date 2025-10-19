@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/puente-labs/noise/internal/config"
+	errutil "github.com/puente-labs/noise/internal/errutil"
 	"github.com/puente-labs/noise/internal/logging"
 )
 
@@ -132,22 +133,22 @@ func (m *DefaultManager) loadCompiledPlugin(path string) error {
 func (m *DefaultManager) loadManifestPlugin(manifestPath string) error {
 	// Validate plugin file for security
 	if err := m.security.ValidatePluginFile(manifestPath); err != nil {
-		return fmt.Errorf("plugin security validation failed: %w", err)
+		return errutil.Wrap(err, "plugin security validation failed")
 	}
 
 	data, err := os.ReadFile(manifestPath)
 	if err != nil {
-		return fmt.Errorf("failed to read manifest: %w", err)
+		return errutil.Wrap(err, "read manifest")
 	}
 
 	var metadata PluginMetadata
 	if err := json.Unmarshal(data, &metadata); err != nil {
-		return fmt.Errorf("failed to parse manifest: %w", err)
+		return errutil.Wrap(err, "parse manifest")
 	}
 
 	// Validate plugin manifest for security
 	if err := m.security.ValidatePluginManifest(&metadata); err != nil {
-		return fmt.Errorf("plugin manifest validation failed: %w", err)
+		return errutil.Wrap(err, "plugin manifest validation failed")
 	}
 
 	// Sandbox the plugin
@@ -157,7 +158,7 @@ func (m *DefaultManager) loadManifestPlugin(manifestPath string) error {
 	}
 
 	if err := m.security.SandboxPlugin(stubPlugin); err != nil {
-		return fmt.Errorf("plugin sandboxing failed: %w", err)
+		return errutil.Wrap(err, "plugin sandboxing failed")
 	}
 
 	m.plugins[metadata.ID] = stubPlugin
@@ -243,7 +244,7 @@ func (m *DefaultManager) EnablePlugin(id string) error {
 	}
 
 	if err := p.Enable(); err != nil {
-		return fmt.Errorf("failed to enable plugin %s: %w", id, err)
+		return errutil.Wrapf(err, "enable plugin %s", id)
 	}
 
 	m.logger.Infof("Enabled plugin: %s", id)
@@ -256,12 +257,12 @@ func (m *DefaultManager) DisablePlugin(id string) error {
 	defer m.mutex.Unlock()
 
 	p, exists := m.plugins[id]
-	if !exists {
+	if (!exists) {
 		return fmt.Errorf("plugin %s not found", id)
 	}
 
 	if err := p.Disable(); err != nil {
-		return fmt.Errorf("failed to disable plugin %s: %w", id, err)
+		return errutil.Wrapf(err, "disable plugin %s", id)
 	}
 
 	m.logger.Infof("Disabled plugin: %s", id)

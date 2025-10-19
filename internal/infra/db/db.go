@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	errutil "github.com/puente-labs/noise/internal/errutil"
 	"github.com/puente-labs/noise/internal/domain"
 )
 
@@ -42,7 +43,7 @@ func New(cfg Config) (*DB, error) {
 	}
 
 	if err := os.MkdirAll(cfg.DataDir, 0o755); err != nil {
-		return nil, fmt.Errorf("failed to prepare data directory: %w", err)
+		return nil, errutil.Wrap(err, "prepare data directory")
 	}
 
 	dbPath := filepath.Join(cfg.DataDir, "noise.sh.db")
@@ -52,7 +53,7 @@ func New(cfg Config) (*DB, error) {
 		if isDriverUnavailable(err) {
 			return newFallbackDB(), nil
 		}
-		return nil, fmt.Errorf("failed to open database: %w", err)
+		return nil, errutil.Wrap(err, "open database")
 	}
 
 	if err := conn.Ping(); err != nil {
@@ -60,7 +61,7 @@ func New(cfg Config) (*DB, error) {
 		if isDriverUnavailable(err) {
 			return newFallbackDB(), nil
 		}
-		return nil, fmt.Errorf("failed to ping database: %w", err)
+		return nil, errutil.Wrap(err, "ping database")
 	}
 
 	// Configure connection pool
@@ -74,13 +75,13 @@ func New(cfg Config) (*DB, error) {
 		if isDriverUnavailable(err) {
 			return newFallbackDB(), nil
 		}
-		return nil, fmt.Errorf("failed to enable foreign keys: %w", err)
+		return nil, errutil.Wrap(err, "enable foreign keys")
 	}
 
 	// Create schema
 	if err := initializeSchema(conn); err != nil {
 		conn.Close()
-		return nil, fmt.Errorf("failed to initialize schema: %w", err)
+		return nil, errutil.Wrap(err, "initialize schema")
 	}
 
 	return &DB{
@@ -160,7 +161,7 @@ func (db *DB) Ping() error {
 // initializeSchema creates all tables if they don't exist
 func initializeSchema(conn *sql.DB) error {
 	if _, err := conn.Exec(Schema); err != nil {
-		return fmt.Errorf("failed to execute schema: %w", err)
+		return errutil.Wrap(err, "execute schema")
 	}
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -373,26 +374,26 @@ func TestAutoSaveDebouncing(t *testing.T) {
 
 	service := app.NewAutoSaveService(database, config)
 
-	// Start service
-	ctx := context.Background()
-	err = service.Start(ctx)
-	if err != nil {
-		t.Fatalf("Failed to start service: %v", err)
-	}
-	if err := service.Stop(); err != nil {
-		t.Logf("Warning: Failed to stop auto-save service: %v", err)
-	}
-
-	// Test rapid content changes (should be debounced)
+	// Test rapid content changes with debouncing
+	// When service is not started, SaveContent includes a debounce sleep
+	// When service is started, it uses channel-based debouncing
 	start := time.Now()
 	service.SaveContent("Content 1")
 	service.SaveContent("Content 2")
 	service.SaveContent("Content 3")
 	duration := time.Since(start)
 
-	// Should take at least the debounce duration
-	if duration < 100*time.Millisecond {
-		t.Error("Expected content changes to be debounced")
+	// Since the service is not started, each SaveContent call should include
+	// a debounce sleep of 100ms, so we expect at least 300ms total
+	minExpectedDuration := 250 * time.Millisecond // Allow some margin for timing variance
+	if duration < minExpectedDuration {
+		t.Errorf("Expected content changes to take at least %v due to debouncing, got %v", minExpectedDuration, duration)
+	}
+
+	// Test that the saves actually completed successfully
+	lastSaveTime := service.GetLastSaveTime()
+	if lastSaveTime.IsZero() {
+		t.Error("Expected debounced saves to complete and update last save time")
 	}
 }
 
@@ -519,29 +520,57 @@ func TestAutoSaveConcurrency(t *testing.T) {
 
 	service := app.NewAutoSaveService(database, nil)
 
-	// Start service
-	ctx := context.Background()
-	err = service.Start(ctx)
-	if err != nil {
-		t.Fatalf("Failed to start service: %v", err)
-	}
-	if err := service.Stop(); err != nil {
-		t.Logf("Warning: Failed to stop auto-save service: %v", err)
-	}
+	// Test concurrent saves without starting the service
+	// This tests the core concurrency fix - that multiple goroutines can call
+	// SaveContent/SaveWithVersioning without database lock errors
+	var errors []error
+	var mu sync.Mutex
 
 	// Test concurrent saves
 	done := make(chan bool, 10)
 	for i := 0; i < 10; i++ {
 		go func(id int) {
+			defer func() { done <- true }()
 			content := fmt.Sprintf("Concurrent save content %d", id)
-			service.SaveContent(content)
-			done <- true
+
+			// Test both regular saves and versioned saves concurrently
+			if id%2 == 0 {
+				err := service.ForceSave(content)
+				if err != nil {
+					mu.Lock()
+					errors = append(errors, err)
+					mu.Unlock()
+				}
+			} else {
+				err := service.SaveWithVersioning(id, content, false, fmt.Sprintf("Version %d", id))
+				if err != nil {
+					mu.Lock()
+					errors = append(errors, err)
+					mu.Unlock()
+				}
+			}
 		}(i)
 	}
 
 	// Wait for all goroutines to complete
 	for i := 0; i < 10; i++ {
 		<-done
+	}
+
+	// Check that no database lock errors occurred
+	mu.Lock()
+	lockErrors := 0
+	for _, err := range errors {
+		if strings.Contains(err.Error(), "database is locked") ||
+		   strings.Contains(err.Error(), "locked") ||
+		   strings.Contains(err.Error(), "busy") {
+			lockErrors++
+		}
+	}
+	mu.Unlock()
+
+	if lockErrors > 0 {
+		t.Errorf("Expected no database lock errors, got %d lock errors", lockErrors)
 	}
 
 	// Test that service handles concurrency without error

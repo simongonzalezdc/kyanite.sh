@@ -19,16 +19,20 @@ const (
 // ContextDetector analyzes content to determine if it's lyrics, patterns, or mixed
 type ContextDetector struct {
 	// Patterns for identifying different content types
-	lyricPatterns    []*regexp.Regexp
-	patternPatterns  []*regexp.Regexp
-	mixedThreshold   float64
-	analysisWindow   int // Number of lines to analyze for context
+	lyricPatterns           []*regexp.Regexp
+	patternPatterns         []*regexp.Regexp
+	lyricStructuralPatterns map[*regexp.Regexp]bool
+	lyricStrongPatterns     map[*regexp.Regexp]bool
+	lyricLexicalPatterns    map[*regexp.Regexp]bool
+	patternStrongPatterns   map[*regexp.Regexp]bool
+	mixedThreshold          float64
+	analysisWindow          int // Number of lines to analyze for context
 }
 
 // NewContextDetector creates a new context detector with default patterns
 func NewContextDetector() *ContextDetector {
 	detector := &ContextDetector{
-		mixedThreshold: 0.3, // 30% of one type qualifies as mixed
+		mixedThreshold: 0.45, // Require stronger presence from both types to be considered mixed
 		analysisWindow: 10,  // Analyze last 10 lines for context
 	}
 
@@ -49,7 +53,12 @@ func NewContextDetector() *ContextDetector {
 	detector.patternPatterns = []*regexp.Regexp{
 		// Chord progressions
 		regexp.MustCompile(`(?i)^\s*([A-G][#b]?(m|maj|min|dim|aug)?\s*[-|/]\s*)+[A-G][#b]?(m|maj|min|dim|aug)?\s*$`),
+		regexp.MustCompile(`(?i)^\s*(?:[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?)(?:\s+(?:[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?))*\s*$`), // Space-separated chords
+		regexp.MustCompile(`(?i)^\s*(?:verse|chorus|bridge|intro|outro|pre-chorus|prechorus)\s*:\s*(?:[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?)(?:\s*[-|/ ]\s*[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?)*\s*$`), // Section-labelled chords
 		regexp.MustCompile(`(?i)^\s*([IVX]+[\/]?\s*)+[IVX]+\s*$`), // Roman numerals
+		regexp.MustCompile(`(?i)^\s*(?:[IVX]+[ivx]?)(?:\s*[-|/ ]\s*(?:[IVX]+[ivx]?))*\s*$`),                          // Roman numeral sequences with separators
+		regexp.MustCompile(`(?i)^\s*(?:verse|chorus|bridge|intro|outro|pre-chorus|prechorus)\s*:\s*(?:[IVX]+[ivx]?)(?:\s*[-|/ ]\s*(?:[IVX]+[ivx]?))*\s*$`), // Section-labelled roman numerals
+		regexp.MustCompile(`(?i)^\s*\|(?:\s*[IVX]+[ivx]?\s*\|)+\s*$`),                                                 // Roman numeral grids with bars
 		// Musical notation
 		regexp.MustCompile(`(?i)^\s*(verse|chorus)\s*:\s*[A-G]`),
 		regexp.MustCompile(`(?i)^\s*tempo\s*:\s*\d+\s*bpm`),
@@ -58,12 +67,43 @@ func NewContextDetector() *ContextDetector {
 		regexp.MustCompile(`(?i)^\s*(bpm|tempo)\s*[:=]\s*\d+`),
 		// Drum patterns
 		regexp.MustCompile(`(?i)^\s*[xXoO\-\|]+\s*$`), // Drum notation
-		regexp.MustCompile(`(?i)^\s*(kick|snare|hihat|cymbal)\s*[:=]\s*[xXoO\-\|]+`),
+		regexp.MustCompile(`(?i)^\s*(kick|snare|hihat|hi-hat|ride|tom|floor tom|cymbal)\s*[:=]\s*[xXoO\-\|]+`),
 		// Pattern structures
 		regexp.MustCompile(`(?i)^\s*pattern\s*\d*\s*[:\-=]`),
 		regexp.MustCompile(`(?i)^\s*loop\s*\d*\s*[:\-=]`),
 		regexp.MustCompile(`(?i)^\s*beat\s*\d*\s*[:\-=]`),
 		regexp.MustCompile(`(?i)^\s*rhythm\s*\d*\s*[:\-=]`),
+	}
+
+	detector.lyricStructuralPatterns = map[*regexp.Regexp]bool{
+		detector.lyricPatterns[0]: true,
+		detector.lyricPatterns[1]: true,
+	}
+
+	detector.lyricStrongPatterns = map[*regexp.Regexp]bool{
+		detector.lyricPatterns[2]: true,
+		detector.lyricPatterns[3]: true,
+		detector.lyricPatterns[4]: true,
+		detector.lyricPatterns[5]: true,
+		detector.lyricPatterns[6]: true,
+	}
+
+	detector.lyricLexicalPatterns = map[*regexp.Regexp]bool{
+		detector.lyricPatterns[3]: true,
+		detector.lyricPatterns[4]: true,
+		detector.lyricPatterns[6]: true,
+	}
+
+	detector.patternStrongPatterns = map[*regexp.Regexp]bool{
+		detector.patternPatterns[0]:  true,
+		detector.patternPatterns[1]:  true,
+		detector.patternPatterns[2]:  true,
+		detector.patternPatterns[3]:  true,
+		detector.patternPatterns[4]:  true,
+		detector.patternPatterns[5]:  true,
+		detector.patternPatterns[6]:  true,
+		detector.patternPatterns[12]: true,
+		detector.patternPatterns[13]: true,
 	}
 
 	return detector
@@ -89,9 +129,12 @@ func (cd *ContextDetector) AnalyzeContent(content string) ContentType {
 	}
 
 	// Count matches for each content type
-	lyricScore := 0
-	patternScore := 0
+	lyricScore := 0.0
+	patternScore := 0.0
 	totalLines := len(recentLines)
+	strongLyricLines := 0
+	strongPatternLines := 0
+	lyricLexicalHits := 0
 
 	for _, line := range recentLines {
 		line = strings.TrimSpace(line)
@@ -99,51 +142,163 @@ func (cd *ContextDetector) AnalyzeContent(content string) ContentType {
 			continue
 		}
 
-		// Check for lyric patterns
+		lineLyricMatched := false
+		lineLyricStrong := false
+		lineLyricStructural := false
+		lineLyricLexical := false
 		for _, pattern := range cd.lyricPatterns {
 			if pattern.MatchString(line) {
-				lyricScore++
-				break // Only count once per line
+				lineLyricMatched = true
+				if cd.lyricStructuralPatterns != nil && cd.lyricStructuralPatterns[pattern] {
+					lineLyricStructural = true
+				}
+				if cd.lyricStrongPatterns != nil && cd.lyricStrongPatterns[pattern] {
+					lineLyricStrong = true
+				}
+				if cd.lyricLexicalPatterns != nil && cd.lyricLexicalPatterns[pattern] {
+					lineLyricLexical = true
+				}
 			}
 		}
 
-		// Check for pattern patterns
+		linePatternMatched := false
+		linePatternStrong := false
 		for _, pattern := range cd.patternPatterns {
 			if pattern.MatchString(line) {
-				patternScore++
-				break // Only count once per line
+				linePatternMatched = true
+				if cd.patternStrongPatterns != nil && cd.patternStrongPatterns[pattern] {
+					linePatternStrong = true
+				}
 			}
+		}
+
+		if linePatternMatched {
+			if linePatternStrong {
+				patternScore += 1.5
+				strongPatternLines++
+			} else {
+				patternScore += 1.0
+			}
+		}
+
+		if lineLyricMatched {
+			if linePatternMatched && lineLyricStructural && !lineLyricStrong {
+				continue
+			}
+
+			if lineLyricStrong {
+				if linePatternMatched {
+					lyricScore += 1.2
+				} else {
+					lyricScore += 1.5
+				}
+				strongLyricLines++
+			} else if !linePatternMatched {
+				lyricScore += 0.6
+			} else {
+				lyricScore += 0.4
+			}
+		}
+
+		if lineLyricLexical {
+			lyricLexicalHits++
 		}
 	}
 
 	// Normalize scores
-	lyricRatio := float64(lyricScore) / float64(totalLines)
-	patternRatio := float64(patternScore) / float64(totalLines)
+	rawLyricRatio := 0.0
+	rawPatternRatio := 0.0
+	if totalLines > 0 {
+		rawLyricRatio = lyricScore / float64(totalLines)
+		rawPatternRatio = patternScore / float64(totalLines)
+	}
+
+	lyricRatio := min(rawLyricRatio, 1.0)
+	patternRatio := min(rawPatternRatio, 1.0)
 
 	// Determine content type based on ratios
 	if lyricRatio == 0 && patternRatio == 0 {
 		return ContentTypeUnknown
 	}
 
-	if lyricRatio > 0.7 && patternRatio < 0.3 {
+	if totalLines <= 2 {
+		if patternRatio == 0 && rawLyricRatio < 0.85 {
+			return ContentTypeUnknown
+		}
+		if lyricRatio == 0 && rawPatternRatio < 0.85 {
+			return ContentTypeUnknown
+		}
+		if patternRatio == 0 && lyricLexicalHits == 0 {
+			return ContentTypeUnknown
+		}
+	}
+
+	if lyricScore > 0 && lyricLexicalHits == 0 && strongLyricLines == 0 && patternScore == 0 {
+		return ContentTypeUnknown
+	}
+
+	if strongLyricLines == 0 && patternScore == 0 && rawLyricRatio < 0.7 {
+		return ContentTypeUnknown
+	}
+
+	if strongPatternLines == 0 && lyricScore == 0 && rawPatternRatio < 0.7 {
+		return ContentTypeUnknown
+	}
+
+	strongPresenceThreshold := 0.75
+	secondaryPresenceThreshold := 0.2
+	dominanceMargin := 0.15
+	nearMixedThreshold := cd.mixedThreshold - 0.1
+	if nearMixedThreshold < 0.3 {
+		nearMixedThreshold = 0.3
+	}
+
+	// High-confidence single type detection
+	if lyricRatio >= strongPresenceThreshold && patternRatio <= secondaryPresenceThreshold {
 		return ContentTypeLyrics
 	}
 
-	if patternRatio > 0.7 && lyricRatio < 0.3 {
+	if patternRatio >= strongPresenceThreshold && lyricRatio <= secondaryPresenceThreshold {
 		return ContentTypePatterns
 	}
 
-	// If both have significant presence, it's mixed
+	// Mixed detection requires meaningful presence from both, with a softer fallback threshold
 	if lyricRatio >= cd.mixedThreshold && patternRatio >= cd.mixedThreshold {
 		return ContentTypeMixed
 	}
 
-	// Default to the dominant type
-	if lyricRatio > patternRatio {
+	if lyricRatio >= nearMixedThreshold && patternRatio >= nearMixedThreshold {
+		return ContentTypeMixed
+	}
+
+	// Apply dominance margin to reduce minor lyric priority bias
+	if lyricRatio-patternRatio >= dominanceMargin {
 		return ContentTypeLyrics
 	}
 
-	return ContentTypePatterns
+	if patternRatio-lyricRatio >= dominanceMargin {
+		return ContentTypePatterns
+	}
+
+	// Use absolute scores to resolve close calls
+	if patternScore > lyricScore {
+		return ContentTypePatterns
+	}
+
+	if lyricScore > patternScore {
+		return ContentTypeLyrics
+	}
+
+	// Fallbacks when ratios are very close
+	if lyricRatio > 0 && patternRatio > 0 {
+		return ContentTypeMixed
+	}
+
+	if patternRatio > 0 {
+		return ContentTypePatterns
+	}
+
+	return ContentTypeLyrics
 }
 
 // GetContextAnalysis provides detailed analysis of content

@@ -92,17 +92,16 @@ func (sm *ShortcutManager) initializeDefaultBindings() {
 	sm.registerBinding("ctrl+h", key.NewBinding(key.WithKeys("ctrl+h"), key.WithHelp("ctrl+h", "replace")), "Replace", ContextEditor, "Search")
 	sm.registerBinding("f3", key.NewBinding(key.WithKeys("f3"), key.WithHelp("f3", "find next")), "Find next", ContextEditor, "Search")
 	sm.registerBinding("shift+f3", key.NewBinding(key.WithKeys("shift+f3"), key.WithHelp("shift+f3", "find prev")), "Find previous", ContextEditor, "Search")
-	sm.registerBinding("ctrl+g", key.NewBinding(key.WithKeys("ctrl+g"), key.WithHelp("ctrl+g", "goto line")), "Go to line", ContextEditor, "Search")
 	
 	// Quick tools
 	sm.registerBinding("ctrl+f", key.NewBinding(key.WithKeys("ctrl+f"), key.WithHelp("ctrl+f", "chord picker")), "Chord picker", ContextEditor, "Tools")
 	sm.registerBinding("ctrl+t", key.NewBinding(key.WithKeys("ctrl+t"), key.WithHelp("ctrl+t", "bpm tapper")), "BPM tapper", ContextEditor, "Tools")
 	
 	// AI Quick Actions
-	sm.registerBinding("ctrl+g", key.NewBinding(key.WithKeys("ctrl+g"), key.WithHelp("ctrl+g", "ai unstick")), "AI unstick (next line)", ContextEditor, "AI")
-	sm.registerBinding("ctrl+r", key.NewBinding(key.WithKeys("ctrl+r"), key.WithHelp("ctrl+r", "ai spark")), "AI spark (new ideas)", ContextEditor, "AI")
-	sm.registerBinding("ctrl+v", key.NewBinding(key.WithKeys("ctrl+v"), key.WithHelp("ctrl+v", "ai tweak")), "AI tweak (variations)", ContextEditor, "AI")
-	sm.registerBinding("ctrl+shift+c", key.NewBinding(key.WithKeys("ctrl+shift+c"), key.WithHelp("ctrl+shift+c", "ai check")), "AI check (quality)", ContextEditor, "AI")
+	sm.registerBinding("alt+g", key.NewBinding(key.WithKeys("alt+g"), key.WithHelp("alt+g", "ai unstick")), "AI unstick (next line)", ContextEditor, "AI")
+	sm.registerBinding("alt+r", key.NewBinding(key.WithKeys("alt+r"), key.WithHelp("alt+r", "ai spark")), "AI spark (new ideas)", ContextEditor, "AI")
+	sm.registerBinding("alt+v", key.NewBinding(key.WithKeys("alt+v"), key.WithHelp("alt+v", "ai tweak")), "AI tweak (variations)", ContextEditor, "AI")
+	sm.registerBinding("alt+c", key.NewBinding(key.WithKeys("alt+c"), key.WithHelp("alt+c", "ai check")), "AI check (quality)", ContextEditor, "AI")
 
 	// File operations
 	sm.registerBinding("ctrl+n", key.NewBinding(key.WithKeys("ctrl+n"), key.WithHelp("ctrl+n", "new file")), "New file", ContextGlobal, "File")
@@ -114,7 +113,6 @@ func (sm *ShortcutManager) initializeDefaultBindings() {
 	
 	// Export format shortcuts
 	sm.registerBinding("ctrl+shift+m", key.NewBinding(key.WithKeys("ctrl+shift+m"), key.WithHelp("ctrl+shift+m", "export markdown")), "Export as Markdown", ContextGlobal, "File")
-	sm.registerBinding("ctrl+shift+t", key.NewBinding(key.WithKeys("ctrl+shift+t"), key.WithHelp("ctrl+shift+t", "export text")), "Export as Plain Text", ContextGlobal, "File")
 	sm.registerBinding("ctrl+shift+p", key.NewBinding(key.WithKeys("ctrl+shift+p"), key.WithHelp("ctrl+shift+p", "export chordpro")), "Export as ChordPro", ContextGlobal, "File")
 
 	// Editor features
@@ -285,8 +283,7 @@ func (sm *ShortcutManager) createActionFromBinding(binding *KeyBinding, keyStr s
 		action.Type = ActionFindNext
 	case keyStr == "shift+f3":
 		action.Type = ActionFindPrev
-	case keyStr == "ctrl+g":
-		action.Type = ActionGoToLine
+	// ctrl+g is now only used for AI unstick
 	
 	// Quick tools actions
 	case keyStr == "ctrl+f":
@@ -295,13 +292,13 @@ func (sm *ShortcutManager) createActionFromBinding(binding *KeyBinding, keyStr s
 		action.Type = ActionBPMTapper
 	
 	// AI Quick Actions
-	case keyStr == "ctrl+g":
+	case keyStr == "alt+g":
 		action.Type = ActionAIUnstick
-	case keyStr == "ctrl+r":
+	case keyStr == "alt+r":
 		action.Type = ActionAISpark
-	case keyStr == "ctrl+v":
+	case keyStr == "alt+v":
 		action.Type = ActionAITweak
-	case keyStr == "ctrl+shift+c":
+	case keyStr == "alt+c":
 		action.Type = ActionAICheck
 
 	// File operations
@@ -320,8 +317,7 @@ func (sm *ShortcutManager) createActionFromBinding(binding *KeyBinding, keyStr s
 	// Export format shortcuts
 	case keyStr == "ctrl+shift+m":
 		action.Type = ActionExportMarkdown
-	case keyStr == "ctrl+shift+t":
-		action.Type = ActionExportPlainText
+	// ctrl+shift+t is now only used for theory tools
 	case keyStr == "ctrl+shift+p":
 		action.Type = ActionExportChordPro
 
@@ -436,7 +432,7 @@ func (sm *ShortcutManager) GetStatusBarHints() string {
 	// Context-specific hints
 	switch sm.context {
 	case ContextEditor:
-		editorHints := []string{"Ctrl+G:Unstick", "Ctrl+R:Spark", "Ctrl+V:Tweak", "Ctrl+Shift+C:Check", "Ctrl+F:Chords", "Ctrl+S:Save", "Tab:Next Pane"}
+		editorHints := []string{"Alt+G:Unstick", "Alt+R:Spark", "Alt+V:Tweak", "Alt+C:Check", "Ctrl+F:Chords", "Ctrl+S:Save", "Tab:Next Pane"}
 		hints = append(hints, editorHints...)
 	case ContextPreview:
 		previewHints := []string{"↑↓:Navigate", "Space:Next Page", "Tab:Next Pane"}

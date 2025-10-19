@@ -283,19 +283,19 @@ func TestFindRhymesPhonetic(t *testing.T) {
 
 func TestCountSyllablesInText(t *testing.T) {
 	dict := NewDictionary()
-	
+
 	testCases := []struct {
 		text     string
 		expected int
 	}{
 		{"hello world", 3},
-		{"the quick brown fox", 6},
+		{"the quick brown fox", 4}, // Corrected: the(1) + quick(1) + brown(1) + fox(1)
 		{"", 0},
 		{"   ", 0},
 		{"a", 1},
 		{"hello, world!", 3}, // Should handle punctuation
 	}
-	
+
 	for _, tc := range testCases {
 		result, err := dict.CountSyllablesInText(tc.text)
 		if err != nil {

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	
+
 	"github.com/puente-labs/noise/internal/app/knowledge"
 )
 
@@ -29,6 +29,13 @@ const (
 	defaultQuickIdeaModel = "qwen2.5:3b"
 )
 
+var supportedQuickIdeaModes = map[QuickIdeaMode]struct{}{
+	QuickIdeaModeUnstick: {},
+	QuickIdeaModeSpark:   {},
+	QuickIdeaModeTweak:   {},
+	QuickIdeaModeCheck:   {},
+}
+
 // QuickRequest encapsulates the data required to run a QuickIdeaAgent interaction.
 type QuickRequest struct {
 	Mode    QuickIdeaMode
@@ -48,13 +55,13 @@ type QuickResponse struct {
 // By default it uses a stubbed client so the application can run without Ollama,
 // while providing hooks to integrate the real qwen2.5:3b model when available.
 type QuickIdeaAgent struct {
-	client         QuickLLMClient
-	model          string
-	timeout        time.Duration
-	prompts        quickIdeaPrompts
+	client          QuickLLMClient
+	model           string
+	timeout         time.Duration
+	prompts         quickIdeaPrompts
 	contextDetector *ContextDetector
-	contextPrompts *ContextAwarePrompts
-	knowledgeBase  knowledge.EnhancementProvider
+	contextPrompts  *ContextAwarePrompts
+	knowledgeBase   knowledge.EnhancementProvider
 }
 
 // QuickLLMClient is a minimal interface that can be satisfied by the Ollama client.
@@ -70,7 +77,7 @@ func NewQuickIdeaAgent() *QuickIdeaAgent {
 	contextPrompts := NewContextAwarePrompts()
 	contextPrompts.Initialize()
 	kbProvider := knowledge.NewStubEnhancementProvider()
-	
+
 	return &QuickIdeaAgent{
 		client:          &stubQuickClient{},
 		model:           defaultQuickIdeaModel,
@@ -127,15 +134,19 @@ func (a *QuickIdeaAgent) Generate(ctx context.Context, req QuickRequest) (*Quick
 		return nil, errors.New("quick idea request missing mode")
 	}
 
+	if !isSupportedQuickIdeaMode(req.Mode) {
+		return nil, fmt.Errorf("quick idea mode %q is not supported", req.Mode)
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, a.timeout)
 	defer cancel()
 
 	// Detect content type for context-aware prompts
 	contentType := a.contextDetector.AnalyzeContent(req.Context)
-	
+
 	// Enhance with knowledge base if available
 	kbEnhanced := a.enhanceWithKnowledgeBase(ctx, req, contentType)
-	
+
 	// Use context-aware prompts if available
 	var prompt string
 	if a.contextPrompts != nil {
@@ -147,13 +158,13 @@ func (a *QuickIdeaAgent) Generate(ctx context.Context, req QuickRequest) (*Quick
 
 	start := time.Now()
 	output, err := a.invoke(ctx, prompt)
-	duration := time.Since(start)
+	elapsed := ensurePositiveDuration(time.Since(start))
 
 	if err != nil || len(strings.TrimSpace(output)) == 0 {
 		fallback := a.generateContextAwareFallback(req, contentType)
 		// Apply knowledge base enhancement to fallback
 		a.applyKnowledgeBaseToFallback(fallback, kbEnhanced, req.Mode)
-		fallback.ResponseTime = duration
+		fallback.ResponseTime = elapsed
 		return fallback, nil
 	}
 
@@ -163,7 +174,7 @@ func (a *QuickIdeaAgent) Generate(ctx context.Context, req QuickRequest) (*Quick
 		// Apply knowledge base enhancement to fallback
 		a.applyKnowledgeBaseToFallback(resp, kbEnhanced, req.Mode)
 	}
-	resp.ResponseTime = duration
+	resp.ResponseTime = elapsed
 	return resp, nil
 }
 
@@ -195,7 +206,7 @@ func (a *QuickIdeaAgent) generateContextAwareFallback(req QuickRequest, contentT
 		if len(lines) > 0 {
 			prefix = lines[len(lines)-1]
 		}
-		
+
 		// Generate context-aware suggestions
 		switch contentType {
 		case ContentTypeLyrics:
@@ -231,13 +242,13 @@ func (a *QuickIdeaAgent) generateContextAwareFallback(req QuickRequest, contentT
 				},
 			}
 		}
-		
+
 	case QuickIdeaModeSpark:
 		theme := strings.TrimSpace(req.Options["theme"])
 		if theme == "" {
 			theme = "creativity"
 		}
-		
+
 		// Generate context-aware starting ideas
 		switch contentType {
 		case ContentTypeLyrics:
@@ -273,13 +284,13 @@ func (a *QuickIdeaAgent) generateContextAwareFallback(req QuickRequest, contentT
 				},
 			}
 		}
-		
+
 	case QuickIdeaModeTweak:
 		base := strings.TrimSpace(req.Context)
 		if base == "" {
 			base = "Hold on to the quiet light"
 		}
-		
+
 		// Generate context-aware variations
 		switch contentType {
 		case ContentTypeLyrics:
@@ -315,7 +326,7 @@ func (a *QuickIdeaAgent) generateContextAwareFallback(req QuickRequest, contentT
 				},
 			}
 		}
-		
+
 	case QuickIdeaModeCheck:
 		// Generate context-aware quality feedback
 		switch contentType {
@@ -340,7 +351,7 @@ func (a *QuickIdeaAgent) generateContextAwareFallback(req QuickRequest, contentT
 				Tip:    "Add vivid sensory image",
 			}
 		}
-		
+
 	default:
 		return &QuickResponse{
 			Suggestions: []string{"No suggestion available."},
@@ -378,18 +389,18 @@ func (a *QuickIdeaAgent) enhanceWithKnowledgeBase(ctx context.Context, req Quick
 		cards:   []knowledge.Card{},
 		tip:     "",
 	}
-	
+
 	if a.knowledgeBase == nil {
 		return enhanced
 	}
-	
+
 	// Search for relevant knowledge cards based on mode and content
 	options := knowledge.SearchOptions{
 		Limit:        3,
 		MinRelevance: 0.6,
 		UseCache:     true,
 	}
-	
+
 	switch req.Mode {
 	case QuickIdeaModeUnstick:
 		// For unstick, look for continuation techniques
@@ -398,7 +409,7 @@ func (a *QuickIdeaAgent) enhanceWithKnowledgeBase(ctx context.Context, req Quick
 		} else if contentType == ContentTypePatterns {
 			options.Categories = []string{"chord-progressions", "song-structure"}
 		}
-		
+
 	case QuickIdeaModeSpark:
 		// For spark, look for inspiration
 		options.Categories = []string{"inspiration"}
@@ -406,7 +417,7 @@ func (a *QuickIdeaAgent) enhanceWithKnowledgeBase(ctx context.Context, req Quick
 		if theme, ok := req.Options["theme"]; ok && theme != "" {
 			enhanced.context = theme
 		}
-		
+
 	case QuickIdeaModeTweak:
 		// For tweak, look for improvement techniques
 		if contentType == ContentTypeLyrics {
@@ -414,24 +425,24 @@ func (a *QuickIdeaAgent) enhanceWithKnowledgeBase(ctx context.Context, req Quick
 		} else if contentType == ContentTypePatterns {
 			options.Categories = []string{"chord-progressions"}
 		}
-		
+
 	case QuickIdeaModeCheck:
 		// For check, look for quality guidelines
 		options.Categories = []string{"lyrical-techniques", "song-structure"}
 	}
-	
+
 	// Perform search
 	result, err := a.knowledgeBase.GetInspirationCards(ctx, enhanced.context, options)
 	if err == nil && len(result.Cards) > 0 {
 		enhanced.cards = result.Cards
-		
+
 		// Create a knowledge-enhanced prompt context
 		if len(result.Cards) > 0 {
 			enhanced.context = fmt.Sprintf("%s\n\nKnowledge: %s", req.Context, result.Cards[0].Content)
 			enhanced.tip = result.Cards[0].Title
 		}
 	}
-	
+
 	return enhanced
 }
 
@@ -440,12 +451,12 @@ func (a *QuickIdeaAgent) applyKnowledgeBaseToFallback(resp *QuickResponse, enhan
 	if len(enhanced.cards) == 0 {
 		return
 	}
-	
+
 	// Enhance suggestions with knowledge base insights
 	for i, suggestion := range resp.Suggestions {
 		if i < len(enhanced.cards) {
 			card := enhanced.cards[i]
-			
+
 			// Add knowledge-based variation to suggestion
 			switch mode {
 			case QuickIdeaModeUnstick:
@@ -456,17 +467,17 @@ func (a *QuickIdeaAgent) applyKnowledgeBaseToFallback(resp *QuickResponse, enhan
 						resp.Suggestions[i] = fmt.Sprintf("%s | %s", suggestion, example)
 					}
 				}
-				
+
 			case QuickIdeaModeSpark:
 				if card.Category == "inspiration" {
 					resp.Suggestions[i] = fmt.Sprintf("%s - inspired by %s", suggestion, card.Title)
 				}
-				
+
 			case QuickIdeaModeTweak:
 				if card.Category == "lyrical-techniques" {
 					resp.Suggestions[i] = fmt.Sprintf("%s (using %s technique)", suggestion, card.Title)
 				}
-				
+
 			case QuickIdeaModeCheck:
 				if resp.Tip == "" && enhanced.tip != "" {
 					resp.Tip = fmt.Sprintf("KB Tip: %s", enhanced.tip)
@@ -483,6 +494,18 @@ type knowledgeEnhancedContext struct {
 	tip     string
 }
 
+func isSupportedQuickIdeaMode(mode QuickIdeaMode) bool {
+	_, ok := supportedQuickIdeaModes[mode]
+	return ok
+}
+
+func ensurePositiveDuration(d time.Duration) time.Duration {
+	if d <= 0 {
+		return time.Nanosecond
+	}
+	return d
+}
+
 // GetKnowledgeBaseStatus returns the current status of the knowledge base
 func (a *QuickIdeaAgent) GetKnowledgeBaseStatus(ctx context.Context) *knowledge.KnowledgeStatus {
 	if a.knowledgeBase == nil {
@@ -491,7 +514,7 @@ func (a *QuickIdeaAgent) GetKnowledgeBaseStatus(ctx context.Context) *knowledge.
 			Error:     "No knowledge base configured",
 		}
 	}
-	
+
 	kb := a.knowledgeBase.GetKnowledgeBase()
 	return kb.GetStatus(ctx)
 }
@@ -501,7 +524,7 @@ func (a *QuickIdeaAgent) IsKnowledgeBaseAvailable(ctx context.Context) bool {
 	if a.knowledgeBase == nil {
 		return false
 	}
-	
+
 	kb := a.knowledgeBase.GetKnowledgeBase()
 	return kb.IsAvailable(ctx)
 }

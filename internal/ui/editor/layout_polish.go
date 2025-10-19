@@ -2,6 +2,7 @@ package editor
 
 import (
 	"github.com/charmbracelet/lipgloss"
+	"github.com/puente-labs/noise/internal/ui/dimension"
 	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
@@ -18,8 +19,11 @@ func NewPolishLayout() *PolishLayout {
 
 // SetDimensions sets the dimensions for the layout
 func (l *PolishLayout) SetDimensions(width, height int) {
-	l.width = width
-	l.height = height
+	dimension.Set(&l.width, &l.height, width, height)
+}
+
+func (l *PolishLayout) GetDimensions() (int, int) {
+	return l.width, l.height
 }
 
 // Render renders the polish mode layout

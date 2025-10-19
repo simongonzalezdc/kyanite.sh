@@ -13,6 +13,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/puente-labs/noise/internal/ui/dimension"
 	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
@@ -928,22 +929,28 @@ func (m *ExportModel) Blur() {
 
 // SetDimensions sets the dimensions of the export model and adapts for responsive layout
 func (m *ExportModel) SetDimensions(width, height int) {
-	m.width = width
-	m.height = height
+	width, height = dimension.ApplyBounds(width, height, dimension.Bounds{
+		MinWidth:  40,
+		MinHeight: 10,
+	})
+
+	dimension.Set(&m.width, &m.height, width, height)
 
 	// Adapt layout based on terminal size for responsive behavior
-	if width < 80 {
-		// Very narrow terminal - use compact layout
-		m.width = max(60, width)
-	} else if width > 160 {
-		// Very wide terminal - use expanded layout
-		m.width = min(120, width)
+	switch {
+	case width < 80:
+		m.width = dimension.ClampWidth(width, 60, 0)
+	case width > 160:
+		m.width = dimension.ClampWidth(width, 0, 120)
 	}
 
 	if height < 20 {
-		// Very short terminal - reduce content
-		m.height = max(15, height)
+		m.height = dimension.ClampHeight(height, 15, 0)
 	}
+}
+
+func (m *ExportModel) GetDimensions() (int, int) {
+	return m.width, m.height
 }
 
 // GetSelectedFormat returns the currently selected export format

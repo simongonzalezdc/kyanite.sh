@@ -2,9 +2,10 @@ package export
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
+
+	errutil "github.com/puente-labs/noise/internal/errutil"
 	"regexp"
 	"strconv"
 	"strings"
@@ -47,7 +48,7 @@ func (ef *ExportFormatter) FormatExport(content string, options *ExportOptions) 
 	case ExportTypePattern:
 		patterns, err := ef.extractPatterns(content)
 		if err != nil {
-			return nil, fmt.Errorf("failed to extract patterns: %w", err)
+			return nil, errutil.Wrap(err, "extract patterns")
 		}
 		export.Patterns = patterns
 		
@@ -70,7 +71,7 @@ func (ef *ExportFormatter) FormatExport(content string, options *ExportOptions) 
 	case ExportTypeFull:
 		patterns, err := ef.extractPatterns(content)
 		if err != nil {
-			return nil, fmt.Errorf("failed to extract patterns: %w", err)
+			return nil, errutil.Wrap(err, "extract patterns")
 		}
 		export.Patterns = patterns
 		
@@ -124,7 +125,7 @@ func (ef *ExportFormatter) SaveToFile(export *NoiseExport, outputPath string) er
 	// Create directory if it doesn't exist
 	dir := filepath.Dir(outputPath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("failed to create directory: %w", err)
+		return errutil.Wrap(err, "create directory")
 	}
 	
 	// Determine file format based on extension
@@ -147,13 +148,13 @@ func (ef *ExportFormatter) SaveToFile(export *NoiseExport, outputPath string) er
 		// For existing formats, save as JSON
 		data, err = json.MarshalIndent(export, "", "  ")
 		if err != nil {
-			return fmt.Errorf("failed to marshal export: %w", err)
+			return errutil.Wrap(err, "marshal export")
 		}
 	}
 	
 	// Write to file
 	if err := os.WriteFile(outputPath, data, 0644); err != nil {
-		return fmt.Errorf("failed to write file: %w", err)
+		return errutil.Wrap(err, "write file")
 	}
 	
 	return nil

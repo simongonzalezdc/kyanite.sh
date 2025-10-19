@@ -11,6 +11,7 @@ import (
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/harmonica"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/puente-labs/noise/internal/ui/dimension"
 	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
@@ -514,12 +515,11 @@ func (m *PreviewPaneModel) View() string {
 
 // SetDimensions sets the pane dimensions and adapts performance settings
 func (m *PreviewPaneModel) SetDimensions(width, height int) {
-	m.width = width
-	m.height = height
+	dimension.Set(&m.width, &m.height, width, height)
 
 	// Adapt cache size based on terminal size for optimal memory usage
 	oldCacheSize := m.maxCacheSize
-	m.maxCacheSize = m.getAdaptiveCacheSize(width, height)
+	m.maxCacheSize = m.getAdaptiveCacheSize(m.width, m.height)
 
 	// If cache size changed significantly, clear cache to prevent memory issues
 	if m.maxCacheSize < oldCacheSize/2 {
@@ -527,16 +527,20 @@ func (m *PreviewPaneModel) SetDimensions(width, height int) {
 	}
 
 	// Adapt content threshold based on terminal size
-	if width < 100 {
+	if m.width < 100 {
 		// Lower threshold for smaller terminals to enable optimizations earlier
 		m.contentThreshold = 30000
-	} else if width > 160 {
+	} else if m.width > 160 {
 		// Higher threshold for larger terminals as they can handle more content
 		m.contentThreshold = 80000
 	} else {
 		// Standard threshold for medium terminals
 		m.contentThreshold = 50000
 	}
+}
+
+func (m *PreviewPaneModel) GetDimensions() (int, int) {
+	return m.width, m.height
 }
 
 // getAdaptiveCacheSize returns optimal cache size based on terminal dimensions

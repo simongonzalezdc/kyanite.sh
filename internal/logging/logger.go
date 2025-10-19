@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strings"
 
+	errutil "github.com/puente-labs/noise/internal/errutil"
 	"github.com/puente-labs/noise/internal/config"
 )
 
@@ -80,12 +81,12 @@ func New(cfg *Config) (*Logger, error) {
 	if cfg.LogFile != "" {
 		logDir := filepath.Dir(cfg.LogFile)
 		if err := os.MkdirAll(logDir, 0755); err != nil {
-			return nil, fmt.Errorf("failed to create log directory: %w", err)
+			return nil, errutil.Wrap(err, "create log directory")
 		}
 
 		file, err := os.OpenFile(cfg.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 		if err != nil {
-			return nil, fmt.Errorf("failed to open log file: %w", err)
+			return nil, errutil.Wrap(err, "open log file")
 		}
 
 		// Use multi-writer to write to both file and stdout

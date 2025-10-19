@@ -41,8 +41,8 @@ type chordPickerModel struct {
 	instructionStyle lipgloss.Style
 }
 
-// newChordPickerModel creates a new chord picker model
-func newChordPickerModel() *chordPickerModel {
+// NewChordPickerModel creates a new chord picker model
+func NewChordPickerModel() *chordPickerModel {
 	return &chordPickerModel{
 		visible:      false,
 		selectedIdx:  0,

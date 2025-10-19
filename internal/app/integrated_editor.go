@@ -9,6 +9,7 @@ import (
 
 	"github.com/puente-labs/noise/internal/domain"
 	"github.com/puente-labs/noise/internal/errors"
+	errutil "github.com/puente-labs/noise/internal/errutil"
 	"github.com/puente-labs/noise/internal/infra/db"
 	"github.com/puente-labs/noise/internal/infra/files"
 	"github.com/puente-labs/noise/internal/logging"
@@ -78,14 +79,14 @@ func (s *IntegratedEditorService) LoadOrCreateSong(filePath string) (*domain.Son
 
 			// Save the new file
 			if err := s.fileRepo.SaveSong(song, filePath); err != nil {
-				return nil, fmt.Errorf("failed to create new song file: %w", err)
+				return nil, errutil.Wrap(err, "create new song file")
 			}
 
 			logging.GetDefaultLogger().Info("Created new song file", "path", filePath, "title", song.Metadata.Title)
 			return song, nil
 		}
 
-		return nil, fmt.Errorf("failed to load song from file: %w", err)
+		return nil, errutil.Wrap(err, "load song from file")
 	}
 
 	// If configured to sync with database, ensure song exists there too
@@ -110,7 +111,7 @@ func (s *IntegratedEditorService) SaveSong(song *domain.Song) error {
 
 	// Save to file
 	if err := s.fileRepo.SaveSong(song, song.Filepath); err != nil {
-		return fmt.Errorf("failed to save song to file: %w", err)
+		return errutil.Wrap(err, "save song to file")
 	}
 
 	// Create backup if configured
@@ -149,7 +150,7 @@ func (s *IntegratedEditorService) DeleteSong(filePath string) error {
 
 	// Delete from file system
 	if err := s.fileRepo.DeleteSong(filePath); err != nil {
-		return fmt.Errorf("failed to delete song file: %w", err)
+		return errutil.Wrap(err, "delete song file")
 	}
 
 	// If syncing with database, try to find and delete from database too
@@ -217,7 +218,7 @@ func (s *IntegratedEditorService) SyncFromFile(filePath string) error {
 
 	song, err := s.fileRepo.LoadSong(filePath)
 	if err != nil {
-		return fmt.Errorf("failed to load song from file: %w", err)
+		return errutil.Wrap(err, "load song from file")
 	}
 
 	return s.syncSongToDatabase(song)
@@ -234,7 +235,7 @@ func (s *IntegratedEditorService) SyncToFile(songID int, filePath string) error 
 
 	song, err := s.songRepo.GetSong(songID)
 	if err != nil {
-		return fmt.Errorf("failed to load song from database: %w", err)
+		return errutil.Wrap(err, "load song from database")
 	}
 
 	song.Filepath = filePath
@@ -254,7 +255,7 @@ func (s *IntegratedEditorService) GetSongInfo(filePath string) (*SongInfo, error
 	// Get file info
 	fileInfo, err := s.fileRepo.GetFileInfo(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get file info: %w", err)
+		return nil, errutil.Wrap(err, "get file info")
 	}
 	info.FileInfo = fileInfo
 
@@ -298,7 +299,7 @@ func (s *IntegratedEditorService) syncSongToDatabase(song *domain.Song) error {
 	// Create new song in database
 	newSong, err := s.songRepo.InsertSong(song)
 	if err != nil {
-		return fmt.Errorf("failed to insert song in database: %w", err)
+		return errutil.Wrap(err, "insert song in database")
 	}
 
 	// Update the song with the database ID

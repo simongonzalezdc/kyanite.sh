@@ -9,6 +9,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/puente-labs/noise/internal/app"
+	"github.com/puente-labs/noise/internal/ui/dimension"
 	"github.com/puente-labs/noise/internal/ui/styles"
 	"github.com/puente-labs/noise/internal/theme"
 )
@@ -149,8 +150,11 @@ func NewStatusBarModel() *StatusBarModel {
 
 // SetDimensions sets the status bar dimensions
 func (m *StatusBarModel) SetDimensions(width, height int) {
-	m.width = width
-	m.height = height
+	dimension.Set(&m.width, &m.height, width, height)
+}
+
+func (m *StatusBarModel) GetDimensions() (int, int) {
+	return m.width, m.height
 }
 
 // UpdateContent updates the content and recalculates statistics

@@ -6,6 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/puente-labs/noise/internal/ui/dimension"
 	"github.com/puente-labs/noise/internal/ui/styles"
 )
 
@@ -291,8 +292,11 @@ func (m *PluginSettingsModel) getPluginIDs() []string {
 
 // SetDimensions sets the dimensions for the plugin settings
 func (m *PluginSettingsModel) SetDimensions(width, height int) {
-	m.width = width
-	m.height = height
+	dimension.Set(&m.width, &m.height, width, height)
+}
+
+func (m *PluginSettingsModel) GetDimensions() (int, int) {
+	return m.width, m.height
 }
 
 // Focus sets focus on the plugin settings

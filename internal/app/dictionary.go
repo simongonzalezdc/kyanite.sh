@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	errutil "github.com/puente-labs/noise/internal/errutil"
 )
 
 // WordEntry represents a word entry in the dictionary
@@ -54,7 +56,7 @@ func (d *Dictionary) LoadDictionary(filePath string) error {
 	// Read the dictionary file
 	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		return fmt.Errorf("failed to read dictionary file: %w", err)
+		return errutil.Wrap(err, "read dictionary file")
 	}
 
 	// Parse the JSON
@@ -63,7 +65,7 @@ func (d *Dictionary) LoadDictionary(filePath string) error {
 	}
 	
 	if err := json.Unmarshal(data, &dictData); err != nil {
-		return fmt.Errorf("failed to parse dictionary JSON: %w", err)
+		return errutil.Wrap(err, "parse dictionary JSON")
 	}
 
 	// Load the words
@@ -81,9 +83,15 @@ func (d *Dictionary) LoadDictionary(filePath string) error {
 // buildRhymeMap creates a reverse mapping for faster rhyme lookups
 func (d *Dictionary) buildRhymeMap() {
 	d.rhymeMap = make(map[string][]string)
-	
+
 	for word, entry := range d.words {
-		for _, rhyme := range entry.Rhymes {
+		// Ensure entry.Rhymes is never nil
+		rhymes := entry.Rhymes
+		if rhymes == nil {
+			rhymes = []string{}
+		}
+
+		for _, rhyme := range rhymes {
 			// Normalize the rhyme word
 			normalizedRhyme := strings.ToLower(strings.TrimSpace(rhyme))
 			if normalizedRhyme != "" {
@@ -130,10 +138,10 @@ func (d *Dictionary) countSyllablesHeuristic(word string) int {
 	if word == "" {
 		return 0
 	}
-	
+
 	// Normalize the word
 	word = strings.ToLower(strings.TrimSpace(word))
-	
+
 	// Handle common exceptions
 	exceptions := map[string]int{
 		"queue": 1,
@@ -151,55 +159,74 @@ func (d *Dictionary) countSyllablesHeuristic(word string) int {
 		"million": 3,
 		"billion": 3,
 	}
-	
+
 	if syllables, exists := exceptions[word]; exists {
 		return syllables
 	}
-	
+
 	// Remove non-alphabetic characters
 	re := regexp.MustCompile(`[^a-z]`)
 	word = re.ReplaceAllString(word, "")
-	
+
+	// Handle empty string after cleaning
+	if word == "" {
+		return 1 // Single character words like "a" or "I"
+	}
+
 	vowels := "aeiouy"
 	syllables := 0
 	prevWasVowel := false
-	
+
 	for i, char := range word {
 		isVowel := strings.ContainsRune(vowels, char)
-		
+
 		if isVowel && !prevWasVowel {
 			syllables++
 		}
 		prevWasVowel = isVowel
-		
-		// Handle special cases
+
+		// Handle special cases for better accuracy
 		if i > 0 {
 			prevChar := word[i-1]
 			currChar := char
-			
-			// Don't count 'e' at the end of words (silent e)
-			if i == len(word)-1 && currChar == 'e' && syllables > 1 {
-				syllables--
+
+			// Handle silent 'e' - only if it's at the end and follows a consonant
+			if i == len(word)-1 && currChar == 'e' && !isVowel {
+				// Check if previous character is a consonant followed by a single vowel
+				if i >= 2 {
+					prevPrevChar := word[i-2]
+					if strings.ContainsRune(vowels, rune(prevPrevChar)) &&
+					   !strings.ContainsRune(vowels, rune(prevChar)) &&
+					   syllables > 1 {
+						syllables--
+					}
+				}
 			}
-			
-			// Handle 'le' at the end (like in "table")
+
+			// Handle 'le' at the end - this typically creates an extra syllable
 			if i == len(word)-1 && currChar == 'e' && prevChar == 'l' && syllables > 1 {
-				// 'le' often adds a syllable
-				syllables++
+				// Only add syllable if the 'l' is preceded by a consonant
+				if i >= 2 {
+					prevPrevChar := word[i-2]
+					if !strings.ContainsRune(vowels, rune(prevPrevChar)) {
+						syllables++
+					}
+				}
 			}
-			
-			// Handle 'y' as vowel
-			if currChar == 'y' && !isVowel && !strings.ContainsRune(vowels, rune(prevChar)) {
-				syllables++
+
+			// Handle 'y' as vowel when it functions as a vowel
+			if currChar == 'y' && !isVowel && prevWasVowel {
+				// 'y' after vowel is usually a consonant, but can create diphthongs
+				// Don't add extra syllable here as it's handled by main vowel counting
 			}
 		}
 	}
-	
+
 	// Every word has at least one syllable
 	if syllables == 0 {
 		syllables = 1
 	}
-	
+
 	return syllables
 }
 
@@ -207,11 +234,20 @@ func (d *Dictionary) countSyllablesHeuristic(word string) int {
 func (d *Dictionary) FindRhymes(word string) ([]string, error) {
 	// First try to get from dictionary
 	if entry, exists := d.GetWordEntry(word); exists {
+		// Ensure we never return nil, return empty slice instead
+		if entry.Rhymes == nil {
+			return []string{}, nil
+		}
 		return entry.Rhymes, nil
 	}
-	
+
 	// Fallback to phonetic-based rhyme finding
-	return d.findRhymesPhonetic(word), nil
+	rhymes := d.findRhymesPhonetic(word)
+	// Ensure we never return nil, return empty slice instead
+	if rhymes == nil {
+		return []string{}, nil
+	}
+	return rhymes, nil
 }
 
 // findRhymesPhonetic provides a fallback rhyme finding method
@@ -324,11 +360,17 @@ func (d *Dictionary) GetStats() DictionaryStats {
 func (d *Dictionary) AddWord(word string, entry WordEntry) error {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
-	
+
 	// Normalize the word
 	normalizedWord := strings.ToLower(strings.TrimSpace(word))
+
+	// Ensure entry.Rhymes is never nil
+	if entry.Rhymes == nil {
+		entry.Rhymes = []string{}
+	}
+
 	d.words[normalizedWord] = entry
-	
+
 	// Update rhyme map
 	for _, rhyme := range entry.Rhymes {
 		normalizedRhyme := strings.ToLower(strings.TrimSpace(rhyme))
@@ -339,7 +381,7 @@ func (d *Dictionary) AddWord(word string, entry WordEntry) error {
 			d.rhymeMap[normalizedRhyme] = append(d.rhymeMap[normalizedRhyme], normalizedWord)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -347,16 +389,24 @@ func (d *Dictionary) AddWord(word string, entry WordEntry) error {
 func (d *Dictionary) SearchWords(pattern string, limit int) ([]string, error) {
 	d.mutex.RLock()
 	defer d.mutex.RUnlock()
-	
+
 	var matches []string
-	
-	// Convert pattern to regex for more flexible matching
-	regexPattern := strings.ReplaceAll(pattern, "*", ".*")
+
+	// Handle exact match vs pattern matching
+	var regexPattern string
+	if strings.Contains(pattern, "*") {
+		// Use wildcard matching if pattern contains asterisks
+		regexPattern = strings.ReplaceAll(pattern, "*", ".*")
+	} else {
+		// Use exact matching for plain strings (anchored to match whole word)
+		regexPattern = "^" + regexp.QuoteMeta(pattern) + "$"
+	}
+
 	regex, err := regexp.Compile("(?i)" + regexPattern)
 	if err != nil {
-		return nil, fmt.Errorf("invalid search pattern: %w", err)
+		return nil, errutil.Wrap(err, "invalid search pattern")
 	}
-	
+
 	for word := range d.words {
 		if regex.MatchString(word) {
 			matches = append(matches, word)
@@ -365,7 +415,7 @@ func (d *Dictionary) SearchWords(pattern string, limit int) ([]string, error) {
 			}
 		}
 	}
-	
+
 	return matches, nil
 }
 
