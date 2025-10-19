@@ -3,16 +3,71 @@ name: CI
 on:
   push:
     branches:
-      - "**"
+      - '**'
+    tags:
+      - 'v*'
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  build-test-lint:
+  lint-test:
+    name: Lint & Test (Coverage)
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Cache Go build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Lint
+        run: make lint
+
+      - name: Run tests with coverage
+        run: |
+          mkdir -p build/reports
+          go test ./... -race -covermode=atomic -coverprofile=build/reports/coverage.out
+          go tool cover -func=build/reports/coverage.out > build/reports/coverage.txt
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-coverage
+          path: build/reports
+          if-no-files-found: error
+
+
+  build:
+    name: Native Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    needs:
+      - lint-test
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,23 +88,113 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - name: Install golangci-lint
+      - name: Build binary
+        shell: bash
         run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.60.3
-          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+          set -euo pipefail
+          mkdir -p build/bin
+          ext=""
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            ext=".exe"
+          fi
+          go build -trimpath -ldflags="-s -w" -o "build/bin/noise${ext}" ./cmd/noise
 
-      - name: Verify formatting and lint
-        run: make lint
-
-      - name: Run tests with coverage
-        run: make test
-
-      - name: Upload coverage report
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: coverage
-          path: coverage.out
+          name: noise-native-${{ matrix.os }}
+          path: build/bin
           if-no-files-found: error
 
-      - name: Build binary
-        run: make build
+  cross-compile:
+    name: Cross Compile (${{ matrix.goos }}/${{ matrix.goarch }})
+    runs-on: ubuntu-latest
+    needs:
+      - lint-test
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            archive: tar.gz
+            ext: ""
+          - goos: linux
+            goarch: arm64
+            archive: tar.gz
+            ext: ""
+          - goos: darwin
+            goarch: amd64
+            archive: tar.gz
+            ext: ""
+          - goos: darwin
+            goarch: arm64
+            archive: tar.gz
+            ext: ""
+          - goos: windows
+            goarch: amd64
+            archive: zip
+            ext: .exe
+          - goos: windows
+            goarch: arm64
+            archive: zip
+            ext: .exe
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Cross compile binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="noise-${{ matrix.goos }}-${{ matrix.goarch }}"
+          binary_name="noise${{ matrix.ext }}"
+          build_dir="dist/${output}"
+          mkdir -p "${build_dir}"
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o "${build_dir}/${binary_name}" ./cmd/noise
+          pushd dist >/dev/null
+          if [[ "${{ matrix.archive }}" == "zip" ]]; then
+            zip -r "${output}.zip" "${output}"
+          else
+            tar -czf "${output}.tar.gz" "${output}"
+          fi
+          popd >/dev/null
+          rm -rf "${build_dir}"
+
+      - name: Upload cross-compiled artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: noise-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/noise-${{ matrix.goos }}-${{ matrix.goarch }}.*
+          if-no-files-found: error
+
+  release:
+    name: Release
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    needs:
+      - build
+      - cross-compile
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: noise-*
+          merge-multiple: true
+          path: release
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

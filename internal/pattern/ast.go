@@ -3,6 +3,8 @@ package pattern
 import (
 	"fmt"
 	"strings"
+
+	"github.com/puente-labs/noise/internal/logging"
 )
 
 // Node represents a node in the AST
@@ -29,7 +31,7 @@ type Program struct {
 	Statements []Statement
 }
 
-func (p *Program) node()         {}
+func (p *Program) node() {}
 func (p *Program) String() string {
 	var out strings.Builder
 	for _, s := range p.Statements {
@@ -51,20 +53,20 @@ type PatternStatement struct {
 	Position   Position
 }
 
-func (ps *PatternStatement) node()           {}
-func (ps *PatternStatement) statementNode()   {}
-func (ps *PatternStatement) String() string  {
+func (ps *PatternStatement) node()          {}
+func (ps *PatternStatement) statementNode() {}
+func (ps *PatternStatement) String() string {
 	return ps.Name + " = " + ps.Expression.String() + ";"
 }
-func (ps *PatternStatement) Pos() Position   { return ps.Position }
+func (ps *PatternStatement) Pos() Position { return ps.Position }
 
 // SequenceExpression represents a sequence of values
 type SequenceExpression struct {
-	Values    []Expression
-	Position  Position
+	Values   []Expression
+	Position Position
 }
 
-func (se *SequenceExpression) node()         {}
+func (se *SequenceExpression) node()           {}
 func (se *SequenceExpression) expressionNode() {}
 func (se *SequenceExpression) String() string {
 	var values []string
@@ -81,7 +83,7 @@ type LiteralExpression struct {
 	Position Position
 }
 
-func (le *LiteralExpression) node()         {}
+func (le *LiteralExpression) node()           {}
 func (le *LiteralExpression) expressionNode() {}
 func (le *LiteralExpression) String() string {
 	switch v := le.Value.(type) {
@@ -108,7 +110,7 @@ type FunctionCallExpression struct {
 	Position  Position
 }
 
-func (fce *FunctionCallExpression) node()         {}
+func (fce *FunctionCallExpression) node()           {}
 func (fce *FunctionCallExpression) expressionNode() {}
 func (fce *FunctionCallExpression) String() string {
 	var args []string
@@ -127,7 +129,7 @@ type BinaryExpression struct {
 	Position Position
 }
 
-func (be *BinaryExpression) node()         {}
+func (be *BinaryExpression) node()           {}
 func (be *BinaryExpression) expressionNode() {}
 func (be *BinaryExpression) String() string {
 	return "(" + be.Left.String() + " " + be.Operator.String() + " " + be.Right.String() + ")"
@@ -141,7 +143,7 @@ type UnaryExpression struct {
 	Position Position
 }
 
-func (ue *UnaryExpression) node()         {}
+func (ue *UnaryExpression) node()           {}
 func (ue *UnaryExpression) expressionNode() {}
 func (ue *UnaryExpression) String() string {
 	return "(" + ue.Operator.String() + ue.Right.String() + ")"
@@ -154,7 +156,7 @@ type GroupExpression struct {
 	Position   Position
 }
 
-func (ge *GroupExpression) node()         {}
+func (ge *GroupExpression) node()           {}
 func (ge *GroupExpression) expressionNode() {}
 func (ge *GroupExpression) String() string {
 	return "(" + ge.Expression.String() + ")"
@@ -163,12 +165,12 @@ func (ge *GroupExpression) Pos() Position { return ge.Position }
 
 // ParameterExpression represents a parameter assignment
 type ParameterExpression struct {
-	Name      string
-	Value     Expression
-	Position  Position
+	Name     string
+	Value    Expression
+	Position Position
 }
 
-func (pe *ParameterExpression) node()         {}
+func (pe *ParameterExpression) node()           {}
 func (pe *ParameterExpression) expressionNode() {}
 func (pe *ParameterExpression) String() string {
 	return pe.Name + ":" + pe.Value.String()
@@ -183,7 +185,7 @@ type ModifierExpression struct {
 	Position  Position
 }
 
-func (me *ModifierExpression) node()         {}
+func (me *ModifierExpression) node()           {}
 func (me *ModifierExpression) expressionNode() {}
 func (me *ModifierExpression) String() string {
 	var args []string
@@ -199,12 +201,12 @@ func (me *ModifierExpression) Pos() Position { return me.Position }
 
 // TimeExpression represents a time-related expression
 type TimeExpression struct {
-	Value     Expression
-	TimeUnit  string
-	Position  Position
+	Value    Expression
+	TimeUnit string
+	Position Position
 }
 
-func (te *TimeExpression) node()         {}
+func (te *TimeExpression) node()           {}
 func (te *TimeExpression) expressionNode() {}
 func (te *TimeExpression) String() string {
 	return te.Value.String() + te.TimeUnit
@@ -219,7 +221,7 @@ type RangeExpression struct {
 	Position Position
 }
 
-func (re *RangeExpression) node()         {}
+func (re *RangeExpression) node()           {}
 func (re *RangeExpression) expressionNode() {}
 func (re *RangeExpression) String() string {
 	if re.Step != nil {
@@ -231,11 +233,11 @@ func (re *RangeExpression) Pos() Position { return re.Position }
 
 // ListExpression represents a list of values
 type ListExpression struct {
-	Elements  []Expression
-	Position  Position
+	Elements []Expression
+	Position Position
 }
 
-func (le *ListExpression) node()         {}
+func (le *ListExpression) node()           {}
 func (le *ListExpression) expressionNode() {}
 func (le *ListExpression) String() string {
 	var elements []string
@@ -248,11 +250,11 @@ func (le *ListExpression) Pos() Position { return le.Position }
 
 // StructExpression represents a struct/record expression
 type StructExpression struct {
-	Fields    []*ParameterExpression
-	Position  Position
+	Fields   []*ParameterExpression
+	Position Position
 }
 
-func (se *StructExpression) node()         {}
+func (se *StructExpression) node()           {}
 func (se *StructExpression) expressionNode() {}
 func (se *StructExpression) String() string {
 	var fields []string
@@ -270,7 +272,7 @@ type IndexExpression struct {
 	Position Position
 }
 
-func (ie *IndexExpression) node()         {}
+func (ie *IndexExpression) node()           {}
 func (ie *IndexExpression) expressionNode() {}
 func (ie *IndexExpression) String() string {
 	return ie.Base.String() + "[" + ie.Index.String() + "]"
@@ -284,7 +286,7 @@ type PropertyExpression struct {
 	Position Position
 }
 
-func (pe *PropertyExpression) node()         {}
+func (pe *PropertyExpression) node()           {}
 func (pe *PropertyExpression) expressionNode() {}
 func (pe *PropertyExpression) String() string {
 	return pe.Base.String() + "." + pe.Property
@@ -456,21 +458,31 @@ func NewASTPrinter() *ASTPrinter {
 }
 
 func (p *ASTPrinter) Visit(node Node) interface{} {
-	p.printIndent()
-	fmt.Printf("%T\n", node)
+	if !logging.DebugEnabled() {
+		return nil
+	}
+	logging.Debugf("%s%T", p.indentPrefix(), node)
 	p.indent++
 	defer func() { p.indent-- }()
 	return nil
 }
 
-func (p *ASTPrinter) printIndent() {
-	for i := 0; i < p.indent; i++ {
-		fmt.Print("  ")
+func (p *ASTPrinter) indentPrefix() string {
+	if p.indent <= 0 {
+		return ""
 	}
+	builder := strings.Builder{}
+	for i := 0; i < p.indent; i++ {
+		builder.WriteString("  ")
+	}
+	return builder.String()
 }
 
 // PrintAST prints the AST to stdout
 func PrintAST(node Node) {
+	if !logging.DebugEnabled() {
+		return
+	}
 	printer := NewASTPrinter()
 	walker := NewASTWalker(printer)
 	walker.Walk(node)

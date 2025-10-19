@@ -9,8 +9,8 @@ import (
 	"runtime"
 	"strings"
 
-	errutil "github.com/puente-labs/noise/internal/errutil"
 	"github.com/puente-labs/noise/internal/config"
+	errutil "github.com/puente-labs/noise/internal/errutil"
 )
 
 // LogLevel represents the severity level of log messages
@@ -108,7 +108,21 @@ func NewFromConfig(appConfig *config.Config) (*Logger, error) {
 	// Parse log level from config
 	level := parseLogLevel(appConfig.Dev.LogLevel)
 
-	// Determine output file if in debug mode
+	// Allow forcing debug logging through environment variable or debug build tag
+	forcedDebugEnv := os.Getenv("NOISE_DEBUG_LOGGING")
+	forcedDebug := forcedDebugEnv != "" &&
+		(strings.EqualFold(forcedDebugEnv, "true") || forcedDebugEnv == "1")
+
+	isDebugMode := buildDebugLogging || appConfig.IsDebug() || forcedDebug
+
+	// Ensure debug logging is only active in explicit debug modes
+	if isDebugMode {
+		level = DEBUG
+	} else if level == DEBUG {
+		level = INFO
+	}
+
+	// Determine output file if in debug mode (runtime debug mode only)
 	var logFile string
 	if appConfig.IsDebug() {
 		logFile = filepath.Join(appConfig.GetDataDir(), "logs", "noise.sh.log")
@@ -117,7 +131,7 @@ func NewFromConfig(appConfig *config.Config) (*Logger, error) {
 	cfg := &Config{
 		Level:      level,
 		Output:     os.Stdout,
-		ShowCaller: appConfig.IsDebug(),
+		ShowCaller: isDebugMode,
 		LogFile:    logFile,
 	}
 
@@ -298,6 +312,14 @@ func SetDefaultLogger(logger *Logger) {
 // GetDefaultLogger returns the default logger
 func GetDefaultLogger() *Logger {
 	return defaultLogger
+}
+
+// DebugEnabled reports whether debug-level logging is currently enabled.
+func DebugEnabled() bool {
+	if defaultLogger == nil {
+		return false
+	}
+	return defaultLogger.level <= DEBUG
 }
 
 // Convenience functions that use the default logger

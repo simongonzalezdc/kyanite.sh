@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"fmt"
-
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -10,10 +8,11 @@ import (
 	"github.com/puente-labs/noise/internal/config"
 	errutil "github.com/puente-labs/noise/internal/errutil"
 	"github.com/puente-labs/noise/internal/infra/db"
+	"github.com/puente-labs/noise/internal/logging"
 	"github.com/puente-labs/noise/internal/plugins"
+	"github.com/puente-labs/noise/internal/theme"
 	"github.com/puente-labs/noise/internal/ui/editor"
 	"github.com/puente-labs/noise/internal/ui/styles"
-	"github.com/puente-labs/noise/internal/theme"
 )
 
 // QuickStartConfig contains configuration for quick start mode
@@ -180,7 +179,7 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case initSuccessMsg:
 		m.database = msg.database
 		m.loading = false
-		
+
 		// If quick start is configured, go directly to editor
 		if m.quickStartConfig != nil {
 			m.currentScreen = screenEditor
@@ -193,7 +192,7 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Initialize child models
 		m.initializeChildModels()
-		
+
 		// If quick start is configured, configure the editor
 		if m.quickStartConfig != nil {
 			m.configureQuickStart()
@@ -222,7 +221,7 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// For now, we'll just ensure the app continues to work
 			// TODO: Implement size validation warnings display
 			// Log validation issues for debugging
-			fmt.Printf("Size validation issues detected for terminal size\n")
+			logging.Warn("Size validation issues detected for terminal size")
 		}
 
 	case ScreenChangeMsg:
@@ -600,7 +599,7 @@ func (m *RootModel) configureQuickStart() {
 	if m.quickStartConfig == nil || m.editor == nil {
 		return
 	}
-	
+
 	// Configure editor for scratch mode
 	if m.editor.GetSplitPane() != nil {
 		// Set scratch mode - this will be implemented in the editor pane

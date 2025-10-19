@@ -4,14 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"sync"
 	"time"
 
-	errutil "github.com/puente-labs/noise/internal/errutil"
 	"github.com/puente-labs/noise/internal/domain"
+	errutil "github.com/puente-labs/noise/internal/errutil"
 	"github.com/puente-labs/noise/internal/infra/db"
+	"github.com/puente-labs/noise/internal/logging"
 )
 
 // AutoSaveStatus represents the current auto-save state
@@ -175,7 +175,7 @@ func (s *AutoSaveService) Start(ctx context.Context) error {
 	// Start the periodic timer goroutine
 	go s.startPeriodicTimer(ctx)
 
-	log.Printf("Auto-save service started with %d second intervals", s.config.IntervalSeconds)
+	logging.Infof("Auto-save service started with %d second intervals", s.config.IntervalSeconds)
 	return nil
 }
 
@@ -191,7 +191,7 @@ func (s *AutoSaveService) Stop() error {
 	default:
 		close(s.stopChan)
 	}
-	log.Println("Auto-save service stopped")
+	logging.Info("Auto-save service stopped")
 	return nil
 }
 
@@ -330,7 +330,7 @@ func (s *AutoSaveService) processSaves(ctx context.Context) {
 			// Start new debounce timer
 			debounceTimer = time.AfterFunc(time.Duration(s.config.DebounceMs)*time.Millisecond, func() {
 				if err := s.performSave(content); err != nil {
-					log.Printf("Debounced save failed: %v", err)
+					logging.Warnf("Debounced save failed: %v", err)
 				}
 			})
 		}
@@ -382,7 +382,7 @@ func (s *AutoSaveService) performSave(content string) error {
 			break
 		}
 
-		log.Printf("Auto-save attempt %d failed: %v", attempt+1, lastErr)
+		logging.Warnf("Auto-save attempt %d failed: %v", attempt+1, lastErr)
 	}
 
 	if lastErr != nil {
@@ -423,7 +423,7 @@ func (s *AutoSaveService) executeSave(content string) error {
 
 	for attempt := 0; attempt <= maxLockRetries; attempt++ {
 		if attempt > 0 {
-			log.Printf("Database lock retry attempt %d/%d", attempt, maxLockRetries)
+			logging.Debugf("Database lock retry attempt %d/%d", attempt, maxLockRetries)
 			time.Sleep(lockRetryDelay)
 			lockRetryDelay *= 2 // Exponential backoff
 		}
@@ -433,8 +433,8 @@ func (s *AutoSaveService) executeSave(content string) error {
 			lastErr = err
 			// Check if it's a database lock error
 			if strings.Contains(err.Error(), "database is locked") ||
-			   strings.Contains(err.Error(), "locked") ||
-			   strings.Contains(err.Error(), "busy") {
+				strings.Contains(err.Error(), "locked") ||
+				strings.Contains(err.Error(), "busy") {
 				if attempt < maxLockRetries {
 					continue // Retry on lock errors
 				}
@@ -450,7 +450,7 @@ func (s *AutoSaveService) executeSave(content string) error {
 	s.lastSaveTime = time.Now()
 	s.contentMutex.Unlock()
 
-	log.Printf("Auto-save completed at %s", s.lastSaveTime.Format(time.RFC3339))
+	logging.Infof("Auto-save completed at %s", s.lastSaveTime.Format(time.RFC3339))
 	return nil
 }
 
@@ -476,7 +476,7 @@ func (s *AutoSaveService) SaveWithVersioning(songID int, content string, isMiles
 			break
 		}
 
-		log.Printf("Versioned save attempt %d failed: %v", attempt+1, lastErr)
+		logging.Warnf("Versioned save attempt %d failed: %v", attempt+1, lastErr)
 	}
 
 	if lastErr != nil {
@@ -522,7 +522,7 @@ func (s *AutoSaveService) executeSaveWithVersioning(songID int, content string, 
 
 	for attempt := 0; attempt <= maxLockRetries; attempt++ {
 		if attempt > 0 {
-			log.Printf("Versioned save lock retry attempt %d/%d", attempt, maxLockRetries)
+			logging.Debugf("Versioned save lock retry attempt %d/%d", attempt, maxLockRetries)
 			time.Sleep(lockRetryDelay)
 			lockRetryDelay *= 2 // Exponential backoff
 		}
@@ -532,8 +532,8 @@ func (s *AutoSaveService) executeSaveWithVersioning(songID int, content string, 
 			lastErr = err
 			// Check if it's a database lock error
 			if strings.Contains(err.Error(), "database is locked") ||
-			   strings.Contains(err.Error(), "locked") ||
-			   strings.Contains(err.Error(), "busy") {
+				strings.Contains(err.Error(), "locked") ||
+				strings.Contains(err.Error(), "busy") {
 				if attempt < maxLockRetries {
 					continue // Retry on lock errors
 				}
@@ -549,7 +549,7 @@ func (s *AutoSaveService) executeSaveWithVersioning(songID int, content string, 
 	s.lastSaveTime = time.Now()
 	s.contentMutex.Unlock()
 
-	log.Printf("Versioned save completed at %s", s.lastSaveTime.Format(time.RFC3339))
+	logging.Infof("Versioned save completed at %s", s.lastSaveTime.Format(time.RFC3339))
 	return nil
 }
 
@@ -593,14 +593,14 @@ func (s *AutoSaveService) CleanupOldVersions(songID int) error {
 
 				// Check if it's a lock error
 				if strings.Contains(deleteErr.Error(), "database is locked") ||
-				   strings.Contains(deleteErr.Error(), "locked") ||
-				   strings.Contains(deleteErr.Error(), "busy") {
+					strings.Contains(deleteErr.Error(), "locked") ||
+					strings.Contains(deleteErr.Error(), "busy") {
 					if attempt < maxDeleteRetries {
 						continue // Retry on lock errors
 					}
 				}
 
-				log.Printf("Failed to delete old version %d after %d attempts: %v", version.ID, attempt+1, deleteErr)
+				logging.Warnf("Failed to delete old version %d after %d attempts: %v", version.ID, attempt+1, deleteErr)
 				break
 			}
 		}

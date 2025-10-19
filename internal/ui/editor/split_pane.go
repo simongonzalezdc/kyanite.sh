@@ -2,7 +2,6 @@ package editor
 
 import (
 	"context"
-	"log"
 	"sort"
 
 	"github.com/charmbracelet/bubbles/textarea"
@@ -13,6 +12,7 @@ import (
 	"github.com/puente-labs/noise/internal/domain"
 	"github.com/puente-labs/noise/internal/infra/db"
 	"github.com/puente-labs/noise/internal/infra/files"
+	"github.com/puente-labs/noise/internal/logging"
 	"github.com/puente-labs/noise/internal/theme"
 	"github.com/puente-labs/noise/internal/ui/styles"
 )
@@ -94,7 +94,7 @@ func NewSplitPaneModel(database *db.DB) *SplitPaneModel {
 		AutoSave: false,     // We'll handle saving manually for now
 	})
 	if err != nil {
-		log.Printf("Failed to initialize file service: %v", err)
+		logging.Warnf("Failed to initialize file service: %v", err)
 		// Continue without file service - operations will be no-ops
 		fileService = nil
 	}
@@ -122,7 +122,7 @@ func NewSplitPaneModel(database *db.DB) *SplitPaneModel {
 
 	// Start the auto-save service
 	if err := autoSaveService.Start(ctx); err != nil {
-		log.Printf("Failed to start auto-save service: %v", err)
+		logging.Warnf("Failed to start auto-save service: %v", err)
 	}
 
 	return model
@@ -363,7 +363,7 @@ func (m *SplitPaneModel) Cleanup() {
 	}
 	if m.autoSaveService != nil {
 		if err := m.autoSaveService.Stop(); err != nil {
-			log.Printf("Error stopping auto-save service: %v", err)
+			logging.Warnf("Error stopping auto-save service: %v", err)
 		}
 	}
 }
@@ -487,7 +487,7 @@ func (m *SplitPaneModel) handleShortcutAction(action ShortcutAction) (*SplitPane
 			err := m.editorPane.ForceSave()
 			if err != nil {
 				// Handle save error - could log or show user notification
-				log.Printf("Save failed: %v", err)
+				logging.Errorf("Save failed: %v", err)
 			}
 		}
 		return m, nil

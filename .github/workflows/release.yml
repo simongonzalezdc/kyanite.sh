@@ -1,0 +1,339 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    name: Prepare metadata
+    runs-on: ubuntu-latest
+    outputs:
+      version_tag: ${{ steps.meta.outputs.version_tag }}
+      version: ${{ steps.meta.outputs.version }}
+      previous_tag: ${{ steps.meta.outputs.previous_tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Determine release metadata
+        id: meta
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          if [[ -z "${TAG}" ]]; then
+            echo "Release tag could not be determined from ref ${GITHUB_REF}" >&2
+            exit 1
+          fi
+
+          if [[ "${TAG}" != v* ]]; then
+            echo "Release tag must start with 'v': ${TAG}" >&2
+            exit 1
+          fi
+
+          STRIPPED="${TAG#v}"
+          PREVIOUS="$(git tag --sort=-v:refname | grep '^v' | grep -v "^${TAG}$" | head -n 1 || true)"
+
+          echo "version_tag=${TAG}" >> "${GITHUB_OUTPUT}"
+          echo "version=${STRIPPED}" >> "${GITHUB_OUTPUT}"
+          echo "previous_tag=${PREVIOUS}" >> "${GITHUB_OUTPUT}"
+
+      - name: Validate semantic version
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.meta.outputs.version_tag }}"
+          PREVIOUS="${{ steps.meta.outputs.previous_tag }}"
+          if [[ -n "${PREVIOUS}" ]]; then
+            go run ./tools/release/main.go verify-tag --tag "${TAG}" --previous "${PREVIOUS}"
+          else
+            go run ./tools/release/main.go verify-tag --tag "${TAG}"
+          fi
+
+  quality:
+    name: Lint and test
+    runs-on: ubuntu-latest
+    needs: prepare
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Cache Go build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Lint
+        run: make lint
+
+      - name: Run tests
+        run: go test ./...
+
+  package:
+    name: Build and package (${{ matrix.goos }}/${{ matrix.goarch }})
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+      - quality
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            archive: tar.gz
+            ext: ""
+          - goos: linux
+            goarch: arm64
+            archive: tar.gz
+            ext: ""
+          - goos: darwin
+            goarch: amd64
+            archive: tar.gz
+            ext: ""
+          - goos: darwin
+            goarch: arm64
+            archive: tar.gz
+            ext: ""
+          - goos: windows
+            goarch: amd64
+            archive: zip
+            ext: .exe
+          - goos: windows
+            goarch: arm64
+            archive: zip
+            ext: .exe
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Cache Go build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ matrix.goos }}-${{ matrix.goarch }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ matrix.goos }}-${{ matrix.goarch }}-go-
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          VERSION_TAG: ${{ needs.prepare.outputs.version_tag }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          NAME="noise-${VERSION}-${GOOS}-${GOARCH}"
+          BUILD_DIR="dist/${NAME}"
+          BINARY="noise${{ matrix.ext }}"
+          BUILD_DATE="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          mkdir -p "${BUILD_DIR}"
+          GOOS=${GOOS} GOARCH=${GOARCH} CGO_ENABLED=0 go build \
+            -trimpath \
+            -ldflags "-s -w -X main.version=${VERSION} -X main.commit=${GITHUB_SHA} -X main.date=${BUILD_DATE}" \
+            -o "${BUILD_DIR}/${BINARY}" \
+            ./cmd/noise
+
+          pushd dist >/dev/null
+          if [[ "${{ matrix.archive }}" == "zip" ]]; then
+            zip -r "${NAME}.zip" "${NAME}"
+          else
+            tar -czf "${NAME}.tar.gz" "${NAME}"
+          fi
+          popd >/dev/null
+          rm -rf "${BUILD_DIR}"
+
+      - name: Upload packaged artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: |
+            dist/noise-${{ needs.prepare.outputs.version }}-${{ matrix.goos }}-${{ matrix.goarch }}.*
+          if-no-files-found: error
+          retention-days: 7
+
+  checksums:
+    name: Generate checksums
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+      - package
+    steps:
+      - name: Download packaged artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: package-*
+          path: dist
+          merge-multiple: true
+
+      - name: Generate checksums
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          go run ./tools/release/main.go checksums --input-dir dist --output build/checksums.txt
+
+      - name: Upload checksums artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: checksums
+          path: build/checksums.txt
+          if-no-files-found: error
+          retention-days: 7
+
+  validate:
+    name: Release validation tests
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+      - quality
+    env:
+      RELEASE_VERSION: ${{ needs.prepare.outputs.version_tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run release validation suite
+        run: go test ./test -run Release
+
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+      - checksums
+      - validate
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      VERSION_TAG: ${{ needs.prepare.outputs.version_tag }}
+      PREVIOUS_TAG: ${{ needs.prepare.outputs.previous_tag }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ env.DEFAULT_BRANCH }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download packaged artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: package-*
+          path: dist
+          merge-multiple: true
+
+      - name: Download checksums
+        uses: actions/download-artifact@v4
+        with:
+          name: checksums
+          path: dist
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Generate release notes
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          RANGE_ARGS=()
+          if [[ -n "${PREVIOUS_TAG}" ]]; then
+            RANGE_ARGS+=(--from "${PREVIOUS_TAG}")
+          fi
+          RANGE_ARGS+=(--to "${VERSION_TAG}" --version "${VERSION_TAG}" --output "build/release-notes.md")
+          go run ./tools/release/main.go notes "${RANGE_ARGS[@]}"
+
+      - name: Update changelog
+        run: |
+          set -euo pipefail
+          go run ./tools/release/main.go changelog --version "${VERSION_TAG}" --notes build/release-notes.md --changelog CHANGELOG.md
+
+      - name: Verify checksums
+        run: |
+          set -euo pipefail
+          go run ./tools/release/main.go verify-checksums --input-dir dist --checksums dist/checksums.txt
+
+      - name: Commit changelog update
+        id: changelog_commit
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "${GITHUB_OUTPUT}"
+          else
+            git commit -m "docs: update changelog for ${VERSION_TAG}"
+            git push origin HEAD:"${DEFAULT_BRANCH}"
+            echo "changed=true" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: noise.sh ${{ env.VERSION_TAG }}
+          tag_name: ${{ env.VERSION_TAG }}
+          body_path: build/release-notes.md
+          files: |
+            dist/noise-${{ env.VERSION }}-*.tar.gz
+            dist/noise-${{ env.VERSION }}-*.zip
+            dist/checksums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release notes and changelog artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-documentation
+          path: |
+            build/release-notes.md
+            CHANGELOG.md
+          retention-days: 7

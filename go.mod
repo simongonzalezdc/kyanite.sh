@@ -3,6 +3,7 @@ module github.com/puente-labs/noise
 go 1.25.3
 
 require (
+	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/charmbracelet/bubbles v0.21.1-0.20250623103423-23b8fd6302d7
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/glamour v0.10.0

@@ -21,6 +21,7 @@ issues:
         - gosec
         - funlen
         - gocyclo
+        - forbidigo
     - path: internal/ui/.*\.go
       text: "(cyclomatic complexity|function is too long)"
       linters:
@@ -51,6 +52,7 @@ linters:
     - gosec
     - funlen
     - nolintlint
+    - forbidigo
 
 linters-settings:
   gocyclo:
@@ -86,3 +88,8 @@ linters-settings:
     threshold: 150
   prealloc:
     simple: true
+  forbidigo:
+    forbid:
+      - 'fmt\.Print(f|ln)?'
+      - 'log\.Print(f|ln)?'
+      - 'debug\.Print(f|ln)?'
