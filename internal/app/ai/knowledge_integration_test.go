@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/puente-labs/noise/internal/app/knowledge"
+	"github.com/Kyanite/noise/internal/app/knowledge"
 )
 
 func TestQuickIdeaAgent_KnowledgeBaseIntegration(t *testing.T) {

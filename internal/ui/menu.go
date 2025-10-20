@@ -4,7 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // MenuModel handles the main menu screen
@@ -56,7 +56,7 @@ func NewMenuModel() *MenuModel {
 		Foreground(styles.TextSecondary)
 
 	l := list.New(items, delegate, 0, 0)
-	l.Title = styles.TitleGradient("🎵 noise.sh")
+	l.Title = styles.TitleGradient("ðŸŽµ noise.sh")
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.SetShowHelp(false)
@@ -139,7 +139,7 @@ func (m *MenuModel) View() string {
 			return m.list.Title
 		}
 		// Fallback plain title
-		return "🎵 noise.sh"
+		return "ðŸŽµ noise.sh"
 	}
 
 	// Update responsive mode based on current dimensions
@@ -191,11 +191,11 @@ func (m *MenuModel) applyResponsiveStyling() list.Model {
 
 	// Adjust title based on responsive mode
 	if m.showMinimalMenu {
-		styledList.Title = styles.TitleGradient("🎵 LF")
+		styledList.Title = styles.TitleGradient("ðŸŽµ LF")
 	} else if m.showShortTitles {
-		styledList.Title = styles.TitleGradient("🎵 noise.sh")
+		styledList.Title = styles.TitleGradient("ðŸŽµ noise.sh")
 	} else {
-		styledList.Title = styles.TitleGradient("🎵 noise.sh")
+		styledList.Title = styles.TitleGradient("ðŸŽµ noise.sh")
 	}
 
 	// Adjust list dimensions for responsive layout

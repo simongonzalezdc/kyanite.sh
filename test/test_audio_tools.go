@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/noise/internal/ui"
+	"github.com/Kyanite/noise/internal/ui"
 )
 
 // TestAudioModelCreation tests that the audio model can be created successfully
@@ -54,7 +54,7 @@ func TestAudioModelView(t *testing.T) {
 	}
 
 	// Check that view contains expected content
-	expectedContent := "🎵 Audio Tools"
+	expectedContent := "ðŸŽµ Audio Tools"
 	if !strings.Contains(view, expectedContent) {
 		t.Errorf("View should contain '%s', got: %s", expectedContent, view)
 	}

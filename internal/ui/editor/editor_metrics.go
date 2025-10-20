@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/app"
+	"github.com/Kyanite/noise/internal/app"
 )
 
 // EditorMetrics implementation methods

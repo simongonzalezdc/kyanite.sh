@@ -7,7 +7,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // bpmTapperModel handles the BPM tapper UI component
@@ -144,7 +144,7 @@ func (m *bpmTapperModel) View() string {
 	var content strings.Builder
 
 	// Header
-	header := m.headerStyle.Render("🎵 BPM Tapper")
+	header := m.headerStyle.Render("ðŸŽµ BPM Tapper")
 	content.WriteString(header)
 	content.WriteString("\n\n")
 
@@ -175,12 +175,12 @@ func (m *bpmTapperModel) renderTapHistory() string {
 		if tapped {
 			// Show more recent taps as brighter
 			if i >= len(m.tapHistory)-3 {
-				symbols = append(symbols, "●")
+				symbols = append(symbols, "â—")
 			} else {
-				symbols = append(symbols, "○")
+				symbols = append(symbols, "â—‹")
 			}
 		} else {
-			symbols = append(symbols, "○")
+			symbols = append(symbols, "â—‹")
 		}
 	}
 

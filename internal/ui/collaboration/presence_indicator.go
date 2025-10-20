@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/collaboration"
-	"github.com/puente-labs/noise/internal/ui/dimension"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/collaboration"
+	"github.com/Kyanite/noise/internal/ui/dimension"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // PresenceIndicatorModel handles displaying user presence indicators
@@ -84,7 +84,7 @@ func (m *PresenceIndicatorModel) View() string {
 	var content strings.Builder
 
 	// Header
-	title := "👥 Collaborators"
+	title := "ðŸ‘¥ Collaborators"
 	if len(m.indicators) == 1 {
 		title += " (1 user)"
 	} else {
@@ -176,11 +176,11 @@ func (m *PresenceIndicatorModel) getColoredIcon(indicator collaboration.Presence
 func (m *PresenceIndicatorModel) getRoleIcon(role collaboration.ParticipantRole) string {
 	switch role {
 	case collaboration.RoleOwner:
-		return "👑"
+		return "ðŸ‘‘"
 	case collaboration.RoleEditor:
-		return "✏️"
+		return "âœï¸"
 	case collaboration.RoleViewer:
-		return "👁️"
+		return "ðŸ‘ï¸"
 	default:
 		return ""
 	}
@@ -212,7 +212,7 @@ func (m *PresenceIndicatorModel) getUserDetails(indicator SessionPresenceIndicat
 		details = append(details, "Read-only")
 	}
 
-	return strings.Join(details, " • ")
+	return strings.Join(details, " â€¢ ")
 }
 
 // ToggleDetails toggles the display of detailed information

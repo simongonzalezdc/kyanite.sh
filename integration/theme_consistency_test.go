@@ -6,8 +6,8 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/noise/internal/app"
-	"github.com/puente-labs/noise/internal/ui/editor"
+	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/ui/editor"
 )
 
 // TestThemeConsistencyAcrossComponents verifies that editor, preview and status bar

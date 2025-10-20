@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // MarkdownElement represents a highlighted markdown element.

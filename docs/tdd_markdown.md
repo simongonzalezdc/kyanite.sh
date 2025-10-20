@@ -3,7 +3,7 @@
 
 **Version:** 1.0  
 **Date:** October 17, 2025  
-**Document Owner:** Simon (Puente Labs)  
+**Document Owner:** Simon (Kyanite)  
 **Status:** Draft for Development
 
 ---
@@ -32,54 +32,54 @@ noise.sh follows a **modular monolith** architecture with clear separation betwe
 ### High-Level Architecture Diagram
 
 ```
-┌────────────────────────────────────────────────────────────────────┐
-│                         User Terminal                               │
-│                    (Windows/macOS/Linux)                            │
-└────────────────────────┬───────────────────────────────────────────┘
-                         │
-                         ▼
-┌────────────────────────────────────────────────────────────────────┐
-│                      PRESENTATION LAYER                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐ │
-│  │ Main Router  │──│ Screen Stack │──│ Bubble Tea Components    │ │
-│  └──────────────┘  └──────────────┘  │ • Editor  • File Browser │ │
-│                                       │ • Theory  • AI Panel     │ │
-│                                       │ • Settings               │ │
-│                                       └──────────────────────────┘ │
-└────────────────────────┬───────────────────────────────────────────┘
-                         │
-                         ▼
-┌────────────────────────────────────────────────────────────────────┐
-│                      APPLICATION LAYER                              │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────────┐  │
-│  │ Editor Service  │  │ Theory Service  │  │  AI Orchestrator │  │
-│  │ • Parse YAML    │  │ • Chords/Scales │  │  • Multi-Agent   │  │
-│  │ • Validate      │  │ • Circle of 5ths│  │  • RAG Query     │  │
-│  │ • Auto-save     │  │ • Rhyme Dict    │  │  • Streaming     │  │
-│  └─────────────────┘  └─────────────────┘  └──────────────────┘  │
-└────────────────────────┬───────────────────────────────────────────┘
-                         │
-                         ▼
-┌────────────────────────────────────────────────────────────────────┐
-│                       DOMAIN LAYER                                  │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────────────────┐  │
-│  │ Song Model   │  │ Project      │  │ Knowledge Base         │  │
-│  │ • Metadata   │  │ • Versions   │  │ • Pedagogy Cards       │  │
-│  │ • Sections   │  │ • Stats      │  │ • Anti-Cliché Lists    │  │
-│  │ • Quality    │  │ • Git Repo   │  │ • Example Patterns     │  │
-│  └──────────────┘  └──────────────┘  └────────────────────────┘  │
-└────────────────────────┬───────────────────────────────────────────┘
-                         │
-                         ▼
-┌────────────────────────────────────────────────────────────────────┐
-│                    INFRASTRUCTURE LAYER                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐ │
-│  │ File System  │  │ SQLite DB    │  │ External Integrations    │ │
-│  │ • Markdown   │  │ • Versions   │  │ • Ollama API (Local)     │ │
-│  │ • Git Ops    │  │ • Stats      │  │ • MIDI Devices           │ │
-│  │ • Exports    │  │ • KB Vectors │  │ • Audio (beep/GoAudio)   │ │
-│  └──────────────┘  └──────────────┘  └──────────────────────────┘ │
-└────────────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                         User Terminal                               â”‚
+â”‚                    (Windows/macOS/Linux)                            â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                         â”‚
+                         â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                      PRESENTATION LAYER                             â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚  â”‚ Main Router  â”‚â”€â”€â”‚ Screen Stack â”‚â”€â”€â”‚ Bubble Tea Components    â”‚ â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚ â€¢ Editor  â€¢ File Browser â”‚ â”‚
+â”‚                                       â”‚ â€¢ Theory  â€¢ AI Panel     â”‚ â”‚
+â”‚                                       â”‚ â€¢ Settings               â”‚ â”‚
+â”‚                                       â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                         â”‚
+                         â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                      APPLICATION LAYER                              â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚
+â”‚  â”‚ Editor Service  â”‚  â”‚ Theory Service  â”‚  â”‚  AI Orchestrator â”‚  â”‚
+â”‚  â”‚ â€¢ Parse YAML    â”‚  â”‚ â€¢ Chords/Scales â”‚  â”‚  â€¢ Multi-Agent   â”‚  â”‚
+â”‚  â”‚ â€¢ Validate      â”‚  â”‚ â€¢ Circle of 5thsâ”‚  â”‚  â€¢ RAG Query     â”‚  â”‚
+â”‚  â”‚ â€¢ Auto-save     â”‚  â”‚ â€¢ Rhyme Dict    â”‚  â”‚  â€¢ Streaming     â”‚  â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                         â”‚
+                         â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                       DOMAIN LAYER                                  â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚
+â”‚  â”‚ Song Model   â”‚  â”‚ Project      â”‚  â”‚ Knowledge Base         â”‚  â”‚
+â”‚  â”‚ â€¢ Metadata   â”‚  â”‚ â€¢ Versions   â”‚  â”‚ â€¢ Pedagogy Cards       â”‚  â”‚
+â”‚  â”‚ â€¢ Sections   â”‚  â”‚ â€¢ Stats      â”‚  â”‚ â€¢ Anti-ClichÃ© Lists    â”‚  â”‚
+â”‚  â”‚ â€¢ Quality    â”‚  â”‚ â€¢ Git Repo   â”‚  â”‚ â€¢ Example Patterns     â”‚  â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                         â”‚
+                         â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                    INFRASTRUCTURE LAYER                             â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚  â”‚ File System  â”‚  â”‚ SQLite DB    â”‚  â”‚ External Integrations    â”‚ â”‚
+â”‚  â”‚ â€¢ Markdown   â”‚  â”‚ â€¢ Versions   â”‚  â”‚ â€¢ Ollama API (Local)     â”‚ â”‚
+â”‚  â”‚ â€¢ Git Ops    â”‚  â”‚ â€¢ Stats      â”‚  â”‚ â€¢ MIDI Devices           â”‚ â”‚
+â”‚  â”‚ â€¢ Exports    â”‚  â”‚ â€¢ KB Vectors â”‚  â”‚ â€¢ Audio (beep/GoAudio)   â”‚ â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ### Layer Responsibilities
@@ -349,80 +349,80 @@ Based on research documents, we implement a **deterministic 6-stage pipeline** w
 ### Agent Pipeline Flow
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│ Stage 1: IDEATION AGENT                                             │
-│ Input:  User theme/mood/genre                                       │
-│ Output: 5-10 specific angles, avoiding generic concepts             │
-│ Model:  Qwen 2.5 7B (creative, good with brainstorming)            │
-│ Temp:   0.85-0.90 (high creativity)                                │
-└─────────────────────────┬───────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│ Stage 2: STRUCTURE PLANNER AGENT                                    │
-│ Input:  Selected angle from ideation                                │
-│ Output: Song structure (V-C-V-C-B-C), emotional arc, key imagery   │
-│ Model:  Llama 3.1 8B (good at structured thinking)                 │
-│ Temp:   0.70 (balanced)                                            │
-│ RAG:    Query KB for structure templates                           │
-└─────────────────────────┬───────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│ Stage 3: GENERATION AGENTS (Parallel)                               │
-│                                                                      │
-│  ┌──────────────────┐  ┌──────────────────┐  ┌─────────────────┐  │
-│  │ Verse Generator  │  │ Chorus Generator │  │ Bridge Generator│  │
-│  │ • Storytelling   │  │ • Emotional peak │  │ • New angle     │  │
-│  │ • Specific detail│  │ • Hook placement │  │ • Contrast      │  │
-│  │ • Build tension  │  │ • Memorable      │  │ • Resolution    │  │
-│  └──────────────────┘  └──────────────────┘  └─────────────────┘  │
-│                                                                      │
-│ Model:  Qwen 2.5 7B per section                                    │
-│ Temp:   0.80-0.85                                                  │
-│ RAG:    Query KB for section-specific techniques                   │
-│ Output: Raw lyric sections with target rhyme scheme                │
-└─────────────────────────┬───────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│ Stage 4: HUMANIZER AGENT                                            │
-│ Input:  Generated sections                                          │
-│ Tasks:  • Replace abstractions with concrete images                │
-│         • Strengthen verbs (trudged vs walked)                     │
-│         • Remove clichés from blocklist                            │
-│         • Add sensory details (7 senses)                           │
-│ Model:  Llama 3.1 8B (precise edits)                               │
-│ Temp:   0.60 (controlled refinement)                               │
-│ RAG:    Query anti-cliché lists, sensory vocabulary                │
-└─────────────────────────┬───────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│ Stage 5: CRITIC AGENT (Iterative Loop)                              │
-│ Input:  Humanized lyrics                                            │
-│ Tasks:  • Run quality rubric (7 dimensions)                        │
-│         • Programmatic checks (prosody, syllables, rhyme)         │
-│         • Identify specific issues with line numbers              │
-│ Output: QualityScore + actionable feedback                         │
-│ Model:  Llama 3.1 8B (analytical)                                  │
-│ Temp:   0.30 (factual assessment)                                 │
-│                                                                      │
-│ ┌─────────────────────────────────────────────────────────────┐   │
-│ │ IF score < 70/100:                                          │   │
-│ │   ↓                                                         │   │
-│ │ Stage 6: REFINER AGENT                                      │   │
-│ │ Input:  Critique feedback                                   │   │
-│ │ Tasks:  • Address specific dimension weaknesses            │   │
-│ │         • Re-generate problem lines                        │   │
-│ │         • Maintain overall voice/theme                     │   │
-│ │ Output: Improved lyrics                                     │   │
-│ │   ↓                                                         │   │
-│ │ LOOP BACK TO CRITIC (max 3 iterations)                     │   │
-│ └─────────────────────────────────────────────────────────────┘   │
-│                                                                      │
-│ ELSE: Output final polished lyrics                                 │
-└─────────────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Stage 1: IDEATION AGENT                                             â”‚
+â”‚ Input:  User theme/mood/genre                                       â”‚
+â”‚ Output: 5-10 specific angles, avoiding generic concepts             â”‚
+â”‚ Model:  Qwen 2.5 7B (creative, good with brainstorming)            â”‚
+â”‚ Temp:   0.85-0.90 (high creativity)                                â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                          â”‚
+                          â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Stage 2: STRUCTURE PLANNER AGENT                                    â”‚
+â”‚ Input:  Selected angle from ideation                                â”‚
+â”‚ Output: Song structure (V-C-V-C-B-C), emotional arc, key imagery   â”‚
+â”‚ Model:  Llama 3.1 8B (good at structured thinking)                 â”‚
+â”‚ Temp:   0.70 (balanced)                                            â”‚
+â”‚ RAG:    Query KB for structure templates                           â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                          â”‚
+                          â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Stage 3: GENERATION AGENTS (Parallel)                               â”‚
+â”‚                                                                      â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚
+â”‚  â”‚ Verse Generator  â”‚  â”‚ Chorus Generator â”‚  â”‚ Bridge Generatorâ”‚  â”‚
+â”‚  â”‚ â€¢ Storytelling   â”‚  â”‚ â€¢ Emotional peak â”‚  â”‚ â€¢ New angle     â”‚  â”‚
+â”‚  â”‚ â€¢ Specific detailâ”‚  â”‚ â€¢ Hook placement â”‚  â”‚ â€¢ Contrast      â”‚  â”‚
+â”‚  â”‚ â€¢ Build tension  â”‚  â”‚ â€¢ Memorable      â”‚  â”‚ â€¢ Resolution    â”‚  â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚
+â”‚                                                                      â”‚
+â”‚ Model:  Qwen 2.5 7B per section                                    â”‚
+â”‚ Temp:   0.80-0.85                                                  â”‚
+â”‚ RAG:    Query KB for section-specific techniques                   â”‚
+â”‚ Output: Raw lyric sections with target rhyme scheme                â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                          â”‚
+                          â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Stage 4: HUMANIZER AGENT                                            â”‚
+â”‚ Input:  Generated sections                                          â”‚
+â”‚ Tasks:  â€¢ Replace abstractions with concrete images                â”‚
+â”‚         â€¢ Strengthen verbs (trudged vs walked)                     â”‚
+â”‚         â€¢ Remove clichÃ©s from blocklist                            â”‚
+â”‚         â€¢ Add sensory details (7 senses)                           â”‚
+â”‚ Model:  Llama 3.1 8B (precise edits)                               â”‚
+â”‚ Temp:   0.60 (controlled refinement)                               â”‚
+â”‚ RAG:    Query anti-clichÃ© lists, sensory vocabulary                â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                          â”‚
+                          â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Stage 5: CRITIC AGENT (Iterative Loop)                              â”‚
+â”‚ Input:  Humanized lyrics                                            â”‚
+â”‚ Tasks:  â€¢ Run quality rubric (7 dimensions)                        â”‚
+â”‚         â€¢ Programmatic checks (prosody, syllables, rhyme)         â”‚
+â”‚         â€¢ Identify specific issues with line numbers              â”‚
+â”‚ Output: QualityScore + actionable feedback                         â”‚
+â”‚ Model:  Llama 3.1 8B (analytical)                                  â”‚
+â”‚ Temp:   0.30 (factual assessment)                                 â”‚
+â”‚                                                                      â”‚
+â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”‚
+â”‚ â”‚ IF score < 70/100:                                          â”‚   â”‚
+â”‚ â”‚   â†“                                                         â”‚   â”‚
+â”‚ â”‚ Stage 6: REFINER AGENT                                      â”‚   â”‚
+â”‚ â”‚ Input:  Critique feedback                                   â”‚   â”‚
+â”‚ â”‚ Tasks:  â€¢ Address specific dimension weaknesses            â”‚   â”‚
+â”‚ â”‚         â€¢ Re-generate problem lines                        â”‚   â”‚
+â”‚ â”‚         â€¢ Maintain overall voice/theme                     â”‚   â”‚
+â”‚ â”‚ Output: Improved lyrics                                     â”‚   â”‚
+â”‚ â”‚   â†“                                                         â”‚   â”‚
+â”‚ â”‚ LOOP BACK TO CRITIC (max 3 iterations)                     â”‚   â”‚
+â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜   â”‚
+â”‚                                                                      â”‚
+â”‚ ELSE: Output final polished lyrics                                 â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ### RAG Knowledge Base Integration
@@ -431,7 +431,7 @@ Each agent queries the knowledge base before generation to retrieve relevant ped
 
 **RAG Query Process:**
 
-1. Convert user intent → embedding vector
+1. Convert user intent â†’ embedding vector
 2. Semantic search in ChromaDB (top 5 matches)
 3. Extract relevant rules/examples
 4. Inject into agent system prompt
@@ -505,43 +505,43 @@ func streamAIResponse(prompt string, agentType AgentType) tea.Cmd {
 
 ```
 RootModel (main router)
-├── SplashScreen (initial load, Ollama check)
-├── MainMenu (file browser, new song, settings)
-├── EditorModel (main workspace)
-│   ├── SplitPaneModel
-│   │   ├── TextareaModel (left: editing)
-│   │   └── PreviewViewport (right: Glamour render)
-│   ├── StatusBar (word count, cursor pos, mode)
-│   ├── AIPanel (collapsible sidebar)
-│   │   ├── BrainstormView
-│   │   ├── SuggestionView (inline completions)
-│   │   ├── CritiqueView (quality feedback)
-│   │   └── ChatView (conversational AI)
-│   └── QuickActions (chord insert, rhyme lookup)
-├── TheoryToolModel
-│   ├── CircleOfFifthsView (interactive, animated)
-│   ├── ChordProgressionView (visual timeline)
-│   ├── RhymeDictionaryView (search + results)
-│   └── ScaleReferenceView (key selection)
-├── AudioToolModel
-│   ├── MetronomeView (visual beat, tempo control)
-│   ├── ChordPlayerView (play progression)
-│   └── MIDIInputView (capture chords)
-├── ProjectManagerModel
-│   ├── FileListView (fuzzy search)
-│   ├── VersionHistoryView (timeline with diffs)
-│   └── StatsView (charts, streaks, insights)
-└── SettingsModel
-    ├── AppearanceView (themes, colors, fonts)
-    ├── AIConfigView (model selection, temperature)
-    └── KeybindingsView (customizable shortcuts)
+â”œâ”€â”€ SplashScreen (initial load, Ollama check)
+â”œâ”€â”€ MainMenu (file browser, new song, settings)
+â”œâ”€â”€ EditorModel (main workspace)
+â”‚   â”œâ”€â”€ SplitPaneModel
+â”‚   â”‚   â”œâ”€â”€ TextareaModel (left: editing)
+â”‚   â”‚   â””â”€â”€ PreviewViewport (right: Glamour render)
+â”‚   â”œâ”€â”€ StatusBar (word count, cursor pos, mode)
+â”‚   â”œâ”€â”€ AIPanel (collapsible sidebar)
+â”‚   â”‚   â”œâ”€â”€ BrainstormView
+â”‚   â”‚   â”œâ”€â”€ SuggestionView (inline completions)
+â”‚   â”‚   â”œâ”€â”€ CritiqueView (quality feedback)
+â”‚   â”‚   â””â”€â”€ ChatView (conversational AI)
+â”‚   â””â”€â”€ QuickActions (chord insert, rhyme lookup)
+â”œâ”€â”€ TheoryToolModel
+â”‚   â”œâ”€â”€ CircleOfFifthsView (interactive, animated)
+â”‚   â”œâ”€â”€ ChordProgressionView (visual timeline)
+â”‚   â”œâ”€â”€ RhymeDictionaryView (search + results)
+â”‚   â””â”€â”€ ScaleReferenceView (key selection)
+â”œâ”€â”€ AudioToolModel
+â”‚   â”œâ”€â”€ MetronomeView (visual beat, tempo control)
+â”‚   â”œâ”€â”€ ChordPlayerView (play progression)
+â”‚   â””â”€â”€ MIDIInputView (capture chords)
+â”œâ”€â”€ ProjectManagerModel
+â”‚   â”œâ”€â”€ FileListView (fuzzy search)
+â”‚   â”œâ”€â”€ VersionHistoryView (timeline with diffs)
+â”‚   â””â”€â”€ StatsView (charts, streaks, insights)
+â””â”€â”€ SettingsModel
+    â”œâ”€â”€ AppearanceView (themes, colors, fonts)
+    â”œâ”€â”€ AIConfigView (model selection, temperature)
+    â””â”€â”€ KeybindingsView (customizable shortcuts)
 ```
 
 ### Key User Flows
 
 #### Flow 1: Create New Song with AI Assistance
 
-1. Launch app → Main Menu
+1. Launch app â†’ Main Menu
 2. Press **N** for New Song
 3. Huh form: Title, Key, Tempo, Genre/Mood
 4. Auto-navigate to Editor with blank file
@@ -551,9 +551,9 @@ RootModel (main router)
 8. AI generates structure outline
 9. User starts typing verse in left pane
 10. Real-time preview updates in right pane
-11. Pause typing 60s → AI offers inline suggestion
+11. Pause typing 60s â†’ AI offers inline suggestion
 12. **Tab** to accept, **Esc** to dismiss
-13. Complete section → Press **Ctrl+R** for refinement
+13. Complete section â†’ Press **Ctrl+R** for refinement
 14. View critique scores + feedback
 15. Accept/reject AI changes via diff view
 16. Repeat for other sections
@@ -561,22 +561,22 @@ RootModel (main router)
 
 #### Flow 2: Use Music Theory Tools
 
-1. In Editor, press **Ctrl+T** → Theory Tools
+1. In Editor, press **Ctrl+T** â†’ Theory Tools
 2. Tab to Circle of Fifths view
 3. Arrow keys navigate around circle
-4. Enter on "G" → Shows G major scale, diatonic chords
-5. Press **P** → Switch to Chord Progressions
+4. Enter on "G" â†’ Shows G major scale, diatonic chords
+5. Press **P** â†’ Switch to Chord Progressions
 6. View common progressions (I-V-vi-IV, etc.)
 7. Press number to hear chord (beep synthesis)
 8. Press **I** to insert chord symbols into lyrics
-9. Press **R** → Rhyme Dictionary
-10. Type word → View perfect/slant rhymes
-11. Select rhyme → Insert at cursor
-12. Press **Esc** → Back to Editor
+9. Press **R** â†’ Rhyme Dictionary
+10. Type word â†’ View perfect/slant rhymes
+11. Select rhyme â†’ Insert at cursor
+12. Press **Esc** â†’ Back to Editor
 
 #### Flow 3: Version History & Git
 
-1. Press **Ctrl+H** → Version History
+1. Press **Ctrl+H** â†’ Version History
 2. Timeline shows auto-saves + milestones
 3. Arrow keys navigate timeline
 4. Press **D** to see diff vs current
@@ -584,7 +584,7 @@ RootModel (main router)
 6. Press **M** to mark current as milestone
 7. Enter milestone name
 8. Auto-commit to Git with message
-9. Press **Esc** → Back to Editor
+9. Press **Esc** â†’ Back to Editor
 
 ---
 
@@ -742,7 +742,7 @@ archives:
 
 release:
   github:
-    owner: puente-labs
+    owner: Kyanite
     name: noise.sh
 ```
 
@@ -750,19 +750,19 @@ release:
 
 **Homebrew:**
 ```bash
-brew tap puente-labs/tap
+brew tap Kyanite/tap
 brew install noise.sh
 ```
 
 **Direct Download:**
 ```bash
-curl -L https://github.com/puente-labs/noise.sh/releases/latest/download/noise.sh_Linux_x86_64.tar.gz | tar xz
+curl -L https://github.com/Kyanite/noise.sh/releases/latest/download/noise.sh_Linux_x86_64.tar.gz | tar xz
 sudo mv noise.sh /usr/local/bin/
 ```
 
 **Go Install:**
 ```bash
-go install github.com/puente-labs/noise.sh@latest
+go install github.com/Kyanite/noise.sh@latest
 ```
 
 ### Prerequisites
@@ -823,6 +823,6 @@ Users must install:
 
 ---
 
-**Document Owner:** Simon (Puente Labs)  
+**Document Owner:** Simon (Kyanite)  
 **Status:** Ready for development  
 **Next Review:** After Phase 1 completion

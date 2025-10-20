@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/noise/internal/ui/editor"
+	"github.com/Kyanite/noise/internal/ui/editor"
 )
 
 // TestHelpPaneModelCreation tests help pane model creation
@@ -437,11 +437,11 @@ func TestHelpPaneStyleConsistency(t *testing.T) {
 
 	// View should contain styled elements
 	// (This is a basic check, actual implementation might vary)
-	if !contains(view, "🎹") {
+	if !contains(view, "ðŸŽ¹") {
 		t.Error("Expected view to contain styled elements")
 	}
 
-	if !contains(view, "📂") {
+	if !contains(view, "ðŸ“‚") {
 		t.Error("Expected view to contain category icons")
 	}
 }

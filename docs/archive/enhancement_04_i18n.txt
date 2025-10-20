@@ -3,7 +3,7 @@
 
 **Status:** RESEARCH PHASE  
 **Date:** October 17, 2025  
-**Owner:** Simon (Puente Labs)  
+**Owner:** Simon (Kyanite)  
 **Timeline:** Post-v2.0 (6+ months out)
 
 ---
@@ -56,7 +56,7 @@ Evaluate the feasibility, effort, and strategy for adding multi-language support
 - Llama 3.1 8B Instruct (good Spanish support)
 - Qwen 2.5 7B (multilingual)
 - Mistral 7B (European languages)
-- ⚠️ Need bilingual testing for quality
+- âš ï¸ Need bilingual testing for quality
 ```
 
 ---
@@ -109,10 +109,10 @@ statusBar := i18n.T("editor.statusbar.unsaved")
 Current: CMU Pronunciation Dictionary (English only)
 
 Spanish Options:
-- ❌ No equivalent CMU dict for Spanish
-- ✅ Can use IPA (International Phonetic Alphabet)
-- ✅ espeak-ng for Spanish pronunciation
-- ✅ Build custom Spanish rhyme database
+- âŒ No equivalent CMU dict for Spanish
+- âœ… Can use IPA (International Phonetic Alphabet)
+- âœ… espeak-ng for Spanish pronunciation
+- âœ… Build custom Spanish rhyme database
 
 Effort: High - 2-3 weeks
 Maintenance: Medium - needs regional variants
@@ -249,11 +249,11 @@ type LocalizedPrompt struct {
 #### Songwriting Pedagogy
 - [ ] Spanish lyric writing techniques
 - [ ] Regional style guides
-- [ ] Genre-specific rules (reggaeton, bachata, rock en español)
+- [ ] Genre-specific rules (reggaeton, bachata, rock en espaÃ±ol)
 - [ ] Famous Spanish songwriters' methods
 
-#### Anti-Cliché Lists
-- [ ] Common Spanish lyric clichés
+#### Anti-ClichÃ© Lists
+- [ ] Common Spanish lyric clichÃ©s
 - [ ] Overused phrases by genre
 - [ ] Regional differences
 
@@ -289,7 +289,7 @@ type LocalizedPrompt struct {
 
 #### Competitive Landscape
 **Spanish Songwriting Tools:**
-- ❓ Research needed - very limited options found
+- â“ Research needed - very limited options found
 - Most tools are English-only
 - Opportunity for first-mover advantage
 
@@ -301,17 +301,17 @@ type LocalizedPrompt struct {
 ```
 Areas where community can help:
 
-✅ Easy:
+âœ… Easy:
 - UI string translations
 - Documentation translation
 - Example songs
 
-⚠️ Medium:
+âš ï¸ Medium:
 - Knowledge base content
 - Regional style guides
-- Cliché lists
+- ClichÃ© lists
 
-❌ Hard:
+âŒ Hard:
 - Core algorithms (rhyme, prosody)
 - AI prompt engineering
 - Quality assurance
@@ -499,8 +499,8 @@ Areas where community can help:
 
 ### Spanish v1 Success Criteria
 - [ ] 100+ Spanish-speaking active users
-- [ ] Quality score comparable to English (≥65/100)
-- [ ] Community contributions (≥3 contributors)
+- [ ] Quality score comparable to English (â‰¥65/100)
+- [ ] Community contributions (â‰¥3 contributors)
 - [ ] Positive feedback from native speakers
 - [ ] No major cultural issues reported
 
@@ -558,7 +558,7 @@ Areas where community can help:
 
 ## Conclusion
 
-**Viability:** ✅ **FEASIBLE** but significant effort
+**Viability:** âœ… **FEASIBLE** but significant effort
 
 **Recommendation:** 
 - **Wait** until v2.0 ships and is stable

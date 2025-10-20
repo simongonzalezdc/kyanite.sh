@@ -1,8 +1,8 @@
 package theme
 
 import (
-	"github.com/puente-labs/noise/internal/config"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/config"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // ApplyThemeToStyles maps a Theme into the ui/styles package variables so existing UI code continues to work.

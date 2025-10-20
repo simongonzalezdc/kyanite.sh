@@ -7,9 +7,9 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/noise/internal/app"
-	"github.com/puente-labs/noise/internal/infra/db"
-	"github.com/puente-labs/noise/internal/ui/editor"
+	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/infra/db"
+	"github.com/Kyanite/noise/internal/ui/editor"
 )
 
 // TestEditorWorkflow verifies basic editor lifecycle and view synchronization.

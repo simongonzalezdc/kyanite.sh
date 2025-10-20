@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/logging"
+	"github.com/Kyanite/noise/internal/logging"
 )
 
 // NotificationType represents the type of notification
@@ -403,7 +403,7 @@ func (m *NotificationUIModel) renderNotification(notification *Notification, sel
 	// Add selection indicator if selected
 	indicator := " "
 	if selected {
-		indicator = "▶ "
+		indicator = "â–¶ "
 	}
 
 	// Render title and message

@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/puente-labs/noise/internal/domain"
-	"github.com/puente-labs/noise/internal/errors"
-	errutil "github.com/puente-labs/noise/internal/errutil"
-	"github.com/puente-labs/noise/internal/infra/db"
-	"github.com/puente-labs/noise/internal/infra/files"
-	"github.com/puente-labs/noise/internal/logging"
+	"github.com/Kyanite/noise/internal/domain"
+	"github.com/Kyanite/noise/internal/errors"
+	errutil "github.com/Kyanite/noise/internal/errutil"
+	"github.com/Kyanite/noise/internal/infra/db"
+	"github.com/Kyanite/noise/internal/infra/files"
+	"github.com/Kyanite/noise/internal/logging"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )

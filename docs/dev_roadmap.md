@@ -3,7 +3,7 @@
 
 **Version:** 1.0  
 **Date:** October 17, 2025  
-**Document Owner:** Simon (Puente Labs)  
+**Document Owner:** Simon (Kyanite)  
 **For:** Solo developer with AI-assisted coding (Kilocode/VSCode)
 
 ---
@@ -18,7 +18,7 @@ mkdir noise.sh && cd noise.sh
 git init
 
 # Initialize Go module
-go mod init github.com/puente-labs/noise.sh
+go mod init github.com/Kyanite/noise.sh
 
 # Install core dependencies
 go get github.com/charmbracelet/bubbletea@latest
@@ -55,51 +55,51 @@ go get github.com/stretchr/testify@latest
 
 ```
 noise.sh/
-├── cmd/
-│   └── noise.sh/
-│       └── main.go              # Entry point
-├── internal/
-│   ├── app/                     # Application layer
-│   │   ├── editor/              # Editor service
-│   │   ├── theory/              # Music theory service
-│   │   └── ai/                  # AI orchestration
-│   ├── domain/                  # Domain models
-│   │   ├── song.go
-│   │   ├── section.go
-│   │   └── quality.go
-│   ├── infra/                   # Infrastructure
-│   │   ├── db/                  # SQLite
-│   │   ├── files/               # File I/O
-│   │   ├── git/                 # Git operations
-│   │   └── ollama/              # Ollama client
-│   └── ui/                      # TUI components
-│       ├── root.go              # Root model/router
-│       ├── editor/              # Editor screen
-│       ├── theory/              # Theory tools screen
-│       ├── audio/               # Audio tools screen
-│       ├── manager/             # Project manager screen
-│       ├── settings/            # Settings screen
-│       └── common/              # Shared components
-├── pkg/                         # Public packages
-│   ├── kb/                      # Knowledge base
-│   └── prompts/                 # AI prompts
-├── scripts/                     # Build/dev scripts
-│   ├── build.sh
-│   ├── test.sh
-│   └── install-models.sh
-├── testdata/                    # Test fixtures
-│   ├── songs/
-│   └── golden/                  # Golden file tests
-├── docs/                        # Documentation
-│   ├── architecture.md
-│   ├── api.md
-│   └── user-guide.md
-├── .goreleaser.yaml             # Release config
-├── .golangci.yaml               # Linter config
-├── go.mod
-├── go.sum
-├── LICENSE
-└── README.md
+â”œâ”€â”€ cmd/
+â”‚   â””â”€â”€ noise.sh/
+â”‚       â””â”€â”€ main.go              # Entry point
+â”œâ”€â”€ internal/
+â”‚   â”œâ”€â”€ app/                     # Application layer
+â”‚   â”‚   â”œâ”€â”€ editor/              # Editor service
+â”‚   â”‚   â”œâ”€â”€ theory/              # Music theory service
+â”‚   â”‚   â””â”€â”€ ai/                  # AI orchestration
+â”‚   â”œâ”€â”€ domain/                  # Domain models
+â”‚   â”‚   â”œâ”€â”€ song.go
+â”‚   â”‚   â”œâ”€â”€ section.go
+â”‚   â”‚   â””â”€â”€ quality.go
+â”‚   â”œâ”€â”€ infra/                   # Infrastructure
+â”‚   â”‚   â”œâ”€â”€ db/                  # SQLite
+â”‚   â”‚   â”œâ”€â”€ files/               # File I/O
+â”‚   â”‚   â”œâ”€â”€ git/                 # Git operations
+â”‚   â”‚   â””â”€â”€ ollama/              # Ollama client
+â”‚   â””â”€â”€ ui/                      # TUI components
+â”‚       â”œâ”€â”€ root.go              # Root model/router
+â”‚       â”œâ”€â”€ editor/              # Editor screen
+â”‚       â”œâ”€â”€ theory/              # Theory tools screen
+â”‚       â”œâ”€â”€ audio/               # Audio tools screen
+â”‚       â”œâ”€â”€ manager/             # Project manager screen
+â”‚       â”œâ”€â”€ settings/            # Settings screen
+â”‚       â””â”€â”€ common/              # Shared components
+â”œâ”€â”€ pkg/                         # Public packages
+â”‚   â”œâ”€â”€ kb/                      # Knowledge base
+â”‚   â””â”€â”€ prompts/                 # AI prompts
+â”œâ”€â”€ scripts/                     # Build/dev scripts
+â”‚   â”œâ”€â”€ build.sh
+â”‚   â”œâ”€â”€ test.sh
+â”‚   â””â”€â”€ install-models.sh
+â”œâ”€â”€ testdata/                    # Test fixtures
+â”‚   â”œâ”€â”€ songs/
+â”‚   â””â”€â”€ golden/                  # Golden file tests
+â”œâ”€â”€ docs/                        # Documentation
+â”‚   â”œâ”€â”€ architecture.md
+â”‚   â”œâ”€â”€ api.md
+â”‚   â””â”€â”€ user-guide.md
+â”œâ”€â”€ .goreleaser.yaml             # Release config
+â”œâ”€â”€ .golangci.yaml               # Linter config
+â”œâ”€â”€ go.mod
+â”œâ”€â”€ go.sum
+â”œâ”€â”€ LICENSE
+â””â”€â”€ README.md
 ```
 
 ### 3. Initial Code Scaffolding
@@ -114,7 +114,7 @@ import (
     "os"
     
     tea "github.com/charmbracelet/bubbletea"
-    "github.com/puente-labs/noise.sh/internal/ui"
+    "github.com/Kyanite/noise.sh/internal/ui"
 )
 
 var (
@@ -225,7 +225,7 @@ func (m RootModel) renderSplash() string {
         Width(m.width).
         Height(m.height)
     
-    return style.Render("🎵 noise.sh 🎵\n\nLoading...")
+    return style.Render("ðŸŽµ noise.sh ðŸŽµ\n\nLoading...")
 }
 
 func checkOllamaCmd() tea.Cmd {
@@ -334,7 +334,7 @@ import (
     "strings"
     
     "gopkg.in/yaml.v2"
-    "github.com/puente-labs/noise.sh/internal/domain"
+    "github.com/Kyanite/noise.sh/internal/domain"
 )
 
 type Parser struct{}
@@ -657,7 +657,7 @@ import (
     "github.com/charmbracelet/lipgloss"
     "github.com/charmbracelet/glamour"
     
-    "github.com/puente-labs/noise.sh/internal/domain"
+    "github.com/Kyanite/noise.sh/internal/domain"
 )
 
 type Model struct {
@@ -1035,7 +1035,7 @@ func min(a, b int) int {
 
 ```
 Enhance the Circle of Fifths with:
-1. Show related chords for selected key (I, ii, iii, IV, V, vi, vii°)
+1. Show related chords for selected key (I, ii, iii, IV, V, vi, viiÂ°)
 2. Display scale notes for selected key
 3. Animated transitions using Harmonica when changing keys
 4. Color-code major vs minor keys
@@ -1330,11 +1330,11 @@ func (m MetronomeModel) View() string {
             style = style.
                 Background(lipgloss.Color(color)).
                 BorderForeground(lipgloss.Color("#FFD700"))
-            beatIndicators += style.Render("●")
+            beatIndicators += style.Render("â—")
         } else {
             style = style.
                 BorderForeground(lipgloss.Color("240"))
-            beatIndicators += style.Render("○")
+            beatIndicators += style.Render("â—‹")
         }
         
         beatIndicators += " "
@@ -1522,7 +1522,7 @@ Create initial knowledge base with 25-40 cards covering:
 - Prosody principles (Pat Pattison)
 - Rhyme schemes and patterns
 - Section-specific techniques (verse, chorus, bridge)
-- Anti-cliché lists
+- Anti-clichÃ© lists
 - Sensory vocabulary
 - Object writing examples
 - Power positioning strategies

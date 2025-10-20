@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/app/ai"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/app/ai"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // EditorAI implementation methods

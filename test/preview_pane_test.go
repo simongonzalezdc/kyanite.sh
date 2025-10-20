@@ -7,7 +7,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/noise/internal/ui/editor"
+	"github.com/Kyanite/noise/internal/ui/editor"
 )
 
 // TestPreviewPaneModelCreation tests the creation of a preview pane model

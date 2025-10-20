@@ -6,8 +6,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/ui/dimension"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/ui/dimension"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // PluginSettingsModel handles the plugin management interface
@@ -130,7 +130,7 @@ func (m *PluginSettingsModel) renderEmptyState() string {
 		Align(lipgloss.Center).
 		Width(m.width - 4).
 		Padding(2).
-		Render("No plugins loaded.\n\nPlugins can be placed in:\n• ~/.noise/plugins/\n• ./plugins/\n• ./internal/plugins/examples/")
+		Render("No plugins loaded.\n\nPlugins can be placed in:\nâ€¢ ~/.noise/plugins/\nâ€¢ ./plugins/\nâ€¢ ./internal/plugins/examples/")
 
 	content.WriteString(emptyState)
 
@@ -185,7 +185,7 @@ func (m *PluginSettingsModel) renderPluginList() string {
 	help := styles.Muted.
 		Width(m.width).
 		Padding(1).
-		Render("↑/↓: Navigate • Enter: Toggle/Details • D: Back • Esc: Exit")
+		Render("â†‘/â†“: Navigate â€¢ Enter: Toggle/Details â€¢ D: Back â€¢ Esc: Exit")
 
 	content.WriteString("\n" + help)
 
@@ -245,7 +245,7 @@ Loaded:      %s
 	help := styles.Muted.
 		Width(m.width).
 		Padding(1).
-		Render("Enter: Toggle Enable/Disable • D: Back to List • Esc: Exit")
+		Render("Enter: Toggle Enable/Disable â€¢ D: Back to List â€¢ Esc: Exit")
 
 	content.WriteString(help)
 

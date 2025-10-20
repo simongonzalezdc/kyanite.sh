@@ -7,7 +7,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/noise/internal/ui/editor"
+	"github.com/Kyanite/noise/internal/ui/editor"
 )
 
 // TestE2E_UI_Workflow runs UI-only end-to-end scenarios without a database (passes nil DB).
@@ -33,7 +33,7 @@ func TestE2E_UI_Workflow(t *testing.T) {
 	}
 
 	// 2) Split-pane layout: verify presence of divider character from styles (approx)
-	if !strings.Contains(view, "│") && !strings.Contains(view, "|") {
+	if !strings.Contains(view, "â”‚") && !strings.Contains(view, "|") {
 		// Not fatal if styles vary, but at least ensure combined output contains both panes text
 		if !strings.Contains(view, "Line A") || !strings.Contains(view, "Line B") {
 			t.Fatalf("view did not contain editor content; view=%q", view)

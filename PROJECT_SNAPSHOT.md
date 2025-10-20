@@ -16,10 +16,10 @@ The application is designed as a **local-first, privacy-focused** tool that brin
 
 The project is currently in the foundational planning and documentation stage. All core project documents have been created and approved:
 
-- ✅ **Product Requirements Document (PRD)** - Comprehensive feature specifications and success criteria
-- ✅ **Technical Design Document (TDD)** - Detailed architecture and implementation strategy
-- ✅ **Development Roadmap** - 13-week phased implementation plan
-- ✅ **Design System Reference** - Complete styling and UI component specifications
+- âœ… **Product Requirements Document (PRD)** - Comprehensive feature specifications and success criteria
+- âœ… **Technical Design Document (TDD)** - Detailed architecture and implementation strategy
+- âœ… **Development Roadmap** - 13-week phased implementation plan
+- âœ… **Design System Reference** - Complete styling and UI component specifications
 
 **Current Progress:**
 - Project structure and documentation: **100% complete**
@@ -62,38 +62,38 @@ The project is currently in the foundational planning and documentation stage. A
 The system follows a **modular monolith** architecture with clear separation of concerns:
 
 ```
-┌────────────────────────────────────────────────────────────────────┐
-│                      PRESENTATION LAYER                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐ │
-│  │ Main Router  │──│ Screen Stack │──│ Bubble Tea Components    │ │
-│  └──────────────┘  └──────────────┘  │ • Editor  • File Browser │ │
-│                                       │ • Theory  • AI Panel     │ │
-│                                       └──────────────────────────┘ │
-└────────────────────────┬───────────────────────────────────────────┘
-                         │
-                         ▼
-┌────────────────────────────────────────────────────────────────────┐
-│                      APPLICATION LAYER                              │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────────┐  │
-│  │ Editor Service  │  │ Theory Service  │  │  AI Orchestrator │  │
-│  └─────────────────┘  └─────────────────┘  └──────────────────┘  │
-└────────────────────────┬───────────────────────────────────────────┘
-                         │
-                         ▼
-┌────────────────────────────────────────────────────────────────────┐
-│                       DOMAIN LAYER                                  │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────────────────┐  │
-│  │ Song Model   │  │ Project      │  │ Knowledge Base         │  │
-│  └──────────────┘  └──────────────┘  └────────────────────────┘  │
-└────────────────────────┬───────────────────────────────────────────┘
-                         │
-                         ▼
-┌────────────────────────────────────────────────────────────────────┐
-│                    INFRASTRUCTURE LAYER                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐ │
-│  │ File System  │  │ SQLite DB    │  │ External Integrations    │ │
-│  └──────────────┘  └──────────────┘  └──────────────────────────┘ │
-└────────────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                      PRESENTATION LAYER                             â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚  â”‚ Main Router  â”‚â”€â”€â”‚ Screen Stack â”‚â”€â”€â”‚ Bubble Tea Components    â”‚ â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚ â€¢ Editor  â€¢ File Browser â”‚ â”‚
+â”‚                                       â”‚ â€¢ Theory  â€¢ AI Panel     â”‚ â”‚
+â”‚                                       â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                         â”‚
+                         â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                      APPLICATION LAYER                              â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚
+â”‚  â”‚ Editor Service  â”‚  â”‚ Theory Service  â”‚  â”‚  AI Orchestrator â”‚  â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                         â”‚
+                         â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                       DOMAIN LAYER                                  â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚
+â”‚  â”‚ Song Model   â”‚  â”‚ Project      â”‚  â”‚ Knowledge Base         â”‚  â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                         â”‚
+                         â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                    INFRASTRUCTURE LAYER                             â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚  â”‚ File System  â”‚  â”‚ SQLite DB    â”‚  â”‚ External Integrations    â”‚ â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ## Project Structure
@@ -102,51 +102,51 @@ The planned project structure follows Go best practices with clear separation of
 
 ```
 noise.sh/
-├── cmd/
-│   └── noise.sh/
-│       └── main.go              # Entry point
-├── internal/
-│   ├── app/                     # Application layer
-│   │   ├── editor/              # Editor service
-│   │   ├── theory/              # Music theory service
-│   │   └── ai/                  # AI orchestration
-│   ├── domain/                  # Domain models
-│   │   ├── song.go
-│   │   ├── section.go
-│   │   └── quality.go
-│   ├── infra/                   # Infrastructure
-│   │   ├── db/                  # SQLite
-│   │   ├── files/               # File I/O
-│   │   ├── git/                 # Git operations
-│   │   └── ollama/              # Ollama client
-│   └── ui/                      # TUI components
-│       ├── root.go              # Root model/router
-│       ├── editor/              # Editor screen
-│       ├── theory/              # Theory tools screen
-│       ├── audio/               # Audio tools screen
-│       ├── manager/             # Project manager screen
-│       ├── settings/            # Settings screen
-│       └── common/              # Shared components
-├── pkg/                         # Public packages
-│   ├── kb/                      # Knowledge base
-│   └── prompts/                 # AI prompts
-├── scripts/                     # Build/dev scripts
-│   ├── build.sh
-│   ├── test.sh
-│   └── install-models.sh
-├── testdata/                    # Test fixtures
-│   ├── songs/
-│   └── golden/                  # Golden file tests
-├── docs/                        # Documentation
-│   ├── architecture.md
-│   ├── api.md
-│   └── user-guide.md
-├── .goreleaser.yaml             # Release config
-├── .golangci.yaml               # Linter config
-├── go.mod
-├── go.sum
-├── LICENSE
-└── README.md
+â”œâ”€â”€ cmd/
+â”‚   â””â”€â”€ noise.sh/
+â”‚       â””â”€â”€ main.go              # Entry point
+â”œâ”€â”€ internal/
+â”‚   â”œâ”€â”€ app/                     # Application layer
+â”‚   â”‚   â”œâ”€â”€ editor/              # Editor service
+â”‚   â”‚   â”œâ”€â”€ theory/              # Music theory service
+â”‚   â”‚   â””â”€â”€ ai/                  # AI orchestration
+â”‚   â”œâ”€â”€ domain/                  # Domain models
+â”‚   â”‚   â”œâ”€â”€ song.go
+â”‚   â”‚   â”œâ”€â”€ section.go
+â”‚   â”‚   â””â”€â”€ quality.go
+â”‚   â”œâ”€â”€ infra/                   # Infrastructure
+â”‚   â”‚   â”œâ”€â”€ db/                  # SQLite
+â”‚   â”‚   â”œâ”€â”€ files/               # File I/O
+â”‚   â”‚   â”œâ”€â”€ git/                 # Git operations
+â”‚   â”‚   â””â”€â”€ ollama/              # Ollama client
+â”‚   â””â”€â”€ ui/                      # TUI components
+â”‚       â”œâ”€â”€ root.go              # Root model/router
+â”‚       â”œâ”€â”€ editor/              # Editor screen
+â”‚       â”œâ”€â”€ theory/              # Theory tools screen
+â”‚       â”œâ”€â”€ audio/               # Audio tools screen
+â”‚       â”œâ”€â”€ manager/             # Project manager screen
+â”‚       â”œâ”€â”€ settings/            # Settings screen
+â”‚       â””â”€â”€ common/              # Shared components
+â”œâ”€â”€ pkg/                         # Public packages
+â”‚   â”œâ”€â”€ kb/                      # Knowledge base
+â”‚   â””â”€â”€ prompts/                 # AI prompts
+â”œâ”€â”€ scripts/                     # Build/dev scripts
+â”‚   â”œâ”€â”€ build.sh
+â”‚   â”œâ”€â”€ test.sh
+â”‚   â””â”€â”€ install-models.sh
+â”œâ”€â”€ testdata/                    # Test fixtures
+â”‚   â”œâ”€â”€ songs/
+â”‚   â””â”€â”€ golden/                  # Golden file tests
+â”œâ”€â”€ docs/                        # Documentation
+â”‚   â”œâ”€â”€ architecture.md
+â”‚   â”œâ”€â”€ api.md
+â”‚   â””â”€â”€ user-guide.md
+â”œâ”€â”€ .goreleaser.yaml             # Release config
+â”œâ”€â”€ .golangci.yaml               # Linter config
+â”œâ”€â”€ go.mod
+â”œâ”€â”€ go.sum
+â”œâ”€â”€ LICENSE
+â””â”€â”€ README.md
 ```
 
 ## Documentation Status
@@ -225,35 +225,35 @@ noise.sh/
 
 ## Key Features
 
-### 🎨 Beautiful Writing Environment
+### ðŸŽ¨ Beautiful Writing Environment
 - **Split-Pane Editor:** Live markdown editing with real-time Glamour preview
 - **YAML Frontmatter:** Rich song metadata (title, artist, key, tempo, structure)
 - **Syntax Highlighting:** Visual distinction for verse/chorus/bridge sections
 - **Distraction-Free Mode:** Fullscreen, centered text with focus animations
 - **Auto-Save:** Every 30 seconds with subtle visual feedback
 
-### 🎵 Music Theory Tools
+### ðŸŽµ Music Theory Tools
 - **Circle of Fifths:** Interactive visualization with color-coded relationships
 - **Chord Progressions:** Common patterns with visual timeline and playback
 - **Rhyme Dictionary:** Perfect, slant, and internal rhymes with syllable counts
 - **Syllable Counter:** Real-time per-line analysis for meter matching
 - **Scale Reference:** Visual scale displays for key selection
 
-### 🎹 Audio & Interactive Elements
+### ðŸŽ¹ Audio & Interactive Elements
 - **Visual Metronome:** Animated beat indicator with spring physics
 - **Chord Playback:** Synthesized audio for chord progressions
 - **MIDI Input:** Real-time chord capture from keyboards/controllers
 - **Audio Notifications:** Gentle feedback for saves and completions
 
-### 🤖 AI-Powered Assistance (Strategic Integration)
+### ðŸ¤– AI-Powered Assistance (Strategic Integration)
 - **Brainstorming Assistant:** 5-10 specific angles avoiding generic concepts
 - **Object Writing Engine:** Pat Pattison's 7-sense exercise implementation
 - **Lyric Refinement:** Concrete imagery replacement and verb strengthening
 - **Prosody Critique:** Stress-syllable alignment analysis
-- **Cliché Detection:** Anti-cliché lists with fresh alternative suggestions
+- **ClichÃ© Detection:** Anti-clichÃ© lists with fresh alternative suggestions
 - **Quality Scoring:** 7-dimension rubric with actionable feedback
 
-### 💾 Project Management
+### ðŸ’¾ Project Management
 - **File Browser:** Fuzzy search across song library
 - **Version History:** 30-day rolling auto-save with manual milestones
 - **Git Integration:** Auto-initialization and commit shortcuts
@@ -271,7 +271,7 @@ noise.sh/
    git init
 
    # Initialize Go module
-   go mod init github.com/puente-labs/noise.sh
+   go mod init github.com/Kyanite/noise.sh
 
    # Install core dependencies (Bubble Tea ecosystem)
    go get github.com/charmbracelet/bubbletea@latest
@@ -295,11 +295,11 @@ noise.sh/
    - Establish Git workflow and commit patterns
 
 ### Success Criteria for Phase 1
-- ✅ Project compiles and runs without errors
-- ✅ Basic TUI displays (splash screen, menu navigation)
-- ✅ Core data models implemented with validation
-- ✅ File I/O operations functional (load/save markdown)
-- ✅ SQLite database operational with schema
+- âœ… Project compiles and runs without errors
+- âœ… Basic TUI displays (splash screen, menu navigation)
+- âœ… Core data models implemented with validation
+- âœ… File I/O operations functional (load/save markdown)
+- âœ… SQLite database operational with schema
 
 ### Portfolio Impact
 This project is designed as a **portfolio showcase piece** with:

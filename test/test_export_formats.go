@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/puente-labs/noise/internal/export"
+	"github.com/Kyanite/noise/internal/export"
 )
 
 func TestExportMarkdown(t *testing.T) {

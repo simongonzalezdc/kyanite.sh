@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/puente-labs/noise/internal/app/ai"
-	"github.com/puente-labs/noise/internal/domain"
+	"github.com/Kyanite/noise/internal/app/ai"
+	"github.com/Kyanite/noise/internal/domain"
 )
 
 // AIService handles AI-powered assistance

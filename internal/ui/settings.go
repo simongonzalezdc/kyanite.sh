@@ -9,8 +9,8 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/config"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/config"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // SettingsCategory represents different categories of settings
@@ -893,7 +893,7 @@ func (m *SettingsModel) View() string {
 	// Save message
 	var saveMsg string
 	if m.showSaveMsg {
-		saveMsg = styles.StatusSuccess.Render("✓ Settings saved successfully!")
+		saveMsg = styles.StatusSuccess.Render("âœ“ Settings saved successfully!")
 	}
 
 	// Combine sections
@@ -918,14 +918,14 @@ func (m *SettingsModel) View() string {
 func (m *SettingsModel) renderInstructions() string {
 	instructions := []string{
 		"Tab: Switch focus",
-		"↑/↓: Navigate",
+		"â†‘/â†“: Navigate",
 		"Enter: Edit setting",
-		"←/→: Adjust values",
+		"â†/â†’: Adjust values",
 		"Ctrl+S: Save",
 		"Esc: Back/Quit",
 	}
 
-	return styles.Muted.Render(strings.Join(instructions, " • "))
+	return styles.Muted.Render(strings.Join(instructions, " â€¢ "))
 }
 
 // Helper types for list items
@@ -944,7 +944,7 @@ func (c categoryItem) Render() string {
 		Bold(true).
 		Padding(0, 2)
 
-	icon := "📁"
+	icon := "ðŸ“"
 	return style.Render(icon + " " + string(c.category))
 }
 
@@ -975,9 +975,9 @@ func (s settingItem) Render() string {
 	switch s.setting.Type {
 	case TypeBool:
 		if s.setting.Value.(bool) {
-			valueStr = valueStyle.Render("✓ Yes")
+			valueStr = valueStyle.Render("âœ“ Yes")
 		} else {
-			valueStr = styles.Muted.Render("○ No")
+			valueStr = styles.Muted.Render("â—‹ No")
 		}
 	case TypeInt:
 		if s.setting.Unit != "" {

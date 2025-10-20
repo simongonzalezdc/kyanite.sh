@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/puente-labs/noise/internal/domain"
-	"github.com/puente-labs/noise/internal/logging"
+	"github.com/Kyanite/noise/internal/domain"
+	"github.com/Kyanite/noise/internal/logging"
 )
 
 // BackupManager handles content backup and recovery

@@ -3,7 +3,7 @@
 
 **Version:** 1.0  
 **Date:** October 17, 2025  
-**Document Owner:** Simon (Puente Labs)  
+**Document Owner:** Simon (Kyanite)  
 **Status:** Draft for Development
 
 ---
@@ -16,17 +16,17 @@ noise.sh is a **local-first, AI-powered terminal user interface (TUI) applicatio
 
 ### Key Differentiators
 
-- ✅ **100% Local & Private:** No cloud, no data sharing, complete creative sovereignty
-- 🎓 **Expert Knowledge Integration:** Encodes proven techniques from Pat Pattison, Andrea Stolpe, Jason Blume
-- 🎨 **Beautiful TUI Design:** Showcases Charm Bracelet ecosystem with gradients, spinners, animations
-- 🚫 **Anti-"AI Slop":** Systematic guardrails preventing generic, clichéd output
-- 🔄 **Version Control Native:** Plain text format enables Git workflow from day one
+- âœ… **100% Local & Private:** No cloud, no data sharing, complete creative sovereignty
+- ðŸŽ“ **Expert Knowledge Integration:** Encodes proven techniques from Pat Pattison, Andrea Stolpe, Jason Blume
+- ðŸŽ¨ **Beautiful TUI Design:** Showcases Charm Bracelet ecosystem with gradients, spinners, animations
+- ðŸš« **Anti-"AI Slop":** Systematic guardrails preventing generic, clichÃ©d output
+- ðŸ”„ **Version Control Native:** Plain text format enables Git workflow from day one
 
 ### Success Criteria
 
 - Generate lyrics scoring **70+** on quality rubric (specificity, originality, prosody)
 - Sub-**2-second** response time for AI suggestions
-- **Zero cliché flags** in polished output
+- **Zero clichÃ© flags** in polished output
 - Portfolio-worthy showcase of technical & design skills
 - GitHub star potential **500+** within 6 months of release
 
@@ -91,7 +91,7 @@ noise.sh is a **local-first, AI-powered terminal user interface (TUI) applicatio
 
 ## Core Features & Functionality
 
-### 🎨 Feature Category 1: Beautiful Writing Environment
+### ðŸŽ¨ Feature Category 1: Beautiful Writing Environment
 
 | Feature | Description | Technology |
 |---------|-------------|------------|
@@ -102,7 +102,7 @@ noise.sh is a **local-first, AI-powered terminal user interface (TUI) applicatio
 | **Auto-Save** | Every 30 seconds with subtle notification | File I/O + Bubble Tea commands |
 | **Keyboard Shortcuts** | Vim-inspired navigation, quick actions | Native Bubble Tea keybindings |
 
-### 🎵 Feature Category 2: Music Theory Tools
+### ðŸŽµ Feature Category 2: Music Theory Tools
 
 | Feature | Description | Technology |
 |---------|-------------|------------|
@@ -113,7 +113,7 @@ noise.sh is a **local-first, AI-powered terminal user interface (TUI) applicatio
 | **Scale Reference** | Visual scale displays for key selection | go-music-theory |
 | **Chord Insertion** | Quick insertion of chord symbols above lyrics | Custom parser |
 
-### 🎹 Feature Category 3: Audio & Interactive Elements
+### ðŸŽ¹ Feature Category 3: Audio & Interactive Elements
 
 | Feature | Description | Technology |
 |---------|-------------|------------|
@@ -124,7 +124,7 @@ noise.sh is a **local-first, AI-powered terminal user interface (TUI) applicatio
 | **Reference Audio** | Play demo melodies for inspiration (future) | gopxl/beep |
 | **Tempo Trainer** | Gradual BPM increases for practice | Custom timing + audio |
 
-### 🤖 Feature Category 4: AI-Powered Assistance (Strategic Integration)
+### ðŸ¤– Feature Category 4: AI-Powered Assistance (Strategic Integration)
 
 | Feature | Value Proposition | Implementation |
 |---------|-------------------|----------------|
@@ -132,15 +132,15 @@ noise.sh is a **local-first, AI-powered terminal user interface (TUI) applicatio
 | **Object Writing Engine** | Pat Pattison's 7-sense exercise for concrete imagery generation | Specialized prompt + streaming UI |
 | **Lyric Refinement** | Replace abstractions with concrete images, strengthen verbs | Multi-pass agent with diff view |
 | **Prosody Critique** | Analyze stress-syllable alignment, suggest meter improvements | Hybrid: programmatic check + AI explanation |
-| **Cliché Detection** | Flag overused phrases, suggest fresh alternatives | Blocklist + AI synonym generation |
+| **ClichÃ© Detection** | Flag overused phrases, suggest fresh alternatives | Blocklist + AI synonym generation |
 | **Real-Time Suggestions** | Inline completions during typing (pause-based trigger) | Streaming completion + inline UI |
 | **Quality Scoring** | 7-dimension rubric with actionable feedback | Critic agent + visualization |
 
 **AI Design Philosophy:**
 
-AI features are strategically deployed where they provide **irreplaceable value**: breaking writer's block, encoding expert knowledge, and automating tedious checks. The AI never *replaces* the songwriter—it amplifies their craft. All AI outputs are presented as suggestions with human approval required.
+AI features are strategically deployed where they provide **irreplaceable value**: breaking writer's block, encoding expert knowledge, and automating tedious checks. The AI never *replaces* the songwriterâ€”it amplifies their craft. All AI outputs are presented as suggestions with human approval required.
 
-### 💾 Feature Category 5: Project Management
+### ðŸ’¾ Feature Category 5: Project Management
 
 | Feature | Description | Technology |
 |---------|-------------|------------|
@@ -159,8 +159,8 @@ AI features are strategically deployed where they provide **irreplaceable value*
 
 | Metric | Target |
 |--------|--------|
-| Lyric Quality Score | ≥70/100 |
-| Cliché Count | <5 per song |
+| Lyric Quality Score | â‰¥70/100 |
+| ClichÃ© Count | <5 per song |
 | AI Response Time | <2 seconds |
 | Prosody Flags | 0 (clean pass) |
 | Imagery Ratio | >0.6 |
@@ -282,6 +282,6 @@ AI features are strategically deployed where they provide **irreplaceable value*
 
 ---
 
-**Document Owner:** Simon (Puente Labs)  
+**Document Owner:** Simon (Kyanite)  
 **Status:** Ready for TDD creation  
 **Next Review:** Upon completion of Technical Design Document

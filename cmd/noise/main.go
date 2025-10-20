@@ -5,11 +5,11 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/noise/internal/config"
-	"github.com/puente-labs/noise/internal/infra/db"
-	"github.com/puente-labs/noise/internal/logging"
-	"github.com/puente-labs/noise/internal/plugins"
-	"github.com/puente-labs/noise/internal/ui"
+	"github.com/Kyanite/noise/internal/config"
+	"github.com/Kyanite/noise/internal/infra/db"
+	"github.com/Kyanite/noise/internal/logging"
+	"github.com/Kyanite/noise/internal/plugins"
+	"github.com/Kyanite/noise/internal/ui"
 )
 
 
@@ -180,5 +180,5 @@ func printHelp() {
 	fmt.Println("  noise quick              Start in scratch mode")
 	fmt.Println("  noise quick \"lost love\"  Start with theme brainstorm")
 	fmt.Println()
-	fmt.Println("For more information, visit: https://github.com/puente-labs/noise")
+	fmt.Println("For more information, visit: https://github.com/Kyanite/noise")
 }

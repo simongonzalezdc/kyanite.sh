@@ -7,11 +7,11 @@ import (
 	"os"
 	"path/filepath"
 
-	errutil "github.com/puente-labs/noise/internal/errutil"
+	errutil "github.com/Kyanite/noise/internal/errutil"
 	"strings"
 	"time"
 
-	"github.com/puente-labs/noise/internal/logging"
+	"github.com/Kyanite/noise/internal/logging"
 )
 
 // SecurityManager handles plugin security validation and sandboxing

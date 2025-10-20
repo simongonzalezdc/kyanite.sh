@@ -9,7 +9,7 @@ Thanks for your interest in contributing to **noise.sh**! This document explains
 - **Repository**: clone via SSH or HTTPS and create feature branches for changes.
 
 ```bash
-git clone git@github.com:puente-labs/noise.git
+git clone git@github.com:Kyanite/noise.git
 cd noise
 ```
 

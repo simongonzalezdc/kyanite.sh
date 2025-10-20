@@ -13,8 +13,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/ui/dimension"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/ui/dimension"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // ExportFormat represents different export formats
@@ -186,7 +186,7 @@ func (m *ExportModel) View() string {
 		style = m.blurredStyle
 	}
 
-	title := styles.TitleGradient("📤 Export Options")
+	title := styles.TitleGradient("ðŸ“¤ Export Options")
 	title = lipgloss.NewStyle().Bold(true).Padding(0, 2).Render(title)
 
 	// Format options
@@ -194,7 +194,7 @@ func (m *ExportModel) View() string {
 	for i, format := range m.options {
 		var option string
 		if i == m.selected && m.focused {
-			option = m.selectedStyle.Render("▶ " + format.String())
+			option = m.selectedStyle.Render("â–¶ " + format.String())
 		} else {
 			option = "  " + format.String()
 		}
@@ -223,23 +223,23 @@ func (m *ExportModel) View() string {
 	// Instructions
 	instructions := lipgloss.NewStyle().
 		Foreground(styles.TextMuted).
-		Render("\n↑↓ Navigate • Enter: Export • Esc: Back")
+		Render("\nâ†‘â†“ Navigate â€¢ Enter: Export â€¢ Esc: Back")
 
 	// Progress indicator
 	progressView := ""
 	if m.showProgress {
 		progressView = lipgloss.NewStyle().
 			Foreground(styles.Accent).
-			Render("\n⏳ " + m.progressMsg + "...")
+			Render("\nâ³ " + m.progressMsg + "...")
 	}
 
 	// Result message
 	resultView := ""
 	if m.result != nil {
 		if m.result.Success {
-			resultView = m.successStyle.Render(fmt.Sprintf("\n✅ Export successful: %s", m.result.OutputPath))
+			resultView = m.successStyle.Render(fmt.Sprintf("\nâœ… Export successful: %s", m.result.OutputPath))
 		} else {
-			resultView = m.errorStyle.Render(fmt.Sprintf("\n❌ Export failed: %s", m.result.ErrorMessage))
+			resultView = m.errorStyle.Render(fmt.Sprintf("\nâŒ Export failed: %s", m.result.ErrorMessage))
 		}
 	}
 

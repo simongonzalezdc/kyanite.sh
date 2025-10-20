@@ -8,8 +8,8 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/ui/dimension"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/ui/dimension"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // HelpPaneModel displays keyboard shortcuts and help information
@@ -48,7 +48,7 @@ func NewHelpPaneModel(shortcutManager *ShortcutManager) *HelpPaneModel {
 	// Initialize search input
 	searchInput := textinput.New()
 	searchInput.Placeholder = "Search shortcuts..."
-	searchInput.Prompt = "🔍 "
+	searchInput.Prompt = "ðŸ” "
 	searchInput.PromptStyle = lipgloss.NewStyle().Foreground(styles.Accent)
 	searchInput.TextStyle = lipgloss.NewStyle().Foreground(styles.TextPrimary)
 	searchInput.Cursor.Style = lipgloss.NewStyle().Foreground(styles.Accent)
@@ -216,14 +216,14 @@ func (m *HelpPaneModel) performSearch() {
 
 // renderFullHelp renders the complete help content
 func (m *HelpPaneModel) renderFullHelp() string {
-	title := m.titleStyle.Render("🎹 Keyboard Shortcuts Reference")
+	title := m.titleStyle.Render("ðŸŽ¹ Keyboard Shortcuts Reference")
 	title = lipgloss.NewStyle().Width(m.width - 4).Align(lipgloss.Center).Render(title)
 
 	var content string
 
 	if m.searchMode {
 		// Render search interface
-		searchTitle := m.categoryStyle.Render("🔍 Search Shortcuts")
+		searchTitle := m.categoryStyle.Render("ðŸ” Search Shortcuts")
 		searchInputView := m.searchInputStyle.Render(m.searchInput.View())
 
 		searchContent := lipgloss.JoinVertical(lipgloss.Left, searchTitle, searchInputView)
@@ -277,14 +277,14 @@ func (m *HelpPaneModel) renderFullHelp() string {
 
 // renderCompactHelp renders compact help content
 func (m *HelpPaneModel) renderCompactHelp() string {
-	title := m.titleStyle.Render("🎹 Shortcuts")
+	title := m.titleStyle.Render("ðŸŽ¹ Shortcuts")
 	title = lipgloss.NewStyle().Width(m.width - 4).Align(lipgloss.Center).Render(title)
 
 	var content string
 
 	if m.searchMode {
 		// Render search interface in compact mode
-		searchTitle := m.categoryStyle.Render("🔍 Search")
+		searchTitle := m.categoryStyle.Render("ðŸ” Search")
 		searchInputView := m.searchInputStyle.Width(30).Render(m.searchInput.View())
 
 		searchContent := lipgloss.JoinVertical(lipgloss.Left, searchTitle, searchInputView)
@@ -332,14 +332,14 @@ func (m *HelpPaneModel) renderCompactHelp() string {
 
 // renderMinimalHelp renders minimal help content for very small terminals
 func (m *HelpPaneModel) renderMinimalHelp() string {
-	title := m.titleStyle.Render("❓ Help")
+	title := m.titleStyle.Render("â“ Help")
 	title = lipgloss.NewStyle().Width(m.width - 4).Align(lipgloss.Center).Render(title)
 
 	var content string
 
 	if m.searchMode {
 		// Render minimal search interface
-		searchTitle := m.categoryStyle.Render("🔍")
+		searchTitle := m.categoryStyle.Render("ðŸ”")
 		searchInputView := m.searchInputStyle.Width(20).Render(m.searchInput.View())
 
 		searchContent := lipgloss.JoinVertical(lipgloss.Left, searchTitle, searchInputView)
@@ -442,7 +442,7 @@ func (m *HelpPaneModel) renderCategorySection(category string, bindings []*KeyBi
 		"Tools":       "Specialized tools and features",
 	}
 
-	header := fmt.Sprintf("📂 %s", category)
+	header := fmt.Sprintf("ðŸ“‚ %s", category)
 	if desc, exists := categoryDescriptions[category]; exists {
 		header += fmt.Sprintf(" - %s", desc)
 	}
@@ -468,7 +468,7 @@ func (m *HelpPaneModel) renderCategorySection(category string, bindings []*KeyBi
 func (m *HelpPaneModel) renderMinimalSearchResults() string {
 	var lines []string
 
-	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("📋 %d", len(m.searchResults))))
+	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("ðŸ“‹ %d", len(m.searchResults))))
 
 	for i, binding := range m.searchResults {
 		keyStr := binding.Key.Help().Key
@@ -497,7 +497,7 @@ func (m *HelpPaneModel) renderMinimalSearchResults() string {
 func (m *HelpPaneModel) renderSearchResults() string {
 	var lines []string
 
-	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("📋 Search Results (%d found)", len(m.searchResults))))
+	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("ðŸ“‹ Search Results (%d found)", len(m.searchResults))))
 
 	for i, binding := range m.searchResults {
 		keyStr := binding.Key.Help().Key
@@ -561,7 +561,7 @@ func (m *HelpPaneModel) highlightSearchTerm(text, query string) string {
 func (m *HelpPaneModel) renderCompactSearchResults() string {
 	var lines []string
 
-	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("📋 Results (%d)", len(m.searchResults))))
+	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("ðŸ“‹ Results (%d)", len(m.searchResults))))
 
 	for i, binding := range m.searchResults {
 		keyStr := binding.Key.Help().Key
@@ -671,7 +671,7 @@ func (m *HelpPaneModel) renderMinimalShortcutsHelp() string {
 		bindings := m.getBindingsByCategory(category, context)
 
 		// Render header even if there are no bindings to keep tests stable
-		header := m.categoryStyle.Render(fmt.Sprintf("📂 %s", category))
+		header := m.categoryStyle.Render(fmt.Sprintf("ðŸ“‚ %s", category))
 		lines := []string{header}
 
 		// If bindings exist, render up to a few of them
@@ -701,7 +701,7 @@ func (m *HelpPaneModel) renderCompactCategorySection(category string, bindings [
 	var lines []string
 
 	// Compact category header
-	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("📂 %s", category)))
+	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("ðŸ“‚ %s", category)))
 
 	// Compact bindings (key only, no description for very small spaces)
 	for _, binding := range bindings {

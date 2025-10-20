@@ -7,11 +7,11 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/puente-labs/noise/internal/app"
+	"github.com/Kyanite/noise/internal/app"
 )
 
 func main() {
-	fmt.Println("🎵 Testing Week 2 CMU Dictionary Enhancements")
+	fmt.Println("ðŸŽµ Testing Week 2 CMU Dictionary Enhancements")
 	fmt.Println("==============================================")
 
 	// Test enhanced dictionary functionality
@@ -26,7 +26,7 @@ func main() {
 	// Test performance optimizations
 	testPerformanceOptimizations()
 	
-	fmt.Println("\n✅ Week 2 CMU Dictionary Enhancements testing completed successfully!")
+	fmt.Println("\nâœ… Week 2 CMU Dictionary Enhancements testing completed successfully!")
 }
 
 func testEnhancedDictionary() {
@@ -200,7 +200,7 @@ func testPerformanceOptimizations() {
 	// Create theory service
 	theoryService := app.NewTheoryService()
 	
-	// Test批量操作
+	// Testæ‰¹é‡æ“ä½œ
 	fmt.Println("\n   Testing batch operations:")
 	
 	// Test multiple syllable counts

@@ -3,7 +3,7 @@ package theme
 import (
 	"sync"
 
-	"github.com/puente-labs/noise/internal/config"
+	"github.com/Kyanite/noise/internal/config"
 )
 
 // Manager handles runtime theme switching in a thread-safe way.

@@ -7,10 +7,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/puente-labs/noise/internal/app"
-	"github.com/puente-labs/noise/internal/domain"
-	"github.com/puente-labs/noise/internal/infra/db"
-	"github.com/puente-labs/noise/internal/infra/files"
+	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/domain"
+	"github.com/Kyanite/noise/internal/infra/db"
+	"github.com/Kyanite/noise/internal/infra/files"
 )
 
 // TestAutoSaveIntegration tests the auto-save integration functionality
@@ -114,7 +114,7 @@ It should be properly serialized and restored
 	if err != nil {
 		log.Fatalf("Failed to auto-save song: %v", err)
 	}
-	fmt.Println("✓ Auto-save completed successfully")
+	fmt.Println("âœ“ Auto-save completed successfully")
 
 	// Test 2: Create milestone
 	fmt.Println("\n=== Test 2: Milestone Creation ===")
@@ -123,7 +123,7 @@ It should be properly serialized and restored
 	if err != nil {
 		log.Fatalf("Failed to create milestone: %v", err)
 	}
-	fmt.Printf("✓ Milestone '%s' created successfully\n", milestoneName)
+	fmt.Printf("âœ“ Milestone '%s' created successfully\n", milestoneName)
 
 	// Test 3: Get version history
 	fmt.Println("\n=== Test 3: Version History ===")
@@ -158,16 +158,16 @@ It should be properly serialized and restored
 			log.Fatalf("Failed to restore version: %v", err)
 		}
 		
-		fmt.Printf("✓ Version restored successfully\n")
+		fmt.Printf("âœ“ Version restored successfully\n")
 		fmt.Printf("Restored song title: %s\n", restoredSong.Metadata.Title)
 		fmt.Printf("Restored song artist: %s\n", restoredSong.Metadata.Artist)
 		fmt.Printf("Restored content length: %d characters\n", len(restoredSong.RawContent))
 		
 		// Verify content was properly restored
 		if restoredSong.RawContent == versionToRestore.Content {
-			fmt.Println("✓ Content restoration verified - content matches exactly")
+			fmt.Println("âœ“ Content restoration verified - content matches exactly")
 		} else {
-			fmt.Println("⚠ Content restoration warning - content differs from version")
+			fmt.Println("âš  Content restoration warning - content differs from version")
 			fmt.Printf("Expected length: %d, Got length: %d\n", 
 				len(versionToRestore.Content), len(restoredSong.RawContent))
 		}
@@ -202,7 +202,7 @@ It should preserve the full markdown structure
 	if err != nil {
 		log.Fatalf("Failed to save content with versioning: %v", err)
 	}
-	fmt.Println("✓ Direct content save with versioning completed")
+	fmt.Println("âœ“ Direct content save with versioning completed")
 
 	// Test recovery from last save
 	recoveredContent, err := autoSaveService.RecoverFromLastSave(savedSong.ID)
@@ -211,9 +211,9 @@ It should preserve the full markdown structure
 	}
 	
 	if recoveredContent == testContent {
-		fmt.Println("✓ Content recovery verified - recovered content matches saved content")
+		fmt.Println("âœ“ Content recovery verified - recovered content matches saved content")
 	} else {
-		fmt.Println("⚠ Content recovery warning - recovered content differs")
+		fmt.Println("âš  Content recovery warning - recovered content differs")
 		fmt.Printf("Expected length: %d, Got length: %d\n", 
 			len(testContent), len(recoveredContent))
 	}
@@ -227,14 +227,14 @@ It should preserve the full markdown structure
 	if err != nil {
 		log.Fatalf("Failed to write song to file: %v", err)
 	}
-	fmt.Printf("✓ Song saved to file: %s\n", filename)
+	fmt.Printf("âœ“ Song saved to file: %s\n", filename)
 
 	// Read song from file
 	readSong, err := fileService.ReadSong(filename)
 	if err != nil {
 		log.Fatalf("Failed to read song from file: %v", err)
 	}
-	fmt.Printf("✓ Song read from file: %s\n", filename)
+	fmt.Printf("âœ“ Song read from file: %s\n", filename)
 	fmt.Printf("Read song title: %s\n", readSong.Metadata.Title)
 	fmt.Printf("Read content length: %d characters\n", len(readSong.RawContent))
 
@@ -244,9 +244,9 @@ It should preserve the full markdown structure
 	os.RemoveAll("./test_songs")
 
 	fmt.Println("\n=== All Tests Completed Successfully ===")
-	fmt.Println("✓ Auto-save content serialization is working properly")
-	fmt.Println("✓ Milestone creation is functional")
-	fmt.Println("✓ Version restoration preserves full content")
-	fmt.Println("✓ Auto-save service integration is complete")
-	fmt.Println("✓ File I/O system integration is working")
+	fmt.Println("âœ“ Auto-save content serialization is working properly")
+	fmt.Println("âœ“ Milestone creation is functional")
+	fmt.Println("âœ“ Version restoration preserves full content")
+	fmt.Println("âœ“ Auto-save service integration is complete")
+	fmt.Println("âœ“ File I/O system integration is working")
 }

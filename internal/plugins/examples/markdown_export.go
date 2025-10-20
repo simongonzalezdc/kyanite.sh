@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/puente-labs/noise/internal/plugins"
+	"github.com/Kyanite/noise/internal/plugins"
 )
 
 // MarkdownExportPlugin is an example plugin that adds Markdown export functionality

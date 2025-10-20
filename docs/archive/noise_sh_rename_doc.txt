@@ -9,18 +9,18 @@
 
 ## Overview
 
-Rename the LyricForge project to **noise.sh** to align with the Puente Labs Creative Shell Suite branding. This is a comprehensive renaming that affects code, documentation, configuration, and the GitHub repository.
+Rename the LyricForge project to **noise.sh** to align with the Kyanite Creative Shell Suite branding. This is a comprehensive renaming that affects code, documentation, configuration, and the GitHub repository.
 
 ---
 
 ## Objectives
 
-1. ✅ Rename all references from "LyricForge" to "noise.sh" or "Noise"
-2. ✅ Update binary names, package names, and command names
-3. ✅ Maintain backward compatibility where possible
-4. ✅ Update all documentation and README files
-5. ✅ Rename GitHub repository
-6. ✅ Ensure all tests still pass after renaming
+1. âœ… Rename all references from "LyricForge" to "noise.sh" or "Noise"
+2. âœ… Update binary names, package names, and command names
+3. âœ… Maintain backward compatibility where possible
+4. âœ… Update all documentation and README files
+5. âœ… Rename GitHub repository
+6. âœ… Ensure all tests still pass after renaming
 
 ---
 
@@ -39,15 +39,15 @@ Rename the LyricForge project to **noise.sh** to align with the Puente Labs Crea
 | **File Extension** | `.noise` (if needed) | `song.noise` |
 
 ### Avoid These:
-- ❌ "LyricForge" - old name
-- ❌ "lyricforge" - old name lowercase
-- ❌ "lf" - old abbreviation
+- âŒ "LyricForge" - old name
+- âŒ "lyricforge" - old name lowercase
+- âŒ "lf" - old abbreviation
 
 ---
 
 ## Step-by-Step Implementation
 
-### 🤖 For AI Agents: Quick Command Reference
+### ðŸ¤– For AI Agents: Quick Command Reference
 
 **Complete rename in order:**
 ```bash
@@ -140,7 +140,7 @@ gh api \
   "/repos/$OWNER/$OLD_NAME" \
   -f name="$NEW_NAME"
 
-echo "✅ Repository renamed from $OLD_NAME to $NEW_NAME"
+echo "âœ… Repository renamed from $OLD_NAME to $NEW_NAME"
 
 # Step 4: Update local git remote URL
 git remote set-url origin "git@github.com:$OWNER/$NEW_NAME.git"
@@ -179,10 +179,10 @@ git remote set-url origin "git@github.com:$OWNER/$NEW_NAME.git"
 ```
 
 **What happens automatically:**
-- ✅ GitHub redirects old URLs to new repository name
-- ✅ Existing clones will continue working (GitHub handles redirects)
-- ✅ Issues, PRs, and stars are preserved
-- ✅ All existing URLs automatically redirect
+- âœ… GitHub redirects old URLs to new repository name
+- âœ… Existing clones will continue working (GitHub handles redirects)
+- âœ… Issues, PRs, and stars are preserved
+- âœ… All existing URLs automatically redirect
 
 **Verification:**
 ```bash
@@ -217,7 +217,7 @@ git checkout -b refactor/rename-to-noise
 
 set -e  # Exit on error
 
-echo "🔄 Starting GitHub repository rename..."
+echo "ðŸ”„ Starting GitHub repository rename..."
 
 # Get current repo info
 CURRENT_REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
@@ -225,17 +225,17 @@ OWNER=$(echo $CURRENT_REPO | cut -d'/' -f1)
 OLD_NAME=$(echo $CURRENT_REPO | cut -d'/' -f2)
 NEW_NAME="noise"
 
-echo "📝 Current: $OWNER/$OLD_NAME"
-echo "📝 New:     $OWNER/$NEW_NAME"
+echo "ðŸ“ Current: $OWNER/$OLD_NAME"
+echo "ðŸ“ New:     $OWNER/$NEW_NAME"
 read -p "Continue with rename? (y/n) " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "❌ Rename cancelled"
+    echo "âŒ Rename cancelled"
     exit 1
 fi
 
 # Rename repository
-echo "🔄 Renaming repository..."
+echo "ðŸ”„ Renaming repository..."
 gh api \
   --method PATCH \
   -H "Accept: application/vnd.github+json" \
@@ -244,11 +244,11 @@ gh api \
   --silent
 
 # Update local remote
-echo "🔄 Updating local git remote..."
+echo "ðŸ”„ Updating local git remote..."
 git remote set-url origin "git@github.com:$OWNER/$NEW_NAME.git"
 
 # Verify
-echo "✅ Repository renamed successfully!"
+echo "âœ… Repository renamed successfully!"
 echo "New URL: https://github.com/$OWNER/$NEW_NAME"
 git remote -v
 ```
@@ -263,7 +263,7 @@ NEW_NAME="noise"
 
 gh api --method PATCH -H "Accept: application/vnd.github+json" "/repos/$OWNER/$OLD_NAME" -f name="$NEW_NAME" && \
 git remote set-url origin "git@github.com:$OWNER/$NEW_NAME.git" && \
-echo "✅ Repository renamed from $OLD_NAME to $NEW_NAME"
+echo "âœ… Repository renamed from $OLD_NAME to $NEW_NAME"
 ```
 
 ---
@@ -444,8 +444,8 @@ if _, err := os.Stat(oldConfigDir); err == nil {
 #### 4.1 Update README.md
 
 Replace all instances:
-- "LyricForge" → "noise.sh" (in headers, titles)
-- "lyricforge" → "noise" (in code examples)
+- "LyricForge" â†’ "noise.sh" (in headers, titles)
+- "lyricforge" â†’ "noise" (in code examples)
 - Update installation instructions
 - Update screenshot/demo GIFs (if they show old name)
 
@@ -766,10 +766,10 @@ done
 ```
 
 ### What GitHub Does Automatically
-- ✅ Redirects `youruser/lyricforge` → `youruser/noise`
-- ✅ Preserves all issues, PRs, stars, forks
-- ✅ Updates clone URLs
-- ✅ Old git clones continue working (via redirect)
+- âœ… Redirects `youruser/lyricforge` â†’ `youruser/noise`
+- âœ… Preserves all issues, PRs, stars, forks
+- âœ… Updates clone URLs
+- âœ… Old git clones continue working (via redirect)
 
 ### Verification Checklist
 
@@ -909,14 +909,14 @@ If something goes wrong:
 ## Success Criteria
 
 The rename is successful when:
-- ✅ All tests pass
-- ✅ Binary builds as `noise`
-- ✅ All commands work: `noise new`, `noise brainstorm`, etc.
-- ✅ Documentation reflects new name
-- ✅ GitHub repository renamed
-- ✅ Fresh clone and build works
-- ✅ Config migration works (if implemented)
-- ✅ No broken imports or references
+- âœ… All tests pass
+- âœ… Binary builds as `noise`
+- âœ… All commands work: `noise new`, `noise brainstorm`, etc.
+- âœ… Documentation reflects new name
+- âœ… GitHub repository renamed
+- âœ… Fresh clone and build works
+- âœ… Config migration works (if implemented)
+- âœ… No broken imports or references
 
 ---
 
@@ -956,4 +956,4 @@ If you encounter issues:
 
 **Document Version:** 1.0  
 **Last Updated:** October 17, 2025  
-**Author:** Puente Labs
+**Author:** Kyanite

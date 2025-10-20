@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/puente-labs/noise/internal/app/knowledge"
+	"github.com/Kyanite/noise/internal/app/knowledge"
 )
 
 // QuickIdeaMode represents the supported AI assistance modes.
@@ -298,7 +298,7 @@ func (a *QuickIdeaAgent) generateContextAwareFallback(req QuickRequest, contentT
 				Suggestions: []string{
 					fmt.Sprintf("%s", base),
 					"Rewrite with stronger imagery and emotion",
-					"Replace clichés with fresh, specific details",
+					"Replace clichÃ©s with fresh, specific details",
 				},
 			}
 		case ContentTypePatterns:
@@ -322,7 +322,7 @@ func (a *QuickIdeaAgent) generateContextAwareFallback(req QuickRequest, contentT
 				Suggestions: []string{
 					base,
 					"Rewrite the lines your heartbeat drew",
-					"Trade every cliché for neon sparks",
+					"Trade every clichÃ© for neon sparks",
 				},
 			}
 		}

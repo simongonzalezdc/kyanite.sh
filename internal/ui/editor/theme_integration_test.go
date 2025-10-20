@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/charmbracelet/bubbles/textarea"
-	"github.com/puente-labs/noise/internal/app"
-	"github.com/puente-labs/noise/internal/theme"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/theme"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 func TestThemeIntegrationWithLyricFeatures(t *testing.T) {

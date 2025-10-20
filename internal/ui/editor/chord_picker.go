@@ -8,8 +8,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/data"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/data"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // chordPickerModel handles the chord picker UI component
@@ -207,7 +207,7 @@ func (m *chordPickerModel) View() string {
 	var content strings.Builder
 
 	// Header
-	header := m.headerStyle.Render("🎵 Quick Chord Picker")
+	header := m.headerStyle.Render("ðŸŽµ Quick Chord Picker")
 	content.WriteString(header)
 	content.WriteString("\n\n")
 
@@ -307,7 +307,7 @@ func (m *chordPickerModel) renderInstructions() string {
 	instructions := []string{
 		"[1-5] Filter by mood",
 		"[R] Random selection",
-		"[↑↓] Navigate",
+		"[â†‘â†“] Navigate",
 		"[Enter/Space] Insert chords",
 		"[Esc] Cancel",
 	}

@@ -3,7 +3,7 @@
 
 **Version:** 2.0  
 **Date:** October 17, 2025  
-**Owner:** Simon (Puente Labs)  
+**Owner:** Simon (Kyanite)  
 **For:** Kilocode AI-assisted implementation  
 **Purpose:** "Make your first draft almost type" - eliminate friction between idea and lyrics
 
@@ -129,45 +129,45 @@ Test with: lyricforge quick "heartbreak song"
 
 **Current Flow:**
 ```
-Ctrl+B → View 5-10 angles → Select → Generate structure → Start writing
+Ctrl+B â†’ View 5-10 angles â†’ Select â†’ Generate structure â†’ Start writing
 Time: ~90 seconds
 Steps: 4
 ```
 
 **New Flow:**
 ```
-Auto-trigger on theme → View 3 angles inline → Select → AI writes first line → You continue
+Auto-trigger on theme â†’ View 3 angles inline â†’ Select â†’ AI writes first line â†’ You continue
 Time: ~15 seconds
 Steps: 2
 ```
 
 **UI Changes:**
 ```
-┌─────────────────────────────────────────────────┐
-│ 🎵 LyricForge - Sketch Mode                    │
-├─────────────────────────────────────────────────┤
-│                                                 │
-│  Theme: "lost my dog"                          │
-│                                                 │
-│  Pick an angle:                                │
-│  [1] Grief through sensory memories            │
-│  [2] Flashbacks to happy moments               │
-│  [3] Empty spaces in daily routine             │
-│                                                 │
-│  Press 1-3 to start, or Esc to skip           │
-│                                                 │
-└─────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ðŸŽµ LyricForge - Sketch Mode                    â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚                                                 â”‚
+â”‚  Theme: "lost my dog"                          â”‚
+â”‚                                                 â”‚
+â”‚  Pick an angle:                                â”‚
+â”‚  [1] Grief through sensory memories            â”‚
+â”‚  [2] Flashbacks to happy moments               â”‚
+â”‚  [3] Empty spaces in daily routine             â”‚
+â”‚                                                 â”‚
+â”‚  Press 1-3 to start, or Esc to skip           â”‚
+â”‚                                                 â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
 // After selection:
-┌──────────────────────┬──────────────────────────┐
-│                      │                          │
-│ The scent of cedar   │  ## Verse 1             │
-│ still haunts her bed │                          │
-│ [cursor here]        │  The scent of cedar     │
-│                      │  still haunts her bed    │
-│                      │                          │
-│                      │                          │
-└──────────────────────┴──────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                      â”‚                          â”‚
+â”‚ The scent of cedar   â”‚  ## Verse 1             â”‚
+â”‚ still haunts her bed â”‚                          â”‚
+â”‚ [cursor here]        â”‚  The scent of cedar     â”‚
+â”‚                      â”‚  still haunts her bed    â”‚
+â”‚                      â”‚                          â”‚
+â”‚                      â”‚                          â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Implementation:**
@@ -186,7 +186,7 @@ Theme: {{.Theme}}
 Generate EXACTLY 3 specific, concrete angles for this song. Each angle should:
 - Be ONE sentence only
 - Include a specific sensory detail or image
-- Avoid abstractions and clichés
+- Avoid abstractions and clichÃ©s
 - Suggest a clear emotional direction
 
 Format as JSON:
@@ -234,20 +234,20 @@ Add unit tests for rapid brainstorm flow.
 
 **UI Mockup:**
 ```
-┌──────────────────────────────────────────┐
-│ The scent of cedar still haunts her bed │
-│ I can't bring myself to wash the sheets │
-│ [cursor]                                 │
-│                                          │
-│ ┌──────────────────────────────────────┐│
-│ │ Continue with:                       ││
-│ │ [1] Her collar jingles in my dreams  ││
-│ │ [2] The house feels too quiet now    ││
-│ │ [3] I see her shadow in every corner ││
-│ │                                      ││
-│ │ Press 1-3 or Esc to write manually  ││
-│ └──────────────────────────────────────┘│
-└──────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ The scent of cedar still haunts her bed â”‚
+â”‚ I can't bring myself to wash the sheets â”‚
+â”‚ [cursor]                                 â”‚
+â”‚                                          â”‚
+â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”â”‚
+â”‚ â”‚ Continue with:                       â”‚â”‚
+â”‚ â”‚ [1] Her collar jingles in my dreams  â”‚â”‚
+â”‚ â”‚ [2] The house feels too quiet now    â”‚â”‚
+â”‚ â”‚ [3] I see her shadow in every corner â”‚â”‚
+â”‚ â”‚                                      â”‚â”‚
+â”‚ â”‚ Press 1-3 or Esc to write manually  â”‚â”‚
+â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Implementation:**
@@ -297,11 +297,11 @@ Context:
 
 Current section: {{.SectionType}}
 Rhyme scheme: {{.RhymeScheme}}
-Style: Conversational, concrete imagery, no clichés
+Style: Conversational, concrete imagery, no clichÃ©s
 
 Generate 3 variations. Each must:
 - Flow naturally from the last line
-- Match the meter ({{.Syllables}} syllables ±1)
+- Match the meter ({{.Syllables}} syllables Â±1)
 - Include specific, sensory detail
 - Avoid abstract language
 
@@ -353,17 +353,17 @@ Test with various contexts (verse, chorus, mid-section).
 
 **UI Mockup:**
 ```
-┌─────────────────────────────────────────────────┐
-│ Original:                                       │
-│ The house feels empty since she's been gone     │
-│                                                 │
-│ Variations:                                     │
-│ [1] These rooms echo with her memory            │
-│ [2] Silence fills the spaces where she played  │
-│ [3] Every corner holds a ghost of her           │
-│                                                 │
-│ [Enter] Keep original  [1-3] Replace  [R] Regen│
-└─────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Original:                                       â”‚
+â”‚ The house feels empty since she's been gone     â”‚
+â”‚                                                 â”‚
+â”‚ Variations:                                     â”‚
+â”‚ [1] These rooms echo with her memory            â”‚
+â”‚ [2] Silence fills the spaces where she played  â”‚
+â”‚ [3] Every corner holds a ghost of her           â”‚
+â”‚                                                 â”‚
+â”‚ [Enter] Keep original  [1-3] Replace  [R] Regenâ”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Implementation:**
@@ -394,7 +394,7 @@ Constraint: {{.Constraint}}
 Each variation must:
 - Convey the same core emotion/meaning
 - Use different words/structure
-- Maintain meter ({{.Syllables}} syllables ±1)
+- Maintain meter ({{.Syllables}} syllables Â±1)
 - Include concrete, sensory details
 - Avoid the original phrasing
 
@@ -450,15 +450,15 @@ Files:
 
 **UI Indicator:**
 ```
-┌─────────────────────────────────────────────────┐
-│ 🎵 LyricForge                  [SCRATCH MODE]   │
-├─────────────────────────────────────────────────┤
-│                                                 │
-│ (editor content)                                │
-│                                                 │
-├─────────────────────────────────────────────────┤
-│ SCRATCH - Not Saved | Ctrl+K to Keep | Ctrl+Q │
-└─────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ðŸŽµ LyricForge                  [SCRATCH MODE]   â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚                                                 â”‚
+â”‚ (editor content)                                â”‚
+â”‚                                                 â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ SCRATCH - Not Saved | Ctrl+K to Keep | Ctrl+Q â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **State Management:**
@@ -538,30 +538,30 @@ Test closing app with unsaved scratch content.
 
 **UI State Transitions:**
 ```
-Ctrl+1 → Sketch Mode
-┌──────────────────────┬─────────────────┐
-│                      │  AI Panel       │
-│  Editor              │  • Brainstorm   │
-│  (full width)        │  • Continue     │
-│                      │  • Variations   │
-└──────────────────────┴─────────────────┘
+Ctrl+1 â†’ Sketch Mode
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                      â”‚  AI Panel       â”‚
+â”‚  Editor              â”‚  â€¢ Brainstorm   â”‚
+â”‚  (full width)        â”‚  â€¢ Continue     â”‚
+â”‚                      â”‚  â€¢ Variations   â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-Ctrl+2 → Draft Mode
-┌────────────┬─────────┬─────────────────┐
-│            │         │  AI + Theory    │
-│  Editor    │ Preview │  • Suggestions  │
-│            │         │  • Rhyme lookup │
-│            │         │  • Syllables    │
-└────────────┴─────────┴─────────────────┘
+Ctrl+2 â†’ Draft Mode
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚            â”‚         â”‚  AI + Theory    â”‚
+â”‚  Editor    â”‚ Preview â”‚  â€¢ Suggestions  â”‚
+â”‚            â”‚         â”‚  â€¢ Rhyme lookup â”‚
+â”‚            â”‚         â”‚  â€¢ Syllables    â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-Ctrl+3 → Polish Mode
-┌──────┬────────┬─────────────────────────┐
-│      │        │  Full Tools             │
-│ Edit │Preview │  • AI Critique          │
-│      │        │  • Circle of Fifths     │
-│      │        │  • Chord progressions   │
-│      │        │  • Quality scoring      │
-└──────┴────────┴─────────────────────────┘
+Ctrl+3 â†’ Polish Mode
+â”Œâ”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚      â”‚        â”‚  Full Tools             â”‚
+â”‚ Edit â”‚Preview â”‚  â€¢ AI Critique          â”‚
+â”‚      â”‚        â”‚  â€¢ Circle of Fifths     â”‚
+â”‚      â”‚        â”‚  â€¢ Chord progressions   â”‚
+â”‚      â”‚        â”‚  â€¢ Quality scoring      â”‚
+â””â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Implementation:**
@@ -652,12 +652,12 @@ Test mode switching preserves content.
 **New:** 3-tier quality system
 
 **Sketch Mode - Red Flags Only:**
-- [ ] >10 clichés
+- [ ] >10 clichÃ©s
 - [ ] No concrete imagery (all abstract)
 - [ ] Major rhyme scheme breaks
 
 **Draft Mode - Basic Quality:**
-- [ ] Cliché count
+- [ ] ClichÃ© count
 - [ ] Imagery ratio
 - [ ] Meter consistency
 - [ ] Rhyme accuracy
@@ -692,10 +692,10 @@ func (a *QualityAgent) RunCheck(song *domain.Song, mode QualityCheckMode) (*Qual
 func (a *QualityAgent) checkRedFlags(song *domain.Song) (*QualityReport, error) {
     report := &QualityReport{}
     
-    // 1. Cliché count
+    // 1. ClichÃ© count
     cliches := a.detectCliches(song)
     if len(cliches) > 10 {
-        report.AddFlag("Too many clichés detected", High)
+        report.AddFlag("Too many clichÃ©s detected", High)
     }
     
     // 2. Imagery check
@@ -723,7 +723,7 @@ Implement Tiered Quality System:
 4. Keep checkFull() - existing 7 dimensions
 5. Mode determines which check runs automatically
 6. UI shows different feedback based on mode:
-   - Sketch: Just emoji indicators (🚩 = flag)
+   - Sketch: Just emoji indicators (ðŸš© = flag)
    - Draft: Brief text summary
    - Polish: Full detailed report
 7. Add manual "Run Full Critique" button in any mode
@@ -803,30 +803,30 @@ Test on macOS/Linux/Windows.
 
 ```
 internal/
-├── app/
-│   ├── ai/
-│   │   ├── continuation_agent.go      # NEW - Ctrl+G
-│   │   ├── variation_agent.go         # NEW - Ctrl+V  
-│   │   ├── rapid_brainstorm_agent.go  # NEW - Quick mode
-│   │   └── quality_agent.go           # MODIFY - Add tiered checks
-│   └── editor/
-│       └── service.go                 # MODIFY - Scratch mode
-├── ui/
-│   ├── editor/
-│   │   ├── model.go                   # MODIFY - Add modes, scratch
-│   │   ├── continuation_view.go       # NEW
-│   │   ├── variation_view.go          # NEW
-│   │   ├── layout_sketch.go           # NEW
-│   │   ├── layout_draft.go            # NEW
-│   │   ├── layout_polish.go           # NEW
-│   │   └── export.go                  # NEW
-│   └── common/
-│       └── mode_indicator.go          # NEW - Show current mode
-└── pkg/
-    └── prompts/
-        ├── continuation.go            # NEW
-        ├── variation.go               # NEW
-        └── rapid_brainstorm.go        # NEW
+â”œâ”€â”€ app/
+â”‚   â”œâ”€â”€ ai/
+â”‚   â”‚   â”œâ”€â”€ continuation_agent.go      # NEW - Ctrl+G
+â”‚   â”‚   â”œâ”€â”€ variation_agent.go         # NEW - Ctrl+V  
+â”‚   â”‚   â”œâ”€â”€ rapid_brainstorm_agent.go  # NEW - Quick mode
+â”‚   â”‚   â””â”€â”€ quality_agent.go           # MODIFY - Add tiered checks
+â”‚   â””â”€â”€ editor/
+â”‚       â””â”€â”€ service.go                 # MODIFY - Scratch mode
+â”œâ”€â”€ ui/
+â”‚   â”œâ”€â”€ editor/
+â”‚   â”‚   â”œâ”€â”€ model.go                   # MODIFY - Add modes, scratch
+â”‚   â”‚   â”œâ”€â”€ continuation_view.go       # NEW
+â”‚   â”‚   â”œâ”€â”€ variation_view.go          # NEW
+â”‚   â”‚   â”œâ”€â”€ layout_sketch.go           # NEW
+â”‚   â”‚   â”œâ”€â”€ layout_draft.go            # NEW
+â”‚   â”‚   â”œâ”€â”€ layout_polish.go           # NEW
+â”‚   â”‚   â””â”€â”€ export.go                  # NEW
+â”‚   â””â”€â”€ common/
+â”‚       â””â”€â”€ mode_indicator.go          # NEW - Show current mode
+â””â”€â”€ pkg/
+    â””â”€â”€ prompts/
+        â”œâ”€â”€ continuation.go            # NEW
+        â”œâ”€â”€ variation.go               # NEW
+        â””â”€â”€ rapid_brainstorm.go        # NEW
 ```
 
 ### Modified Models
@@ -1091,7 +1091,7 @@ Theme: {{.Theme}}
 Generate EXACTLY 3 specific angles. Each must:
 - Be one sentence
 - Include a concrete sensory detail
-- Avoid clichés
+- Avoid clichÃ©s
 - Suggest emotional direction
 
 JSON format only:
@@ -1108,7 +1108,7 @@ Previous lines:
 {{.Context}}
 
 Section: {{.Section}}
-Meter: {{.Syllables}} syllables ±1
+Meter: {{.Syllables}} syllables Â±1
 
 Generate 3 variations that:
 - Flow naturally

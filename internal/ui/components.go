@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // AnimatedLoadingSpinner creates an enhanced loading spinner with animations
@@ -222,9 +222,9 @@ func (asb *AnimatedStatusBar) View() string {
 			barWidth = asb.width
 		}
 
-		progressBar := strings.Repeat("█", barWidth)
+		progressBar := strings.Repeat("â–ˆ", barWidth)
 		if barWidth < asb.width {
-			progressBar += strings.Repeat("░", asb.width-barWidth)
+			progressBar += strings.Repeat("â–‘", asb.width-barWidth)
 		}
 
 		return baseStyle.Render(fmt.Sprintf("%s [%s]", asb.message, progressBar))

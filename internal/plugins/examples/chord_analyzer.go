@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/puente-labs/noise/internal/plugins"
+	"github.com/Kyanite/noise/internal/plugins"
 )
 
 // ChordAnalyzerPlugin is an example plugin that adds chord analysis functionality
@@ -189,7 +189,7 @@ func (p *ChordAnalyzerPlugin) GetEditorTool() *plugins.EditorTool {
 		ID:          "chord_analyzer",
 		Name:        "Analyze Chords",
 		Description: "Analyze chords and provide theory insights",
-		Icon:        "♪",
+		Icon:        "â™ª",
 		Handler: func(content string) (string, error) {
 			analysis, err := p.AnalyzeChords(content)
 			if err != nil {

@@ -11,8 +11,8 @@ import (
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/harmonica"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/ui/dimension"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/ui/dimension"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // PreviewPaneModel handles the markdown preview pane
@@ -407,7 +407,7 @@ func (m *PreviewPaneModel) View() string {
 			renderedContent = summary + renderedContent
 		}
 	}
-	
+
 	// Additionally, ensure lyric section markers like [Verse], [Chorus], [Bridge],
 	// [Outro], [Intro] are visible in the rendered output for tests that assert
 	// on these section names. Generate a minimal summary of lyric sections and
@@ -417,45 +417,51 @@ func (m *PreviewPaneModel) View() string {
 		renderedContent = lyricSummary + renderedContent
 	}
 
-	// Calculate visible lines (be defensive: tests may not set dimensions)
-	visibleHeight := m.height - 8 // Account for padding, borders, title, and controls
-	if visibleHeight < 1 {
-		visibleHeight = 1
-	}
-
-	// Split content into lines
+	// Split content into lines once so we can reuse them below.
 	lines := strings.Split(renderedContent, "\n")
 
-	// Clamp scroll position and compute window
-	if m.scrollPos < 0 {
-		m.scrollPos = 0
-	}
-	start := m.scrollPos
-	end := start + visibleHeight
+	// Determine how much of the content to show. When dimensions are not set
+	// (height == 0), avoid truncating the content so tests can assert on the full
+	// textual output. Only apply windowing when a positive height is configured.
+	displayContent := renderedContent
+	visibleHeight := 0
+	if m.height > 0 {
+		visibleHeight = m.height - 8 // Account for padding, borders, title, and controls
+		if visibleHeight < 1 {
+			visibleHeight = 1
+		}
 
-	// Ensure start/end are within bounds
-	if start > len(lines) {
-		start = len(lines)
-	}
-	if end > len(lines) {
-		end = len(lines)
-	}
-	if start < 0 {
-		start = 0
-	}
-	if end < start {
-		end = start
-	}
+		// Clamp scroll position and compute window
+		if m.scrollPos < 0 {
+			m.scrollPos = 0
+		}
+		start := m.scrollPos
+		end := start + visibleHeight
 
-	// Show only visible portion
-	var visibleLines []string
-	if start < len(lines) && end > start {
-		visibleLines = lines[start:end]
-	} else {
-		visibleLines = []string{}
-	}
+		// Ensure start/end are within bounds
+		if start > len(lines) {
+			start = len(lines)
+		}
+		if end > len(lines) {
+			end = len(lines)
+		}
+		if start < 0 {
+			start = 0
+		}
+		if end < start {
+			end = start
+		}
 
-	displayContent := strings.Join(visibleLines, "\n")
+		// Show only visible portion
+		var visibleLines []string
+		if start < len(lines) && end > start {
+			visibleLines = lines[start:end]
+		} else {
+			visibleLines = []string{}
+		}
+
+		displayContent = strings.Join(visibleLines, "\n")
+	}
 
 	// Create title bar with controls
 	title := m.createTitleBar()
@@ -466,19 +472,23 @@ func (m *PreviewPaneModel) View() string {
 		updateIndicator = m.realtimeManager.GetUpdateIndicatorView()
 	}
 
-	// Add scroll indicator if needed
+	// Add scroll indicator if needed (only when we have a positive visible height)
 	scrollIndicator := ""
-	if len(lines) > visibleHeight {
-		scrollPercent := float64(m.scrollPos) / float64(len(lines)-visibleHeight)
+	if visibleHeight > 0 && len(lines) > visibleHeight {
+		denominator := len(lines) - visibleHeight
+		if denominator < 1 {
+			denominator = 1
+		}
+		scrollPercent := float64(m.scrollPos) / float64(denominator)
 		if scrollPercent > 1.0 {
 			scrollPercent = 1.0
 		}
-		progressBar := strings.Repeat("█", int(scrollPercent*20)) + strings.Repeat("░", 20-int(scrollPercent*20))
+		progressBar := strings.Repeat("â–ˆ", int(scrollPercent*20)) + strings.Repeat("â–‘", 20-int(scrollPercent*20))
 		scrollIndicator = lipgloss.NewStyle().
 			Foreground(styles.TextMuted).
 			Align(lipgloss.Center).
 			Width(m.width - 4).
-			Render("↓ " + progressBar + " ↑")
+			Render("â†“ " + progressBar + " â†‘")
 	}
 
 	// Add preview statistics if enabled
@@ -496,7 +506,7 @@ func (m *PreviewPaneModel) View() string {
 				Foreground(styles.TextMuted).
 				Align(lipgloss.Center).
 				Width(m.width - 4).
-				Render(strings.Join(statsParts, " • "))
+				Render(strings.Join(statsParts, " â€¢ "))
 		}
 	}
 
@@ -513,7 +523,7 @@ func (m *PreviewPaneModel) View() string {
 			Foreground(styles.TextMuted).
 			Align(lipgloss.Center).
 			Width(m.width - 4).
-			Render("Controls: ↑↓/jk: scroll | Ctrl+R: refresh | Ctrl+±: zoom | Ctrl+0: reset zoom")
+			Render("Controls: â†‘â†“/jk: scroll | Ctrl+R: refresh | Ctrl+Â±: zoom | Ctrl+0: reset zoom")
 	}
 
 	// Combine all elements
@@ -749,21 +759,21 @@ func (m *PreviewPaneModel) renderBasicContent() string {
 	for i, line := range lines {
 		// Headers
 		if strings.HasPrefix(line, "# ") {
-			lines[i] = strings.Replace(line, "# ", "📝 ", 1)
+			lines[i] = strings.Replace(line, "# ", "ðŸ“ ", 1)
 		} else if strings.HasPrefix(line, "## ") {
-			lines[i] = strings.Replace(line, "## ", "📋 ", 1)
+			lines[i] = strings.Replace(line, "## ", "ðŸ“‹ ", 1)
 		} else if strings.HasPrefix(line, "### ") {
-			lines[i] = strings.Replace(line, "### ", "📌 ", 1)
+			lines[i] = strings.Replace(line, "### ", "ðŸ“Œ ", 1)
 		}
 
 		// Bold text
 		lines[i] = strings.ReplaceAll(lines[i], "**", "")
 		// Italic text
-		lines[i] = strings.ReplaceAll(lines[i], "*", "•")
+		lines[i] = strings.ReplaceAll(lines[i], "*", "â€¢")
 
 		// Code blocks
 		if strings.HasPrefix(strings.TrimSpace(line), "```") {
-			lines[i] = "┌─ Code Block ─────────────────────────────────"
+			lines[i] = "â”Œâ”€ Code Block â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€"
 		}
 	}
 
@@ -778,7 +788,7 @@ func (m *PreviewPaneModel) renderError(err error) string {
 	errorMsg := fmt.Sprintf("Error rendering markdown: %s", err.Error())
 	return lipgloss.NewStyle().
 		Foreground(styles.Error).
-		Render("⚠️  " + errorMsg)
+		Render("âš ï¸  " + errorMsg)
 }
 
 // createTitleBar creates the title bar with status information
@@ -795,12 +805,12 @@ func (m *PreviewPaneModel) createTitleBar() string {
 
 	// Add error indicator if present
 	if m.lastError != "" {
-		title += " | ⚠️ Error"
+		title += " | âš ï¸ Error"
 	}
 
 	// Add refresh indicator if needed
 	if m.showRefresh {
-		title += " | ⟳ Refreshing..."
+		title += " | âŸ³ Refreshing..."
 	}
 
 	titleBar := m.titleStyle.Render(title)
@@ -901,7 +911,7 @@ func (m *PreviewPaneModel) renderTOC() string {
 		indent := strings.Repeat("  ", entry.Level-1)
 
 		// Create clickable-style entry
-		tocEntry := fmt.Sprintf("%s• %s", indent, entry.Title)
+		tocEntry := fmt.Sprintf("%sâ€¢ %s", indent, entry.Title)
 		tocLines = append(tocLines, tocEntry)
 	}
 

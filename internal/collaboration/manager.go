@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/puente-labs/noise/internal/domain"
-	"github.com/puente-labs/noise/internal/infra/db"
+	"github.com/Kyanite/noise/internal/domain"
+	"github.com/Kyanite/noise/internal/infra/db"
 )
 
 // CollaborationManager coordinates all collaborative features

@@ -4,15 +4,15 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/collaboration"
-	"github.com/puente-labs/noise/internal/config"
-	errutil "github.com/puente-labs/noise/internal/errutil"
-	"github.com/puente-labs/noise/internal/infra/db"
-	"github.com/puente-labs/noise/internal/logging"
-	"github.com/puente-labs/noise/internal/plugins"
-	"github.com/puente-labs/noise/internal/theme"
-	"github.com/puente-labs/noise/internal/ui/editor"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/collaboration"
+	"github.com/Kyanite/noise/internal/config"
+	errutil "github.com/Kyanite/noise/internal/errutil"
+	"github.com/Kyanite/noise/internal/infra/db"
+	"github.com/Kyanite/noise/internal/logging"
+	"github.com/Kyanite/noise/internal/plugins"
+	"github.com/Kyanite/noise/internal/theme"
+	"github.com/Kyanite/noise/internal/ui/editor"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // QuickStartConfig contains configuration for quick start mode
@@ -427,7 +427,7 @@ func (m *RootModel) renderLoading() string {
 		Width(m.width).
 		Height(m.height)
 
-	loadingText := "🎵 noise.sh 🎵\n\n"
+	loadingText := "ðŸŽµ noise.sh ðŸŽµ\n\n"
 	if m.errorMsg != "" {
 		loadingText += "Error: " + m.errorMsg + "\n\nPress any key to exit..."
 	} else {

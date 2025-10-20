@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/puente-labs/noise/internal/domain"
-	errutil "github.com/puente-labs/noise/internal/errutil"
-	"github.com/puente-labs/noise/internal/infra/db"
-	"github.com/puente-labs/noise/internal/logging"
+	"github.com/Kyanite/noise/internal/domain"
+	errutil "github.com/Kyanite/noise/internal/errutil"
+	"github.com/Kyanite/noise/internal/infra/db"
+	"github.com/Kyanite/noise/internal/logging"
 )
 
 // AutoSaveStatus represents the current auto-save state
@@ -575,43 +575,48 @@ func (s *AutoSaveService) CleanupOldVersions(songID int) error {
 	s.writeMutex.Lock()
 	defer s.writeMutex.Unlock()
 
-	versions, err := s.db.GetVersions(songID, s.config.MaxVersions+1)
+	versions, err := s.db.GetVersions(songID, 1000)
 	if err != nil {
 		return errutil.Wrap(err, "get versions for cleanup")
 	}
 
-	// Keep the latest MaxVersions, delete the rest
-	if len(versions) > s.config.MaxVersions {
-		for _, version := range versions[s.config.MaxVersions:] {
-			// Add retry logic for delete operations too
-			var deleteErr error
-			maxDeleteRetries := 3
-			deleteRetryDelay := 50 * time.Millisecond
+	// Remove the oldest versions until we are within the retention window.
+	for len(versions) > s.config.MaxVersions {
+		version := versions[len(versions)-1]
 
-			for attempt := 0; attempt <= maxDeleteRetries; attempt++ {
-				if attempt > 0 {
-					time.Sleep(deleteRetryDelay)
-					deleteRetryDelay *= 2
-				}
+		var deleteErr error
+		maxDeleteRetries := 3
+		deleteRetryDelay := 50 * time.Millisecond
 
-				deleteErr = s.db.DeleteVersion(version.ID)
-				if deleteErr == nil {
-					break // Success
-				}
-
-				// Check if it's a lock error
-				if strings.Contains(deleteErr.Error(), "database is locked") ||
-					strings.Contains(deleteErr.Error(), "locked") ||
-					strings.Contains(deleteErr.Error(), "busy") {
-					if attempt < maxDeleteRetries {
-						continue // Retry on lock errors
-					}
-				}
-
-				logging.Warnf("Failed to delete old version %d after %d attempts: %v", version.ID, attempt+1, deleteErr)
-				break
+		for attempt := 0; attempt <= maxDeleteRetries; attempt++ {
+			if attempt > 0 {
+				time.Sleep(deleteRetryDelay)
+				deleteRetryDelay *= 2
 			}
+
+			deleteErr = s.db.DeleteVersion(version.ID)
+			if deleteErr == nil {
+				break // Success
+			}
+
+			if strings.Contains(deleteErr.Error(), "database is locked") ||
+				strings.Contains(deleteErr.Error(), "locked") ||
+				strings.Contains(deleteErr.Error(), "busy") {
+				if attempt < maxDeleteRetries {
+					continue // Retry on lock errors
+				}
+			}
+
+			logging.Warnf("Failed to delete old version %d after %d attempts: %v", version.ID, attempt+1, deleteErr)
+			break
 		}
+
+		if deleteErr != nil {
+			// Abort cleanup if we cannot remove an old version after retries.
+			break
+		}
+
+		versions = versions[:len(versions)-1]
 	}
 
 	return nil

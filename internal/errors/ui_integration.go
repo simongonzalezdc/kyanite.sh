@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/logging"
+	"github.com/Kyanite/noise/internal/logging"
 )
 
 // ErrorRecoveryUI handles the UI integration for error recovery
@@ -470,16 +470,16 @@ func (eru *ErrorRecoveryUI) renderStatusBar() string {
 	switch {
 	case health.OverallScore >= 80:
 		healthColor = "#00FF00"
-		healthIcon = "●"
+		healthIcon = "â—"
 	case health.OverallScore >= 60:
 		healthColor = "#FFA500"
-		healthIcon = "●"
+		healthIcon = "â—"
 	case health.OverallScore >= 40:
 		healthColor = "#FF6600"
-		healthIcon = "●"
+		healthIcon = "â—"
 	default:
 		healthColor = "#FF0000"
-		healthIcon = "●"
+		healthIcon = "â—"
 	}
 
 	healthIndicator := lipgloss.NewStyle().
@@ -500,7 +500,7 @@ func (eru *ErrorRecoveryUI) renderStatusBar() string {
 	if pendingOps > 0 {
 		recoveryIndicator = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FFA500")).
-			Render(fmt.Sprintf("⚠ %d recovery operations available (press 'r' to view)", pendingOps))
+			Render(fmt.Sprintf("âš  %d recovery operations available (press 'r' to view)", pendingOps))
 	}
 
 	// Combine indicators
@@ -520,7 +520,7 @@ func (eru *ErrorRecoveryUI) renderRecoveryPanel() string {
 	header := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("#00BFFF")).
-		Render("🔧 Error Recovery Panel")
+		Render("ðŸ”§ Error Recovery Panel")
 	sections = append(sections, header)
 
 	// System health
@@ -536,14 +536,14 @@ func (eru *ErrorRecoveryUI) renderRecoveryPanel() string {
 	} else {
 		noOps := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#00FF00")).
-			Render("✅ No recovery operations needed")
+			Render("âœ… No recovery operations needed")
 		sections = append(sections, noOps)
 	}
 
 	// Footer
 	footer := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#888888")).
-		Render("Press 'r' to close • ↑/↓ to navigate • Enter to execute • Ctrl+R to refresh")
+		Render("Press 'r' to close â€¢ â†‘/â†“ to navigate â€¢ Enter to execute â€¢ Ctrl+R to refresh")
 	sections = append(sections, footer)
 
 	return lipgloss.JoinVertical(lipgloss.Left, sections...)
@@ -578,7 +578,7 @@ func (eru *ErrorRecoveryUI) renderHealthSection(health SystemHealthStatus) strin
 	if len(health.Recommendations) > 0 {
 		lines = append(lines, "Recommendations:")
 		for _, rec := range health.Recommendations {
-			lines = append(lines, fmt.Sprintf("  • %s", rec))
+			lines = append(lines, fmt.Sprintf("  â€¢ %s", rec))
 		}
 	}
 
@@ -600,19 +600,19 @@ func (eru *ErrorRecoveryUI) renderOperationsSection(operations []RecoveryOperati
 
 		switch op.Status {
 		case StatusPending:
-			statusIcon = "⏳"
+			statusIcon = "â³"
 			statusColor = "#FFA500"
 		case StatusRunning:
-			statusIcon = "🔄"
+			statusIcon = "ðŸ”„"
 			statusColor = "#00BFFF"
 		case StatusCompleted:
-			statusIcon = "✅"
+			statusIcon = "âœ…"
 			statusColor = "#00FF00"
 		case StatusFailed:
-			statusIcon = "❌"
+			statusIcon = "âŒ"
 			statusColor = "#FF0000"
 		case StatusCancelled:
-			statusIcon = "⏹️"
+			statusIcon = "â¹ï¸"
 			statusColor = "#888888"
 		}
 
@@ -625,7 +625,7 @@ func (eru *ErrorRecoveryUI) renderOperationsSection(operations []RecoveryOperati
 		// Format operation line
 		indicator := "  "
 		if selected {
-			indicator = "▶ "
+			indicator = "â–¶ "
 		}
 
 		line := fmt.Sprintf("%s%s %s", indicator, statusIcon, op.Description)
@@ -659,10 +659,10 @@ func (eru *ErrorRecoveryUI) renderProgressBar(progress float64) string {
 
 	bar := ""
 	for i := 0; i < filled; i++ {
-		bar += "█"
+		bar += "â–ˆ"
 	}
 	for i := 0; i < empty; i++ {
-		bar += "░"
+		bar += "â–‘"
 	}
 
 	return eru.progressBar.Style.Render(fmt.Sprintf("[%s] %.1f%%", bar, progress))

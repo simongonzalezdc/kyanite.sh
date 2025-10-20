@@ -6,10 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/puente-labs/noise/internal/data"
-	"github.com/puente-labs/noise/internal/export"
-	"github.com/puente-labs/noise/internal/ui/editor"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/data"
+	"github.com/Kyanite/noise/internal/export"
+	"github.com/Kyanite/noise/internal/ui/editor"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 func main() {
@@ -59,14 +59,14 @@ func testChordPicker() {
 		return
 	}
 
-	fmt.Printf("✓ Loaded %d chord progressions\n", len(progressions))
-	fmt.Printf("✓ First progression: %s - %s\n", progressions[0].Name, progressions[0].Chords)
+	fmt.Printf("âœ“ Loaded %d chord progressions\n", len(progressions))
+	fmt.Printf("âœ“ First progression: %s - %s\n", progressions[0].Name, progressions[0].Chords)
 
 	// Test chord insertion
 	testChords := []string{"C", "G", "Am", "F"}
 	inserted := testInsertChords(testChords)
 	if inserted {
-		fmt.Printf("✓ Successfully inserted chords: %v\n", testChords)
+		fmt.Printf("âœ“ Successfully inserted chords: %v\n", testChords)
 	} else {
 		log.Println("Failed to insert chords")
 	}
@@ -105,14 +105,14 @@ func testBPMTapper() {
 	// Simulate tap intervals
 	testBPM := 120
 	if testBPM > 0 && testBPM < 300 {
-		fmt.Printf("✓ BPM calculation working: %d BPM\n", testBPM)
+		fmt.Printf("âœ“ BPM calculation working: %d BPM\n", testBPM)
 	} else {
 		log.Println("BPM calculation failed")
 	}
 
 	// Test BPM setting
 	testSetBPM(testBPM)
-	fmt.Printf("✓ BPM setting working: %d BPM\n", testBPM)
+	fmt.Printf("âœ“ BPM setting working: %d BPM\n", testBPM)
 }
 
 // testSetBPM simulates setting BPM in the editor
@@ -160,7 +160,7 @@ BPM: 120`
 		return
 	}
 
-	fmt.Printf("✓ Successfully exported to: %s\n", outputPath)
+	fmt.Printf("âœ“ Successfully exported to: %s\n", outputPath)
 
 	// Test listing exports
 	exports, err := exportService.ListExports()
@@ -169,7 +169,7 @@ BPM: 120`
 		return
 	}
 
-	fmt.Printf("✓ Found %d export files\n", len(exports))
+	fmt.Printf("âœ“ Found %d export files\n", len(exports))
 
 	// Test different export types
 	testExportTypes(exportService, testContent)
@@ -194,7 +194,7 @@ func testExportTypes(exportService *export.ExportService, content string) {
 			continue
 		}
 
-		fmt.Printf("✓ Exported %s to: %s\n", exportType.String(), outputPath)
+		fmt.Printf("âœ“ Exported %s to: %s\n", exportType.String(), outputPath)
 	}
 }
 
@@ -218,8 +218,8 @@ func testThemeSystem() {
 		return
 	}
 
-	fmt.Printf("✓ Current theme: %s\n", currentTheme.Name)
-	fmt.Printf("✓ Theme description: %s\n", currentTheme.Description)
+	fmt.Printf("âœ“ Current theme: %s\n", currentTheme.Name)
+	fmt.Printf("âœ“ Theme description: %s\n", currentTheme.Description)
 
 	// Test getting all themes
 	allThemes := themeManager.GetAllThemes()
@@ -228,7 +228,7 @@ func testThemeSystem() {
 		return
 	}
 
-	fmt.Printf("✓ Found %d themes\n", len(allThemes))
+	fmt.Printf("âœ“ Found %d themes\n", len(allThemes))
 
 	// Test theme switching
 	testThemeSwitching(themeManager)
@@ -253,7 +253,7 @@ func testThemeSwitching(themeManager *styles.ThemeManager) {
 		return
 	}
 
-	fmt.Printf("✓ Switched from %s to %s\n", initialTheme, nextTheme)
+	fmt.Printf("âœ“ Switched from %s to %s\n", initialTheme, nextTheme)
 
 	// Test previous theme
 	err = themeManager.PreviousTheme()
@@ -268,7 +268,7 @@ func testThemeSwitching(themeManager *styles.ThemeManager) {
 		return
 	}
 
-	fmt.Printf("✓ Switched from %s to %s\n", nextTheme, prevTheme)
+	fmt.Printf("âœ“ Switched from %s to %s\n", nextTheme, prevTheme)
 }
 
 // testThemePersistence tests theme persistence
@@ -287,9 +287,9 @@ func testThemePersistence(themeManager *styles.ThemeManager) {
 		return
 	}
 
-	fmt.Printf("✓ Set theme to %s\n", themeName)
+	fmt.Printf("âœ“ Set theme to %s\n", themeName)
 
 	// In a real implementation, this would test persistence by
 	// creating a new theme manager and checking if it loads the saved theme
-	fmt.Println("✓ Theme persistence simulated")
+	fmt.Println("âœ“ Theme persistence simulated")
 }

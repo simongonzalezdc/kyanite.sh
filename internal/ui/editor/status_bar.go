@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/app"
-	"github.com/puente-labs/noise/internal/theme"
-	"github.com/puente-labs/noise/internal/ui/dimension"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/theme"
+	"github.com/Kyanite/noise/internal/ui/dimension"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // StatusBarSection represents a section of the status bar
@@ -442,7 +442,7 @@ func (m *StatusBarModel) renderMinimalView() string {
 		parts = append(parts, autoSaveText)
 	}
 
-	content := strings.Join(parts, " │ ")
+	content := strings.Join(parts, " â”‚ ")
 	content = m.centerSectionStyle.Render(content)
 
 	// Ensure proper width
@@ -464,7 +464,7 @@ func (m *StatusBarModel) renderCompactView() string {
 	rightSection := m.renderCompactRightSection()
 
 	// Combine sections with compact spacing
-	fullContent := leftSection + "│" + centerSection + "│" + rightSection
+	fullContent := leftSection + "â”‚" + centerSection + "â”‚" + rightSection
 
 	// Ensure the content fits exactly within the width
 	if len(fullContent) > m.width {
@@ -561,7 +561,7 @@ func (m *StatusBarModel) renderCompactRightSection() string {
 		indicators = append(indicators, fmt.Sprintf("%d%%", m.zoomLevel))
 	}
 
-	return m.rightSectionStyle.Render(strings.Join(indicators, "│"))
+	return m.rightSectionStyle.Render(strings.Join(indicators, "â”‚"))
 }
 
 // Helper function to get maximum of two integers
@@ -644,7 +644,7 @@ func (m *StatusBarModel) UpdateResponsiveMode(width int) {
 // 		}
 //
 // 		if len(indicators) > 0 {
-// 			return m.rightSectionStyle.Render(strings.Join(indicators, "│"))
+// 			return m.rightSectionStyle.Render(strings.Join(indicators, "â”‚"))
 // 		}
 // 		return ""
 // 	}
@@ -668,7 +668,7 @@ func (m *StatusBarModel) UpdateResponsiveMode(width int) {
 // 			parts = append(parts, autoSaveText)
 // 		}
 //
-// 		return m.centerSectionStyle.Render(strings.Join(parts, " │ "))
+// 		return m.centerSectionStyle.Render(strings.Join(parts, " â”‚ "))
 // 	}
 //
 // 	// Full mode: show all information

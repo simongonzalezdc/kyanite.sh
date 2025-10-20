@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/puente-labs/noise/internal/logging"
+	"github.com/Kyanite/noise/internal/logging"
 )
 
 // ErrorHandler defines the interface for error handling

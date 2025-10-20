@@ -9,9 +9,9 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/domain"
-	"github.com/puente-labs/noise/internal/infra/db"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/domain"
+	"github.com/Kyanite/noise/internal/infra/db"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // ManagerState represents different states of the project manager
@@ -121,7 +121,7 @@ func NewProjectManagerModel(database *db.DB) *ProjectManagerModel {
 		{
 			Name:        "Songwriter's Collection",
 			Description: "A comprehensive collection for songwriters",
-			Icon:        "🎵",
+			Icon:        "ðŸŽµ",
 			Category:    "Music",
 			SongCount:   0,
 			Tags:        []string{"songwriting", "lyrics", "music"},
@@ -129,7 +129,7 @@ func NewProjectManagerModel(database *db.DB) *ProjectManagerModel {
 		{
 			Name:        "Album Project",
 			Description: "Organize songs for an album release",
-			Icon:        "💿",
+			Icon:        "ðŸ’¿",
 			Category:    "Music",
 			SongCount:   0,
 			Tags:        []string{"album", "release", "collection"},
@@ -137,7 +137,7 @@ func NewProjectManagerModel(database *db.DB) *ProjectManagerModel {
 		{
 			Name:        "Poetry Collection",
 			Description: "Collection of poetic works and lyrics",
-			Icon:        "📝",
+			Icon:        "ðŸ“",
 			Category:    "Literature",
 			SongCount:   0,
 			Tags:        []string{"poetry", "literature", "creative-writing"},
@@ -145,7 +145,7 @@ func NewProjectManagerModel(database *db.DB) *ProjectManagerModel {
 		{
 			Name:        "Collaborative Project",
 			Description: "Project for collaborative songwriting",
-			Icon:        "👥",
+			Icon:        "ðŸ‘¥",
 			Category:    "Collaboration",
 			SongCount:   0,
 			Tags:        []string{"collaboration", "team", "shared"},
@@ -153,7 +153,7 @@ func NewProjectManagerModel(database *db.DB) *ProjectManagerModel {
 		{
 			Name:        "Genre-Specific",
 			Description: "Organize songs by specific genre",
-			Icon:        "🎸",
+			Icon:        "ðŸŽ¸",
 			Category:    "Music",
 			SongCount:   0,
 			Tags:        []string{"genre", "style", "categorization"},
@@ -591,7 +591,7 @@ func (m *ProjectManagerModel) renderLoading() string {
 		Width(m.width).
 		Height(m.height)
 
-	content := "🎵 Project Manager 🎵\n\n"
+	content := "ðŸŽµ Project Manager ðŸŽµ\n\n"
 	content += "Loading projects...\n\n"
 	content += m.spinner.View()
 
@@ -650,7 +650,7 @@ func (m *ProjectManagerModel) renderProjectList() string {
 		Foreground(styles.TextPrimary)
 
 	// Header
-	header := headerStyle.Render("🎵 Project Manager")
+	header := headerStyle.Render("ðŸŽµ Project Manager")
 	header += "\n\n"
 
 	// Status bar
@@ -658,11 +658,11 @@ func (m *ProjectManagerModel) renderProjectList() string {
 	if m.statusMessage != "" {
 		statusBar = lipgloss.NewStyle().
 			Foreground(styles.Success).
-			Render("✓ " + m.statusMessage)
+			Render("âœ“ " + m.statusMessage)
 	} else if m.errorMessage != "" {
 		statusBar = lipgloss.NewStyle().
 			Foreground(styles.Error).
-			Render("✗ " + m.errorMessage)
+			Render("âœ— " + m.errorMessage)
 	}
 
 	// Instructions
@@ -696,7 +696,7 @@ func (m *ProjectManagerModel) renderProjectList() string {
 
 		recentList := ""
 		for _, project := range m.recentProjects {
-			recentList += fmt.Sprintf("• %s\n", project.Name)
+			recentList += fmt.Sprintf("â€¢ %s\n", project.Name)
 		}
 
 		rightColumn = recentStyle.Render(
@@ -728,7 +728,7 @@ func (m *ProjectManagerModel) renderProjectDetail() string {
 		Foreground(styles.TextPrimary)
 
 	// Header
-	header := headerStyle.Render(fmt.Sprintf("📁 %s", m.currentProject.Name))
+	header := headerStyle.Render(fmt.Sprintf("ðŸ“ %s", m.currentProject.Name))
 	header += "\n\n"
 
 	// Project info
@@ -780,7 +780,7 @@ func (m *ProjectManagerModel) renderCreateProject() string {
 		Foreground(styles.TextPrimary)
 
 	// Header
-	header := headerStyle.Render("📝 Create New Project")
+	header := headerStyle.Render("ðŸ“ Create New Project")
 	header += "\n\n"
 
 	// Form
@@ -816,7 +816,7 @@ func (m *ProjectManagerModel) renderEditProject() string {
 	contentStyle := lipgloss.NewStyle().
 		Foreground(styles.TextPrimary)
 
-	header := headerStyle.Render("✏️  Edit Project")
+	header := headerStyle.Render("âœï¸  Edit Project")
 	header += "\n\n"
 
 	form := "Project Name:\n"
@@ -849,7 +849,7 @@ func (m *ProjectManagerModel) renderSongList() string {
 		Foreground(styles.TextPrimary)
 
 	// Header
-	header := headerStyle.Render(fmt.Sprintf("🎵 Songs in: %s", m.currentProject.Name))
+	header := headerStyle.Render(fmt.Sprintf("ðŸŽµ Songs in: %s", m.currentProject.Name))
 	header += "\n\n"
 
 	// Song list
@@ -882,7 +882,7 @@ func (m *ProjectManagerModel) renderProjectTemplates() string {
 		Foreground(styles.TextPrimary)
 
 	// Header
-	header := headerStyle.Render("📋 Project Templates")
+	header := headerStyle.Render("ðŸ“‹ Project Templates")
 	header += "\n\n"
 
 	// Instructions

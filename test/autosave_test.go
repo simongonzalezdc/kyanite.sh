@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/puente-labs/noise/internal/app"
-	"github.com/puente-labs/noise/internal/infra/db"
+	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/infra/db"
 )
 
 // TestAutoSaveServiceCreation tests the creation of an auto-save service
@@ -802,7 +802,7 @@ func TestAutoSaveEdgeCases(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	// Test with unicode content
-	unicodeContent := "Content with unicode: ñáéíóú 🚀 ñáéíóú 🚀"
+	unicodeContent := "Content with unicode: Ã±Ã¡Ã©Ã­Ã³Ãº ðŸš€ Ã±Ã¡Ã©Ã­Ã³Ãº ðŸš€"
 	service.SaveContent(unicodeContent)
 	time.Sleep(50 * time.Millisecond)
 

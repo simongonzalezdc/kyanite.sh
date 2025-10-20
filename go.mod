@@ -1,4 +1,4 @@
-module github.com/puente-labs/noise
+module github.com/Kyanite/noise
 
 go 1.25.3
 

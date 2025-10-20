@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/puente-labs/noise/internal/app"
+	"github.com/Kyanite/noise/internal/app"
 )
 
 // TestTheoryService tests the theory service functionality
@@ -14,7 +14,7 @@ func TestTheoryService() {
 	// Test theory service functionality
 	theoryService := app.NewTheoryService()
 
-	fmt.Println("🎵 Testing Theory Tools Implementation")
+	fmt.Println("ðŸŽµ Testing Theory Tools Implementation")
 	fmt.Println("=====================================")
 
 	// Test scale functionality
@@ -81,5 +81,5 @@ func TestTheoryService() {
 		fmt.Printf("Rhymes for 'love': %v\n", rhymes)
 	}
 
-	fmt.Println("\n✅ Theory tools implementation completed successfully!")
+	fmt.Println("\nâœ… Theory tools implementation completed successfully!")
 }

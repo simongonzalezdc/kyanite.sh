@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/puente-labs/noise/internal/collaboration"
-	"github.com/puente-labs/noise/internal/infra/db"
+	"github.com/Kyanite/noise/internal/collaboration"
+	"github.com/Kyanite/noise/internal/infra/db"
 )
 
 // TestCollaborationFramework tests the complete collaboration framework

@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/puente-labs/noise/internal/domain"
-	"github.com/puente-labs/noise/internal/infra/files"
+	"github.com/Kyanite/noise/internal/domain"
+	"github.com/Kyanite/noise/internal/infra/files"
 )
 
 // TestFileIO tests the file I/O system functionality
@@ -204,7 +204,7 @@ func TestFileIO() {
 		fmt.Printf("   Backup file created: %s\n", matches[0])
 	}
 
-	fmt.Println("\n✅ All File I/O tests completed successfully!")
+	fmt.Println("\nâœ… All File I/O tests completed successfully!")
 }
 
 // testWatcher implements the FileWatcher interface for testing

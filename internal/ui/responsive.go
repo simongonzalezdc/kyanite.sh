@@ -6,7 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // TerminalSize represents terminal dimensions
@@ -201,7 +201,7 @@ func (r *ResponsiveLayoutManager) RenderSizeWarning() string {
 		BorderForeground(styles.Warning)
 
 	warningText := strings.Join(r.sizeWarnings, "\n")
-	return warningStyle.Render("⚠️  " + warningText)
+	return warningStyle.Render("âš ï¸  " + warningText)
 }
 
 // HandleWindowSizeMsg handles window size messages and returns appropriate commands

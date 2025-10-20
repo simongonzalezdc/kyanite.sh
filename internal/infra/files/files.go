@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/puente-labs/noise/internal/domain"
-	"github.com/puente-labs/noise/internal/errors"
+	"github.com/Kyanite/noise/internal/domain"
+	"github.com/Kyanite/noise/internal/errors"
 	"gopkg.in/yaml.v3"
 )
 
@@ -163,10 +163,27 @@ func (s *Service) WriteSong(song *domain.Song, filePath string) error {
 		return errors.NewFileError("mkdir", dir, err)
 	}
 
-	// Serialize song to markdown with YAML frontmatter
-	content, err := s.serializeSong(song)
-	if err != nil {
-		return err
+	// Determine content to write. Prefer RawContent to preserve user-authored formatting.
+	content := song.RawContent
+	if strings.TrimSpace(content) == "" {
+		var err error
+		content, err = s.serializeSong(song)
+		if err != nil {
+			return err
+		}
+	} else if !strings.HasPrefix(strings.TrimSpace(content), "---") {
+		// Ensure frontmatter is present when writing raw content.
+		yamlBytes, err := yaml.Marshal(song.Metadata)
+		if err != nil {
+			return errors.NewParsingError("yaml marshal", err)
+		}
+
+		var builder strings.Builder
+		builder.WriteString("---\n")
+		builder.WriteString(string(yamlBytes))
+		builder.WriteString("---\n\n")
+		builder.WriteString(strings.TrimLeft(content, "\n"))
+		content = builder.String()
 	}
 
 	// Write to file with size limit

@@ -15,9 +15,9 @@ import (
 	"sync"
 	"time"
 
-	errutil "github.com/puente-labs/noise/internal/errutil"
-	"github.com/puente-labs/noise/internal/domain"
-	"github.com/puente-labs/noise/internal/logging"
+	errutil "github.com/Kyanite/noise/internal/errutil"
+	"github.com/Kyanite/noise/internal/domain"
+	"github.com/Kyanite/noise/internal/logging"
 )
 
 // DB wraps the database connection with helper methods

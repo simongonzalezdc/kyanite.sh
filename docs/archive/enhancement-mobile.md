@@ -4,7 +4,7 @@
 **Version:** 3.0 (Companion App)  
 **Status:** READY FOR IMPLEMENTATION  
 **Date:** October 17, 2025  
-**Owner:** Simon (Puente Labs)  
+**Owner:** Simon (Kyanite)  
 **Priority:** High - Start after Enhancement #2 (Rapid Prototyping) ships
 
 ---
@@ -25,16 +25,16 @@ Create a **lightweight mobile companion PWA** that does ONLY what the TUI can't:
 ## Product Vision
 
 ### What This IS
-✅ **Capture device** — Record voice memos, scan handwritten notes, tap tempo  
-✅ **Visual companion** — See prosody, syllables, waveforms (terminal can't show)  
-✅ **Mobile tool** — Works offline on phone, optimized for quick capture  
-✅ **Sync bridge** — Saves to files that TUI can open  
+âœ… **Capture device** â€” Record voice memos, scan handwritten notes, tap tempo  
+âœ… **Visual companion** â€” See prosody, syllables, waveforms (terminal can't show)  
+âœ… **Mobile tool** â€” Works offline on phone, optimized for quick capture  
+âœ… **Sync bridge** â€” Saves to files that TUI can open  
 
 ### What This IS NOT
-❌ **Full writing environment** — No AI panel, no knowledge base, no multi-song management  
-❌ **TUI replacement** — Complement, not compete  
-❌ **Complex editor** — Minimal editing only  
-❌ **Desktop-first** — Mobile is the focus, desktop is bonus  
+âŒ **Full writing environment** â€” No AI panel, no knowledge base, no multi-song management  
+âŒ **TUI replacement** â€” Complement, not compete  
+âŒ **Complex editor** â€” Minimal editing only  
+âŒ **Desktop-first** â€” Mobile is the focus, desktop is bonus  
 
 ---
 
@@ -43,25 +43,25 @@ Create a **lightweight mobile companion PWA** that does ONLY what the TUI can't:
 ### PWA Does (Capture & Feedback)
 
 **Capture Tools:**
-1. 🎤 **Voice memo recording** — Hum melodies, capture ideas
-2. 🎤 **Voice-to-text dictation** — Speak lyrics rapidly
-3. 📷 **Camera OCR scanning** — Digitize handwritten notebooks
-4. 🎯 **Tap tempo input** — Set BPM by tapping rhythm
+1. ðŸŽ¤ **Voice memo recording** â€” Hum melodies, capture ideas
+2. ðŸŽ¤ **Voice-to-text dictation** â€” Speak lyrics rapidly
+3. ðŸ“· **Camera OCR scanning** â€” Digitize handwritten notebooks
+4. ðŸŽ¯ **Tap tempo input** â€” Set BPM by tapping rhythm
 
 **Visual Feedback:**
-5. 📊 **Visual prosody overlay** — See stress marks (˘ ˊ) above syllables
-6. 📈 **Live syllable counter** — Real-time count as you type
-7. 🎵 **Inline waveforms** — View voice memos visually
-8. 🎨 **Rhyme highlighting** — Color-coded rhyme schemes
+5. ðŸ“Š **Visual prosody overlay** â€” See stress marks (Ë˜ ËŠ) above syllables
+6. ðŸ“ˆ **Live syllable counter** â€” Real-time count as you type
+7. ðŸŽµ **Inline waveforms** â€” View voice memos visually
+8. ðŸŽ¨ **Rhyme highlighting** â€” Color-coded rhyme schemes
 
 **Mobile Sharing:**
-9. 📤 **Rich exports** — Styled PNG/PDF for sharing
-10. 📱 **Share sheet integration** — Send via Messages, Mail, AirDrop
-11. 📋 **Formatted clipboard** — Paste with styling
+9. ðŸ“¤ **Rich exports** â€” Styled PNG/PDF for sharing
+10. ðŸ“± **Share sheet integration** â€” Send via Messages, Mail, AirDrop
+11. ðŸ“‹ **Formatted clipboard** â€” Paste with styling
 
 **Basic Editing:**
-12. ✏️ **Minimal text editor** — Refine captured text
-13. 💾 **Invisible auto-sync** — Saves & syncs automatically (like Apple Notes)
+12. âœï¸ **Minimal text editor** â€” Refine captured text
+13. ðŸ’¾ **Invisible auto-sync** â€” Saves & syncs automatically (like Apple Notes)
 
 ---
 
@@ -95,35 +95,35 @@ Create a **lightweight mobile companion PWA** that does ONLY what the TUI can't:
 
 **Step 1: Capture on Mobile PWA (Offline)**
 ```
-📱 Subway (no internet)
-↓
+ðŸ“± Subway (no internet)
+â†“
 Open PWA from home screen
-↓
-Tap mic button → hum melody (10 sec)
-↓
+â†“
+Tap mic button â†’ hum melody (10 sec)
+â†“
 Type quick lyric idea:
   "The scent of cedar still haunts her bed"
-  └─ 8 syllables ✓ (live counter shows)
-↓
+  â””â”€ 8 syllables âœ“ (live counter shows)
+â†“
 Tap tempo to rhythm (84 BPM detected)
-↓
+â†“
 Auto-saves to local storage (IndexedDB)
-↓
-Status shows: ⚠ Offline (will sync later)
+â†“
+Status shows: âš  Offline (will sync later)
 ```
 
 **Step 2: Automatic Sync (Invisible)**
 ```
-📱 Exit subway, phone gets signal
-↓
+ðŸ“± Exit subway, phone gets signal
+â†“
 PWA detects connection
-↓
+â†“
 Background sync starts automatically
-↓
-Status briefly shows: ↻ Syncing...
-↓
-Status changes to: ✓ Synced
-↓
+â†“
+Status briefly shows: â†» Syncing...
+â†“
+Status changes to: âœ“ Synced
+â†“
 File appears in Dropbox/Drive instantly
 
 You never tapped a sync button.
@@ -133,18 +133,18 @@ It just worked.
 
 **Step 3: Open on Desktop TUI (Instant)**
 ```
-💻 Open TUI (minutes or hours later)
-↓
+ðŸ’» Open TUI (minutes or hours later)
+â†“
 See new draft "Lost My Dog" immediately
-↓
+â†“
 Play voice memo (melody idea)
-↓
+â†“
 Use AI to expand verse
-↓
+â†“
 Add knowledge base insights
-↓
+â†“
 Polish with full editor
-↓
+â†“
 Export final version
 ```
 
@@ -159,47 +159,47 @@ Export final version
 ### Quick Capture Screen
 
 ```
-┌─────────────────────────────────────┐
-│ 🎵 Quick Capture    [SKETCH]  ✓    │ ← Status: ✓ Synced
-├─────────────────────────────────────┤
-│                                     │
-│ The scent of cedar still...        │ ← Basic text editor
-│ haunts her bed                      │   Auto-saves on keystroke
-│ ˘    ˊ    ˘  ˊ  ˘   ˊ     ˘   ˊ    │ ← Prosody overlay
-│ 8 syllables ✓                       │ ← Live counter
-│                                     │
-│ I find her collar in the drawer...  │
-│█                                    │ ← Blinking cursor
-│                                     │
-│ ┌─────────────────────────────────┐ │
-│ │ Voice Memo 1       ▁▂▃▅▇█▇▅▃▂▁ │ │ ← Inline waveform
-│ │ [▶️ Play] 0:08                  │ │
-│ └─────────────────────────────────┘ │
-│                                     │
-├─────────────────────────────────────┤
-│ [🎤] [📷] [♪] [📤]                  │ ← Capture tools only
-│  Mic  Scan Tempo Share              │   No manual sync button
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ðŸŽµ Quick Capture    [SKETCH]  âœ“    â”‚ â† Status: âœ“ Synced
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚                                     â”‚
+â”‚ The scent of cedar still...        â”‚ â† Basic text editor
+â”‚ haunts her bed                      â”‚   Auto-saves on keystroke
+â”‚ Ë˜    ËŠ    Ë˜  ËŠ  Ë˜   ËŠ     Ë˜   ËŠ    â”‚ â† Prosody overlay
+â”‚ 8 syllables âœ“                       â”‚ â† Live counter
+â”‚                                     â”‚
+â”‚ I find her collar in the drawer...  â”‚
+â”‚â–ˆ                                    â”‚ â† Blinking cursor
+â”‚                                     â”‚
+â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚ â”‚ Voice Memo 1       â–â–‚â–ƒâ–…â–‡â–ˆâ–‡â–…â–ƒâ–‚â– â”‚ â”‚ â† Inline waveform
+â”‚ â”‚ [â–¶ï¸ Play] 0:08                  â”‚ â”‚
+â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â”‚                                     â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ [ðŸŽ¤] [ðŸ“·] [â™ª] [ðŸ“¤]                  â”‚ â† Capture tools only
+â”‚  Mic  Scan Tempo Share              â”‚   No manual sync button
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
 Sync Status Indicators (top-right):
-✓    = Synced to TUI (green)
-↻    = Syncing... (blue, spinning)
-⚠    = Offline, will sync when online (yellow)
-✗    = Sync failed, retrying... (red, rare)
+âœ“    = Synced to TUI (green)
+â†»    = Syncing... (blue, spinning)
+âš     = Offline, will sync when online (yellow)
+âœ—    = Sync failed, retrying... (red, rare)
 
 Interactions:
-- Type → Auto-saves locally (500ms debounce)
-- Save → Auto-syncs to Dropbox/Drive
+- Type â†’ Auto-saves locally (500ms debounce)
+- Save â†’ Auto-syncs to Dropbox/Drive
 - No buttons needed, just works
 ```
 
 ### What's NOT Included
-- ❌ No AI panel (use TUI for that)
-- ❌ No song library (single-draft focus)
-- ❌ No knowledge base search
-- ❌ No complex menus/settings
-- ❌ No multi-window layout
-- ❌ No manual sync button (automatic)
+- âŒ No AI panel (use TUI for that)
+- âŒ No song library (single-draft focus)
+- âŒ No knowledge base search
+- âŒ No complex menus/settings
+- âŒ No multi-window layout
+- âŒ No manual sync button (automatic)
 
 **Design Philosophy:** "Just enough to capture and refine, syncs invisibly to TUI."
 
@@ -207,7 +207,7 @@ Interactions:
 
 ## Core Features (Detailed)
 
-### 1. 🎤 Voice Memo Recording
+### 1. ðŸŽ¤ Voice Memo Recording
 
 **Use Case:** Melody idea strikes while walking
 
@@ -224,12 +224,12 @@ Interactions:
 
 **UI:**
 ```
-┌─────────────────────────────────────┐
-│ Recording... ⬤ 0:08                 │
-│ ▁▂▃▅▇█▇▅▃▂▁▂▃▅▇█▇▅▃▂▁              │ ← Live waveform
-│                                     │
-│ [■ Stop]  [✓ Keep]  [✗ Cancel]     │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Recording... â¬¤ 0:08                 â”‚
+â”‚ â–â–‚â–ƒâ–…â–‡â–ˆâ–‡â–…â–ƒâ–‚â–â–‚â–ƒâ–…â–‡â–ˆâ–‡â–…â–ƒâ–‚â–              â”‚ â† Live waveform
+â”‚                                     â”‚
+â”‚ [â–  Stop]  [âœ“ Keep]  [âœ— Cancel]     â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Technical:**
@@ -250,7 +250,7 @@ attachments:
 
 ---
 
-### 2. 🎤 Voice-to-Text Dictation
+### 2. ðŸŽ¤ Voice-to-Text Dictation
 
 **Use Case:** Ideas flow faster than typing
 
@@ -278,7 +278,7 @@ attachments:
 
 ---
 
-### 3. 📷 Camera OCR Scanning
+### 3. ðŸ“· Camera OCR Scanning
 
 **Use Case:** Handwritten lyrics in notebook
 
@@ -294,18 +294,18 @@ attachments:
 
 **UI (Photo Review):**
 ```
-┌─────────────────────────────────────┐
-│ [Photo of notebook page]            │
-│                                     │
-│ Detected Text (tap to edit):        │
-│ ┌─────────────────────────────────┐ │
-│ │ The scent of cedar still        │ │
-│ │ haunts her bed                   │ │
-│ │ I find her collar in the drawer  │ │
-│ └─────────────────────────────────┘ │
-│                                     │
-│ [✓ Import]  [📷 Retake]  [✗ Cancel] │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ [Photo of notebook page]            â”‚
+â”‚                                     â”‚
+â”‚ Detected Text (tap to edit):        â”‚
+â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚ â”‚ The scent of cedar still        â”‚ â”‚
+â”‚ â”‚ haunts her bed                   â”‚ â”‚
+â”‚ â”‚ I find her collar in the drawer  â”‚ â”‚
+â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â”‚                                     â”‚
+â”‚ [âœ“ Import]  [ðŸ“· Retake]  [âœ— Cancel] â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Technical:**
@@ -316,13 +316,13 @@ attachments:
 
 ---
 
-### 4. 🎯 Tap Tempo Input
+### 4. ðŸŽ¯ Tap Tempo Input
 
 **Use Case:** Set song BPM naturally
 
 **Flow:**
 ```
-1. Tap tempo button (♪)
+1. Tap tempo button (â™ª)
 2. Tap tempo mode activates
 3. Tap screen to rhythm (4+ taps)
 4. BPM calculated live
@@ -332,16 +332,16 @@ attachments:
 
 **UI:**
 ```
-┌─────────────────────────────────────┐
-│ Tap to the Rhythm                   │
-│                                     │
-│         124 BPM                     │ ← Live updating
-│       ████████░░                    │ ← Confidence
-│                                     │
-│ [Tap anywhere on screen]            │
-│                                     │
-│ [✓ Set Tempo]  [⟳ Reset]           │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Tap to the Rhythm                   â”‚
+â”‚                                     â”‚
+â”‚         124 BPM                     â”‚ â† Live updating
+â”‚       â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–‘â–‘                    â”‚ â† Confidence
+â”‚                                     â”‚
+â”‚ [Tap anywhere on screen]            â”‚
+â”‚                                     â”‚
+â”‚ [âœ“ Set Tempo]  [âŸ³ Reset]           â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Technical:**
@@ -352,23 +352,23 @@ attachments:
 
 ---
 
-### 5. 📊 Visual Prosody Overlay
+### 5. ðŸ“Š Visual Prosody Overlay
 
 **Use Case:** Check syllable stress while writing
 
 **Display:**
 ```
 The scent of cedar still haunts her bed
-˘    ˊ    ˘  ˊ  ˘   ˊ     ˘    ˊ
-8 syllables ✓
+Ë˜    ËŠ    Ë˜  ËŠ  Ë˜   ËŠ     Ë˜    ËŠ
+8 syllables âœ“
 
 I find her collar in the drawer sometimes
-˘ ˊ   ˘   ˊ   ˘   ˘  ˊ     ˘   ˊ
-10 syllables ⚠️ (target: 8-9)
+Ë˜ ËŠ   Ë˜   ËŠ   Ë˜   Ë˜  ËŠ     Ë˜   ËŠ
+10 syllables âš ï¸ (target: 8-9)
 ```
 
 **Features:**
-- Live stress marks (˘ = unstressed, ˊ = stressed)
+- Live stress marks (Ë˜ = unstressed, ËŠ = stressed)
 - Color-coded feedback (green = good, yellow = warning)
 - Syllable count per line
 - Toggle on/off (Settings)
@@ -380,7 +380,7 @@ I find her collar in the drawer sometimes
 
 ---
 
-### 6. 📈 Live Syllable Counter
+### 6. ðŸ“ˆ Live Syllable Counter
 
 **Use Case:** Stay in meter while typing
 
@@ -388,10 +388,10 @@ I find her collar in the drawer sometimes
 ```
 [VERSE 1]                    Target: 8-9 syllables
 The scent of cedar still haunts her bed
-└─ 8 syllables ✓
+â””â”€ 8 syllables âœ“
 
 I find her collar in the drawer sometimes yeah
-└─ 12 syllables ⚠️ Too long
+â””â”€ 12 syllables âš ï¸ Too long
 ```
 
 **Features:**
@@ -407,18 +407,18 @@ I find her collar in the drawer sometimes yeah
 
 ---
 
-### 7. 🎵 Inline Waveform Display
+### 7. ðŸŽµ Inline Waveform Display
 
 **Use Case:** See voice memos visually
 
 **Display:**
 ```
 [Voice Memo 1]
-┌─────────────────────────────────────┐
-│ ▁▂▃▅▇█▇▅▃▂▁▂▃▅▇█▇▅▃▂▁  0:12 / 0:18 │
-│          ▲                          │ ← Scrubber
-│ [▶️ Play] [🗑️] [↓ Download]         │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ â–â–‚â–ƒâ–…â–‡â–ˆâ–‡â–…â–ƒâ–‚â–â–‚â–ƒâ–…â–‡â–ˆâ–‡â–…â–ƒâ–‚â–  0:12 / 0:18 â”‚
+â”‚          â–²                          â”‚ â† Scrubber
+â”‚ [â–¶ï¸ Play] [ðŸ—‘ï¸] [â†“ Download]         â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Features:**
@@ -434,17 +434,17 @@ I find her collar in the drawer sometimes yeah
 
 ---
 
-### 8. 🎨 Rhyme Highlighting
+### 8. ðŸŽ¨ Rhyme Highlighting
 
 **Use Case:** See rhyme patterns visually
 
 **Display:**
 ```
 [CHORUS]
-I still see her shadow by the door    A ┐
-Her collar jingles in my dreams        B │ Color-coded
-The scent of cedar never felt so       C │ (subtle tint)
-The house is quiet, but it's not       A ┘
+I still see her shadow by the door    A â”
+Her collar jingles in my dreams        B â”‚ Color-coded
+The scent of cedar never felt so       C â”‚ (subtle tint)
+The house is quiet, but it's not       A â”˜
 ```
 
 **Features:**
@@ -461,34 +461,34 @@ The house is quiet, but it's not       A ┘
 
 ---
 
-### 9. 📤 Rich Export Formats
+### 9. ðŸ“¤ Rich Export Formats
 
 **Use Case:** Share draft with bandmate
 
 **Formats:**
-1. **PNG Image** — Styled lyrics (terminal aesthetic)
-2. **PDF** — Print-friendly (US Letter)
-3. **Plain Text** — Universal compatibility
-4. **Markdown** — For GitHub, notes apps
+1. **PNG Image** â€” Styled lyrics (terminal aesthetic)
+2. **PDF** â€” Print-friendly (US Letter)
+3. **Plain Text** â€” Universal compatibility
+4. **Markdown** â€” For GitHub, notes apps
 
 **Example PNG Export:**
 ```
-┌─────────────────────────────────────┐
-│ noise.sh                    Draft │ ← Terminal header
-│─────────────────────────────────────│
-│ Lost My Dog                         │
-│ Key: C | Tempo: 84 BPM              │
-│─────────────────────────────────────│
-│                                     │
-│ [VERSE 1]                           │
-│ The scent of cedar still haunts her │
-│ bed                                 │
-│ I find her collar in the drawer...  │
-│                                     │
-│─────────────────────────────────────│
-│ Written Oct 17, 2025                │
-│ noise.sh.app                      │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ noise.sh                    Draft â”‚ â† Terminal header
+â”‚â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”‚
+â”‚ Lost My Dog                         â”‚
+â”‚ Key: C | Tempo: 84 BPM              â”‚
+â”‚â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”‚
+â”‚                                     â”‚
+â”‚ [VERSE 1]                           â”‚
+â”‚ The scent of cedar still haunts her â”‚
+â”‚ bed                                 â”‚
+â”‚ I find her collar in the drawer...  â”‚
+â”‚                                     â”‚
+â”‚â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”‚
+â”‚ Written Oct 17, 2025                â”‚
+â”‚ noise.sh.app                      â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Technical:**
@@ -498,13 +498,13 @@ The house is quiet, but it's not       A ┘
 
 ---
 
-### 10. 📱 Share Sheet Integration
+### 10. ðŸ“± Share Sheet Integration
 
 **Use Case:** Send to Messages, Mail, AirDrop
 
 **Flow:**
 ```
-1. Tap share button (📤)
+1. Tap share button (ðŸ“¤)
 2. Native share sheet appears
 3. Choose: Messages, Mail, AirDrop, Notes, etc.
 4. Shares as text or image (user choice)
@@ -525,23 +525,23 @@ The house is quiet, but it's not       A ┘
 
 ---
 
-### 11. 💾 Automatic Sync (Invisible)
+### 11. ðŸ’¾ Automatic Sync (Invisible)
 
 **Use Case:** Zero-effort file sync with desktop
 
 **How It Works (Completely Automatic):**
 ```
-1. You type or capture → Auto-saves locally (500ms debounce)
-2. When online → Syncs to Dropbox/Drive (background)
+1. You type or capture â†’ Auto-saves locally (500ms debounce)
+2. When online â†’ Syncs to Dropbox/Drive (background)
 3. TUI sees changes instantly
 4. No buttons, no thinking, just works
 ```
 
 **User Never Thinks About Sync:**
 ```
-Write on phone → Appears on desktop
-Record voice memo → Instantly in TUI
-Scan with camera → Available everywhere
+Write on phone â†’ Appears on desktop
+Record voice memo â†’ Instantly in TUI
+Scan with camera â†’ Available everywhere
 
 Like Apple Notes or Google Docs:
 - No save button
@@ -552,9 +552,9 @@ Like Apple Notes or Google Docs:
 **Sync Status (Subtle):**
 ```
 Top-right corner (tiny, unobtrusive):
-✓ Synced          (green dot)
-↻ Syncing...      (spinning)
-⚠ Offline (saved) (yellow dot)
+âœ“ Synced          (green dot)
+â†» Syncing...      (spinning)
+âš  Offline (saved) (yellow dot)
 ```
 
 **File Format (YAML + Markdown):**
@@ -592,18 +592,18 @@ I find her collar in the drawer sometimes
 **Like Apple Notes or Google Docs:**
 ```
 User types "The scent of cedar..."
-↓
+â†“
 500ms debounce (wait for pause)
-↓
+â†“
 Auto-save to IndexedDB (local, instant)
-↓
+â†“
 Queue sync to Dropbox/Drive (background)
-↓
+â†“
 When online: Push to cloud (Background Sync API)
-↓
+â†“
 TUI sees file change (instant)
-↓
-Status indicator: ✓ Synced (briefly)
+â†“
+Status indicator: âœ“ Synced (briefly)
 ```
 
 **User Experience:**
@@ -636,10 +636,10 @@ self.addEventListener('sync', async (event) => {
 ```
 
 **Sync States:**
-- **✓ Synced** — Green dot, everything current
-- **↻ Syncing...** — Blue spinner, upload in progress
-- **⚠ Offline** — Yellow dot, queued for later
-- **✗ Error** — Red dot, retry automatically
+- **âœ“ Synced** â€” Green dot, everything current
+- **â†» Syncing...** â€” Blue spinner, upload in progress
+- **âš  Offline** â€” Yellow dot, queued for later
+- **âœ— Error** â€” Red dot, retry automatically
 
 **Setup (One-Time Only):**
 ```
@@ -716,26 +716,26 @@ First launch:
 - **CSS Modules** (terminal components)
 
 **Sensor APIs:**
-- **Web Audio API** — Voice recording, waveforms
-- **MediaRecorder API** — Audio encoding
-- **Web Speech API** — Voice-to-text
-- **MediaDevices API** — Camera access
-- **DeviceMotion API** — Tap tempo
-- **Vibration API** — Haptic feedback (optional)
+- **Web Audio API** â€” Voice recording, waveforms
+- **MediaRecorder API** â€” Audio encoding
+- **Web Speech API** â€” Voice-to-text
+- **MediaDevices API** â€” Camera access
+- **DeviceMotion API** â€” Tap tempo
+- **Vibration API** â€” Haptic feedback (optional)
 
 **PWA APIs:**
-- **Service Worker** — Offline caching
-- **IndexedDB** — Local storage
-- **Web App Manifest** — Install to home screen
-- **Background Sync API** — Auto-sync when online
-- **Web Share API** — Native sharing
-- **File System Access API** — Dropbox/Drive sync
+- **Service Worker** â€” Offline caching
+- **IndexedDB** â€” Local storage
+- **Web App Manifest** â€” Install to home screen
+- **Background Sync API** â€” Auto-sync when online
+- **Web Share API** â€” Native sharing
+- **File System Access API** â€” Dropbox/Drive sync
 
 **Libraries:**
-- **Tesseract.js** — Client-side OCR
-- **html-to-image** — Export to PNG
-- **syllable-counter** — Syllable counting
-- **Canvas API** — Waveform visualization
+- **Tesseract.js** â€” Client-side OCR
+- **html-to-image** â€” Export to PNG
+- **syllable-counter** â€” Syllable counting
+- **Canvas API** â€” Waveform visualization
 
 ---
 
@@ -904,18 +904,18 @@ Battery:         <5% per 30min session
 ## Scope Control
 
 ### What We're Building
-✅ Lightweight capture tool  
-✅ Visual feedback companion  
-✅ Mobile-first experience  
-✅ Sync to TUI  
+âœ… Lightweight capture tool  
+âœ… Visual feedback companion  
+âœ… Mobile-first experience  
+âœ… Sync to TUI  
 
 ### What We're NOT Building
-❌ Full writing environment  
-❌ AI features (use TUI)  
-❌ Knowledge base (use TUI)  
-❌ Multi-song management  
-❌ Complex editor  
-❌ Desktop-first design  
+âŒ Full writing environment  
+âŒ AI features (use TUI)  
+âŒ Knowledge base (use TUI)  
+âŒ Multi-song management  
+âŒ Complex editor  
+âŒ Desktop-first design  
 
 **The Rule:** If it takes more than 2 minutes, hand it off to the TUI.
 
@@ -970,10 +970,10 @@ I find her collar in the drawer sometimes
 ```
 
 ### Privacy Principles
-1. **Explicit opt-in** — Never assume permissions
-2. **Local-first** — All processing on device
-3. **No tracking** — Zero analytics
-4. **User control** — Easy to disable features
+1. **Explicit opt-in** â€” Never assume permissions
+2. **Local-first** â€” All processing on device
+3. **No tracking** â€” Zero analytics
+4. **User control** â€” Easy to disable features
 
 ---
 
@@ -1001,18 +1001,18 @@ I find her collar in the drawer sometimes
 
 ## Related Documents
 
-- **PRD.md** — Product requirements (TUI)
-- **TDD.md** — Technical design (TUI)
-- **Enhancement #2** — Rapid Prototyping (TUI)
-- **DEVELOPMENT_ROADMAP.md** — Timeline
+- **PRD.md** â€” Product requirements (TUI)
+- **TDD.md** â€” Technical design (TUI)
+- **Enhancement #2** â€” Rapid Prototyping (TUI)
+- **DEVELOPMENT_ROADMAP.md** â€” Timeline
 
 ---
 
-**Document Status:** ✅ APPROVED
+**Document Status:** âœ… APPROVED
 
 **Core Vision:** Lightweight mobile companion that captures ideas (voice, camera, tempo) and provides visual feedback (prosody, syllables, waveforms). **Syncs invisibly and automatically** to TUI for serious writing work.
 
-**Sync Philosophy:** Like Apple Notes or Google Docs — you never think about it, never tap a button, it just works.
+**Sync Philosophy:** Like Apple Notes or Google Docs â€” you never think about it, never tap a button, it just works.
 
 **Timeline:** 11 weeks to production-ready PWA
 
@@ -1020,4 +1020,4 @@ I find her collar in the drawer sometimes
 
 ---
 
-_Capture on mobile. Syncs automatically. Create on desktop. The perfect workflow._ 🎵📱💻
+_Capture on mobile. Syncs automatically. Create on desktop. The perfect workflow._ ðŸŽµðŸ“±ðŸ’»

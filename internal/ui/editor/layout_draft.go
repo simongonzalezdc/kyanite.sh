@@ -2,8 +2,8 @@ package editor
 
 import (
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/ui/dimension"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/ui/dimension"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // DraftLayout represents the layout for draft mode
@@ -95,7 +95,7 @@ func (l *DraftLayout) Render(editorContent string, previewContent string, theory
 	// Create dividers
 	dividerStyle := lipgloss.NewStyle().
 		Foreground(styles.TextMuted).
-		Render("│")
+		Render("â”‚")
 
 	// Combine panes
 	return lipgloss.JoinHorizontal(lipgloss.Top, editorPane, dividerStyle, previewPane, dividerStyle, theoryPane)

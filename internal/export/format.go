@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	errutil "github.com/puente-labs/noise/internal/errutil"
+	errutil "github.com/Kyanite/noise/internal/errutil"
 	"regexp"
 	"strconv"
 	"strings"
@@ -104,8 +104,17 @@ func (ef *ExportFormatter) FormatExport(content string, options *ExportOptions) 
 		export.Lyrics = plainText
 		
 	case ExportTypeChordPro:
-		// For ChordPro, we'll format with chord directives
-		chordPro := ef.formatAsChordPro(content, options)
+		// Determine BPM if not provided
+		actualBPM := options.BPM
+		if actualBPM == 0 {
+			actualBPM = ef.extractBPM(content)
+		}
+		if actualBPM > 0 {
+			export.Metadata.BPM = actualBPM
+		}
+
+		// For ChordPro, we'll format with chord directives, using detected BPM where available
+		chordPro := ef.formatAsChordPro(content, options, export.Metadata.BPM)
 		export.Lyrics = chordPro
 	}
 	
@@ -466,7 +475,7 @@ func (ef *ExportFormatter) formatAsPlainText(content string) string {
 }
 
 // formatAsChordPro formats content as ChordPro
-func (ef *ExportFormatter) formatAsChordPro(content string, options *ExportOptions) string {
+func (ef *ExportFormatter) formatAsChordPro(content string, options *ExportOptions, bpm int) string {
 	var builder strings.Builder
 	
 	// Add ChordPro metadata directives
@@ -476,9 +485,14 @@ func (ef *ExportFormatter) formatAsChordPro(content string, options *ExportOptio
 		builder.WriteString("}\n")
 	}
 	
-	if options.BPM > 0 {
+	actualBPM := options.BPM
+	if actualBPM == 0 {
+		actualBPM = bpm
+	}
+
+	if actualBPM > 0 {
 		builder.WriteString("{tempo:")
-		builder.WriteString(strconv.Itoa(options.BPM))
+		builder.WriteString(strconv.Itoa(actualBPM))
 		builder.WriteString("}\n")
 	}
 	

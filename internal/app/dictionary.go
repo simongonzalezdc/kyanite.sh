@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	errutil "github.com/puente-labs/noise/internal/errutil"
+	errutil "github.com/Kyanite/noise/internal/errutil"
 )
 
 // WordEntry represents a word entry in the dictionary

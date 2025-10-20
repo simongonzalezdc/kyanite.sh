@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/ui/dimension"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/ui/dimension"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // CollaborationStatusBar displays collaboration status in the status bar
@@ -88,9 +88,9 @@ func (csb *CollaborationStatusBar) View() string {
 
 	// Main status
 	if csb.hasConflicts {
-		content.WriteString(csb.conflictStyle.Render("⚠️ "))
+		content.WriteString(csb.conflictStyle.Render("âš ï¸ "))
 	} else {
-		content.WriteString(csb.activeStyle.Render("🤝 "))
+		content.WriteString(csb.activeStyle.Render("ðŸ¤ "))
 	}
 
 	// Session info
@@ -145,7 +145,7 @@ func (csb *CollaborationStatusBar) renderDetails() string {
 
 	details = append(details, fmt.Sprintf("Last updated: %s", time.Now().Format("15:04:05")))
 
-	return csb.detailsStyle.Render(strings.Join(details, " • "))
+	return csb.detailsStyle.Render(strings.Join(details, " â€¢ "))
 }
 
 // GetStatusText returns a short status text for compact display

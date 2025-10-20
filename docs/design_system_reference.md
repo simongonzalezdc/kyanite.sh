@@ -497,31 +497,31 @@ func StatusBadge(status string, color lipgloss.Color) string {
 // Use these for custom borders and layouts
 const (
     // Rounded corners
-    CornerTL = "╭"  // Top-left
-    CornerTR = "╮"  // Top-right
-    CornerBL = "╰"  // Bottom-left
-    CornerBR = "╯"  // Bottom-right
+    CornerTL = "â•­"  // Top-left
+    CornerTR = "â•®"  // Top-right
+    CornerBL = "â•°"  // Bottom-left
+    CornerBR = "â•¯"  // Bottom-right
     
     // Lines
-    Horizontal = "─"
-    Vertical   = "│"
+    Horizontal = "â”€"
+    Vertical   = "â”‚"
     
     // T-junctions
-    JuncT = "┬"  // Top T
-    JuncB = "┴"  // Bottom T
-    JuncL = "├"  // Left T
-    JuncR = "┤"  // Right T
+    JuncT = "â”¬"  // Top T
+    JuncB = "â”´"  // Bottom T
+    JuncL = "â”œ"  // Left T
+    JuncR = "â”¤"  // Right T
     
     // Cross
-    Cross = "┼"
+    Cross = "â”¼"
     
     // Double lines (for emphasis)
-    HorizontalDouble = "═"
-    VerticalDouble   = "║"
-    CornerTLDouble   = "╔"
-    CornerTRDouble   = "╗"
-    CornerBLDouble   = "╚"
-    CornerBRDouble   = "╝"
+    HorizontalDouble = "â•"
+    VerticalDouble   = "â•‘"
+    CornerTLDouble   = "â•”"
+    CornerTRDouble   = "â•—"
+    CornerBLDouble   = "â•š"
+    CornerBRDouble   = "â•"
 )
 ```
 
@@ -591,7 +591,7 @@ func PulseIndicator(value float64) string {
     color := lipgloss.Color(fmt.Sprintf("#9D84B7%02X", opacity))
     return lipgloss.NewStyle().
         Foreground(color).
-        Render("●")
+        Render("â—")
 }
 
 // Slide-in panel
@@ -640,11 +640,11 @@ func (b *BeatAnimation) Render() string {
         return lipgloss.NewStyle().
             Background(Accent).
             Foreground(Background).
-            Render("●")
+            Render("â—")
     } else {
         return lipgloss.NewStyle().
             Foreground(Primary).
-            Render("○")
+            Render("â—‹")
     }
 }
 ```
@@ -754,9 +754,9 @@ func RenderStatusBar(wordCount, lineCount int, saved bool, width int) string {
     // Right section: save status
     var saveStatus string
     if saved {
-        saveStatus = StatusSuccess.Render("● Saved")
+        saveStatus = StatusSuccess.Render("â— Saved")
     } else {
-        saveStatus = StatusWarning.Render("● Unsaved")
+        saveStatus = StatusWarning.Render("â— Unsaved")
     }
     
     // Center section: hints
@@ -827,11 +827,11 @@ func RenderQualityScore(score *QualityScore) string {
 
 ```go
 func RenderAIResponse(chunks []string, thinking bool) string {
-    title := H3.Render("✨ AI Suggestion")
+    title := H3.Render("âœ¨ AI Suggestion")
     
     var content string
     if thinking {
-        spinner := SpinnerText.Render("● Thinking...")
+        spinner := SpinnerText.Render("â— Thinking...")
         content = spinner
     } else {
         content = Text.Render(strings.Join(chunks, ""))
@@ -852,14 +852,14 @@ func RenderAIResponse(chunks []string, thinking bool) string {
 
 ### Color Usage
 
-✅ **DO:**
+âœ… **DO:**
 - Use Primary for active/focused elements
 - Use Accent sparingly for important calls-to-action
 - Ensure 4.5:1 contrast ratio for readability (WCAG AA)
 - Use semantic colors (Success for saves, Error for problems)
 - Test in both light and dark terminal themes
 
-❌ **DON'T:**
+âŒ **DON'T:**
 - Don't use Accent for large background areas (too bright)
 - Don't rely solely on color to convey information
 - Don't use more than 3-4 colors in a single view
@@ -867,39 +867,39 @@ func RenderAIResponse(chunks []string, thinking bool) string {
 
 ### Typography
 
-✅ **DO:**
-- Maintain clear hierarchy (H1 → H2 → H3 → Body)
+âœ… **DO:**
+- Maintain clear hierarchy (H1 â†’ H2 â†’ H3 â†’ Body)
 - Use Bold for emphasis, not ALL CAPS
 - Use monospace for code, data, numbers
 - Keep line length under 80 characters for readability
 
-❌ **DON'T:**
+âŒ **DON'T:**
 - Don't use italic for large blocks of text
 - Don't use multiple typefaces (terminal is monospace)
 - Don't underline everything (reserve for links/headers)
 
 ### Animation
 
-✅ **DO:**
+âœ… **DO:**
 - Keep animations under 500ms for responsiveness
 - Use spring physics for natural feel (Harmonica)
 - Animate state changes (expand/collapse, fade in/out)
 - Target 60 FPS for smooth motion
 
-❌ **DON'T:**
+âŒ **DON'T:**
 - Don't animate constantly (battery drain, distraction)
 - Don't use animations for critical information
 - Don't animate during text input (jarring)
 
 ### Layout
 
-✅ **DO:**
+âœ… **DO:**
 - Support terminal sizes 80x24 and up
 - Use percentage-based widths (not fixed)
 - Provide minimum viable layout for small screens
 - Test on multiple terminal emulators
 
-❌ **DON'T:**
+âŒ **DON'T:**
 - Don't assume terminal size
 - Don't hardcode widths/heights
 - Don't overflow beyond terminal bounds
@@ -942,10 +942,10 @@ lipgloss.NewStyle().
 lipgloss.NewStyle().
     Foreground(lipgloss.Color("#52D3AA")).
     Bold(true).
-    Render("✓ Saved successfully")
+    Render("âœ“ Saved successfully")
 
 // Gradient title
-TitleGradient("noise.sh") // Purple → Gold gradient
+TitleGradient("noise.sh") // Purple â†’ Gold gradient
 ```
 
 ---
@@ -955,6 +955,6 @@ When generating TUI components, always import and use these color constants. Nev
 
 ---
 
-**Document Owner:** Simon (Puente Labs)  
+**Document Owner:** Simon (Kyanite)  
 **Status:** Ready for development  
 **Last Updated:** October 17, 2025

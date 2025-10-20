@@ -8,14 +8,14 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/app"
-	"github.com/puente-labs/noise/internal/app/ai"
-	"github.com/puente-labs/noise/internal/data"
-	"github.com/puente-labs/noise/internal/domain"
-	"github.com/puente-labs/noise/internal/export"
-	"github.com/puente-labs/noise/internal/infra/files"
-	"github.com/puente-labs/noise/internal/ui/dimension"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/app/ai"
+	"github.com/Kyanite/noise/internal/data"
+	"github.com/Kyanite/noise/internal/domain"
+	"github.com/Kyanite/noise/internal/export"
+	"github.com/Kyanite/noise/internal/infra/files"
+	"github.com/Kyanite/noise/internal/ui/dimension"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // EditorPaneModel handles the text editing pane with syntax highlighting

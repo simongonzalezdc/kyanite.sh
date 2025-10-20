@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	errutil "github.com/puente-labs/noise/internal/errutil"
+	errutil "github.com/Kyanite/noise/internal/errutil"
 )
 
 // ThemeManager handles theme switching and persistence

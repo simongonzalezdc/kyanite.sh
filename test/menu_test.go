@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/noise/internal/ui"
+	"github.com/Kyanite/noise/internal/ui"
 )
 
 // TestMenuModelCreation tests menu model creation
@@ -108,7 +108,7 @@ func TestMenuModelResponsiveMode(t *testing.T) {
 	}
 
 	// Verify full mode content
-	if !contains(view, "🎵 noise.sh") {
+	if !contains(view, "ðŸŽµ noise.sh") {
 		t.Error("Expected full mode title")
 	}
 
@@ -129,7 +129,7 @@ func TestMenuModelResponsiveMode(t *testing.T) {
 	}
 
 	// Verify minimal mode content
-	if !contains(view, "🎵 LF") {
+	if !contains(view, "ðŸŽµ LF") {
 		t.Error("Expected minimal mode title")
 	}
 }
@@ -404,7 +404,7 @@ func TestMenuModelStyling(t *testing.T) {
 	}
 
 	// Verify view contains styled elements
-	if !contains(view, "🎵") {
+	if !contains(view, "ðŸŽµ") {
 		t.Error("Expected view to contain styled elements")
 	}
 }

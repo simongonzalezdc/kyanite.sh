@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/puente-labs/noise/internal/logging"
+	"github.com/Kyanite/noise/internal/logging"
 )
 
 // Node represents a node in the AST

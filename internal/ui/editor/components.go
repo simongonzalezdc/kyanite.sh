@@ -5,11 +5,11 @@ import (
 
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/puente-labs/noise/internal/app"
-	"github.com/puente-labs/noise/internal/app/ai"
-	"github.com/puente-labs/noise/internal/domain"
-	"github.com/puente-labs/noise/internal/export"
-	"github.com/puente-labs/noise/internal/infra/files"
+	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/app/ai"
+	"github.com/Kyanite/noise/internal/domain"
+	"github.com/Kyanite/noise/internal/export"
+	"github.com/Kyanite/noise/internal/infra/files"
 )
 
 // EditorMode represents the different editing modes for rapid prototyping

@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/puente-labs/noise/internal/domain"
-	appErrors "github.com/puente-labs/noise/internal/errors"
-	errutil "github.com/puente-labs/noise/internal/errutil"
-	"github.com/puente-labs/noise/internal/logging"
+	"github.com/Kyanite/noise/internal/domain"
+	appErrors "github.com/Kyanite/noise/internal/errors"
+	errutil "github.com/Kyanite/noise/internal/errutil"
+	"github.com/Kyanite/noise/internal/logging"
 )
 
 // InsertSong inserts a new song into the database with comprehensive error handling

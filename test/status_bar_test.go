@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/puente-labs/noise/internal/app"
-	"github.com/puente-labs/noise/internal/ui/editor"
+	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/ui/editor"
 )
 
 // TestStatusBarModelCreation tests the creation of a status bar model
@@ -393,7 +393,7 @@ func TestStatusBarEdgeCases(t *testing.T) {
 	}
 
 	// Test with unicode content
-	unicodeContent := "Content with unicode: ñáéíóú 🚀 ñáéíóú 🚀"
+	unicodeContent := "Content with unicode: Ã±Ã¡Ã©Ã­Ã³Ãº ðŸš€ Ã±Ã¡Ã©Ã­Ã³Ãº ðŸš€"
 	model.UpdateContent(unicodeContent)
 
 	_, charCount, _ = model.GetDocumentStats()

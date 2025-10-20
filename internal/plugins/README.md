@@ -41,7 +41,7 @@ Create a new Go file that implements the `Plugin` interface:
 package main
 
 import (
-    "github.com/puente-labs/noise.sh/internal/plugins"
+    "github.com/Kyanite/noise.sh/internal/plugins"
 )
 
 type MyPlugin struct {
@@ -130,7 +130,7 @@ func (p *MyPlugin) GetEditorTool() *plugins.EditorTool {
         ID:          "my_tool",
         Name:        "My Tool",
         Description: "Custom editor tool",
-        Icon:        "⚡",
+        Icon:        "âš¡",
         Handler: func(content string) (string, error) {
             // Process content with your tool
             return processedContent, nil

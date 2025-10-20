@@ -8,8 +8,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/puente-labs/noise/internal/domain"
-	"github.com/puente-labs/noise/internal/logging"
+	"github.com/Kyanite/noise/internal/domain"
+	"github.com/Kyanite/noise/internal/logging"
 )
 
 // FileCorruptionDetector detects corrupted files

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
 )
 
 // Config represents the application configuration
@@ -253,20 +254,87 @@ func (c *Config) Save() error {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
-	// Set up viper for writing
-	v := viper.New()
+	appConfig := map[string]interface{}{
+		"name":               c.App.Name,
+		"version":            c.App.Version,
+		"data_dir":           c.App.DataDir,
+		"auto_save":          c.App.AutoSave,
+		"auto_save_interval": c.App.AutoSaveInterval.String(),
+		"max_recent_files":   c.App.MaxRecentFiles,
+	}
 
-	// Set configuration values
-	v.Set("app", c.App)
-	v.Set("database", c.Database)
-	v.Set("ui", c.UI)
-	v.Set("ai", c.AI)
-	v.Set("audio", c.Audio)
-	v.Set("dev", c.Dev)
+	aiConfig := map[string]interface{}{
+		"provider":        c.AI.Provider,
+		"model":           c.AI.Model,
+		"api_key":         c.AI.APIKey,
+		"base_url":        c.AI.BaseURL,
+		"temperature":     c.AI.Temperature,
+		"max_tokens":      c.AI.MaxTokens,
+		"timeout":         c.AI.Timeout.String(),
+		"enabled":         c.AI.Enabled,
+		"local_models":    c.AI.LocalModels,
+		"custom_prompts":  c.AI.CustomPrompts,
+		"temperatures":    c.AI.Temperatures,
+		"rapid_brainstorm": map[string]interface{}{
+			"max_angles":          c.AI.RapidBrainstorm.MaxAngles,
+			"generate_first_line": c.AI.RapidBrainstorm.GenerateFirstLine,
+		},
+		"continuation": map[string]interface{}{
+			"variations":        c.AI.Continuation.Variations,
+			"max_context_lines": c.AI.Continuation.MaxContextLines,
+		},
+		"variation": map[string]interface{}{
+			"variations":         c.AI.Variation.Variations,
+			"default_constraint": c.AI.Variation.DefaultConstraint,
+		},
+	}
 
-	// Write configuration file
+	audioConfig := map[string]interface{}{
+		"enabled":           c.Audio.Enabled,
+		"metronome_sound":   c.Audio.MetronomeSound,
+		"chord_sample_rate": c.Audio.ChordSampleRate,
+		"audio_buffer_size": c.Audio.AudioBufferSize,
+		"midi_device":       c.Audio.MIDIDevice,
+		"playback_gain":     c.Audio.PlaybackGain,
+	}
+
+	data := map[string]interface{}{
+		"app": appConfig,
+		"database": map[string]interface{}{
+			"type":     c.Database.Type,
+			"host":     c.Database.Host,
+			"port":     c.Database.Port,
+			"database": c.Database.Database,
+			"username": c.Database.Username,
+			"password": c.Database.Password,
+			"ssl_mode": c.Database.SSLMode,
+		},
+		"ui": map[string]interface{}{
+			"theme":            c.UI.Theme,
+			"font_size":        c.UI.FontSize,
+			"show_line_numbers": c.UI.ShowLineNumbers,
+			"word_wrap":        c.UI.WordWrap,
+			"animations":       c.UI.Animations,
+		},
+		"ai":    aiConfig,
+		"audio": audioConfig,
+		"dev": map[string]interface{}{
+			"debug":         c.Dev.Debug,
+			"log_level":     c.Dev.LogLevel,
+			"profile":       c.Dev.Profile,
+			"trace":         c.Dev.Trace,
+			"mock_ai":       c.Dev.MockAI,
+			"skip_database": c.Dev.SkipDatabase,
+		},
+	}
+
 	configPath := filepath.Join(configDir, "noise.yaml")
-	if err := v.WriteConfigAs(configPath); err != nil {
+	buf, err := yaml.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("failed to marshal config: %w", err)
+	}
+
+	if err := os.WriteFile(configPath, buf, 0644); err != nil {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
 

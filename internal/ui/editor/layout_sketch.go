@@ -2,8 +2,8 @@ package editor
 
 import (
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/ui/dimension"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/ui/dimension"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // SketchLayout represents the layout for sketch mode
@@ -70,7 +70,7 @@ func (l *SketchLayout) Render(editorContent string, brainstormContent string) st
 	// Create divider
 	dividerStyle := lipgloss.NewStyle().
 		Foreground(styles.TextMuted).
-		Render("│")
+		Render("â”‚")
 
 	// Combine panes
 	return lipgloss.JoinHorizontal(lipgloss.Top, editorPane, dividerStyle, aiPanel)

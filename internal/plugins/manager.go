@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/puente-labs/noise/internal/config"
-	errutil "github.com/puente-labs/noise/internal/errutil"
-	"github.com/puente-labs/noise/internal/logging"
+	"github.com/Kyanite/noise/internal/config"
+	errutil "github.com/Kyanite/noise/internal/errutil"
+	"github.com/Kyanite/noise/internal/logging"
 )
 
 // DefaultManager is the default implementation of PluginManager

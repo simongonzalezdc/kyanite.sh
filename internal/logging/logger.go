@@ -9,8 +9,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/puente-labs/noise/internal/config"
-	errutil "github.com/puente-labs/noise/internal/errutil"
+	"github.com/Kyanite/noise/internal/config"
+	errutil "github.com/Kyanite/noise/internal/errutil"
 )
 
 // LogLevel represents the severity level of log messages

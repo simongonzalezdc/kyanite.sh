@@ -7,14 +7,14 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/app"
-	"github.com/puente-labs/noise/internal/config"
-	"github.com/puente-labs/noise/internal/domain"
-	"github.com/puente-labs/noise/internal/infra/db"
-	"github.com/puente-labs/noise/internal/infra/files"
-	"github.com/puente-labs/noise/internal/logging"
-	"github.com/puente-labs/noise/internal/theme"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/config"
+	"github.com/Kyanite/noise/internal/domain"
+	"github.com/Kyanite/noise/internal/infra/db"
+	"github.com/Kyanite/noise/internal/infra/files"
+	"github.com/Kyanite/noise/internal/logging"
+	"github.com/Kyanite/noise/internal/theme"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // Screen represents different screens in the application (local copy to avoid import cycle)
@@ -284,7 +284,7 @@ func (m *SplitPaneModel) renderDefaultLayout() string {
 	previewView = lipgloss.NewStyle().Width(rightWidth).Height(m.height).Render(previewView)
 
 	// Create divider
-	divider := m.dividerStyle.Render("│")
+	divider := m.dividerStyle.Render("â”‚")
 
 	// Combine views horizontally
 	return lipgloss.JoinHorizontal(lipgloss.Top, editorView, divider, previewView)

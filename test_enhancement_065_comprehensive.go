@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/puente-labs/noise/internal/app/ai"
-	"github.com/puente-labs/noise/internal/export"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/app/ai"
+	"github.com/Kyanite/noise/internal/export"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // TestComprehensiveIntegration covers all Enhancement #6.5 features
@@ -148,7 +148,7 @@ func testThemeIntegration(t *testing.T, themeManager *styles.ThemeManager, conte
 			t.Errorf("Theme not set correctly: expected %s, got %s", th.Name, currentTheme.Name)
 		}
 		
-		t.Logf("✓ Successfully switched to theme %d/%d: %s", i+1, len(themes), th.Name)
+		t.Logf("âœ“ Successfully switched to theme %d/%d: %s", i+1, len(themes), th.Name)
 	}
 	
 	// Test theme persistence
@@ -157,7 +157,7 @@ func testThemeIntegration(t *testing.T, themeManager *styles.ThemeManager, conte
 		t.Errorf("Failed to set Neon Dreams theme: %v", err)
 	}
 	
-	t.Logf("✓ Theme integration test passed with %d themes", len(themes))
+	t.Logf("âœ“ Theme integration test passed with %d themes", len(themes))
 }
 
 // testContextDetection tests the context detection functionality
@@ -188,7 +188,7 @@ func testContextDetection(t *testing.T, agent *ai.QuickIdeaAgent, lyricContent, 
 		t.Error("Failed to analyze pattern content")
 	}
 	
-	t.Logf("✓ Context detection test passed:")
+	t.Logf("âœ“ Context detection test passed:")
 	t.Logf("  - Lyric content: %s (confidence: %.2f)", lyricAnalysis.ContentType, lyricAnalysis.Confidence)
 	t.Logf("  - Pattern content: %s (confidence: %.2f)", patternAnalysis.ContentType, patternAnalysis.Confidence)
 }
@@ -209,7 +209,7 @@ func testAIIntegration(t *testing.T, agent *ai.QuickIdeaAgent, lyricContent, pat
 	} else if len(unstickResp.Suggestions) == 0 {
 		t.Error("AI unstick returned no suggestions")
 	} else {
-		t.Logf("✓ AI unstick for lyrics: %d suggestions", len(unstickResp.Suggestions))
+		t.Logf("âœ“ AI unstick for lyrics: %d suggestions", len(unstickResp.Suggestions))
 	}
 	
 	// Test spark mode for patterns
@@ -225,7 +225,7 @@ func testAIIntegration(t *testing.T, agent *ai.QuickIdeaAgent, lyricContent, pat
 	} else if len(sparkResp.Suggestions) == 0 {
 		t.Error("AI spark returned no suggestions")
 	} else {
-		t.Logf("✓ AI spark for patterns: %d suggestions", len(sparkResp.Suggestions))
+		t.Logf("âœ“ AI spark for patterns: %d suggestions", len(sparkResp.Suggestions))
 	}
 	
 	// Test tweak mode
@@ -240,7 +240,7 @@ func testAIIntegration(t *testing.T, agent *ai.QuickIdeaAgent, lyricContent, pat
 	} else if len(tweakResp.Suggestions) == 0 {
 		t.Error("AI tweak returned no suggestions")
 	} else {
-		t.Logf("✓ AI tweak: %d suggestions", len(tweakResp.Suggestions))
+		t.Logf("âœ“ AI tweak: %d suggestions", len(tweakResp.Suggestions))
 	}
 	
 	// Test check mode
@@ -255,7 +255,7 @@ func testAIIntegration(t *testing.T, agent *ai.QuickIdeaAgent, lyricContent, pat
 	} else if checkResp.Rating == "" {
 		t.Error("AI check returned no rating")
 	} else {
-		t.Logf("✓ AI check: rating=%s, tip=%s", checkResp.Rating, checkResp.Tip)
+		t.Logf("âœ“ AI check: rating=%s, tip=%s", checkResp.Rating, checkResp.Tip)
 	}
 }
 
@@ -268,12 +268,12 @@ func testKnowledgeBaseIntegration(t *testing.T, agent *ai.QuickIdeaAgent, conten
 	if status == nil {
 		t.Error("Failed to get knowledge base status")
 	} else {
-		t.Logf("✓ Knowledge base status: available=%v, cards=%d", status.Available, status.CardCount)
+		t.Logf("âœ“ Knowledge base status: available=%v, cards=%d", status.Available, status.CardCount)
 	}
 	
 	// Test knowledge base availability
 	isAvailable := agent.IsKnowledgeBaseAvailable(ctx)
-	t.Logf("✓ Knowledge base available: %v", isAvailable)
+	t.Logf("âœ“ Knowledge base available: %v", isAvailable)
 	
 	// Test AI request with knowledge base enhancement
 	req := ai.QuickRequest{
@@ -285,7 +285,7 @@ func testKnowledgeBaseIntegration(t *testing.T, agent *ai.QuickIdeaAgent, conten
 	if err != nil {
 		t.Errorf("AI request with KB failed: %v", err)
 	} else {
-		t.Logf("✓ AI request with knowledge base: %d suggestions, response time: %v", 
+		t.Logf("âœ“ AI request with knowledge base: %d suggestions, response time: %v", 
 			len(resp.Suggestions), resp.ResponseTime)
 	}
 }
@@ -298,7 +298,7 @@ func testExportFormats(t *testing.T, service *export.ExportService, lyricContent
 		t.Errorf("Markdown export failed: %v", err)
 	} else {
 		verifyFileExists(t, mdPath)
-		t.Logf("✓ Markdown export: %s", mdPath)
+		t.Logf("âœ“ Markdown export: %s", mdPath)
 	}
 	
 	// Test Plain Text export
@@ -307,7 +307,7 @@ func testExportFormats(t *testing.T, service *export.ExportService, lyricContent
 		t.Errorf("Plain text export failed: %v", err)
 	} else {
 		verifyFileExists(t, txtPath)
-		t.Logf("✓ Plain text export: %s", txtPath)
+		t.Logf("âœ“ Plain text export: %s", txtPath)
 	}
 	
 	// Test ChordPro export
@@ -316,7 +316,7 @@ func testExportFormats(t *testing.T, service *export.ExportService, lyricContent
 		t.Errorf("ChordPro export failed: %v", err)
 	} else {
 		verifyFileExists(t, choPath)
-		t.Logf("✓ ChordPro export: %s", choPath)
+		t.Logf("âœ“ ChordPro export: %s", choPath)
 	}
 	
 	// Test JSON export (existing format)
@@ -325,7 +325,7 @@ func testExportFormats(t *testing.T, service *export.ExportService, lyricContent
 		t.Errorf("JSON export failed: %v", err)
 	} else {
 		verifyFileExists(t, jsonPath)
-		t.Logf("✓ JSON export: %s", jsonPath)
+		t.Logf("âœ“ JSON export: %s", jsonPath)
 	}
 	
 	// Test pattern export
@@ -334,7 +334,7 @@ func testExportFormats(t *testing.T, service *export.ExportService, lyricContent
 		t.Errorf("Pattern export failed: %v", err)
 	} else {
 		verifyFileExists(t, patternPath)
-		t.Logf("✓ Pattern export: %s", patternPath)
+		t.Logf("âœ“ Pattern export: %s", patternPath)
 	}
 	
 	// Test lyrics export
@@ -343,7 +343,7 @@ func testExportFormats(t *testing.T, service *export.ExportService, lyricContent
 		t.Errorf("Lyrics export failed: %v", err)
 	} else {
 		verifyFileExists(t, lyricsPath)
-		t.Logf("✓ Lyrics export: %s", lyricsPath)
+		t.Logf("âœ“ Lyrics export: %s", lyricsPath)
 	}
 	
 	// Test chords export
@@ -352,7 +352,7 @@ func testExportFormats(t *testing.T, service *export.ExportService, lyricContent
 		t.Errorf("Chords export failed: %v", err)
 	} else {
 		verifyFileExists(t, chordsPath)
-		t.Logf("✓ Chords export: %s", chordsPath)
+		t.Logf("âœ“ Chords export: %s", chordsPath)
 	}
 }
 
@@ -398,7 +398,7 @@ func testEndToEndWorkflows(t *testing.T, themeManager *styles.ThemeManager, agen
 			t.Errorf("ChordPro export failed: %v", err)
 		}
 		
-		t.Logf("✓ Lyric workflow completed: %s, %s", mdPath, choPath)
+		t.Logf("âœ“ Lyric workflow completed: %s, %s", mdPath, choPath)
 	})
 	
 	// Workflow 2: Pattern creation with AI assistance and export
@@ -433,7 +433,7 @@ func testEndToEndWorkflows(t *testing.T, themeManager *styles.ThemeManager, agen
 			t.Errorf("Pattern export failed: %v", err)
 		}
 		
-		t.Logf("✓ Pattern workflow completed: %s", patternPath)
+		t.Logf("âœ“ Pattern workflow completed: %s", patternPath)
 	})
 }
 
@@ -458,7 +458,7 @@ func testPerformanceRequirements(t *testing.T, agent *ai.QuickIdeaAgent, themeMa
 	} else if aiResponseTime > 2*time.Second {
 		t.Errorf("AI response time exceeded 2 seconds: %v", aiResponseTime)
 	} else {
-		t.Logf("✓ AI response time: %v (under 2s requirement)", aiResponseTime)
+		t.Logf("âœ“ AI response time: %v (under 2s requirement)", aiResponseTime)
 	}
 	
 	// Test theme switching performance
@@ -475,7 +475,7 @@ func testPerformanceRequirements(t *testing.T, agent *ai.QuickIdeaAgent, themeMa
 		if avgThemeTime > 100*time.Millisecond {
 			t.Errorf("Theme switching too slow: %v average", avgThemeTime)
 		} else {
-			t.Logf("✓ Theme switching performance: %v average", avgThemeTime)
+			t.Logf("âœ“ Theme switching performance: %v average", avgThemeTime)
 		}
 	}
 	
@@ -490,11 +490,11 @@ func testPerformanceRequirements(t *testing.T, agent *ai.QuickIdeaAgent, themeMa
 	} else if exportTime > 1*time.Second {
 		t.Errorf("Export too slow: %v", exportTime)
 	} else {
-		t.Logf("✓ Export performance: %v", exportTime)
+		t.Logf("âœ“ Export performance: %v", exportTime)
 	}
 	
 	// Log performance summary
-	t.Logf("✓ Performance requirements met:")
+	t.Logf("âœ“ Performance requirements met:")
 	t.Logf("  - AI Response: %v (requirement: <2s)", aiResponseTime)
 	t.Logf("  - Theme Switching: %v avg (requirement: <100ms)", avgThemeTime)
 	t.Logf("  - Export: %v (requirement: <1s)", exportTime)
@@ -512,9 +512,9 @@ func testErrorHandling(t *testing.T, agent *ai.QuickIdeaAgent, exportService *ex
 	
 	resp, err := agent.Generate(ctx, req)
 	if err != nil {
-		t.Logf("✓ AI correctly handled empty context: %v", err)
+		t.Logf("âœ“ AI correctly handled empty context: %v", err)
 	} else if len(resp.Suggestions) == 0 {
-		t.Logf("✓ AI gracefully handled empty context with no suggestions")
+		t.Logf("âœ“ AI gracefully handled empty context with no suggestions")
 	}
 	
 	// Test AI with invalid mode
@@ -525,24 +525,24 @@ func testErrorHandling(t *testing.T, agent *ai.QuickIdeaAgent, exportService *ex
 	
 	resp, err = agent.Generate(ctx, req)
 	if err != nil {
-		t.Logf("✓ AI correctly handled invalid mode: %v", err)
+		t.Logf("âœ“ AI correctly handled invalid mode: %v", err)
 	} else {
-		t.Logf("✓ AI gracefully handled invalid mode")
+		t.Logf("âœ“ AI gracefully handled invalid mode")
 	}
 	
 	// Test export with empty content
 	_, err = exportService.ExportToMarkdown("", "Empty Test")
 	if err != nil {
-		t.Logf("✓ Export correctly handled empty content: %v", err)
+		t.Logf("âœ“ Export correctly handled empty content: %v", err)
 	} else {
-		t.Logf("✓ Export gracefully handled empty content")
+		t.Logf("âœ“ Export gracefully handled empty content")
 	}
 	
 	// Test export with invalid path
 	invalidService := export.NewExportService("/invalid/path/that/does/not/exist")
 	_, err = invalidService.ExportToMarkdown("Test content", "Invalid Path Test")
 	if err != nil {
-		t.Logf("✓ Export correctly handled invalid path: %v", err)
+		t.Logf("âœ“ Export correctly handled invalid path: %v", err)
 	} else {
 		t.Error("Export should have failed with invalid path")
 	}
@@ -550,10 +550,10 @@ func testErrorHandling(t *testing.T, agent *ai.QuickIdeaAgent, exportService *ex
 	// Test knowledge base unavailability
 	kbStatus := agent.GetKnowledgeBaseStatus(ctx)
 	if kbStatus != nil && !kbStatus.Available {
-		t.Logf("✓ Knowledge base correctly reports unavailable: %s", kbStatus.Error)
+		t.Logf("âœ“ Knowledge base correctly reports unavailable: %s", kbStatus.Error)
 	}
 	
-	t.Logf("✓ Error handling tests completed")
+	t.Logf("âœ“ Error handling tests completed")
 }
 
 // verifyFileExists checks if a file exists
@@ -575,20 +575,20 @@ func RunComprehensiveTests() {
 	TestComprehensiveIntegration(t)
 	
 	if t.Failed() {
-		fmt.Println("\n❌ Some tests failed!")
+		fmt.Println("\nâŒ Some tests failed!")
 		os.Exit(1)
 	}
 	
-	fmt.Println("\n✅ All comprehensive integration tests passed!")
+	fmt.Println("\nâœ… All comprehensive integration tests passed!")
 	fmt.Println("\nTest Coverage:")
-	fmt.Println("- Theme Integration: ✓")
-	fmt.Println("- Context Detection: ✓")
-	fmt.Println("- AI Integration: ✓")
-	fmt.Println("- Knowledge Base Integration: ✓")
-	fmt.Println("- Export Formats: ✓")
-	fmt.Println("- End-to-End Workflows: ✓")
-	fmt.Println("- Performance Requirements: ✓")
-	fmt.Println("- Error Handling: ✓")
+	fmt.Println("- Theme Integration: âœ“")
+	fmt.Println("- Context Detection: âœ“")
+	fmt.Println("- AI Integration: âœ“")
+	fmt.Println("- Knowledge Base Integration: âœ“")
+	fmt.Println("- Export Formats: âœ“")
+	fmt.Println("- End-to-End Workflows: âœ“")
+	fmt.Println("- Performance Requirements: âœ“")
+	fmt.Println("- Error Handling: âœ“")
 }
 
 func RunEnhancement065Tests() {

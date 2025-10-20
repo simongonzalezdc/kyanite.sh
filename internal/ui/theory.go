@@ -10,8 +10,8 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/puente-labs/noise/internal/app"
-	"github.com/puente-labs/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // TheoryModel handles the music theory tools screen
@@ -207,7 +207,7 @@ func (m *TheoryModel) View() string {
 
 // renderHeader renders the header section
 func (m *TheoryModel) renderHeader() string {
-	title := styles.TitleGradient("🎵 Music Theory Tools")
+	title := styles.TitleGradient("ðŸŽµ Music Theory Tools")
 	title = lipgloss.NewStyle().
 		Width(m.width).
 		Align(lipgloss.Center).
@@ -322,7 +322,7 @@ func (m *TheoryModel) renderScalesTab() string {
 	content.WriteString(inputStyle.Render("Common Scales:\n"))
 	commonScales := m.theoryService.GetCommonScales()
 	for _, scale := range commonScales {
-		content.WriteString(fmt.Sprintf("• %s: %s\n", scale.Name, strings.Join(scale.Notes, ", ")))
+		content.WriteString(fmt.Sprintf("â€¢ %s: %s\n", scale.Name, strings.Join(scale.Notes, ", ")))
 	}
 
 	return content.String()
@@ -409,13 +409,13 @@ func (m *TheoryModel) renderAnalysisTab() string {
 		} else {
 			content.WriteString(fmt.Sprintf("Found %d chords:\n", len(analysis.DetectedChords)))
 			for _, chord := range analysis.DetectedChords {
-				content.WriteString(fmt.Sprintf("• %s %s: %s\n", chord.Root, chord.Quality, strings.Join(chord.Notes, ", ")))
+				content.WriteString(fmt.Sprintf("â€¢ %s %s: %s\n", chord.Root, chord.Quality, strings.Join(chord.Notes, ", ")))
 			}
 
 			if len(analysis.Suggestions) > 0 {
 				content.WriteString("\nSuggestions:\n")
 				for _, suggestion := range analysis.Suggestions {
-					content.WriteString(fmt.Sprintf("• %s\n", suggestion))
+					content.WriteString(fmt.Sprintf("â€¢ %s\n", suggestion))
 				}
 			}
 		}

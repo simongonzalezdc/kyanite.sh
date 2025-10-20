@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	appErrors "github.com/puente-labs/noise/internal/errors"
+	appErrors "github.com/Kyanite/noise/internal/errors"
 )
 
 // TestAppErrorCreation tests the creation of application errors
