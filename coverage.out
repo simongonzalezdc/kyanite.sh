@@ -1,0 +1,25 @@
+mode: set
+todo/pkg/utils/storage.go:7.30,9.16 2 1
+todo/pkg/utils/storage.go:9.16,11.3 1 0
+todo/pkg/utils/storage.go:12.2,12.35 1 1
+todo/internal/store/store.go:17.34,20.47 2 1
+todo/internal/store/store.go:20.47,25.3 1 0
+todo/internal/store/store.go:27.2,29.3 1 1
+todo/internal/store/store.go:33.47,35.16 2 1
+todo/internal/store/store.go:35.16,36.25 1 1
+todo/internal/store/store.go:36.25,39.4 1 1
+todo/internal/store/store.go:40.3,40.63 1 0
+todo/internal/store/store.go:43.2,43.20 1 1
+todo/internal/store/store.go:43.20,46.3 1 1
+todo/internal/store/store.go:48.2,49.53 2 1
+todo/internal/store/store.go:49.53,51.3 1 1
+todo/internal/store/store.go:53.2,53.19 1 1
+todo/internal/store/store.go:57.49,60.47 2 1
+todo/internal/store/store.go:60.47,62.3 1 0
+todo/internal/store/store.go:64.2,65.16 2 1
+todo/internal/store/store.go:65.16,67.3 1 0
+todo/internal/store/store.go:70.2,71.59 2 1
+todo/internal/store/store.go:71.59,73.3 1 0
+todo/internal/store/store.go:76.2,76.56 1 1
+todo/internal/store/store.go:76.56,80.3 2 0
+todo/internal/store/store.go:82.2,82.12 1 1

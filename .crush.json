@@ -1,0 +1,12 @@
+{
+  "$schema": "https://charm.land/crush.json",
+  "mcp": {
+    "crush-golangci-lint": {
+      "type": "stdio",
+      "command": "neon",
+      "args": ["mcp-server"],
+      "cwd": "C:\\Users\\Simon\\dev\\crush-cli",
+      "disabled": true
+    }
+  }
+}
