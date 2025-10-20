@@ -1,0 +1,27 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+/neon*
+/glow_demo*
+/mcp-server.exe
+/focus
+/focus.exe
+
+# Build artifacts
+/build/
+/bin/
+/dist/
+
+# Coverage
+coverage.out
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db

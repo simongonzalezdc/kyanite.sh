@@ -90,7 +90,7 @@ func (a *AudioPlayer) playBeep(frequency, duration int) {
 		return
 	}
 	
-	_ = cmd.Run() // Ignore errors to not break the UI
+	_ = cmd.Run() // intentionally ignore error to avoid breaking UI on missing player
 }
 
 

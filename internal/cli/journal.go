@@ -30,6 +30,10 @@ var journalTitle string
 var journalMood string
 var journalTemplate string
 var journalTags []string
+var journalID string
+var journalQuery string
+var exportTypeStr string
+var toSyntax bool
 
 var journalNewCmd = &cobra.Command{
 	Use:   "new",
@@ -428,11 +432,17 @@ func init() {
 
 	// Flags for journal view
 	journalViewCmd.Flags().StringVarP(&journalDate, "date", "d", "", "Date of the entry (YYYY-MM-DD, default: today)")
+	journalViewCmd.Flags().StringVarP(&journalID, "id", "i", "", "ID of the entry")
+
+	// Flags for journal search
+	journalSearchCmd.Flags().StringVarP(&journalQuery, "query", "q", "", "Search query")
+	journalSearchCmd.Flags().StringSliceVarP(&journalTags, "tags", "g", []string{}, "Filter by tags")
+	journalSearchCmd.Flags().StringVarP(&journalMood, "mood", "m", "", "Filter by mood")
 
 	// Flags for journal export
-	journalExportCmd.Flags().StringVarP(&journalDate, "date", "d", "", "Date of the entry (YYYY-MM-DD, default: today)")
-	journalExportCmd.Flags().Bool("to-syntax", false, "Export to syntax.sh format")
-	journalExportCmd.Flags().String("type", "", "Export type: character, dialogue, scene, research")
+	journalExportCmd.Flags().StringVarP(&journalID, "id", "i", "", "ID of the entry to export")
+	journalExportCmd.Flags().StringVarP(&exportTypeStr, "type", "t", "markdown", "Export type (markdown, syntax)")
+	journalExportCmd.Flags().BoolVarP(&toSyntax, "to-syntax", "s", false, "Export to syntax.sh format")
 
-	rootCmd.AddCommand(journalCmd)
+	// journalCmd is now registered in root.go to avoid duplication
 }

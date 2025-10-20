@@ -46,54 +46,67 @@ var rootCmd = &cobra.Command{
 		lipgloss.NewStyle().Foreground(focusPurple).Render(
 			"💡 Part of Kyanite Suite: noise.sh (music) | focus.sh (tasks) | syntax.sh (writing) | prism.sh (visual) | wave.sh (audio)")),
 	Run: func(cmd *cobra.Command, args []string) {
-		// Default to TUI dashboard - TUI-FIRST approach
-		fmt.Println("🚀 Initializing focus.sh...")
-		fmt.Println("⚡ Loading AI protocols and visual enhancement systems...")
-		
-		// Start the full-featured dashboard
+		// Launch directly into TUI dashboard
 		err := tui.StartMainDashboard([]tui.DashboardTask{})
 		if err != nil {
-			fmt.Printf("Error starting mission matrix: %v\n", err)
+			fmt.Printf("Error starting dashboard: %v\n", err)
 		}
 	},
 }
 
 func Execute() error {
-	// Setup initial appearance
+	// Kyanite Suite loading sequence
 	pterm.Println(pterm.FgGreen.Sprintf("🎮 focus.sh initialized"))
-
+	
+	// Show Kyanite suite loading animation
+	pterm.Info.Println("🌌 Loading Kyanite Suite components...")
+	pterm.Success.Println("✨ focus.sh - Task Management System Online")
+	pterm.Info.Println("🔗 Connecting to Kyanite Creative Suite...")
+	
 	// Execute the root command
 	return rootCmd.Execute()
 }
 
 func init() {
-	rootCmd.AddCommand(dashboardCmd)
+	// Core commands
 	rootCmd.AddCommand(addCmd)
 	rootCmd.AddCommand(listCmd)
 	rootCmd.AddCommand(completeCmd)
 	rootCmd.AddCommand(deleteCmd)
 	rootCmd.AddCommand(chatCmd)
-	rootCmd.AddCommand(suggestCmd)
 	rootCmd.AddCommand(notesCmd)
-	rootCmd.AddCommand(interactiveCmd)
-	rootCmd.AddCommand(filterCmd)
-	rootCmd.AddCommand(configCmd)
-	rootCmd.AddCommand(simpleInteractiveCmd)
-	rootCmd.AddCommand(testGumCmd)
-	rootCmd.AddCommand(themeCmd)
-	rootCmd.AddCommand(wizardCmd)
-	rootCmd.AddCommand(configWizardCmd)
-	rootCmd.AddCommand(editWizardCmd)
+	rootCmd.AddCommand(journalCmd)
+	rootCmd.AddCommand(calendarCmd)
 	
-	// Add viper config commands
+	// Interactive commands  
+	rootCmd.AddCommand(wizardCmd)
+	rootCmd.AddCommand(interactiveCmd)
+	
+	// Configuration commands
+	rootCmd.AddCommand(enhancedConfigCmd)
+	rootCmd.AddCommand(themeCmd)
+	
+	// Add viper config subcommands
 	configCmd.AddCommand(configGetCmd)
 	configCmd.AddCommand(configSetCmd)
 	configCmd.AddCommand(configListCmd)
 	configCmd.AddCommand(configResetCmd)
 	configCmd.AddCommand(configPathCmd)
-	rootCmd.AddCommand(enhancedConfigCmd)
+	rootCmd.AddCommand(configCmd)
+	
+	// Dashboard commands
 	rootCmd.AddCommand(unifiedDashboardCmd)
+	
+	// Additional commands
+	rootCmd.AddCommand(suggestCmd)
+	rootCmd.AddCommand(editWizardCmd)
+	rootCmd.AddCommand(simpleInteractiveCmd)
+	
+	// Hidden/technical commands (not for regular users)
+	// These can be added but hidden from help if needed
 	rootCmd.AddCommand(mcpServerCmd)
+	rootCmd.AddCommand(filterCmd)
+	rootCmd.AddCommand(testGumCmd)
 
 	// Setup pterm styles
 	pterm.Info.Prefix = pterm.Prefix{

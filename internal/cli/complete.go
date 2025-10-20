@@ -47,6 +47,6 @@ var completeCmd = &cobra.Command{
 		fmt.Printf("📄 %s\n", task.Description)
 		fmt.Printf("🔢 ID: %s\n", task.ID)
 		fmt.Println("✅ Status: Completed")
-		fmt.Println("\n💡 Pro Tip: Completed missions boost your focus karma!")
+		fmt.Println("\n💡 Pro Tip: Completed tasks boost your productivity!")
 	},
 }

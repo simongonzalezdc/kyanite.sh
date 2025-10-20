@@ -15,7 +15,7 @@ const (
 )
 
 // Current theme registry (Kyanite themes)
-var currentTheme = theme.DefaultTheme
+var currentTheme = theme.Default()
 
 // Light theme colors - research-based best practices for light themes
 var (
@@ -42,9 +42,16 @@ var (
 	PlainError     = lipgloss.Color("")
 )
 
-// SetThemeByName changes the current theme by name
+// SetThemeByName changes the current theme by display name or id
 func SetThemeByName(name string) {
-	currentTheme = theme.GetThemeByName(name)
+	// Try by display name first
+	t := theme.GetThemeByName(name)
+	if t.Name == name {
+		currentTheme = t
+		return
+	}
+	// Fallback to id (with migration)
+	currentTheme = theme.GetTheme(name)
 }
 
 // SetTheme changes the current theme (backward compatibility)
@@ -75,7 +82,7 @@ func SetTheme(t ThemeMode) {
 			Panel:      PlainBg,
 		}
 	default:
-		currentTheme = theme.DefaultTheme
+		currentTheme = theme.Default()
 	}
 }
 
@@ -86,17 +93,9 @@ func GetTheme() theme.Theme {
 
 // CycleTheme cycles through all Kyanite themes
 func CycleTheme() {
-	themes := theme.AllThemes
-	for i, t := range themes {
-		if t.Name == currentTheme.Name {
-			// Move to next theme, wrap around
-			nextIndex := (i + 1) % len(themes)
-			currentTheme = themes[nextIndex]
-			return
-		}
-	}
-	// If current theme not found, set to default
-	currentTheme = theme.DefaultTheme
+	m := theme.GetManager()
+	m.Next()
+	currentTheme = m.Current()
 }
 
 // Theme-aware color getters

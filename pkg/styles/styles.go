@@ -3,9 +3,10 @@ package styles
 import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/pterm/pterm"
+	"github.com/kyanite/focus/internal/theme"
 )
 
- // Focus Color Palette - Synthwave Cyberpunk Theme
+// Focus Color Palette - Dynamic Theme System
 var (
 	FocusPink   = lipgloss.Color("#FF71CE")
 	FocusBlue   = lipgloss.Color("#00FFFF")
@@ -14,22 +15,43 @@ var (
 	DarkBg      = lipgloss.Color("#0F0A19")
 	AccentColor = lipgloss.Color("#FFC0CB")
 	focusRed    = lipgloss.Color("#FF0055")
-
-	// Base Styles
-	focusStyle = lipgloss.NewStyle().
-		Foreground(FocusPink).
-		Bold(true)
-
-	greenStyle = lipgloss.NewStyle().
-		Foreground(FocusGreen).
-		Bold(true)
-
-	blueStyle = lipgloss.NewStyle().
-		Foreground(FocusBlue)
-
-	purpleStyle = lipgloss.NewStyle().
-		Foreground(FocusPurple)
 )
+
+// Initialize colors from theme system
+func init() {
+	updateColorsFromTheme()
+}
+
+func updateColorsFromTheme() {
+	currentTheme := theme.GetManager().Current()
+	FocusPink = lipgloss.Color(currentTheme.Primary)
+	FocusBlue = lipgloss.Color(currentTheme.Secondary)
+	FocusGreen = lipgloss.Color(currentTheme.Success)
+	FocusPurple = lipgloss.Color(currentTheme.Accent)
+	DarkBg = lipgloss.Color(currentTheme.Background)
+	AccentColor = lipgloss.Color(currentTheme.Border)
+	focusRed = lipgloss.Color(currentTheme.Error)
+}
+
+// RefreshColors updates the color palette from current theme
+func RefreshColors() {
+	updateColorsFromTheme()
+}
+
+// Base Styles
+var focusStyle = lipgloss.NewStyle().
+	Foreground(FocusPink).
+	Bold(true)
+
+var greenStyle = lipgloss.NewStyle().
+	Foreground(FocusGreen).
+	Bold(true)
+
+var blueStyle = lipgloss.NewStyle().
+	Foreground(FocusBlue)
+
+var purpleStyle = lipgloss.NewStyle().
+	Foreground(FocusPurple)
 
 func FocusStyle(text string) string {
 	return focusStyle.Render(text)

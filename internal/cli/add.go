@@ -18,9 +18,9 @@ import (
 
 var addCmd = &cobra.Command{
 	Use:   "add [task description]",
-	Short: "Add a new mission to the synthwave matrix",
-	Long: `Create a new mission with AI-powered parsing and stunning visual effects.
-Example: focus add "Complete the synthwave project by Friday"`,
+	Short: "Add a new mission to the task board",
+	Long: `Create a new mission with AI-powered parsing and beautiful Kyanite theming.
+Example: focus add "Complete the project by Friday"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			showAddError()

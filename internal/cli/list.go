@@ -15,8 +15,8 @@ import (
 
 var listCmd = &cobra.Command{
 	Use:   "list [filter]",
-	Short: "Display missions in the synthwave matrix",
-	Long: `Show your missions with stunning visual effects.
+	Short: "Display tasks on the task board",
+	Long: `Show your missions with beautiful Kyanite theming.
 Filters: all, active, completed (default: all)`,
 	Run: func(cmd *cobra.Command, args []string) {
 		filter := "all"
@@ -172,5 +172,5 @@ func renderTaskWithEffects(index int, task models.Task) {
 }
 
 func init() {
-	rootCmd.AddCommand(listCmd)
+	// listCmd is now registered in root.go to avoid duplication
 }

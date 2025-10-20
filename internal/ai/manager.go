@@ -232,7 +232,7 @@ func (m *Manager) ChatAssistant(ctx context.Context, question string, tasks []st
 	
 	if strings.Contains(strings.ToLower(question), "task") {
 		if len(tasks) > 0 {
-			return fmt.Sprintf("I see you have %d tasks. I can help you organize, prioritize, or complete them. Try using 'focus inspire' for suggestions or 'focus list' to see all your missions!", len(tasks)), nil
+			return fmt.Sprintf("I see you have %d tasks. I can help you organize, prioritize, or complete them. Try using 'focus inspire' for suggestions or 'focus list' to see all your tasks!", len(tasks)), nil
 		} else {
 			return "You don't have any tasks yet! Start by adding a mission with 'focus add \"your task here\"' and I can help you manage them.", nil
 		}
@@ -293,7 +293,7 @@ func (m *Manager) parseWithOllama(ctx context.Context, input string) (*ParsedTas
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("ollama request failed with status %d", resp.StatusCode)
@@ -327,7 +327,7 @@ func (m *Manager) IsOllamaAvailable() bool {
 	if err != nil {
 		return false
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	return resp.StatusCode == http.StatusOK
 }
 
@@ -388,7 +388,7 @@ func (m *Manager) isModelAvailable(modelName string) bool {
 		m.modelMutex.Unlock()
 		return false
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	
 	if resp.StatusCode != http.StatusOK {
 		m.modelMutex.Lock()
@@ -451,7 +451,7 @@ func (m *Manager) pullModel(modelName string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("ollama pull failed with status %d", resp.StatusCode)
@@ -493,7 +493,7 @@ func (m *Manager) suggestWithOllama(ctx context.Context, existingTasks []string)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("ollama request failed with status %d", resp.StatusCode)
@@ -552,7 +552,7 @@ func (m *Manager) chatWithOllama(ctx context.Context, question string, tasks []s
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("ollama request failed with status %d", resp.StatusCode)
@@ -605,7 +605,7 @@ func (m *Manager) summarizeWithOllama(ctx context.Context, tasks []string) (stri
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("ollama request failed with status %d", resp.StatusCode)
@@ -657,7 +657,7 @@ func (m *Manager) parseWithOpenRouter(ctx context.Context, input string) (*Parse
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("openrouter request failed with status %d", resp.StatusCode)
@@ -733,7 +733,7 @@ func (m *Manager) suggestWithOpenRouter(ctx context.Context, existingTasks []str
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("openrouter request failed with status %d", resp.StatusCode)
@@ -815,7 +815,7 @@ func (m *Manager) chatWithOpenRouter(ctx context.Context, question string, tasks
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("openrouter request failed with status %d", resp.StatusCode)
@@ -884,7 +884,7 @@ func (m *Manager) summarizeWithOpenRouter(ctx context.Context, tasks []string) (
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("openrouter request failed with status %d", resp.StatusCode)
@@ -991,29 +991,28 @@ func (m *Manager) buildChatPrompt(question string, tasks []string) string {
 		tasksStr = fmt.Sprintf("[\"%s\"]", strings.Join(tasks, "\", \""))
 	}
 	
-	return fmt.Sprintf(`You are focus.sh, a badass synthwave-cyberpunk AI assistant with attitude. You have three main roles:
-	
-1. 📋 TASK HELPER - Help with task management and productivity
-2. 🎮 APP GUIDE - Help with using focus.sh app features
-3. 🤖 GENERAL CHAT - Be a general AI assistant for anything
-	
+	return fmt.Sprintf(`You are Focus, a helpful AI assistant for task management and productivity. You have three main roles:
+
+1. 📋 TASK HELPER - Help with task management, planning, and productivity
+2. 🎮 APP GUIDE - Help with using the focus.sh application features  
+3. 🤖 GENERAL ASSISTANT - Be a helpful AI assistant for various questions
+
 PERSONALITY:
-- 🌃 Synthwave aesthetic: focus colors, retro-futuristic vibes
-- 🎮 Cyberpunk attitude: confident, edgy, with some tech-bro energy
-- 💬 Casual but knowledgeable: "dude", "awesome", "rad", "sick"
-- 🚀 Tech-savvy: you know coding, programming, tech concepts
-- 🎨 Creative: you can help with art, music, design, writing
-	
+- Helpful and professional, but friendly and approachable
+- Clear and concise in your responses
+- Knowledgeable about productivity, task management, and technology
+- Encouraging and positive
+
 SPEECH STYLE:
-- Use synthwave/cyberpunk slang occasionally (but don't overdo it)
-- Mix technical accuracy with cyberpunk personality
-- Be confident and engaging, not timid
-- Add some humor and attitude
-- Use emojis where they fit the vibe
-	
-CURRENT USER TASKS (only mention if asked):
+- Be direct and practical
+- Use clear, simple language
+- Provide actionable advice when possible
+- Be encouraging without being overly casual
+- Use appropriate emojis to enhance clarity
+
+CURRENT USER TASKS (only mention if relevant to the conversation):
 User tasks: %s
-	
+
 focus.sh APP COMMANDS:
 - add "task" - Add new task
 - list --filter=active/completed/all - List tasks
@@ -1029,7 +1028,7 @@ focus.sh APP COMMANDS:
 - help - Show all commands
 	
 RESPONSE GUIDELINES:
-- If user asks about tasks: be helpful but with cyberpunk energy
+- If user asks about tasks: be helpful and professional
 - If user asks about app: explain focus.sh features with synthwave vibe
 - If general question: be a confident, knowledgeable AI with personality
 - You can code, explain tech concepts, give advice, be creative

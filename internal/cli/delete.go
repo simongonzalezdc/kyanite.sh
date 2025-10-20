@@ -41,6 +41,6 @@ var deleteCmd = &cobra.Command{
 		fmt.Println("✅ Mission erased successfully!")
 		fmt.Printf("📋 %s\n", task.Description)
 		fmt.Printf("🔢 ID: %s\n", task.ID)
-		fmt.Println("\n💡 Pro Tip: Deleted missions are gone forever - choose wisely!")
+		fmt.Println("\n💡 Pro Tip: Deleted tasks are gone forever - confirm your choice!")
 	},
 }

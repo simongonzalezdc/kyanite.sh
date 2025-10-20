@@ -5,89 +5,65 @@ import (
 	"strings"
 	
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/focus/internal/theme"
 	"github.com/kyanite/focus/pkg/config"
 	"github.com/kyanite/focus/pkg/styles"
 	"github.com/spf13/cobra"
 )
 
 var themeCmd = &cobra.Command{
-	Use:   "theme [synthwave|light|plain]",
+	Use:   "theme [theme-name]",
 	Short: "🎨 Change the visual theme",
-	Long: `Switch between different visual themes:
-  - synthwave: Cyberpunk aesthetic with focus colors (default)
-  - light: Clean, modern light theme
-  - plain: Basic terminal appearance for maximum compatibility`,
+	Long: `Switch between different visual themes.
+Available Kyanite Themes:
+  - amber-night: Warm amber glow with deep contrast (default)
+  - twilight-mist: Soft purple and gray evening mist
+  - indigo-depths: Deep blue indigo with subtle accents  
+  - forest-path: Natural green and brown forest tones
+  - clay-earth: Rich earthy terracotta and clay colors
+  - iron-forge: Industrial grays with metallic accents
+  - sunlight: Bright warm yellow and white daylight
+  - cyan-wave: Cool cyan and teal ocean waves
+  - electric-rose: Vibrant pink and electric purple
+  - monochrome: Clean black and white minimalism`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		themeName := strings.ToLower(args[0])
 		
-		var theme styles.ThemeMode
-		var description string
+		// Validate theme exists
+		availableThemes := theme.ListThemes()
+		validTheme := false
+		for _, t := range availableThemes {
+			if t == themeName {
+				validTheme = true
+				break
+			}
+		}
 		
-		switch themeName {
-		case "synthwave":
-			theme = styles.ThemeSynthwave
-			description = "🌌 Cyberpunk synthwave with maximum focus impact"
-		case "light":
-			theme = styles.ThemeLight
-			description = "☀️ Clean and modern light theme"
-		case "plain":
-			theme = styles.ThemePlain
-			description = "📄 Basic terminal appearance"
-		default:
-			errorStyle := lipgloss.NewStyle().
-				Foreground(styles.SynthwaveRed).
-				Bold(true).
-				Padding(1).
-				Border(lipgloss.RoundedBorder()).
-				BorderForeground(styles.SynthwaveRed).
-				Render(fmt.Sprintf("❌ Unknown theme: %s\n\nAvailable themes: synthwave, light, plain", themeName))
-			fmt.Println(errorStyle)
+		if !validTheme {
+			fmt.Printf("❌ Unknown theme: %s\n", themeName)
+			fmt.Printf("Available themes: %v\n", availableThemes)
 			return
 		}
 		
-		// Set the theme for current session
-		styles.SetTheme(theme)
+		// Set theme globally
+		theme.GetManager().SetTheme(themeName)
 		
-		// Persist theme to config
-		cfg := config.GetConfig()
-		if cfg == nil {
-			if loaded, err := config.LoadConfig(); err == nil {
-				cfg = loaded
-			}
-		}
-		if cfg != nil {
-			cfg.Theme = string(theme)
-			_ = config.SaveConfig(cfg)
-		}
+		// Refresh styles to use new theme colors
+		styles.RefreshColors()
 		
-		// Show confirmation
-		successStyle := lipgloss.NewStyle().
-			Foreground(styles.GetSuccess()).
+		// Update config
+		cfg, _ := config.LoadConfig()
+		cfg.Theme = themeName
+		config.SaveConfig(cfg)
+		
+		fmt.Printf("✨ Theme changed to: %s\n", lipgloss.NewStyle().
+			Foreground(lipgloss.Color(theme.GetManager().Current().Primary)).
 			Bold(true).
-			Padding(1, 2).
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(styles.GetSuccess()).
-			Render(fmt.Sprintf("✅ Theme changed to %s", themeName))
-		
-		fmt.Println(successStyle)
-		fmt.Println()
-		
-		descStyle := lipgloss.NewStyle().
-			Foreground(styles.GetForeground()).
-			Italic(true).
-			Render(description)
-		fmt.Println(descStyle)
-		fmt.Println()
-		
-		// Show current settings
-		infoStyle := lipgloss.NewStyle().
-			Foreground(styles.GetAccent()).
-			Render("💡 Theme saved. It will be used across CLI and TUI.")
-		fmt.Println(infoStyle)
+			Render(themeName))
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(themeCmd)
+	// themeCmd is now registered in root.go to avoid duplication
 }

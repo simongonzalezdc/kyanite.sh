@@ -63,9 +63,9 @@ func Filter(options []string, prompt string) string {
 	}
 	
 	go func() {
-		defer stdin.Close()
+		defer func() { _ = stdin.Close() }()
 		for _, option := range options {
-			stdin.Write([]byte(option + "\n"))
+			_, _ = stdin.Write([]byte(option + "\n"))
 		}
 	}()
 	
@@ -95,9 +95,9 @@ func MultiSelect(options []string, prompt string, limit int) []string {
 	}
 	
 	go func() {
-		defer stdin.Close()
+		defer func() { _ = stdin.Close() }()
 		for _, option := range options {
-			stdin.Write([]byte(option + "\n"))
+			_, _ = stdin.Write([]byte(option + "\n"))
 		}
 	}()
 	

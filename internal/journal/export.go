@@ -17,7 +17,12 @@ type Exporter struct {
 // NewExporter creates a new journal exporter
 func NewExporter() *Exporter {
 	// Default syntax.sh imports directory
-	homeDir, _ := os.UserHomeDir()
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		// fallback to current working directory if home not available
+		syntaxDir := filepath.Join(".", "syntax", "imports")
+		return &Exporter{syntaxDir: syntaxDir}
+	}
 	syntaxDir := filepath.Join(homeDir, "syntax", "imports")
 	
 	return &Exporter{
@@ -53,7 +58,7 @@ func (e *Exporter) formatForExport(entry *models.JournalEntry, exportType models
 	var content strings.Builder
 
 	// Header section
-	header.WriteString(fmt.Sprintf("# Imported from focus.sh\n\n"))
+	header.WriteString("# Imported from focus.sh\n\n")
 	header.WriteString(fmt.Sprintf("**Source:** Journal entry from %s\n", entry.Date))
 	header.WriteString(fmt.Sprintf("**Export Type:** %s\n", e.getExportTypeName(exportType)))
 	header.WriteString(fmt.Sprintf("**Tags:** %s\n", strings.Join(entry.Tags, ", ")))

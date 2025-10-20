@@ -77,7 +77,7 @@ func (s *Store) Save(tasks []models.Task) error {
 	// Atomically rename temp file to target file
 	if err := os.Rename(tempPath, s.filePath); err != nil {
 		// Clean up temp file if rename failed
-		os.Remove(tempPath)
+		_ = os.Remove(tempPath)
 		return fmt.Errorf("failed to save tasks file: %w", err)
 	}
 	

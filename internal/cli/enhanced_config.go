@@ -51,7 +51,7 @@ func enhancedConfigWizardHandler(cmd *cobra.Command, args []string) {
 				Title("Default Theme").
 				Description("Select your visual preference").
 				Options(
-					huh.NewOption("🌌 Synthwave", "synthwave"),
+					huh.NewOption("🌌 Amber Night", "amber-night"),
 					huh.NewOption("☀️ Light", "light"),
 					huh.NewOption("⚪ Plain", "plain"),
 				).

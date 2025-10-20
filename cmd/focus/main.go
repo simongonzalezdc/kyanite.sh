@@ -35,12 +35,10 @@ func main() {
 	if err := setupOllama(); err != nil {
 		fmt.Printf("⚠️  Ollama setup issue: %v\n", err)
 	}
-	showEpicIntro()
-	fmt.Println("🌌 Initializing focus.sh TUI System...")
-	fmt.Println("   💫 AI-powered task management with cyberpunk aesthetics")
+	fmt.Println("🌌 Loading focus.sh TUI System...")
+	fmt.Println("   ✨ AI-powered task management with professional interface")
 	fmt.Println()
-	fmt.Println("🚀 Direct TUI launch - bypassing CLI layer...")
-	fmt.Println("💫 Loading cyberpunk matrix...")
+	fmt.Println("🚀 Launching TUI dashboard...")
 	runTUIDirectly()
 }
 
@@ -68,7 +66,7 @@ func runMCPServer() error {
 
 func findRepoRoot() string {
 	d, _ := os.Getwd()
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		gm := filepath.Join(d, "go.mod")
 		mcpmain := filepath.Join(d, "cmd", "focus-mcp", "main.go")
 		if _, err := os.Stat(gm); err == nil {
@@ -107,7 +105,7 @@ func runTUIDirectly() error {
 			CreatedAt:   time.Now(),
 			Deadline:    nil,
 			Categories:  []string{"design", "synthwave"},
-			Notes:       "Incorporate cyberpunk aesthetics with focus color schemes",
+			Notes:       "Professional AI assistant with helpful personality",
 		},
 		{
 			ID:          "3",
@@ -116,18 +114,18 @@ func runTUIDirectly() error {
 			Status:      "pending",
 			CreatedAt:   time.Now(),
 			Deadline:    nil,
-			Categories:  []string{"ai", "personality"},
-			Notes:       "Give AI assistant cyberpunk attitude and tech-bro energy",
+			Categories:  []string{"ai", "productivity"},
+			Notes:       "Professional and helpful AI assistant",
 		},
 	}
 	
-	fmt.Printf("📋 Loaded %d cyberpunk missions into focus.sh matrix...\n", len(tasks))
+	fmt.Printf("📋 Loaded %d tasks into focus.sh system...\n", len(tasks))
 
-	// Launch the REAL TUI
-	fmt.Println("🎮 focus.sh TUI System Starting...")
-	fmt.Println("   🌃 Cyberpunk interface loading...")
-	fmt.Println("   💫 Synthwave colors activating...")
-	fmt.Println("   ⚡ Matrix connection established...")
+	// Launch the TUI
+	fmt.Println("🎮 focus.sh Task Management System Starting...")
+	fmt.Println("   🌨 Professional interface loading...")
+	fmt.Println("   ✨ Kyanite theme system activating...")
+	fmt.Println("   ⚡ System ready...")
 	fmt.Println()
 	
 	// Launch actual TUI dashboard
@@ -344,7 +342,7 @@ func showEpicIntro() {
 		"◈◊⚡◆ ◊◈⚡◆ ◊⚡◆◈ ⚡◈◊◆",
 	}
 	
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		fmt.Print("\033[2J\033[H")
 		
 		glitchText := glitchSymbols[rand.Intn(len(glitchSymbols))]
@@ -384,27 +382,3 @@ func showEpicIntro() {
 	fmt.Print("\033[2J\033[H")
 }
 
-func showErrorScreen(err error) {
-	fmt.Print("\033[2J\033[H")
-	
-	errorTitle := lipgloss.NewStyle().
-		Foreground(styles.SynthwaveRed).
-		Background(styles.DarkVoid).
-		Bold(true).
-		Padding(2).
-		Border(lipgloss.DoubleBorder()).
-		BorderForeground(styles.SynthwaveRed).
-		AlignHorizontal(lipgloss.Center).
-		Render(`
-⚡ SYSTEM FAILURE ⚡
-
-The synthwave matrix has encountered
-a critical error in the neural interface.
-
-ERROR: ` + err.Error() + `
-
-▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
-`)
-	
-	fmt.Println(errorTitle)
-}

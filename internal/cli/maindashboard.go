@@ -25,5 +25,5 @@ var dashboardCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(dashboardCmd)
+	// dashboardCmd is now registered in root.go to avoid duplication
 }

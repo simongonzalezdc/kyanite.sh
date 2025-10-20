@@ -32,14 +32,3 @@ func focusMain() {
 	}
 }
 
-// Deprecated: legacyMain() function kept for compatibility
-func legacyMain() {
-	// Run focus via go run to avoid import conflicts
-	cmd := exec.Command("go", "run", "./cmd/focus")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-	if err := cmd.Run(); err != nil {
-		log.Fatalf("failed to run focus: %v", err)
-	}
-}

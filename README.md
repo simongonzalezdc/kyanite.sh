@@ -1,6 +1,6 @@
 # 🌌 focus.sh - AI-Powered Task Manager
 
-An intelligent CLI task management application within the Kyanite Suite, delivering natural language productivity with Charm libraries and cyberpunk aesthetics.
+An intelligent CLI task management application within the Kyanite Suite, delivering natural language productivity with Charm libraries and modern professional design.
 
 ## Features
 
@@ -95,6 +95,7 @@ go test ./...
 
 ## Documentation
 
+- [kyanite_implementation_master.md](kyanite_implementation_master.md) - Kyanite Suite Implementation Master (themes, standards, migration)
 - [CALENDAR_PLAN.md](CALENDAR_PLAN.md) - Calendar implementation status
 - [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) - Code organization  
 - [NEON_DEVELOPMENT_PLAN.md](NEON_DEVELOPMENT_PLAN.md) - Development progress

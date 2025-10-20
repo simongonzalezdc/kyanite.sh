@@ -20,6 +20,7 @@ import (
 	"github.com/kyanite/focus/pkg/glow"
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/internal/ai"
+	"github.com/kyanite/focus/internal/theme"
 )
 
 // Tick message for real-time updates
@@ -46,6 +47,7 @@ type MainModel struct {
 	stopwatch      stopwatch.Model
 	help           help.Model
 	keys           keyMap
+	showHelp       bool
 	quitting       bool
 	workTime       time.Duration
 	breakTime      time.Duration
@@ -63,7 +65,6 @@ type MainModel struct {
 	calViewMode    string // "month", "week", "day"
 	
 	// Chat assistant components
-	chatActive     bool
 	chatInput      string
 	chatHistory    []string
 	chatViewport   viewport.Model
@@ -96,19 +97,15 @@ type MainModel struct {
 	aiThinking      bool   // Whether AI is currently responding
 	aiSpinnerFrame  int    // Current spinner frame for AI response
 	
-	// Digital artifacts/glitches
+	// Visual effects
 	glitchCount    int
-	showGlitch     bool
+
 	glitchMessage  string
 	
 	// Theme management
-	currentThemeIndex int
-	themes           []styles.ThemeMode
-	themeNames       []string
 	
 	// Settings management
 	settingsMode     bool
-	settingsInput    string
 	audioEnabled     bool
 	workDuration     time.Duration
 	breakDuration    time.Duration
@@ -147,12 +144,13 @@ const (
 
 type mainView int
 
-const (
+	const (
 	dashboardView mainView = iota
 	focusView
 	chatView
 	calendarView
 	notesView
+	journalView
 	settingsView
 )
 
@@ -174,30 +172,33 @@ type keyMap struct {
 	addTask      key.Binding
 	confirmAdd   key.Binding
 	cancelAdd    key.Binding
-	glitchTest   key.Binding
+
 	completeTask key.Binding
 	priorityTask key.Binding
 	themeCycle   key.Binding
+	journalKey   key.Binding
 	notes        key.Binding
 	calendarKey  key.Binding
 	navCalPrev   key.Binding
 	navCalNext   key.Binding
 	settingsKey  key.Binding
 	filterKey    key.Binding
+	palette      key.Binding
+	save         key.Binding
 	audioToggleKey   key.Binding
 	workDurationKey  key.Binding
 	breakDurationKey key.Binding
 }
 
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.start, k.stop, k.reset, k.focusMode, k.chat, k.calendarKey, k.settingsKey, k.filterKey, k.addTask, k.completeTask, k.priorityTask, k.notes, k.themeCycle, k.help}
+	return []key.Binding{k.start, k.stop, k.reset, k.focusMode, k.chat, k.calendarKey, k.settingsKey, k.filterKey, k.addTask, k.completeTask, k.priorityTask, k.journalKey, k.notes, k.themeCycle, k.palette, k.help, k.quit}
 }
 
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.start, k.stop, k.reset},
 		{k.up, k.down, k.enter},
-		{k.focusMode, k.tab, k.chat, k.calendarKey, k.settingsKey, k.filterKey, k.navCalPrev, k.navCalNext, k.addTask, k.completeTask, k.priorityTask, k.notes, k.themeCycle, k.help, k.quit},
+		{k.focusMode, k.tab, k.chat, k.calendarKey, k.settingsKey, k.filterKey, k.navCalPrev, k.navCalNext, k.addTask, k.completeTask, k.priorityTask, k.notes, k.themeCycle, k.palette, k.save, k.help, k.quit},
 	}
 }
 
@@ -216,12 +217,12 @@ func newKeyMap() keyMap {
 			key.WithHelp("r", "reset timer"),
 		),
 		quit: key.NewBinding(
-			key.WithKeys("ctrl+c", "q"),
-			key.WithHelp("q", "quit"),
+			key.WithKeys("ctrl+c", "q", "ctrl+q"),
+			key.WithHelp("q/Ctrl+Q", "quit"),
 		),
 		help: key.NewBinding(
-			key.WithKeys("?"),
-			key.WithHelp("?", "help"),
+			key.WithKeys("?", "ctrl+h"),
+			key.WithHelp("?/Ctrl+H", "help"),
 		),
 		switchSession: key.NewBinding(
 			key.WithKeys("b", "space"),
@@ -232,8 +233,8 @@ func newKeyMap() keyMap {
 			key.WithHelp("↑/k", "up"),
 		),
 		down: key.NewBinding(
-			key.WithKeys("down", "j"),
-			key.WithHelp("↓/j", "down"),
+			key.WithKeys("down"),
+			key.WithHelp("↓", "down"),
 		),
 		enter: key.NewBinding(
 			key.WithKeys("enter"),
@@ -271,10 +272,7 @@ func newKeyMap() keyMap {
 			key.WithKeys("esc"),
 			key.WithHelp("esc", "cancel add"),
 		),
-		glitchTest: key.NewBinding(
-			key.WithKeys("g"),
-			key.WithHelp("g", "test glitch"),
-		),
+
 		completeTask: key.NewBinding(
 			key.WithKeys("d"),
 			key.WithHelp("d", "complete task"),
@@ -285,7 +283,11 @@ func newKeyMap() keyMap {
 		),
 		themeCycle: key.NewBinding(
 			key.WithKeys("ctrl+t"),
-			key.WithHelp("ctrl+t", "cycle theme"),
+			key.WithHelp("Ctrl+T", "cycle theme"),
+		),
+		journalKey: key.NewBinding(
+			key.WithKeys("g"),
+			key.WithHelp("g", "journal"),
 		),
 		notes: key.NewBinding(
 			key.WithKeys("n"),
@@ -323,6 +325,14 @@ func newKeyMap() keyMap {
 			key.WithKeys("/"),
 			key.WithHelp("/", "filter"),
 		),
+		palette: key.NewBinding(
+			key.WithKeys("ctrl+/"),
+			key.WithHelp("Ctrl+/", "command palette"),
+		),
+		save: key.NewBinding(
+			key.WithKeys("ctrl+s"),
+			key.WithHelp("Ctrl+S", "save"),
+		),
 	}
 }
 
@@ -335,8 +345,6 @@ var (
 	synthCyan      lipgloss.Color
 	synthGreen     lipgloss.Color
 	synthRed       lipgloss.Color
-	darkBg         lipgloss.Color
-	darkPanel      lipgloss.Color
 	gridLine       lipgloss.Color
 
 	// DYNAMIC STYLES - Will be recreated on theme change
@@ -378,13 +386,6 @@ func NewMainModel(tasks []DashboardTask) MainModel {
 		glitchMessage: " 💾 GRID ERROR DETECTED 💾 ",
 		
 		// Theme management
-		currentThemeIndex: 0,
-		themes: []styles.ThemeMode{
-			styles.ThemeSynthwave,
-			styles.ThemeLight,
-			styles.ThemePlain,
-		},
-		themeNames: []string{"Synthwave", "Light", "Plain"},
 		
 		// Settings management
 		settingsMode: false,
@@ -410,7 +411,7 @@ func NewMainModel(tasks []DashboardTask) MainModel {
 		
 		// Calendar management
 		calViewMode: "month",
-		cal: calendar.New("synthwave"),
+		cal: calendar.New(theme.GetManager().Current().Name),
 		calSelectedDate: time.Now(),
 	}
 	
@@ -433,7 +434,7 @@ func NewMainModel(tasks []DashboardTask) MainModel {
 	}
 	
 	// Initialize calendar renderer after theme is set
-	m.calRenderer = calendar.NewRenderer("synthwave", 80, 20)
+	m.calRenderer = calendar.NewRenderer(theme.GetManager().Current().Name, 80, 20)
 	
 	// Initialize glow styler for markdown notes
 	m.glowStyler = glow.NewGlowStyler("synthwave")
@@ -461,49 +462,16 @@ func (m MainModel) getSpinner() string {
 
 // updateTheme updates all colors and styles based on current theme
 func (m *MainModel) updateTheme() {
-	// Set the theme globally
-	styles.SetTheme(m.themes[m.currentThemeIndex])
-	
-	// Update colors based on theme
-	switch m.themes[m.currentThemeIndex] {
-	case styles.ThemeSynthwave:
-		synthPink = lipgloss.Color("#FF10F0")
-		synthBlue = lipgloss.Color("#00FFF0")
-		synthPurple = lipgloss.Color("#BD10E0")
-		synthYellow = lipgloss.Color("#FFF01F")
-		synthCyan = lipgloss.Color("#00FFFF")
-		synthGreen = lipgloss.Color("#39FF14")
-		synthRed = lipgloss.Color("#FF0040")
-		darkBg = lipgloss.Color("#0A0014")
-		darkPanel = lipgloss.Color("#1A0033")  // More purple, less grey
-		gridLine = lipgloss.Color("#4A0080")   // Brighter purple border
-		
-	case styles.ThemeLight:
-		// MATRIX BLACK AND GREEN THEME
-		synthPink = lipgloss.Color("#00FF00")  // Matrix green
-		synthBlue = lipgloss.Color("#00CC00")   // Darker green
-		synthPurple = lipgloss.Color("#009900") // Even darker green
-		synthYellow = lipgloss.Color("#00FF00") // Matrix green highlight
-		synthCyan = lipgloss.Color("#00FFAA")  // Green cyan
-		synthGreen = lipgloss.Color("#00FF00") // Bright green
-		synthRed = lipgloss.Color("#FF0000")   // Matrix red (alerts)
-		darkBg = lipgloss.Color("#000000")      // Pure black background
-		darkPanel = lipgloss.Color("#0A1A0A")  // Very dark green tint
-		gridLine = lipgloss.Color("#003300")    // Dark green grid lines
-		
-	case styles.ThemePlain:
-		synthPink = lipgloss.Color("")
-		synthBlue = lipgloss.Color("")
-		synthPurple = lipgloss.Color("")
-		synthYellow = lipgloss.Color("")
-		synthCyan = lipgloss.Color("")
-		synthGreen = lipgloss.Color("")
-		synthRed = lipgloss.Color("")
-		darkBg = lipgloss.Color("")
-		darkPanel = lipgloss.Color("")
-		gridLine = lipgloss.Color("")
-	}
-	
+	// Sync dynamic colors with global theme manager
+	t := styles.GetTheme()
+	synthPink = t.Accent
+	synthBlue = t.Primary
+	synthPurple = t.Secondary
+	synthYellow = t.Warning
+	synthCyan = t.Accent
+	synthGreen = t.Success
+	synthRed = t.Error
+	gridLine = t.Border
 	// Recreate all styles with new colors
 	m.recreateStyles()
 }
@@ -511,33 +479,27 @@ func (m *MainModel) updateTheme() {
 // recreateStyles recreates all styles with current theme colors
 func (m *MainModel) recreateStyles() {
 	titleStyle = lipgloss.NewStyle().
-		Foreground(synthPink).
+		Foreground(styles.GetAccent()).
 		Background(styles.GetBackground()).
 		Bold(true).
 		Italic(true).
-		Padding(0, 3).
-		MarginTop(1).
-		MarginBottom(1).
-		BorderStyle(lipgloss.DoubleBorder()).
-		BorderForeground(synthBlue).
-		BorderTop(true).
-		BorderBottom(true).
-		BorderLeft(true).
-		BorderRight(true).
+		Padding(1, 3).           // CONSISTENT: 1 vertical, 3 horizontal
+		Margin(1, 1, 1, 1).      // CONSISTENT: 1 all around
+		BorderStyle(lipgloss.RoundedBorder()).  // CONSISTENT: RoundedBorder
+		BorderForeground(styles.GetBorder()).
 		Align(lipgloss.Center).
 		Underline(true).
 		Faint(false)
 
 	sectionTitleStyle = lipgloss.NewStyle().
-		Foreground(synthCyan).
+		Foreground(styles.GetForeground()).
 		Bold(true).
 		Italic(true).
-		MarginBottom(1).
-		MarginTop(1).
-		Padding(0, 1).
-		Background(styles.GetBoxStyle().GetBackground()).
-		BorderStyle(lipgloss.RoundedBorder()).
-		BorderForeground(synthBlue)
+		Padding(1, 2).           // CONSISTENT: 1 vertical, 2 horizontal
+		Margin(1, 0, 1, 0).      // CONSISTENT: 1 top/bottom, 0 sides
+		Background(styles.GetPanel()).
+		BorderStyle(lipgloss.RoundedBorder()).  // CONSISTENT: RoundedBorder
+		BorderForeground(styles.GetBorder())
 
 	taskStyle = lipgloss.NewStyle().
 		Foreground(synthGreen).
@@ -550,18 +512,14 @@ func (m *MainModel) recreateStyles() {
 		BorderRight(true)
 
 	selectedTaskStyle = lipgloss.NewStyle().
-		Foreground(synthBlue).
-		Background(styles.GetBoxStyle().GetBackground()).
+		Foreground(styles.GetAccent()).
+		Background(styles.GetPanel()).
 		Bold(true).
 		Italic(true).
-		Padding(0, 2).
-		MarginBottom(1).
-		BorderStyle(lipgloss.ThickBorder()).
-		BorderForeground(synthPink).
-		BorderLeft(true).
-		BorderRight(true).
-		BorderTop(true).
-		BorderBottom(true).
+		Padding(1, 2).           // CONSISTENT: 1 vertical, 2 horizontal
+		Margin(0, 0, 1, 0).      // CONSISTENT: 1 bottom only
+		BorderStyle(lipgloss.RoundedBorder()).  // CHANGED: RoundedBorder
+		BorderForeground(styles.GetBorder()).
 		Underline(true)
 
 	completedTaskStyle = lipgloss.NewStyle().
@@ -571,121 +529,96 @@ func (m *MainModel) recreateStyles() {
 		Faint(true)
 
 	statsStyle = lipgloss.NewStyle().
-		Foreground(synthYellow).
-		Background(styles.GetBoxStyle().GetBackground()).
+		Foreground(styles.GetAccent()).
+		Background(styles.GetPanel()).
 		Bold(true).
-		Padding(1, 2).
-		Margin(1).
-		BorderStyle(lipgloss.RoundedBorder()).
-		BorderForeground(synthPink).
-		BorderLeft(true).
-		BorderRight(true).
-		BorderTop(true).
-		BorderBottom(true)
+		Padding(1, 2).           // CONSISTENT
+		Margin(1, 1, 1, 1).      // CONSISTENT
+		BorderStyle(lipgloss.RoundedBorder()).  // CONSISTENT
+		BorderForeground(styles.GetBorder())
 
 	helpStyle = lipgloss.NewStyle().
-		Foreground(synthRed).
+		Foreground(styles.GetForeground()).
 		Italic(true).
 		Bold(true).
-		Background(styles.GetBoxStyle().GetBackground()).
-		Padding(0, 1).
-		BorderStyle(lipgloss.RoundedBorder()).
-		BorderForeground(synthRed)
+		Background(styles.GetPanel()).
+		Padding(1, 2).           // CONSISTENT
+		Margin(1, 0, 1, 0).      // CONSISTENT
+		BorderStyle(lipgloss.RoundedBorder()).  // CONSISTENT
+		BorderForeground(styles.GetBorder())
 
 	glitchStyle = lipgloss.NewStyle().
-		Foreground(synthRed).
-		Background(styles.GetBoxStyle().GetBackground()).
+		Foreground(styles.GetAccent()).
+		Background(styles.GetPanel()).
 		Bold(true).
 		Blink(true).
 		Italic(true).
 		Padding(0, 2).
 		BorderStyle(lipgloss.DoubleBorder()).
-		BorderForeground(synthPink)
+		BorderForeground(styles.GetBorder())
 
 	statusBarStyle = lipgloss.NewStyle().
-		Foreground(synthCyan).
-		Background(styles.GetBoxStyle().GetBackground()).
+		Foreground(styles.GetForeground()).
+		Background(styles.GetPanel()).
 		Bold(true).
-		Padding(0, 2).
-		MarginTop(1).
-		BorderStyle(lipgloss.RoundedBorder()).
-		BorderForeground(synthBlue).
+		Padding(1, 2).           // CONSISTENT
+		Margin(1, 0, 1, 0).      // CONSISTENT
+		BorderStyle(lipgloss.RoundedBorder()).  // CONSISTENT
+		BorderForeground(styles.GetBorder()).
 		BorderBottom(true)
 
 	chatInputStyle = lipgloss.NewStyle().
-		Foreground(synthPink).
-		Background(styles.GetBoxStyle().GetBackground()).
+		Foreground(styles.GetForeground()).
+		Background(styles.GetPanel()).
 		Bold(true).
-		Padding(0, 2).
-		MarginTop(1).
-		BorderStyle(lipgloss.ThickBorder()).
-		BorderForeground(synthBlue).
-		BorderLeft(true).
-		BorderRight(true).
-		BorderBottom(true).
-		BorderTop(true)
+		Padding(1, 2).           // CONSISTENT
+		Margin(1, 0, 1, 0).      // CONSISTENT
+		BorderStyle(lipgloss.RoundedBorder()).  // CONSISTENT
+		BorderForeground(styles.GetBorder())
 
 	chatMessageStyle = lipgloss.NewStyle().
-		Foreground(synthGreen).
+		Foreground(styles.GetAccent()).
 		Italic(true).
-		Background(styles.GetBoxStyle().GetBackground()).
-		Padding(0, 1).
-		MarginBottom(1).
-		BorderStyle(lipgloss.RoundedBorder()).
-		BorderForeground(synthGreen).
+		Background(styles.GetPanel()).
+		Padding(1, 2).           // CONSISTENT
+		Margin(0, 0, 1, 0).      // CONSISTENT
+		BorderStyle(lipgloss.RoundedBorder()).  // CONSISTENT
+		BorderForeground(styles.GetAccent()).
 		BorderLeft(true).
 		BorderRight(true)
 
 	chatUserStyle = lipgloss.NewStyle().
-		Foreground(synthBlue).
+		Foreground(styles.GetAccent()).
 		Bold(true).
 		Italic(true).
-		Background(styles.GetBoxStyle().GetBackground()).
-		Padding(0, 1).
-		MarginBottom(1).
-		BorderStyle(lipgloss.RoundedBorder()).
-		BorderForeground(synthBlue).
-		BorderLeft(true).
-		BorderRight(true)
+		Background(styles.GetPanel()).
+		Padding(1, 2).           // CONSISTENT
+		Margin(0, 0, 1, 0).      // CONSISTENT
+		BorderStyle(lipgloss.RoundedBorder()).  // CONSISTENT
+		BorderForeground(styles.GetAccent())
 
 	taskInputStyle = lipgloss.NewStyle().
-		Foreground(synthCyan).
-		Background(styles.GetBoxStyle().GetBackground()).
+		Foreground(styles.GetForeground()).
+		Background(styles.GetPanel()).
 		Bold(true).
-		Padding(0, 2).
-		MarginTop(1).
-		BorderStyle(lipgloss.ThickBorder()).
-		BorderForeground(synthGreen).
-		BorderLeft(true).
-		BorderRight(true).
-		BorderBottom(true).
-		BorderTop(true)
+		Padding(1, 2).           // CONSISTENT
+		Margin(1, 0, 1, 0).      // CONSISTENT
+		BorderStyle(lipgloss.RoundedBorder()).  // CONSISTENT
+		BorderForeground(styles.GetBorder())
 
 	priorityInputStyle = lipgloss.NewStyle().
-		Foreground(synthYellow).
-		Background(styles.GetBoxStyle().GetBackground()).
+		Foreground(styles.GetAccent()).
+		Background(styles.GetPanel()).
 		Bold(true).
 		Italic(true).
-		Padding(0, 2).
-		MarginTop(1).
-		BorderStyle(lipgloss.ThickBorder()).
-		BorderForeground(synthYellow).
-		BorderLeft(true).
-		BorderRight(true).
-		BorderBottom(true).
-		BorderTop(true)
+		Padding(1, 2).           // CONSISTENT
+		Margin(1, 0, 1, 0).      // CONSISTENT
+		BorderStyle(lipgloss.RoundedBorder()).  // CONSISTENT
+		BorderForeground(styles.GetAccent())
 }
 
 func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// Handle digital artifacts/glitches
-	if m.showGlitch {
-		m.glitchCount++
-		if m.glitchCount > 10 {
-			m.showGlitch = false
-			m.glitchCount = 0
-		}
-	}
-	
+
 	// Handle priority change mode
 	if m.taskEntryMode && m.taskInput == "PRIORITY_MODE" {
 		switch msg := msg.(type) {
@@ -728,7 +661,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case key.Matches(msg, m.keys.cancelAdd): // Use escape
 				m.filterMode = false
 				return m, nil
-			case key.Matches(msg, m.keys.confirmAdd): // Use enter
+			case key.Matches(msg, m.keys.confirmAdd), key.Matches(msg, m.keys.save): // Apply filter
 				m.filterMode = false
 				audio.PlaySound(audio.SoundSuccess)
 				return m, nil
@@ -767,7 +700,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.notesInput = ""
 				m.editingTask = nil
 				return m, nil
-			case key.Matches(msg, m.keys.confirmAdd): // Use enter key
+			case key.Matches(msg, m.keys.confirmAdd), key.Matches(msg, m.keys.save): // Save notes
 				if m.editingTask != nil {
 					m.editingTask.Notes = m.notesInput
 					audio.PlaySound(audio.SoundSuccess)
@@ -795,7 +728,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
 			switch {
-				case key.Matches(msg, m.keys.confirmAdd):
+				case key.Matches(msg, m.keys.confirmAdd), key.Matches(msg, m.keys.save):
 					if m.taskInput != "" {
 						// Add task (simplified - in real implementation this would call the engine)
 						audio.PlaySound(audio.SoundSuccess)
@@ -869,12 +802,6 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				return m, nil
 				
-			case key.Matches(msg, m.keys.tab):
-				// Allow tab navigation from chat view
-				m.currentView = settingsView
-				audio.PlaySound(audio.SoundNavigate)
-				return m, nil
-				
 			default:
 				// Handle text input
 				if msg.Type == tea.KeyRunes {
@@ -927,6 +854,13 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.quit):
 			m.quitting = true
 			return m, tea.Quit
+		case key.Matches(msg, m.keys.help):
+			m.showHelp = !m.showHelp
+			return m, nil
+		case key.Matches(msg, m.keys.palette):
+			m.chatHistory = append(m.chatHistory, "⌨ Command palette coming soon")
+			audio.PlaySound(audio.SoundNavigate)
+			return m, nil
 			
 		case key.Matches(msg, m.keys.calendarKey):
 			if !m.taskEntryMode {
@@ -962,44 +896,11 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 			
-		case key.Matches(msg, m.keys.chat):
-			if !m.taskEntryMode {
-				m.currentView = chatView
-				audio.PlaySound(audio.SoundNavigate)
-			}
-			return m, nil
+
 			
 		case key.Matches(msg, m.keys.tab):
-			// ALWAYS ALLOW TAB NAVIGATION - NO BLOCKING CONDITIONS
-			// COMPLETE USER-CENTRIC TAB NAVIGATION
-			// Order: Dashboard → Timer → Calendar → Notes → Chat → Settings → Dashboard
-			switch m.currentView {
-			case dashboardView:
-				// Tasks are part of dashboard view, so next is Timer
-				if len(m.tasks) > 0 && m.selectedTask >= 0 {
-					// Start timer for selected task
-					task := m.tasks[m.selectedTask]
-					m.currentView = focusView
-					m.activeTimer = &TimerSession{
-						Task: task,
-						Mode: "work",
-					}
-				} else {
-					m.currentView = focusView
-				}
-			case focusView:
-				m.currentView = calendarView
-			case calendarView:
-				m.currentView = notesView
-			case notesView:
-				m.currentView = chatView
-			case chatView:
-				m.currentView = settingsView
-			case settingsView:
-				m.currentView = dashboardView
-			default:
-				m.currentView = dashboardView
-			}
+			next := map[mainView]mainView{dashboardView: focusView, focusView: calendarView, calendarView: notesView, notesView: chatView, chatView: settingsView, settingsView: dashboardView}
+			m.currentView = next[m.currentView]
 			audio.PlaySound(audio.SoundNavigate)
 			return m, nil
 
@@ -1060,36 +961,14 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case key.Matches(msg, m.keys.tab):
-			// ALWAYS ALLOW TAB NAVIGATION - NO BLOCKING CONDITIONS
-			// COMPLETE USER-CENTRIC TAB NAVIGATION
-			// Order: Dashboard → Timer → Calendar → Notes → Chat → Settings → Dashboard
-			switch m.currentView {
-			case dashboardView:
-				// Tasks are part of dashboard view, so next is Timer
-				if len(m.tasks) > 0 && m.selectedTask >= 0 {
-					// Start timer for selected task
-					task := m.tasks[m.selectedTask]
-					m.currentView = focusView
-					m.activeTimer = &TimerSession{
-						Task: task,
-						Mode: "work",
-					}
-				} else {
-					m.currentView = focusView
-				}
-			case focusView:
-				m.currentView = calendarView
-			case calendarView:
-				m.currentView = notesView
-			case notesView:
-				m.currentView = chatView
-			case chatView:
-				m.currentView = settingsView
-			case settingsView:
-				m.currentView = dashboardView
-			default:
-				m.currentView = dashboardView
-			}
+			next := map[mainView]mainView{dashboardView: focusView, focusView: calendarView, calendarView: notesView, notesView: journalView, journalView: chatView, chatView: settingsView, settingsView: dashboardView}
+			m.currentView = next[m.currentView]
+			audio.PlaySound(audio.SoundNavigate)
+			return m, nil
+
+		case key.Matches(msg, m.keys.journalKey):
+			// Switch to journal view
+			m.currentView = journalView
 			audio.PlaySound(audio.SoundNavigate)
 			return m, nil
 
@@ -1110,15 +989,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 
-		case key.Matches(msg, m.keys.calendarKey):
-			if !m.taskEntryMode {
-				m.currentView = calendarView
-				// Load tasks into calendar when switching to calendar view
-				if m.cal != nil {
-					m.loadTasksIntoCalendar()
-				}
-			}
-			return m, nil
+
 
 		case key.Matches(msg, m.keys.navCalPrev):
 			if m.currentView == calendarView && !m.taskEntryMode {
@@ -1174,21 +1045,12 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 
-		case key.Matches(msg, m.keys.glitchTest):
-			audio.PlaySound(audio.SoundGlitch)
-			m.showGlitch = true
-			m.glitchCount = 0
-			return m, nil
+
 
 		case key.Matches(msg, m.keys.themeCycle):
-			// Cycle through Kyanite themes
 			styles.CycleTheme()
 			currentTheme := styles.GetTheme()
-			
-			// Update all colors and styles
 			m.updateTheme()
-			
-			// Add theme change message to chat history
 			themeMsg := fmt.Sprintf("🎨 Theme changed to %s", currentTheme.Name)
 			m.chatHistory = append(m.chatHistory, themeMsg)
 			return m, nil
@@ -1249,18 +1111,9 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 
-		case key.Matches(msg, m.keys.notes):
-			if !m.taskEntryMode && len(m.tasks) > 0 {
-				// Launch notes for selected task
-				task := &m.tasks[m.selectedTask]
-				m.editingTask = task
-				m.notesMode = true
-				m.notesInput = task.Notes
-				audio.PlaySound(audio.SoundNavigate)
-			}
-			return m, nil
 
-			case key.Matches(msg, m.keys.start):
+
+		case key.Matches(msg, m.keys.start):
 				if m.currentView == focusView && !m.taskEntryMode {
 					audio.PlaySound(audio.SoundTimerStart)
 					if m.sessionType == workSession {
@@ -1365,7 +1218,6 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Tick(time.Millisecond*100, func(t time.Time) tea.Msg { return spinnerTickMsg(t) })
 	}
 
-	m.help.ShowAll = false
 	return m, nil
 }
 
@@ -1554,27 +1406,40 @@ func (m MainModel) renderStats() string {
 	currentTime := fmt.Sprintf("🕐 %s", time.Now().Format("15:04:05"))
 	stats = append(stats, currentTime)
 	
-	// Render enhanced stats with borders and flair
+	// Render enhanced stats with proper alignment and theme colors
 	statsContent := ""
 	for i, stat := range stats {
 		statStyle := lipgloss.NewStyle().
-			Foreground(synthYellow).
 			Bold(true).
-			Background(styles.GetBoxStyle().GetBackground()).
+			Background(styles.GetPanel()).
 			Padding(0, 1).
 			MarginLeft(1).
-			BorderStyle(lipgloss.RoundedBorder()).
-			BorderForeground(synthPink)
+			BorderStyle(lipgloss.RoundedBorder())
 		
+		// Alternate colors for visual distinction
 		if i%2 == 0 {
-			statStyle = statStyle.Foreground(synthCyan).BorderForeground(synthBlue)
+			// Even indexes (0, 2, 4): tan color
+			statStyle = statStyle.
+				Foreground(styles.GetAccent()).
+				BorderForeground(styles.GetBorder())
+		} else {
+			// Odd indexes (1, 3, 5): yellow color  
+			statStyle = statStyle.
+				Foreground(styles.GetAccent()).
+				BorderForeground(styles.GetAccent())
 		}
 		
-		statsContent += statStyle.Render("  "+stat+"  ")
+		// Ensure consistent width for alignment
+		maxWidth := 25 // Reasonable width for stat boxes
+		statText := lipgloss.NewStyle().Width(maxWidth).Render("  "+stat+"  ")
+		statsContent += statStyle.Render(statText)
+		
 		if i < len(stats)-1 {
 			statsContent += " "
 		}
-		if i%2 == 1 || i == len(stats)-1 {
+		
+		// Break lines properly: 3 per line
+		if (i+1)%3 == 0 {
 			statsContent += "\n"
 		}
 	}
@@ -1622,7 +1487,7 @@ func (m MainModel) renderTaskList() string {
 				Padding(1, 2).
 				BorderStyle(lipgloss.RoundedBorder()).
 				BorderForeground(synthBlue).
-				Render("😴 No missions in the grid - ready for new quests!")
+				Render("😴 No tasks in the grid - ready for new items!")
 			return emptyStyle
 		}
 	}
@@ -1661,7 +1526,7 @@ func (m MainModel) renderTaskList() string {
 		} else {
 			// Enhanced priority symbols with colors
 			prioritySymbol := ""
-			priorityColor := synthGreen
+			priorityColor := synthGreen // default
 			switch task.Priority {
 			case "high":
 				prioritySymbol = "🔥"
@@ -1792,119 +1657,6 @@ func (m MainModel) renderFocusView() string {
 	return b.String()
 }
 
-func (m MainModel) renderChatView() string {
-	var b strings.Builder
-
-	// Enhanced chat header with more flair
-	header := lipgloss.NewStyle().
-		Foreground(synthPink).
-		Background(styles.GetBoxStyle().GetBackground()).
-		Bold(true).
-		Italic(true).
-		Align(lipgloss.Center).
-		Padding(1, 3).
-		BorderStyle(lipgloss.DoubleBorder()).
-		BorderForeground(synthCyan).
-		BorderTop(true).
-		BorderBottom(true).
-		BorderLeft(true).
-		BorderRight(true).
-		Underline(true).
-		Render("💬 SYNTHWAVE CHAT ASSISTANT 🤖")
-	b.WriteString(header)
-	b.WriteString("\n\n")
-
-	// Enhanced chat history with visual separators
-	for i, msg := range m.chatHistory {
-		if m.aiThinking && i == len(m.chatHistory)-1 && strings.Contains(msg, "AI is thinking") {
-			// Replace with animated spinner
-			spinners := []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
-			spinner := spinners[m.aiSpinnerFrame%len(spinners)]
-			thinkingMsg := fmt.Sprintf("%s 🤖 AI is thinking%s", spinner, strings.Repeat(".", (m.aiSpinnerFrame/3)%4))
-			thinkingStyled := lipgloss.NewStyle().
-				Foreground(synthCyan).
-				Italic(true).
-				Bold(true).
-				Background(styles.GetBoxStyle().GetBackground()).
-				Padding(0, 2).
-				BorderStyle(lipgloss.RoundedBorder()).
-				BorderForeground(synthBlue).
-				Render(thinkingMsg)
-			b.WriteString(thinkingStyled)
-		} else {
-			// Add visual styling to each message
-			if strings.Contains(msg, "You:") {
-				msgStyle := lipgloss.NewStyle().
-					Foreground(synthBlue).
-					Bold(true).
-					Background(styles.GetBoxStyle().GetBackground()).
-					Padding(0, 1).
-					MarginLeft(2).
-					MarginRight(2).
-					BorderStyle(lipgloss.RoundedBorder()).
-					BorderForeground(synthBlue).
-					Render(msg)
-				b.WriteString(msgStyle)
-			} else if strings.Contains(msg, "AI:") {
-				msgStyle := lipgloss.NewStyle().
-					Foreground(synthGreen).
-					Italic(true).
-					Background(styles.GetBoxStyle().GetBackground()).
-					Padding(0, 1).
-					MarginLeft(2).
-					MarginRight(2).
-					BorderStyle(lipgloss.RoundedBorder()).
-					BorderForeground(synthGreen).
-					Render(msg)
-				b.WriteString(msgStyle)
-			} else {
-				msgStyle := lipgloss.NewStyle().
-					Foreground(synthPurple).
-					Italic(true).
-					Background(styles.GetBoxStyle().GetBackground()).
-					Padding(0, 1).
-					MarginLeft(2).
-					MarginRight(2).
-					BorderStyle(lipgloss.RoundedBorder()).
-					BorderForeground(synthPurple).
-					Render(msg)
-				b.WriteString(msgStyle)
-			}
-		}
-		b.WriteString("\n")
-	}
-	b.WriteString("\n")
-
-	// Enhanced input prompt with more flair
-	inputBox := lipgloss.NewStyle().
-		Foreground(synthPink).
-		Background(styles.GetBoxStyle().GetBackground()).
-		Bold(true).
-		Padding(0, 2).
-		BorderStyle(lipgloss.ThickBorder()).
-		BorderForeground(synthCyan).
-		BorderLeft(true).
-		BorderRight(true).
-		BorderBottom(true).
-		BorderTop(true).
-		Render("You: " + m.chatInput + "█")
-	b.WriteString(inputBox)
-	b.WriteString("\n\n")
-	
-	// Enhanced controls with more visual flair
-	controls := lipgloss.NewStyle().
-		Foreground(synthBlue).
-		Italic(true).
-		Background(styles.GetBoxStyle().GetBackground()).
-		Bold(true).
-		Padding(0, 2).
-		BorderStyle(lipgloss.RoundedBorder()).
-		BorderForeground(synthYellow).
-		Render("⌨️ [Enter] Send 📤  [Esc] Back 🔙  [Tab] Next View 📋")
-	b.WriteString(controls)
-
-	return b.String()
-}
 
 func (m MainModel) renderTaskEntry() string {
 	var b strings.Builder
@@ -1940,75 +1692,6 @@ func (m MainModel) renderTaskEntry() string {
 		b.WriteString("\n\n")
 		b.WriteString(lipgloss.NewStyle().Foreground(synthCyan).Render("[Enter] Confirm  [Esc] Cancel"))
 	}
-	
-	return b.String()
-}
-
-func (m MainModel) renderCalendarView() string {
-	var b strings.Builder
-	
-	// Calendar header
-	header := lipgloss.NewStyle().
-		Foreground(synthPink).
-		Bold(true).
-		Align(lipgloss.Center).
-		Render("📅 SYNTHWAVE CALENDAR")
-	b.WriteString(header)
-	b.WriteString("\n\n")
-	
-	// Navigation info
-	navInfo := lipgloss.NewStyle().
-		Foreground(synthCyan).
-		Render("←/h: Previous Month  →/l: Next Month  Tab: Switch View")
-	b.WriteString(navInfo)
-	b.WriteString("\n\n")
-	
-	// Calendar content
-	if m.cal != nil && m.calRenderer != nil {
-		// Update selected date
-		m.cal.SelectedDate = m.calSelectedDate
-		
-		// Render based on view mode
-		var calendarContent string
-		switch m.calViewMode {
-		case "month":
-			calendarContent = m.calRenderer.RenderMonth(m.cal)
-		case "week":
-			calendarContent = m.calRenderer.RenderWeek(m.cal)
-		case "day":
-			calendarContent = m.calRenderer.RenderDay(m.cal)
-		default:
-			calendarContent = m.calRenderer.RenderMonth(m.cal)
-		}
-		
-		b.WriteString(lipgloss.NewStyle().
-			Foreground(synthGreen).
-			Background(styles.GetBoxStyle().GetBackground()).
-			Padding(1).
-			BorderStyle(lipgloss.RoundedBorder()).
-			BorderForeground(synthBlue).
-			Render(calendarContent))
-	} else {
-		// Fallback if calendar not initialized
-		b.WriteString(lipgloss.NewStyle().
-			Foreground(synthYellow).
-			Render("📅 Calendar initializing..."))
-	}
-	
-	b.WriteString("\n\n")
-	
-	// Current month info
-	monthYear := m.calSelectedDate.Format("January 2006")
-	monthInfo := lipgloss.NewStyle().
-		Foreground(synthYellow).
-		Bold(true).
-		Render("📅 Currently viewing: " + monthYear)
-	b.WriteString(monthInfo)
-	b.WriteString("\n\n")
-	
-	// Help text
-	helpText := lipgloss.NewStyle().Foreground(synthBlue).Render("Press 'Tab' to return to dashboard")
-	b.WriteString(helpText)
 	
 	return b.String()
 }
@@ -2149,8 +1832,9 @@ func (m MainModel) renderSettingsView() string {
 	b.WriteString("\n\n")
 	
 	// Current settings display
+	currentTheme := styles.GetTheme().Name
 	settings := []string{
-		fmt.Sprintf("🎨 Theme: %s", m.themeNames[m.currentThemeIndex]),
+		fmt.Sprintf("🎨 Theme: %s", currentTheme),
 		fmt.Sprintf("🔊 Audio: %t", m.audioEnabled),
 		fmt.Sprintf("⏰ Work Duration: %v", m.workDuration),
 		fmt.Sprintf("☕ Break Duration: %v", m.breakDuration),
@@ -2232,11 +1916,6 @@ func (m MainModel) renderDashboard() string {
 	b.WriteString(bottomLine)
 	b.WriteString("\n\n")
 
-	// Show glitch if active
-	if m.showGlitch {
-		b.WriteString(glitchStyle.Render(m.glitchMessage))
-		b.WriteString("\n\n")
-	}
 
 	// Task entry overlay
 	if m.taskEntryMode {
@@ -2398,23 +2077,22 @@ func (m MainModel) renderDashboard() string {
 	rightContent += lipgloss.NewStyle().Foreground(synthYellow).Render("📅 " + time.Now().Format("2006-01-02")) + "\n\n"
 	rightContent += sectionTitleStyle.Render("⚡ QUICK ACTIONS:") + "\n"
 	actions := []string{
-		"[A] Add mission",
+		"[A] Add task",
 		"[D] Complete task", 
 		"[P] Change priority",
 		"[C] Chat assistant", 
 		"[F] Focus mode",
-		"[G] Test glitch",
 		"[↑/↓] Navigate",
 	}
 	for _, action := range actions {
-		rightContent += lipgloss.NewStyle().Foreground(synthCyan).Render("  " + action) + "\n"
+		rightContent += lipgloss.NewStyle().Foreground(styles.GetAccent()).Render("  " + action) + "\n"
 	}
 
 	// Apply width constraints safely
 	if m.width > 80 { // Only apply if we have enough width
 		colWidth := (m.width - 6) / 3 // Account for padding
-		if colWidth < 30 { // Minimum column width
-			colWidth = 30
+		if colWidth < 25 { // Minimum column width for small windows
+			colWidth = 25
 		}
 		
 		leftStyle := lipgloss.NewStyle().Width(colWidth)
@@ -2424,9 +2102,25 @@ func (m MainModel) renderDashboard() string {
 		leftContent = leftStyle.Render(leftContent)
 		centerContent = centerStyle.Render(centerContent)
 		rightContent = rightStyle.Render(rightContent)
+	} else {
+		// For small windows, stack vertically
+		leftStyle := lipgloss.NewStyle().Width(m.width - 4)
+		centerStyle := lipgloss.NewStyle().Width(m.width - 4)
+		rightStyle := lipgloss.NewStyle().Width(m.width - 4)
+		
+		leftContent = leftStyle.Render(leftContent)
+		centerContent = centerStyle.Render(centerContent)
+		rightContent = rightStyle.Render(rightContent)
 	}
 	
-	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftContent, centerContent, rightContent)
+	// Use appropriate layout based on window size
+	var layout string
+	if m.width > 80 {
+		layout = lipgloss.JoinHorizontal(lipgloss.Top, leftContent, centerContent, rightContent)
+	} else {
+		// Small windows: stack vertically
+		layout = lipgloss.JoinVertical(lipgloss.Left, leftContent, centerContent, rightContent)
+	}
 	b.WriteString(layout)
 
 	return b.String()
@@ -2481,6 +2175,8 @@ func (m MainModel) View() string {
 			content = m.renderCalendarView()
 		case notesView:
 			content = m.renderNotesEditor() // Notes as standalone view
+		case journalView:
+			content = m.renderJournalView()
 		case settingsView:
 			content = m.renderSettingsView()
 		default:
@@ -2488,19 +2184,19 @@ func (m MainModel) View() string {
 		}
 	}
 
-	// Main container with theme-aware background
-	mainContainer := lipgloss.NewStyle().
-		BorderStyle(lipgloss.RoundedBorder()).
-		BorderForeground(synthPink).
-		Padding(1).
-		Background(styles.GetBackground()).
-		Width(m.width - 4).
-		Height(m.height - 4)
+	// Add help bar at the bottom
+	helpBar := m.renderHelpBar()
 
-	// Add help at the bottom
-	helpText := helpStyle.Render("\n🎮 " + m.help.View(m.keys))
+	// Combine content and help bar
+	fullContent := lipgloss.NewStyle().
+		Height(m.height).
+		Width(m.width).
+		Render(lipgloss.JoinVertical(lipgloss.Left, 
+			content,
+			helpBar,
+		))
 
-	return mainContainer.Render(content + helpText)
+	return fullContent
 }
 
 // Overlay helper functions
@@ -2611,6 +2307,10 @@ func (m MainModel) renderFilterOverlay() string {
 }
 
 func StartMainDashboard(tasks []DashboardTask) error {
+	// Kyanite Suite Dashboard Initialization
+	fmt.Println("🌌 Kyanite Suite - focus.sh Dashboard")
+	fmt.Println("✨ Loading task management interface...")
+	
 	model := NewMainModel(tasks)
 	p := tea.NewProgram(model, tea.WithAltScreen(), tea.WithMouseCellMotion())
 	_, err := p.Run()

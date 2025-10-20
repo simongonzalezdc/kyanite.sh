@@ -78,9 +78,16 @@ func LoadConfig() (*Config, error) {
 
 	// Read config file
 	if err := viper.ReadInConfig(); err != nil {
-		// If file not found, create it with defaults
+		// If file not found, create it with defaults and set viper to that file
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			if err := createDefaultConfig(); err != nil {
+				return nil, err
+			}
+			// Point viper to the created file and read again
+			homeDir2, _ := os.UserHomeDir()
+			cfgPath := filepath.Join(homeDir2, ".focus", "config.yaml")
+			viper.SetConfigFile(cfgPath)
+			if err := viper.ReadInConfig(); err != nil {
 				return nil, err
 			}
 		} else {
@@ -120,7 +127,19 @@ func SaveConfig(config *Config) error {
 	}
 
 	configFile := filepath.Join(configDir, "config.yaml")
-	return viper.WriteConfigAs(configFile)
+	viper.SetConfigFile(configFile)
+	if err := viper.WriteConfigAs(configFile); err != nil {
+		return err
+	}
+	// Ensure file exists on disk
+	if _, err := os.Stat(configFile); os.IsNotExist(err) {
+		f, err2 := os.Create(configFile)
+		if err2 != nil {
+			return err2
+		}
+		_ = f.Close()
+	}
+	return nil
 }
 
 // GetConfig returns the global configuration
@@ -158,8 +177,8 @@ func setDefaults() {
 	viper.SetDefault("ai.max_tokens", 1000)
 	viper.SetDefault("ai.timeout", 30)
 
-	// Theme defaults
-	viper.SetDefault("theme", "synthwave")
+	// Theme defaults (Kyanite master)
+	viper.SetDefault("theme", "amber-night")
 
 	// Dashboard defaults
 	viper.SetDefault("dashboard.auto_refresh", true)
