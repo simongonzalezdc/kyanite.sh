@@ -95,21 +95,43 @@ go test ./...
 
 ## Documentation
 
-- [kyanite_implementation_master.md](kyanite_implementation_master.md) - Kyanite Suite Implementation Master (themes, standards, migration)
-- [CALENDAR_PLAN.md](CALENDAR_PLAN.md) - Calendar implementation status
-- [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) - Code organization  
-- [NEON_DEVELOPMENT_PLAN.md](NEON_DEVELOPMENT_PLAN.md) - Development progress
-- [ROADMAP.md](ROADMAP.md) - Future development plans
-- [AI_TODO_AGENT_PRD.md](AI_TODO_AGENT_PRD.md) - Product requirements
-- [AI_TODO_AGENT_TDD.md](AI_TODO_AGENT_TDD.md) - Technical design
+📖 **[Complete Documentation](docs/)**
+
+### Quick Links
+- [Installation Guide](docs/user/installation.md) - Get Focus.sh running
+- [Configuration Guide](docs/user/configuration.md) - Set up AI and preferences  
+- [Commands Reference](docs/user/commands.md) - All commands and options
+- [Troubleshooting](docs/user/troubleshooting.md) - Common issues and solutions
+- [FAQ](docs/user/faq.md) - Frequently asked questions
+- [Contributing Guide](CONTRIBUTING.md) - Development contribution guide
+- [Roadmap](docs/project/roadmap.md) - Future development plans
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contributing
+
+Contributions are welcome! 🎉 Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## Support
+
+- 📖 **Documentation**: [docs/](docs/)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/kyanite/focus/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/kyanite/focus/discussions)
+- 🔒 **Security**: [Security Policy](SECURITY.md)
+
+---
+
+**Built with ❤️ using Go, Bubble Tea, and Charm libraries**
 
 ## 🎯 Commands Overview
 
 ### **Core Task Management**
 - `focus add` - Add tasks with AI parsing
 - `focus list` - View tasks with beautiful formatting
-- `focus done` - Mark tasks as complete
-- `focus remove` - Delete tasks
+- `focus complete` - Mark tasks as complete
+- `focus delete` - Delete tasks
 
 ### **AI-Powered Features**
 - `focus chat` - AI assistance for tasks and usage

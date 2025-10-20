@@ -1,7 +1,7 @@
-# CRUSH CLI Coding Lab
+# Focus.sh Development Lab
 
 ## Purpose
-This directory is a coding lab for experimenting with AI-powered CLI tools using Charm libraries. Focus on learning development patterns with local LLMs (Ollama) and OpenRouter fallback.
+This directory is a development lab for experimenting with AI-powered CLI tools using Charm libraries. Focus on learning development patterns with local LLMs (Ollama) and OpenRouter fallback.
 
 ## Essential Commands
 - Build: `go build ./...` or `go build -o focus ./cmd/focus`
