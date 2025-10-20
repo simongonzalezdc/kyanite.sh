@@ -45,14 +45,14 @@ type RecoveryAttempt struct {
 
 // ErrorContext contains contextual information for an error
 type ErrorContext struct {
-	RequestID   string            `json:"request_id,omitempty"`
-	UserID      string            `json:"user_id,omitempty"`
-	SessionID   string            `json:"session_id,omitempty"`
-	TraceID     string            `json:"trace_id,omitempty"`
-	Component   string            `json:"component,omitempty"`
-	Operation   string            `json:"operation,omitempty"`
-	Metadata    map[string]string `json:"metadata,omitempty"`
-	CreatedAt   time.Time         `json:"created_at"`
+	RequestID string            `json:"request_id,omitempty"`
+	UserID    string            `json:"user_id,omitempty"`
+	SessionID string            `json:"session_id,omitempty"`
+	TraceID   string            `json:"trace_id,omitempty"`
+	Component string            `json:"component,omitempty"`
+	Operation string            `json:"operation,omitempty"`
+	Metadata  map[string]string `json:"metadata,omitempty"`
+	CreatedAt time.Time         `json:"created_at"`
 }
 
 // RecoveryStats tracks statistics for recovery attempts
@@ -69,13 +69,13 @@ type ErrorManager struct {
 	config    *ErrorConfig
 	reporters []ErrorReporter
 	mu        sync.RWMutex
-	
+
 	// Enhanced error tracking
-	errorStats    map[string]int
-	errorHistory  []ErrorReport
-	historyLimit  int
-	contextStore  map[string]*ErrorContext
-	
+	errorStats   map[string]int
+	errorHistory []ErrorReport
+	historyLimit int
+	contextStore map[string]*ErrorContext
+
 	// Performance monitoring
 	recoveryStats map[ErrorRecovery]*RecoveryStats
 }
@@ -164,13 +164,13 @@ func (em *ErrorManager) AddReporter(reporter ErrorReporter) {
 // HandleError handles an error with logging and reporting
 func (em *ErrorManager) HandleError(ctx context.Context, err error) *ErrorReport {
 	appErr := em.wrapError(err)
-	
+
 	// Update error statistics
 	em.updateErrorStats(appErr.Category)
-	
+
 	// Extract context information
 	errorContext := em.extractContext(ctx, appErr)
-	
+
 	report := &ErrorReport{
 		Error:     appErr,
 		Handled:   true,
@@ -424,9 +424,9 @@ func (em *ErrorManager) GetErrorStats() map[string]interface{} {
 	categoryCounts := make(map[string]int)
 	severityCounts := map[string]int{
 		"critical": 0,
-		"high":      0,
-		"medium":    0,
-		"low":       0,
+		"high":     0,
+		"medium":   0,
+		"low":      0,
 	}
 
 	for category, count := range em.errorStats {
@@ -443,7 +443,7 @@ func (em *ErrorManager) GetErrorStats() map[string]interface{} {
 		if report.Timestamp.After(oneHourAgo) {
 			recentCount++
 		}
-		
+
 		// Count by severity
 		switch report.Error.Severity {
 		case SeverityCritical:
@@ -460,9 +460,9 @@ func (em *ErrorManager) GetErrorStats() map[string]interface{} {
 			stats["low_errors"] = stats["low_errors"].(int) + 1
 		}
 	}
-	
+
 	stats["recent_errors"] = recentCount
-	
+
 	// Calculate error rate (errors per hour)
 	hours := 24.0 // Default to 24 hours for now
 	if len(em.errorHistory) > 0 {
@@ -472,11 +472,11 @@ func (em *ErrorManager) GetErrorStats() map[string]interface{} {
 			hours = elapsed
 		}
 	}
-	
+
 	if hours > 0 {
 		stats["error_rate"] = float64(stats["total_errors"].(int)) / hours
 	}
-	
+
 	// Add recovery statistics
 	for _, recStats := range em.recoveryStats {
 		stats["recovery_success"] = stats["recovery_success"].(int) + recStats.SuccessCount
@@ -490,7 +490,7 @@ func (em *ErrorManager) GetErrorStats() map[string]interface{} {
 func (em *ErrorManager) updateErrorStats(category ErrorCategory) {
 	em.mu.Lock()
 	defer em.mu.Unlock()
-	
+
 	em.errorStats[string(category)]++
 }
 
@@ -498,9 +498,9 @@ func (em *ErrorManager) updateErrorStats(category ErrorCategory) {
 func (em *ErrorManager) storeErrorInHistory(report ErrorReport) {
 	em.mu.Lock()
 	defer em.mu.Unlock()
-	
+
 	em.errorHistory = append(em.errorHistory, report)
-	
+
 	// Limit history size
 	if len(em.errorHistory) > em.historyLimit {
 		em.errorHistory = em.errorHistory[1:]
@@ -510,17 +510,17 @@ func (em *ErrorManager) storeErrorInHistory(report ErrorReport) {
 // extractContext extracts context information for an error
 func (em *ErrorManager) extractContext(ctx context.Context, err *AppError) map[string]string {
 	context := make(map[string]string)
-	
+
 	// Extract basic error information
 	context["error_code"] = err.Code
 	context["error_category"] = string(err.Category)
 	context["error_severity"] = string(err.Severity)
 	context["error_recovery"] = string(err.Recovery)
-	
+
 	if err.Operation != "" {
 		context["operation"] = err.Operation
 	}
-	
+
 	// Extract context values from the context if available
 	if ctx != nil {
 		if reqID := ctx.Value("request_id"); reqID != nil {
@@ -528,26 +528,26 @@ func (em *ErrorManager) extractContext(ctx context.Context, err *AppError) map[s
 				context["request_id"] = id
 			}
 		}
-		
+
 		if userID := ctx.Value("user_id"); userID != nil {
 			if id, ok := userID.(string); ok {
 				context["user_id"] = id
 			}
 		}
-		
+
 		if sessionID := ctx.Value("session_id"); sessionID != nil {
 			if id, ok := sessionID.(string); ok {
 				context["session_id"] = id
 			}
 		}
-		
+
 		if traceID := ctx.Value("trace_id"); traceID != nil {
 			if id, ok := traceID.(string); ok {
 				context["trace_id"] = id
 			}
 		}
 	}
-	
+
 	return context
 }
 
@@ -562,17 +562,17 @@ func (em *ErrorManager) logErrorWithContext(err *AppError, context map[string]st
 	for k, v := range context {
 		fields = append(fields, k, v)
 	}
-	
+
 	// Add error-specific fields
 	fields = append(fields, "error", err.Error())
 	fields = append(fields, "error_code", err.Code)
 	fields = append(fields, "error_category", err.Category)
 	fields = append(fields, "error_severity", err.Severity)
-	
+
 	if err.Operation != "" {
 		fields = append(fields, "operation", err.Operation)
 	}
-	
+
 	if err.StackTrace != "" {
 		fields = append(fields, "stack_trace", err.StackTrace)
 	}
@@ -602,7 +602,7 @@ func (em *ErrorManager) logErrorWithContext(err *AppError, context map[string]st
 func (em *ErrorManager) UpdateRecoveryStats(recovery ErrorRecovery, success bool) {
 	em.mu.Lock()
 	defer em.mu.Unlock()
-	
+
 	stats, exists := em.recoveryStats[recovery]
 	if !exists {
 		stats = &RecoveryStats{
@@ -613,7 +613,7 @@ func (em *ErrorManager) UpdateRecoveryStats(recovery ErrorRecovery, success bool
 		}
 		em.recoveryStats[recovery] = stats
 	}
-	
+
 	stats.LastAttempt = time.Now()
 	if success {
 		stats.SuccessCount++
@@ -626,16 +626,16 @@ func (em *ErrorManager) UpdateRecoveryStats(recovery ErrorRecovery, success bool
 func (em *ErrorManager) GetRecentErrors(duration time.Duration) []ErrorReport {
 	em.mu.RLock()
 	defer em.mu.RUnlock()
-	
+
 	cutoff := time.Now().Add(-duration)
 	var recent []ErrorReport
-	
+
 	for _, report := range em.errorHistory {
 		if report.Timestamp.After(cutoff) {
 			recent = append(recent, report)
 		}
 	}
-	
+
 	return recent
 }
 
@@ -643,11 +643,11 @@ func (em *ErrorManager) GetRecentErrors(duration time.Duration) []ErrorReport {
 func (em *ErrorManager) GetErrorHistory() []ErrorReport {
 	em.mu.RLock()
 	defer em.mu.RUnlock()
-	
+
 	// Return a copy to prevent external modification
 	history := make([]ErrorReport, len(em.errorHistory))
 	copy(history, em.errorHistory)
-	
+
 	return history
 }
 
@@ -655,7 +655,7 @@ func (em *ErrorManager) GetErrorHistory() []ErrorReport {
 func (em *ErrorManager) ClearErrorHistory() {
 	em.mu.Lock()
 	defer em.mu.Unlock()
-	
+
 	em.errorHistory = make([]ErrorReport, 0)
 	em.errorStats = make(map[string]int)
 }
@@ -664,7 +664,7 @@ func (em *ErrorManager) ClearErrorHistory() {
 func (em *ErrorManager) SetErrorContext(key string, context *ErrorContext) {
 	em.mu.Lock()
 	defer em.mu.Unlock()
-	
+
 	em.contextStore[key] = context
 }
 
@@ -672,7 +672,7 @@ func (em *ErrorManager) SetErrorContext(key string, context *ErrorContext) {
 func (em *ErrorManager) GetErrorContext(key string) *ErrorContext {
 	em.mu.RLock()
 	defer em.mu.RUnlock()
-	
+
 	return em.contextStore[key]
 }
 
@@ -680,7 +680,7 @@ func (em *ErrorManager) GetErrorContext(key string) *ErrorContext {
 func (em *ErrorManager) ClearErrorContext(key string) {
 	em.mu.Lock()
 	defer em.mu.Unlock()
-	
+
 	delete(em.contextStore, key)
 }
 

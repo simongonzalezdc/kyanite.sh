@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/ui/dimension"
 	"github.com/Kyanite/noise/internal/theme"
+	"github.com/Kyanite/noise/internal/ui/dimension"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/harmonica"
@@ -122,11 +122,11 @@ func NewPreviewPaneModel() *PreviewPaneModel {
 		isScrolling:     false,
 		shortcutManager: NewShortcutManager(),
 	}
-	
+
 	t := theme.GetManager().Current()
 	model.focusedStyle = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(t.Primary)
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(t.Primary)
 	model.blurredStyle = lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Secondary)
@@ -139,8 +139,6 @@ func NewPreviewPaneModel() *PreviewPaneModel {
 		Background(t.Background).
 		Padding(0, 1).
 		Width(20)
-	}
-	
 	// Initialize real-time preview features
 	model.realtimeManager = NewRealTimePreviewManager(DefaultPreviewUpdateConfig())
 	model.lastScrollPositions = make(map[string]int)
@@ -149,7 +147,7 @@ func NewPreviewPaneModel() *PreviewPaneModel {
 	model.showReadingTime = true
 	model.showTOC = true
 	model.renderCache = make(map[string]string)
-	model.maxCacheSize = 50 // Will be adjusted based on terminal size in SetDimensions
+	model.maxCacheSize = 50        // Will be adjusted based on terminal size in SetDimensions
 	model.contentThreshold = 50000 // 50KB threshold for enabling optimizations
 	model.enableThrottling = true
 	model.throttleDuration = 100 * time.Millisecond
@@ -515,12 +513,12 @@ func (m *PreviewPaneModel) View() string {
 			statsParts = append(statsParts, fmt.Sprintf("%s read", m.formatDuration(m.previewStats.ReadingTime)))
 		}
 		if len(statsParts) > 0 {
-		t := theme.GetManager().Current()
-		statsInfo = lipgloss.NewStyle().
-			Foreground(t.Secondary).
-			Align(lipgloss.Center).
-			Width(m.width - 4).
-			Render(strings.Join(statsParts, " â€¢ "))
+			t := theme.GetManager().Current()
+			statsInfo = lipgloss.NewStyle().
+				Foreground(t.Secondary).
+				Align(lipgloss.Center).
+				Width(m.width - 4).
+				Render(strings.Join(statsParts, " â€¢ "))
 		}
 	}
 

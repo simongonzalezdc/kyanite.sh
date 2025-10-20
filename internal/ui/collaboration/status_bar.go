@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Kyanite/noise/internal/ui/dimension"
-	"github.com/Kyanite/noise/internal/ui/styles"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -42,15 +41,11 @@ func NewCollaborationStatusBar() *CollaborationStatusBar {
 			Padding(0, 1).
 			Margin(0, 1),
 		activeStyle: lipgloss.NewStyle().
-			Foreground(styles.Success).
 			Bold(true),
-		inactiveStyle: lipgloss.NewStyle().
-			Foreground(styles.TextMuted),
+		inactiveStyle: lipgloss.NewStyle(),
 		conflictStyle: lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#ff0000")).
 			Bold(true),
 		detailsStyle: lipgloss.NewStyle().
-			Foreground(styles.TextSecondary).
 			Italic(true),
 	}
 }

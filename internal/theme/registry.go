@@ -151,7 +151,7 @@ func Default() Theme {
 func GetTheme(id string) Theme {
 	// Check if migration needed
 	id = migrateThemeID(id)
-	
+
 	if theme, ok := Registry[id]; ok {
 		return theme
 	}
@@ -177,26 +177,25 @@ func ListThemes() []string {
 // migrateThemeID migrates old theme IDs to new ones
 func migrateThemeID(oldID string) string {
 	migrations := map[string]string{
-		"slate":         "twilight-mist",
-		"slate-mist":    "twilight-mist",
-		"violet-dusk":   "twilight-mist",
-		"molten-gold":   "sunlight",
-		"clay-roads":    "clay-earth",
-		"iron-storm":    "iron-forge",
-		"jade-tide":     "cyan-wave",
-		"sunset-ember":  "electric-rose",
+		"slate":          "twilight-mist",
+		"slate-mist":     "twilight-mist",
+		"violet-dusk":    "twilight-mist",
+		"molten-gold":    "sunlight",
+		"clay-roads":     "clay-earth",
+		"iron-storm":     "iron-forge",
+		"jade-tide":      "cyan-wave",
+		"sunset-ember":   "electric-rose",
 		"forest-whisper": "forest-path",
 		"electric-bloom": "electric-rose",
-		"plasma-pulse":  "amber-night",  // Fallback to default
-		"sage-meadow":   "forest-path",
-		"midnight-jazz": "amber-night",  // Migrate to default
-		"midnight_jazz": "amber-night",
-		"purple-jazz":   "amber-night",
+		"plasma-pulse":   "amber-night", // Fallback to default
+		"sage-meadow":    "forest-path",
+		"midnight-jazz":  "amber-night", // Migrate to default
+		"midnight_jazz":  "amber-night",
+		"purple-jazz":    "amber-night",
 	}
-	
+
 	if newID, ok := migrations[oldID]; ok {
 		return newID
 	}
 	return oldID
 }
-

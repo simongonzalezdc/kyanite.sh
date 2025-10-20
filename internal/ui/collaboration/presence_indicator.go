@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/Kyanite/noise/internal/collaboration"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/Kyanite/noise/internal/ui/dimension"
-	"github.com/Kyanite/noise/internal/ui/styles"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -45,7 +45,6 @@ func NewPresenceIndicatorModel() *PresenceIndicatorModel {
 		selected:    0,
 		containerStyle: lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("#666666")).
 			Padding(0, 1),
 		indicatorStyle: lipgloss.NewStyle().
 			Padding(0, 1).
@@ -53,10 +52,8 @@ func NewPresenceIndicatorModel() *PresenceIndicatorModel {
 		selectedStyle: lipgloss.NewStyle().
 			Padding(0, 1).
 			Margin(0, 1).
-			Background(styles.Accent).
-			Foreground(styles.Background),
+			Foreground(lipgloss.Color("#ffffff")),
 		detailsStyle: lipgloss.NewStyle().
-			Foreground(styles.TextMuted).
 			Italic(true),
 	}
 }
@@ -91,9 +88,10 @@ func (m *PresenceIndicatorModel) View() string {
 		title += fmt.Sprintf(" (%d users)", len(m.indicators))
 	}
 
+	t := theme.GetManager().Current()
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(styles.Primary).
+		Foreground(t.Primary).
 		MarginBottom(1)
 
 	content.WriteString(titleStyle.Render(title))
@@ -151,21 +149,67 @@ func (m *PresenceIndicatorModel) renderIndicator(content *strings.Builder, indic
 	content.WriteString("\n")
 }
 
+// renderIndicatorWithStyle renders a single presence indicator with specific styles
+func (m *PresenceIndicatorModel) renderIndicatorWithStyle(content *strings.Builder, indicator SessionPresenceIndicator, index int, indicatorStyle, selectedStyle, detailsStyle lipgloss.Style) {
+	var style lipgloss.Style
+	if m.showDetails && index == m.selected {
+		style = selectedStyle
+	} else {
+		style = indicatorStyle
+	}
+
+	// Create indicator symbol with color
+	icon := m.getColoredIcon(indicator.Indicator)
+
+	// Format user info
+	userInfo := fmt.Sprintf("%s %s", icon, indicator.Username)
+
+	// Add role indicator
+	roleIcon := m.getRoleIcon(indicator.Role)
+	if roleIcon != "" {
+		userInfo += fmt.Sprintf(" %s", roleIcon)
+	}
+
+	// Add cursor position if available
+	if indicator.Cursor.Line > 0 || indicator.Cursor.Column > 0 {
+		userInfo += fmt.Sprintf(" (Ln %d, Col %d)", indicator.Cursor.Line+1, indicator.Cursor.Column+1)
+	}
+
+	// Render the indicator
+	rendered := style.Render(userInfo)
+	content.WriteString(rendered)
+	content.WriteString(" ")
+
+	// Add details if in details mode
+	if m.showDetails {
+		details := m.getUserDetails(indicator)
+		if details != "" {
+			content.WriteString("\n")
+			content.WriteString(detailsStyle.Render("  " + details))
+		}
+	}
+
+	content.WriteString("\n")
+}
+
 // getColoredIcon returns a colored icon for the presence status
 func (m *PresenceIndicatorModel) getColoredIcon(indicator collaboration.PresenceIndicator) string {
+	// Get current theme
+	t := theme.GetManager().Current()
+
 	var color lipgloss.Color
 
 	switch indicator.Color {
 	case "green":
-		color = lipgloss.Color("#00ff00")
+		color = t.Success
 	case "yellow":
-		color = lipgloss.Color("#ffff00")
+		color = t.Warning
 	case "red":
-		color = lipgloss.Color("#ff0000")
+		color = t.Error
 	case "gray":
-		color = lipgloss.Color("#666666")
+		color = t.Secondary
 	default:
-		color = lipgloss.Color("#666666")
+		color = t.Secondary
 	}
 
 	iconStyle := lipgloss.NewStyle().Foreground(color)

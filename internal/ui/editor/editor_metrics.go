@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -155,9 +156,12 @@ func (m *EditorMetrics) RenderFallbackStatusBar(state StateManagerInterface, sho
 		}
 	}
 
+	// Get current theme
+	t := theme.GetManager().Current()
+
 	statusStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#888888")).
-		Background(lipgloss.Color("#2D2D2D")).
+		Foreground(t.Text).
+		Background(t.Background).
 		Padding(0, 1).
 		Width(m.width - 4)
 

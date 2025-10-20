@@ -6,7 +6,7 @@ import (
 
 	"github.com/Kyanite/noise/internal/domain"
 	"github.com/Kyanite/noise/internal/infra/db"
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -85,7 +85,8 @@ func NewProjectManagerModel(database *db.DB) *ProjectManagerModel {
 	// Initialize spinner
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(styles.Primary)
+	t := theme.GetManager().Current()
+	s.Style = lipgloss.NewStyle().Foreground(t.Primary)
 
 	// Initialize project list
 	projectList := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
@@ -584,8 +585,9 @@ func (m *ProjectManagerModel) getTemplateByName(name string) *ProjectTemplate {
 }
 
 func (m *ProjectManagerModel) renderLoading() string {
+	t := theme.GetManager().Current()
 	loadingStyle := lipgloss.NewStyle().
-		Foreground(styles.Primary).
+		Foreground(t.Primary).
 		Bold(true).
 		Align(lipgloss.Center).
 		Width(m.width).
@@ -639,15 +641,16 @@ func (p projectTemplateItem) FilterValue() string {
 // Render methods for different states
 
 func (m *ProjectManagerModel) renderProjectList() string {
+	t := theme.GetManager().Current()
 	headerStyle := lipgloss.NewStyle().
-		Foreground(styles.Primary).
+		Foreground(t.Primary).
 		Bold(true).
 		Border(lipgloss.NormalBorder()).
-		BorderForeground(styles.BorderColor).
+		BorderForeground(t.Secondary).
 		Padding(0, 1)
 
 	contentStyle := lipgloss.NewStyle().
-		Foreground(styles.TextPrimary)
+		Foreground(t.Text)
 
 	// Header
 	header := headerStyle.Render("ðŸŽµ Project Manager")
@@ -657,17 +660,17 @@ func (m *ProjectManagerModel) renderProjectList() string {
 	statusBar := ""
 	if m.statusMessage != "" {
 		statusBar = lipgloss.NewStyle().
-			Foreground(styles.Success).
+			Foreground(t.Success).
 			Render("âœ“ " + m.statusMessage)
 	} else if m.errorMessage != "" {
 		statusBar = lipgloss.NewStyle().
-			Foreground(styles.Error).
+			Foreground(t.Error).
 			Render("âœ— " + m.errorMessage)
 	}
 
 	// Instructions
 	instructions := lipgloss.NewStyle().
-		Foreground(styles.TextSecondary).
+		Foreground(t.Secondary).
 		Render("\n[n] New Project  [t] Templates  [Enter] Open  [Esc] Back")
 
 	// Project list
@@ -685,12 +688,12 @@ func (m *ProjectManagerModel) renderProjectList() string {
 	if m.width > 100 && len(m.recentProjects) > 0 {
 		recentStyle := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
-			BorderForeground(styles.BorderColor).
+			BorderForeground(t.Secondary).
 			Padding(0, 1).
 			Width(30)
 
 		recentHeader := lipgloss.NewStyle().
-			Foreground(styles.Primary).
+			Foreground(t.Primary).
 			Bold(true).
 			Render("Recent Projects")
 
@@ -717,15 +720,16 @@ func (m *ProjectManagerModel) renderProjectList() string {
 }
 
 func (m *ProjectManagerModel) renderProjectDetail() string {
+	t := theme.GetManager().Current()
 	headerStyle := lipgloss.NewStyle().
-		Foreground(styles.Primary).
+		Foreground(t.Primary).
 		Bold(true).
 		Border(lipgloss.NormalBorder()).
-		BorderForeground(styles.BorderColor).
+		BorderForeground(t.Secondary).
 		Padding(0, 1)
 
 	contentStyle := lipgloss.NewStyle().
-		Foreground(styles.TextPrimary)
+		Foreground(t.Text)
 
 	// Header
 	header := headerStyle.Render(fmt.Sprintf("ðŸ“ %s", m.currentProject.Name))
@@ -738,18 +742,18 @@ func (m *ProjectManagerModel) renderProjectDetail() string {
 	info += fmt.Sprintf("Updated: %s\n", m.currentProject.UpdatedAt.Format("2006-01-02 15:04"))
 
 	infoStyle := lipgloss.NewStyle().
-		Foreground(styles.TextSecondary).
+		Foreground(t.Secondary).
 		Padding(0, 2).
 		Render(info)
 
 	// Instructions
 	instructions := lipgloss.NewStyle().
-		Foreground(styles.TextSecondary).
+		Foreground(t.Secondary).
 		Render("\n[Tab] Switch to Songs  [Enter] Open Song  [Esc] Back")
 
 	// Songs list
 	songsHeader := lipgloss.NewStyle().
-		Foreground(styles.Primary).
+		Foreground(t.Primary).
 		Bold(true).
 		Render("Songs in Project:")
 	songsHeader += "\n"
@@ -769,15 +773,16 @@ func (m *ProjectManagerModel) renderProjectDetail() string {
 }
 
 func (m *ProjectManagerModel) renderCreateProject() string {
+	t := theme.GetManager().Current()
 	headerStyle := lipgloss.NewStyle().
-		Foreground(styles.Primary).
+		Foreground(t.Primary).
 		Bold(true).
 		Border(lipgloss.NormalBorder()).
-		BorderForeground(styles.BorderColor).
+		BorderForeground(t.Secondary).
 		Padding(0, 1)
 
 	contentStyle := lipgloss.NewStyle().
-		Foreground(styles.TextPrimary)
+		Foreground(t.Text)
 
 	// Header
 	header := headerStyle.Render("ðŸ“ Create New Project")
@@ -791,7 +796,7 @@ func (m *ProjectManagerModel) renderCreateProject() string {
 
 	// Instructions
 	instructions := lipgloss.NewStyle().
-		Foreground(styles.TextSecondary).
+		Foreground(t.Secondary).
 		Render("[Tab] Navigate  [Enter] Create  [Esc] Cancel")
 
 	// Layout
@@ -806,15 +811,16 @@ func (m *ProjectManagerModel) renderCreateProject() string {
 
 func (m *ProjectManagerModel) renderEditProject() string {
 	// Similar to create but with existing data
+	t := theme.GetManager().Current()
 	headerStyle := lipgloss.NewStyle().
-		Foreground(styles.Primary).
+		Foreground(t.Primary).
 		Bold(true).
 		Border(lipgloss.NormalBorder()).
-		BorderForeground(styles.BorderColor).
+		BorderForeground(t.Secondary).
 		Padding(0, 1)
 
 	contentStyle := lipgloss.NewStyle().
-		Foreground(styles.TextPrimary)
+		Foreground(t.Text)
 
 	header := headerStyle.Render("âœï¸  Edit Project")
 	header += "\n\n"
@@ -825,7 +831,7 @@ func (m *ProjectManagerModel) renderEditProject() string {
 	form += m.projectDescInput.View() + "\n\n"
 
 	instructions := lipgloss.NewStyle().
-		Foreground(styles.TextSecondary).
+		Foreground(t.Secondary).
 		Render("[Tab] Navigate  [Enter] Save  [Esc] Cancel")
 
 	content := lipgloss.JoinVertical(lipgloss.Left,
@@ -838,15 +844,16 @@ func (m *ProjectManagerModel) renderEditProject() string {
 }
 
 func (m *ProjectManagerModel) renderSongList() string {
+	t := theme.GetManager().Current()
 	headerStyle := lipgloss.NewStyle().
-		Foreground(styles.Primary).
+		Foreground(t.Primary).
 		Bold(true).
 		Border(lipgloss.NormalBorder()).
-		BorderForeground(styles.BorderColor).
+		BorderForeground(t.Secondary).
 		Padding(0, 1)
 
 	contentStyle := lipgloss.NewStyle().
-		Foreground(styles.TextPrimary)
+		Foreground(t.Text)
 
 	// Header
 	header := headerStyle.Render(fmt.Sprintf("ðŸŽµ Songs in: %s", m.currentProject.Name))
@@ -857,7 +864,7 @@ func (m *ProjectManagerModel) renderSongList() string {
 
 	// Instructions
 	instructions := lipgloss.NewStyle().
-		Foreground(styles.TextSecondary).
+		Foreground(t.Secondary).
 		Render("\n[Enter] Open Song  [Esc] Back")
 
 	// Layout
@@ -871,15 +878,16 @@ func (m *ProjectManagerModel) renderSongList() string {
 }
 
 func (m *ProjectManagerModel) renderProjectTemplates() string {
+	t := theme.GetManager().Current()
 	headerStyle := lipgloss.NewStyle().
-		Foreground(styles.Primary).
+		Foreground(t.Primary).
 		Bold(true).
 		Border(lipgloss.NormalBorder()).
-		BorderForeground(styles.BorderColor).
+		BorderForeground(t.Secondary).
 		Padding(0, 1)
 
 	contentStyle := lipgloss.NewStyle().
-		Foreground(styles.TextPrimary)
+		Foreground(t.Text)
 
 	// Header
 	header := headerStyle.Render("ðŸ“‹ Project Templates")
@@ -887,7 +895,7 @@ func (m *ProjectManagerModel) renderProjectTemplates() string {
 
 	// Instructions
 	instructions := lipgloss.NewStyle().
-		Foreground(styles.TextSecondary).
+		Foreground(t.Secondary).
 		Render("\n[Enter] Use Template  [Esc] Back")
 
 	// Template list

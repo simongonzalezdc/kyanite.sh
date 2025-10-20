@@ -673,7 +673,7 @@ func (s *EditorState) Redo() error {
 // saveUndoState saves the current content to the undo stack
 func (s *EditorState) saveUndoState() {
 	currentContent := s.GetText()
-	
+
 	// Don't save if the content is the same as the last undo state
 	if len(s.undoStack) > 0 && s.undoStack[len(s.undoStack)-1] == currentContent {
 		return

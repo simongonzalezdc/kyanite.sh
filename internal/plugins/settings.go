@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Kyanite/noise/internal/ui/dimension"
 	"github.com/Kyanite/noise/internal/theme"
+	"github.com/Kyanite/noise/internal/ui/dimension"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -174,12 +174,12 @@ func (m *PluginSettingsModel) renderPluginList() string {
 			style = lipgloss.NewStyle().
 				Background(t.Primary).
 				Foreground(t.Background).
-				Width(m.width - 4).
+				Width(m.width-4).
 				Padding(0, 1)
 		} else {
 			style = lipgloss.NewStyle().
 				Foreground(t.Text).
-				Width(m.width - 4).
+				Width(m.width-4).
 				Padding(0, 1)
 		}
 
@@ -245,14 +245,14 @@ Description: %s
 Status:      %s
 Loaded:      %s
 `,
-		metadata.ID,
-		metadata.Version,
-		metadata.Author,
-		metadata.License,
-		metadata.Description,
-		map[bool]string{true: "Enabled", false: "Disabled"}[plugin.IsEnabled()],
-		metadata.LoadTime.Format("2006-01-02 15:04:05"),
-	))
+			metadata.ID,
+			metadata.Version,
+			metadata.Author,
+			metadata.License,
+			metadata.Description,
+			map[bool]string{true: "Enabled", false: "Disabled"}[plugin.IsEnabled()],
+			metadata.LoadTime.Format("2006-01-02 15:04:05"),
+		))
 
 	content.WriteString(info + "\n")
 

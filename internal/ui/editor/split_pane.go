@@ -12,7 +12,6 @@ import (
 	"github.com/Kyanite/noise/internal/infra/files"
 	"github.com/Kyanite/noise/internal/logging"
 	"github.com/Kyanite/noise/internal/theme"
-	"github.com/Kyanite/noise/internal/ui/styles"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -101,6 +100,7 @@ func NewSplitPaneModel(database *db.DB) *SplitPaneModel {
 		fileService = nil
 	}
 
+	t := theme.GetManager().Current()
 	model := &SplitPaneModel{
 		splitRatio:      splitRatio,
 		editorPane:      NewEditorPaneModel(editorTA),
@@ -113,10 +113,11 @@ func NewSplitPaneModel(database *db.DB) *SplitPaneModel {
 		ctx:             ctx,
 		cancel:          cancel,
 		shortcutManager: NewShortcutManager(),
-		dividerStyle:    styles.Divider,
-		sketchLayout:    NewSketchLayout(),
-		draftLayout:     NewDraftLayout(),
-		polishLayout:    NewPolishLayout(),
+		dividerStyle: lipgloss.NewStyle().
+			Foreground(t.Secondary),
+		sketchLayout: NewSketchLayout(),
+		draftLayout:  NewDraftLayout(),
+		polishLayout: NewPolishLayout(),
 	}
 
 	// Set up services for editor pane
@@ -135,7 +136,7 @@ func NewSplitPaneModel(database *db.DB) *SplitPaneModel {
 func (m *SplitPaneModel) Init() tea.Cmd {
 	// Set up file dialog callbacks
 	m.setupFileDialogCallbacks()
-	
+
 	return tea.Batch(
 		m.editorPane.Init(),
 		m.previewPane.Init(),
@@ -242,10 +243,10 @@ func (m *SplitPaneModel) View() string {
 	if m.fileDialog.IsVisible() {
 		// Render the background first
 		background := m.renderDefaultLayout()
-		
+
 		// Render file dialog overlay
 		dialogView := m.fileDialog.View()
-		
+
 		// Combine background with dialog overlay
 		return lipgloss.JoinVertical(lipgloss.Left, background, dialogView)
 	}
@@ -429,10 +430,11 @@ func (m *SplitPaneModel) rotateTheme(delta int) {
 		return
 	}
 
-	currentID := theme.GetManager().CurrentID()
+	currentTheme := theme.GetManager().Current()
 	currentIdx := -1
 	for i, id := range ids {
-		if id == currentID {
+		th := theme.GetTheme(id)
+		if th.Name == currentTheme.Name {
 			currentIdx = i
 			break
 		}
@@ -447,7 +449,7 @@ func (m *SplitPaneModel) rotateTheme(delta int) {
 	}
 	nextID := ids[nextIdx]
 
-	theme.ApplyThemeByID(nextID)
+	theme.GetManager().SetTheme(nextID)
 
 	if cfg, err := config.Load(); err == nil {
 		cfg.UI.Theme = nextID
@@ -629,7 +631,7 @@ func (m *SplitPaneModel) showOpenFileDialog() {
 	if currentPath == "" {
 		currentPath = "./songs"
 	}
-	
+
 	m.fileDialog = NewFileDialogModel(DialogOpen, "Open File", currentPath, []string{".md", ".txt"})
 	m.fileDialog.SetDimensions(m.width, m.height)
 	m.setupFileDialogCallbacks()
@@ -643,10 +645,10 @@ func (m *SplitPaneModel) showSaveAsDialog() {
 	if currentPath == "" {
 		currentPath = "./songs/untitled.md"
 	}
-	
+
 	m.fileDialog = NewFileDialogModel(DialogSaveAs, "Save As", currentPath, []string{".md", ".txt"})
 	m.fileDialog.SetDimensions(m.width, m.height)
-	
+
 	// Set up save as callback
 	m.fileDialog.SetConfirmCallback(func(path string) error {
 		if err := m.editorPane.state.SaveAs(path); err != nil {
@@ -656,10 +658,10 @@ func (m *SplitPaneModel) showSaveAsDialog() {
 		logging.Infof("Saved file: %s", path)
 		return nil
 	})
-	
+
 	m.fileDialog.SetCancelCallback(func() {
 		logging.Debugf("Save as dialog cancelled")
 	})
-	
+
 	m.fileDialog.Show()
 }

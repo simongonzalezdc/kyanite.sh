@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/bubbles/stopwatch"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -91,25 +91,58 @@ type AudioModel struct {
 func NewAudioModel() *AudioModel {
 	metronome := stopwatch.NewWithInterval(time.Minute) // Will be controlled manually
 
-	return &AudioModel{
-		activeTool:        ToolPlayback,
-		playbackState:     StateStopped,
-		metronomeState:    MetronomeStopped,
-		metronome:         metronome,
-		tempo:             120, // Default 120 BPM
-		beatsPerMeasure:   4,
-		currentBeat:       0,
-		timeSignature:     "4/4",
-		recordingState:    RecordingStopped,
-		focusedSection:    0,
-		containerStyle:    styles.Border,
-		headerStyle:       styles.H1,
-		sectionStyle:      styles.H2,
-		buttonStyle:       styles.ButtonSecondary,
-		activeButtonStyle: styles.ButtonPrimary,
-		statusStyle:       styles.StatusBar,
-		helpStyle:         styles.Card,
+	t := theme.GetManager().Current()
+
+	model := &AudioModel{
+		activeTool:      ToolPlayback,
+		playbackState:   StateStopped,
+		metronomeState:  MetronomeStopped,
+		metronome:       metronome,
+		tempo:           120, // Default 120 BPM
+		beatsPerMeasure: 4,
+		currentBeat:     0,
+		timeSignature:   "4/4",
+		recordingState:  RecordingStopped,
+		focusedSection:  0,
 	}
+
+	// Initialize styles with theme
+	model.containerStyle = lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(t.Secondary)
+	model.headerStyle = lipgloss.NewStyle().
+		Bold(true).
+		Foreground(t.Primary).
+		Padding(0, 1)
+	model.sectionStyle = lipgloss.NewStyle().
+		Bold(true).
+		Foreground(t.Secondary).
+		Padding(0, 1)
+	model.buttonStyle = lipgloss.NewStyle().
+		Foreground(t.Text).
+		Background(t.Background).
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(t.Secondary).
+		Padding(0, 1)
+	model.activeButtonStyle = lipgloss.NewStyle().
+		Foreground(t.Background).
+		Background(t.Primary).
+		Bold(true).
+		Padding(0, 1)
+	model.statusStyle = lipgloss.NewStyle().
+		Foreground(t.Text).
+		Background(t.Background).
+		Border(lipgloss.NormalBorder()).
+		BorderForeground(t.Secondary).
+		Padding(0, 1)
+	model.helpStyle = lipgloss.NewStyle().
+		Foreground(t.Text).
+		Background(t.Background).
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(t.Secondary).
+		Padding(1, 2)
+
+	return model
 }
 
 // Init initializes the audio model

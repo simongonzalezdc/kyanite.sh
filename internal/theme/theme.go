@@ -5,14 +5,14 @@ import "github.com/charmbracelet/lipgloss"
 // Theme represents a color scheme used by the TUI.
 type Theme struct {
 	Name       string
-	Primary    lipgloss.Color  // Main UI elements
-	Secondary  lipgloss.Color  // Supporting elements
-	Accent     lipgloss.Color  // Highlights, focus state
-	Background lipgloss.Color  // Base background
-	Text       lipgloss.Color  // Primary text
-	Success    lipgloss.Color  // Success states
-	Warning    lipgloss.Color  // Warning states
-	Error      lipgloss.Color  // Error states
+	Primary    lipgloss.Color // Main UI elements
+	Secondary  lipgloss.Color // Supporting elements
+	Accent     lipgloss.Color // Highlights, focus state
+	Background lipgloss.Color // Base background
+	Text       lipgloss.Color // Primary text
+	Success    lipgloss.Color // Success states
+	Warning    lipgloss.Color // Warning states
+	Error      lipgloss.Color // Error states
 }
 
 // GetStyle returns a lipgloss style using given foreground and background.

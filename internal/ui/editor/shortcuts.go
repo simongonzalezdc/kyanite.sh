@@ -95,7 +95,7 @@ func (sm *ShortcutManager) initializeDefaultBindings() {
 
 	// Quick tools
 	sm.registerBinding("ctrl+f", key.NewBinding(key.WithKeys("ctrl+f"), key.WithHelp("ctrl+f", "chord picker")), "Chord picker", ContextEditor, "Tools")
-	sm.registerBinding("ctrl+t", key.NewBinding(key.WithKeys("ctrl+t"), key.WithHelp("ctrl+t", "bpm tapper")), "BPM tapper", ContextEditor, "Tools")
+	sm.registerBinding("ctrl+shift+b", key.NewBinding(key.WithKeys("ctrl+shift+b"), key.WithHelp("ctrl+shift+b", "bpm tapper")), "BPM tapper", ContextEditor, "Tools")
 
 	// AI Quick Actions
 	sm.registerBinding("alt+g", key.NewBinding(key.WithKeys("alt+g"), key.WithHelp("alt+g", "ai unstick")), "AI unstick (next line)", ContextEditor, "AI")
@@ -328,7 +328,7 @@ func (sm *ShortcutManager) createActionFromBinding(binding *KeyBinding, keyStr s
 	// Quick tools actions
 	case keyStr == "ctrl+f":
 		action.Type = ActionChordPicker
-	case keyStr == "ctrl+t":
+	case keyStr == "ctrl+shift+b":
 		action.Type = ActionBPMTapper
 
 	// AI Quick Actions

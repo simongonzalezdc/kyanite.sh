@@ -1,8 +1,8 @@
 package editor
 
 import (
-	"github.com/Kyanite/noise/internal/ui/dimension"
 	"github.com/Kyanite/noise/internal/theme"
+	"github.com/Kyanite/noise/internal/ui/dimension"
 	"github.com/charmbracelet/lipgloss"
 )
 

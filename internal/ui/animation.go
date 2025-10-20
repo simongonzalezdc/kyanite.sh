@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/harmonica"
 	"github.com/charmbracelet/lipgloss"
@@ -257,7 +257,8 @@ func (am *AnimationManager) PulseAnimation(id string, targetIntensity float64) {
 func ApplyFadeEffect(base lipgloss.Style, progress float64) lipgloss.Style {
 	// Fully transparent -> blend into background
 	if progress <= 0 {
-		return base.Foreground(styles.Background).Background(styles.Background)
+		t := theme.GetManager().Current()
+		return base.Foreground(t.Background).Background(t.Background)
 	}
 	// Fully opaque -> unchanged
 	if progress >= 1 {
@@ -271,10 +272,12 @@ func ApplyFadeEffect(base lipgloss.Style, progress float64) lipgloss.Style {
 
 	// Treat 50% as a visible partial fade as well
 	if progress <= 0.5 {
-		fadeStyle = fadeStyle.Foreground(styles.TextMuted)
+		t := theme.GetManager().Current()
+		fadeStyle = fadeStyle.Foreground(t.Text)
 	} else {
 		// Slight emphasis as it approaches full opacity
-		fadeStyle = fadeStyle.Foreground(styles.TextPrimary)
+		t := theme.GetManager().Current()
+		fadeStyle = fadeStyle.Foreground(t.Primary)
 	}
 
 	// Add a small padding so String()/Render produce visible output in tests

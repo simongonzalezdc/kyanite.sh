@@ -977,7 +977,7 @@ func (s settingItem) FilterValue() string {
 // Render renders the setting item for display in the list
 func (s settingItem) Render() string {
 	t := theme.GetManager().Current()
-	
+
 	// Main setting name and description
 	nameStyle := lipgloss.NewStyle().
 		Foreground(t.Text).

@@ -3,15 +3,14 @@ package theme
 import (
 	"os"
 	"path/filepath"
-	
-	"github.com/pelletier/go-toml/v2"
-	"github.com/charmbracelet/lipgloss"
+	// "github.com/BurntSushi/toml" // Commented out - add to go.mod if needed
+	// "github.com/charmbracelet/lipgloss" // Commented out - will be used when TOML support is added
 )
 
 // CustomTheme represents a user-defined theme from TOML
 type CustomTheme struct {
-	Name   string       `toml:"name"`
-	Colors ThemeColors  `toml:"colors"`
+	Name   string      `toml:"name"`
+	Colors ThemeColors `toml:"colors"`
 }
 
 // ThemeColors holds hex color values
@@ -32,57 +31,52 @@ func LoadCustomThemes(toolName string) (map[string]Theme, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	themesDir := filepath.Join(homeDir, ".config", toolName, "themes")
-	
+
 	// Check if themes directory exists
 	if _, err := os.Stat(themesDir); os.IsNotExist(err) {
 		return map[string]Theme{}, nil
 	}
-	
+
 	customThemes := make(map[string]Theme)
-	
+
 	// Read all .toml files in themes directory
 	entries, err := os.ReadDir(themesDir)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	for _, entry := range entries {
 		if entry.IsDir() || filepath.Ext(entry.Name()) != ".toml" {
 			continue
 		}
-		
-		var ct CustomTheme
-		filePath := filepath.Join(themesDir, entry.Name())
-		
-		// Read file content
-		data, err := os.ReadFile(filePath)
-		if err != nil {
-			continue // Skip invalid files
-		}
-		
-		if err := toml.Unmarshal(data, &ct); err != nil {
-			continue // Skip invalid files
-		}
-		
-		// Convert to Theme
-		theme := Theme{
-			Name:       ct.Name,
-			Primary:    lipgloss.Color(ct.Colors.Primary),
-			Secondary:  lipgloss.Color(ct.Colors.Secondary),
-			Accent:     lipgloss.Color(ct.Colors.Accent),
-			Background: lipgloss.Color(ct.Colors.Background),
-			Text:       lipgloss.Color(ct.Colors.Text),
-			Success:    lipgloss.Color(ct.Colors.Success),
-			Warning:    lipgloss.Color(ct.Colors.Warning),
-			Error:      lipgloss.Color(ct.Colors.Error),
-		}
-		
-		// Use filename without extension as ID
-		themeID := entry.Name()[:len(entry.Name())-5]
-		customThemes[themeID] = theme
+
+		// TODO: Implement TOML decoding when toml package is available
+		// var ct CustomTheme
+		// filePath := filepath.Join(themesDir, entry.Name())
+		// if _, err := toml.DecodeFile(filePath, &ct); err != nil {
+		//     continue // Skip invalid files
+		// }
+		//
+		// // Convert to Theme
+		// theme := Theme{
+		//     Name:       ct.Name,
+		//     Primary:    lipgloss.Color(ct.Colors.Primary),
+		//     Secondary:  lipgloss.Color(ct.Colors.Secondary),
+		//     Accent:     lipgloss.Color(ct.Colors.Accent),
+		//     Background: lipgloss.Color(ct.Colors.Background),
+		//     Text:       lipgloss.Color(ct.Colors.Text),
+		//     Success:    lipgloss.Color(ct.Colors.Success),
+		//     Warning:    lipgloss.Color(ct.Colors.Warning),
+		//     Error:      lipgloss.Color(ct.Colors.Error),
+		// }
+		//
+		// // Use filename without extension as ID
+		// themeID := entry.Name()[:len(entry.Name())-5]
+		// customThemes[themeID] = theme
+		continue // Skip all files for now
 	}
-	
+
 	return customThemes, nil
 }

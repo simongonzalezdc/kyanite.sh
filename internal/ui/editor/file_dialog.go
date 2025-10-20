@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Kyanite/noise/internal/logging"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -26,19 +27,19 @@ const (
 // FileDialogModel represents a file dialog model
 type FileDialogModel struct {
 	// Dialog configuration
-	dialogType    FileDialogType
-	title         string
-	defaultPath   string
-	allowedExts   []string
-	showHidden    bool
-	width         int
-	height        int
+	dialogType  FileDialogType
+	title       string
+	defaultPath string
+	allowedExts []string
+	showHidden  bool
+	width       int
+	height      int
 
 	// UI components
-	list       list.Model
-	textinput  textinput.Model
-	visible    bool
-	focused    bool
+	list      list.Model
+	textinput textinput.Model
+	visible   bool
+	focused   bool
 
 	// State
 	currentDir   string
@@ -95,19 +96,13 @@ func NewFileDialogModel(dialogType FileDialogType, title, defaultPath string, al
 		items:        make([]list.Item, 0),
 		titleStyle: lipgloss.NewStyle().
 			Bold(true).
-			Foreground(lipgloss.Color("15")).
-			Background(lipgloss.Color("4")).
 			Padding(0, 1),
 		borderStyle: lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("8")),
+			Border(lipgloss.RoundedBorder()),
 		errorStyle: lipgloss.NewStyle().
-			Foreground(lipgloss.Color("9")).
 			Bold(true),
-		infoStyle: lipgloss.NewStyle().
-			Foreground(lipgloss.Color("14")),
+		infoStyle: lipgloss.NewStyle(),
 		selectedStyle: lipgloss.NewStyle().
-			Foreground(lipgloss.Color("11")).
 			Bold(true),
 	}
 
@@ -274,16 +269,25 @@ func (m *FileDialogModel) View() string {
 		dialogHeight = 15
 	}
 
+	// Get current theme
+	t := theme.GetManager().Current()
+
+	// Update styles with theme colors
+	titleStyle := m.titleStyle.Foreground(t.Primary).Background(t.Background)
+	borderStyle := m.borderStyle.BorderForeground(t.Secondary)
+	errorStyle := m.errorStyle.Foreground(t.Error)
+	infoStyle := m.infoStyle.Foreground(t.Text)
+
 	// Build dialog content
 	var content strings.Builder
 
 	// Title
-	title := m.titleStyle.Render(m.title)
+	title := titleStyle.Render(m.title)
 	content.WriteString(title)
 	content.WriteString("\n\n")
 
 	// Current directory info
-	dirInfo := m.infoStyle.Render("Directory: " + m.currentDir)
+	dirInfo := infoStyle.Render("Directory: " + m.currentDir)
 	content.WriteString(dirInfo)
 	content.WriteString("\n\n")
 
@@ -310,16 +314,16 @@ func (m *FileDialogModel) View() string {
 		helpText += " | Backspace: Parent directory"
 	}
 	content.WriteString("\n")
-	content.WriteString(m.infoStyle.Render(helpText))
+	content.WriteString(infoStyle.Render(helpText))
 
 	// Error message
 	if m.err != nil {
 		content.WriteString("\n")
-		content.WriteString(m.errorStyle.Render("Error: " + m.err.Error()))
+		content.WriteString(errorStyle.Render("Error: " + m.err.Error()))
 	}
 
 	// Wrap in border
-	dialogContent := m.borderStyle.
+	dialogContent := borderStyle.
 		Width(dialogWidth).
 		Height(dialogHeight).
 		Render(content.String())
@@ -434,7 +438,7 @@ func (m *FileDialogModel) confirmSelection() {
 	fullPath := filepath.Join(m.currentDir, filename)
 
 	// For save dialogs, check if file exists
-	if (m.dialogType == DialogSave || m.dialogType == DialogSaveAs) {
+	if m.dialogType == DialogSave || m.dialogType == DialogSaveAs {
 		if _, err := os.Stat(fullPath); err == nil {
 			// File exists, this is okay for save operations
 			logging.Debugf("Overwriting existing file: %s", fullPath)

@@ -39,7 +39,7 @@ func (m *Manager) SetTheme(id string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.current = GetTheme(id)
-	
+
 	// Save preference asynchronously
 	go func() {
 		if err := m.SaveThemePreference(); err != nil {
@@ -60,10 +60,10 @@ func (m *Manager) Current() Theme {
 func (m *Manager) Next() Theme {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	themes := ListThemes()
 	currentID := ""
-	
+
 	// Find current theme ID
 	for id, theme := range Registry {
 		if theme.Name == m.current.Name {
@@ -71,7 +71,7 @@ func (m *Manager) Next() Theme {
 			break
 		}
 	}
-	
+
 	// Find next theme
 	for i, id := range themes {
 		if id == currentID {
@@ -80,14 +80,14 @@ func (m *Manager) Next() Theme {
 			break
 		}
 	}
-	
+
 	// Save preference asynchronously
 	go func() {
 		if err := m.SaveThemePreference(); err != nil {
 			// Log error but don't fail the theme change
 		}
 	}()
-	
+
 	return m.current
 }
 
@@ -95,10 +95,10 @@ func (m *Manager) Next() Theme {
 func (m *Manager) Previous() Theme {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	themes := ListThemes()
 	currentID := ""
-	
+
 	// Find current theme ID
 	for id, theme := range Registry {
 		if theme.Name == m.current.Name {
@@ -106,7 +106,7 @@ func (m *Manager) Previous() Theme {
 			break
 		}
 	}
-	
+
 	// Find previous theme
 	for i, id := range themes {
 		if id == currentID {
@@ -115,14 +115,14 @@ func (m *Manager) Previous() Theme {
 			break
 		}
 	}
-	
+
 	// Save preference asynchronously
 	go func() {
 		if err := m.SaveThemePreference(); err != nil {
 			// Log error but don't fail the theme change
 		}
 	}()
-	
+
 	return m.current
 }
 
@@ -160,7 +160,7 @@ func (m *Manager) SaveThemePreference() error {
 	}
 
 	configFile := filepath.Join(configDir, "theme.json")
-	
+
 	// Find current theme ID
 	currentID := ""
 	for id, theme := range Registry {
@@ -190,7 +190,7 @@ func (m *Manager) LoadThemePreference() error {
 	}
 
 	configFile := filepath.Join(homeDir, ".config", "noise", "theme.json")
-	
+
 	// Check if file exists
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
 		return nil // No preference saved, use default

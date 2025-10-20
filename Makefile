@@ -19,7 +19,7 @@ endif
 
 BINARY := $(BUILD_DIR)/$(BINARY_NAME)$(EXE_SUFFIX)
 
-.PHONY: all build test lint clean run coverage
+.PHONY: all build test lint clean run coverage test-themes launch theme-test comprehensive-test
 
 all: build
 
@@ -74,3 +74,47 @@ endif
 
 run: build
 	./$(BINARY)
+
+# Theme testing targets
+test-themes: build
+	@echo "Running theme system tests..."
+	go run scripts/test_themes.go
+
+launch: build
+	@echo "Launching noise.sh..."
+	./$(BINARY)
+
+launch-debug: build
+	@echo "Launching noise.sh with debug mode..."
+	./$(BINARY) --debug
+
+launch-quick: build
+	@echo "Launching noise.sh in quick mode..."
+	./$(BINARY) quick
+
+theme-test: test-themes
+	@echo "Theme testing completed. Launching application for manual testing..."
+	./$(BINARY) --debug
+
+comprehensive-test: build
+	@echo "Running comprehensive theme testing..."
+	go run tools/theme_test.go
+
+# Windows-specific targets
+launch-windows:
+	@if exist scripts\build_and_launch.bat (
+		scripts\build_and_launch.bat
+	) else (
+		echo "Windows launch script not found. Using default launch..."
+		make run
+	)
+
+# Linux/Mac-specific targets
+launch-unix:
+	@if [ -f scripts/build_and_launch.sh ]; then \
+		chmod +x scripts/build_and_launch.sh && \
+		./scripts/build_and_launch.sh; \
+	else \
+		echo "Unix launch script not found. Using default launch..."; \
+		make run; \
+	fi

@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Kyanite/noise/internal/ui/dimension"
 	"github.com/Kyanite/noise/internal/theme"
+	"github.com/Kyanite/noise/internal/ui/dimension"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -46,7 +46,7 @@ type HelpPaneModel struct {
 // NewHelpPaneModel creates a new help pane model
 func NewHelpPaneModel(shortcutManager *ShortcutManager) *HelpPaneModel {
 	t := theme.GetManager().Current()
-	
+
 	// Initialize search input
 	searchInput := textinput.New()
 	searchInput.Placeholder = "Search shortcuts..."

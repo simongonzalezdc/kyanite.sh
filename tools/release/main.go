@@ -205,7 +205,7 @@ func runGenerateNotes(args []string) error {
 	if err := ensureDir(filepath.Dir(output)); err != nil {
 		return err
 	}
-	if err := os.WriteFile(output, []byte(content), 0o644); err != nil {
+	if err := os.WriteFile(output, []byte(content), 0o600); err != nil {
 		return fmt.Errorf("write release notes: %w", err)
 	}
 
@@ -275,7 +275,7 @@ func runUpdateChangelog(args []string) error {
 	if err := ensureDir(filepath.Dir(outputPath)); err != nil {
 		return err
 	}
-	if err := os.WriteFile(outputPath, []byte(updated), 0o644); err != nil {
+	if err := os.WriteFile(outputPath, []byte(updated), 0o600); err != nil {
 		return fmt.Errorf("write changelog: %w", err)
 	}
 
@@ -340,7 +340,7 @@ func runGenerateChecksums(args []string) error {
 	if err := ensureDir(filepath.Dir(output)); err != nil {
 		return err
 	}
-	if err := os.WriteFile(output, []byte(builder.String()), 0o644); err != nil {
+	if err := os.WriteFile(output, []byte(builder.String()), 0o600); err != nil {
 		return fmt.Errorf("write checksum file: %w", err)
 	}
 
@@ -746,7 +746,7 @@ func ensureDir(dir string) error {
 	if dir == "" || dir == "." {
 		return nil
 	}
-	return os.MkdirAll(dir, 0o755)
+	return os.MkdirAll(dir, 0o750)
 }
 
 func deriveRepositoryURL() (string, error) {

@@ -8,8 +8,8 @@ import (
 
 	"github.com/Kyanite/noise/internal/data"
 	"github.com/Kyanite/noise/internal/export"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/Kyanite/noise/internal/ui/editor"
-	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 func main() {
@@ -59,14 +59,14 @@ func testChordPicker() {
 		return
 	}
 
-	fmt.Printf("âœ“ Loaded %d chord progressions\n", len(progressions))
-	fmt.Printf("âœ“ First progression: %s - %s\n", progressions[0].Name, progressions[0].Chords)
+	fmt.Printf("✓ Loaded %d chord progressions\n", len(progressions))
+	fmt.Printf("✓ First progression: %s - %s\n", progressions[0].Name, progressions[0].Chords)
 
 	// Test chord insertion
 	testChords := []string{"C", "G", "Am", "F"}
 	inserted := testInsertChords(testChords)
 	if inserted {
-		fmt.Printf("âœ“ Successfully inserted chords: %v\n", testChords)
+		fmt.Printf("✓ Successfully inserted chords: %v\n", testChords)
 	} else {
 		log.Println("Failed to insert chords")
 	}
@@ -105,14 +105,14 @@ func testBPMTapper() {
 	// Simulate tap intervals
 	testBPM := 120
 	if testBPM > 0 && testBPM < 300 {
-		fmt.Printf("âœ“ BPM calculation working: %d BPM\n", testBPM)
+		fmt.Printf("✓ BPM calculation working: %d BPM\n", testBPM)
 	} else {
 		log.Println("BPM calculation failed")
 	}
 
 	// Test BPM setting
 	testSetBPM(testBPM)
-	fmt.Printf("âœ“ BPM setting working: %d BPM\n", testBPM)
+	fmt.Printf("✓ BPM setting working: %d BPM\n", testBPM)
 }
 
 // testSetBPM simulates setting BPM in the editor
@@ -160,7 +160,7 @@ BPM: 120`
 		return
 	}
 
-	fmt.Printf("âœ“ Successfully exported to: %s\n", outputPath)
+	fmt.Printf("✓ Successfully exported to: %s\n", outputPath)
 
 	// Test listing exports
 	exports, err := exportService.ListExports()
@@ -169,7 +169,7 @@ BPM: 120`
 		return
 	}
 
-	fmt.Printf("âœ“ Found %d export files\n", len(exports))
+	fmt.Printf("✓ Found %d export files\n", len(exports))
 
 	// Test different export types
 	testExportTypes(exportService, testContent)
@@ -194,41 +194,32 @@ func testExportTypes(exportService *export.ExportService, content string) {
 			continue
 		}
 
-		fmt.Printf("âœ“ Exported %s to: %s\n", exportType.String(), outputPath)
+		fmt.Printf("✓ Exported %s to: %s\n", exportType.String(), outputPath)
 	}
 }
 
 // testThemeSystem tests the theme system functionality
 func testThemeSystem() {
 	// Create theme manager
-	themeFilePath := filepath.Join(os.TempDir(), "noise_theme.json")
-	themeManager := styles.NewThemeManager(themeFilePath)
+	themeManager := theme.GetManager()
 	if themeManager == nil {
 		log.Println("Failed to create theme manager")
 		return
 	}
 
-	// Initialize theme manager
-	themeManager.Init()
-
 	// Test getting current theme
-	currentTheme := themeManager.GetCurrentTheme()
-	if currentTheme == nil {
-		log.Println("Failed to get current theme")
-		return
-	}
+	currentTheme := themeManager.Current()
 
-	fmt.Printf("âœ“ Current theme: %s\n", currentTheme.Name)
-	fmt.Printf("âœ“ Theme description: %s\n", currentTheme.Description)
+	fmt.Printf("✓ Current theme: %s\n", currentTheme.Name)
 
 	// Test getting all themes
-	allThemes := themeManager.GetAllThemes()
+	allThemes := theme.ListThemes()
 	if len(allThemes) == 0 {
 		log.Println("No themes found")
 		return
 	}
 
-	fmt.Printf("âœ“ Found %d themes\n", len(allThemes))
+	fmt.Printf("✓ Found %d themes\n", len(allThemes))
 
 	// Test theme switching
 	testThemeSwitching(themeManager)
@@ -238,58 +229,44 @@ func testThemeSystem() {
 }
 
 // testThemeSwitching tests switching between themes
-func testThemeSwitching(themeManager *styles.ThemeManager) {
+func testThemeSwitching(themeManager *theme.Manager) {
 	// Test next theme
-	initialTheme := themeManager.GetCurrentTheme().Name
-	err := themeManager.NextTheme()
-	if err != nil {
-		log.Printf("Failed to switch to next theme: %v", err)
-		return
-	}
-
-	nextTheme := themeManager.GetCurrentTheme().Name
+	initialTheme := themeManager.Current().Name
+	nextThemeObj := themeManager.Next()
+	nextTheme := nextThemeObj.Name
 	if nextTheme == initialTheme {
 		log.Println("Theme did not change")
 		return
 	}
 
-	fmt.Printf("âœ“ Switched from %s to %s\n", initialTheme, nextTheme)
+	fmt.Printf("✓ Switched from %s to %s\n", initialTheme, nextTheme)
 
 	// Test previous theme
-	err = themeManager.PreviousTheme()
-	if err != nil {
-		log.Printf("Failed to switch to previous theme: %v", err)
-		return
-	}
-
-	prevTheme := themeManager.GetCurrentTheme().Name
+	prevThemeObj := themeManager.Previous()
+	prevTheme := prevThemeObj.Name
 	if prevTheme == nextTheme {
 		log.Println("Theme did not change")
 		return
 	}
 
-	fmt.Printf("âœ“ Switched from %s to %s\n", nextTheme, prevTheme)
+	fmt.Printf("✓ Switched from %s to %s\n", nextTheme, prevTheme)
 }
 
 // testThemePersistence tests theme persistence
-func testThemePersistence(themeManager *styles.ThemeManager) {
+func testThemePersistence(themeManager *theme.Manager) {
 	// Set a specific theme
-	themeName := "Neon Dreams"
-	err := themeManager.SetTheme(themeName)
-	if err != nil {
-		log.Printf("Failed to set theme: %v", err)
+	themeID := "electric-rose"
+	themeManager.SetTheme(themeID)
+
+	currentTheme := themeManager.Current()
+	if currentTheme.Name != "Electric Rose" {
+		log.Printf("Theme not set correctly: expected Electric Rose, got %s", currentTheme.Name)
 		return
 	}
 
-	currentTheme := themeManager.GetCurrentTheme().Name
-	if currentTheme != themeName {
-		log.Printf("Theme not set correctly: expected %s, got %s", themeName, currentTheme)
-		return
-	}
-
-	fmt.Printf("âœ“ Set theme to %s\n", themeName)
+	fmt.Printf("✓ Set theme to %s\n", currentTheme.Name)
 
 	// In a real implementation, this would test persistence by
 	// creating a new theme manager and checking if it loads the saved theme
-	fmt.Println("âœ“ Theme persistence simulated")
+	fmt.Println("✓ Theme persistence simulated")
 }

@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -134,16 +134,17 @@ func NewRealTimePreviewManager(config *PreviewUpdateConfig) *RealTimePreviewMana
 		config = DefaultPreviewUpdateConfig()
 	}
 
+	t := theme.GetManager().Current()
 	manager := &RealTimePreviewManager{
 		config:         config,
 		maxHistorySize: 100,
 		updateIndicator: &UpdateIndicator{
 			style: lipgloss.NewStyle().
-				Foreground(styles.Accent).
-				Background(styles.Dark2).
+				Foreground(t.Accent).
+				Background(t.Background).
 				Padding(0, 1).
 				Border(lipgloss.RoundedBorder()).
-				BorderForeground(styles.BorderColor),
+				BorderForeground(t.Secondary),
 		},
 	}
 

@@ -6,15 +6,25 @@ import (
 
 	"github.com/Kyanite/noise/internal/app"
 	"github.com/Kyanite/noise/internal/theme"
-	"github.com/Kyanite/noise/internal/ui/styles"
 	"github.com/charmbracelet/bubbles/textarea"
 )
 
 func TestThemeIntegrationWithLyricFeatures(t *testing.T) {
-	originalID := theme.GetManager().CurrentID()
-	defer theme.ApplyThemeByID(originalID)
+	themeManager := theme.GetManager()
+	originalTheme := themeManager.Current()
 
-	themeIDs := getThemeCycleOrder()
+	// Restore original theme after test
+	defer func() {
+		// Find the ID of the original theme
+		for id, th := range theme.Registry {
+			if th.Name == originalTheme.Name {
+				themeManager.SetTheme(id)
+				break
+			}
+		}
+	}()
+
+	themeIDs := theme.ListThemes()
 	if len(themeIDs) == 0 {
 		t.Fatal("expected at least one theme to be registered")
 	}
@@ -22,12 +32,7 @@ func TestThemeIntegrationWithLyricFeatures(t *testing.T) {
 	theoryService := app.NewTheoryService()
 
 	for _, themeID := range themeIDs {
-		theme.ApplyThemeByID(themeID)
-		expectedTheme := theme.GetTheme(themeID)
-
-		if styles.Primary != expectedTheme.Primary {
-			t.Fatalf("expected primary color %s for theme %s, got %s", expectedTheme.Primary, themeID, styles.Primary)
-		}
+		themeManager.SetTheme(themeID)
 
 		rhymes, err := theoryService.FindRhymes("love")
 		if err != nil {
@@ -61,15 +66,26 @@ func TestThemeIntegrationWithLyricFeatures(t *testing.T) {
 }
 
 func TestThemeShortcutCycling(t *testing.T) {
-	originalID := theme.GetManager().CurrentID()
-	defer theme.ApplyThemeByID(originalID)
+	themeManager := theme.GetManager()
+	originalTheme := themeManager.Current()
 
-	themeIDs := getThemeCycleOrder()
+	// Restore original theme after test
+	defer func() {
+		// Find the ID of the original theme
+		for id, th := range theme.Registry {
+			if th.Name == originalTheme.Name {
+				themeManager.SetTheme(id)
+				break
+			}
+		}
+	}()
+
+	themeIDs := theme.ListThemes()
 	if len(themeIDs) < 2 {
 		t.Skip("not enough themes registered to test cycling")
 	}
 
-	theme.ApplyThemeByID(themeIDs[0])
+	themeManager.SetTheme(themeIDs[0])
 
 	model := NewSplitPaneModel(nil)
 	defer model.Cleanup()
@@ -79,25 +95,52 @@ func TestThemeShortcutCycling(t *testing.T) {
 	}
 
 	expectedNext := themeIDs[1]
-	if current := theme.GetManager().CurrentID(); current != expectedNext {
-		t.Fatalf("expected theme %s after ActionNextTheme, got %s", expectedNext, current)
+	currentTheme := themeManager.Current()
+	// Find the ID of the current theme
+	var currentID string
+	for id, th := range theme.Registry {
+		if th.Name == currentTheme.Name {
+			currentID = id
+			break
+		}
+	}
+	if currentID != expectedNext {
+		t.Fatalf("expected theme %s after ActionNextTheme, got %s", expectedNext, currentID)
 	}
 
 	if _, cmd := model.handleShortcutAction(ShortcutAction{Type: ActionPreviousTheme}); cmd != nil {
 		t.Fatalf("unexpected command from ActionPreviousTheme: %#v", cmd)
 	}
 	expectedPrev := themeIDs[0]
-	if current := theme.GetManager().CurrentID(); current != expectedPrev {
-		t.Fatalf("expected theme %s after ActionPreviousTheme, got %s", expectedPrev, current)
+	currentTheme = themeManager.Current()
+	// Find the ID of the current theme
+	currentID = ""
+	for id, th := range theme.Registry {
+		if th.Name == currentTheme.Name {
+			currentID = id
+			break
+		}
+	}
+	if currentID != expectedPrev {
+		t.Fatalf("expected theme %s after ActionPreviousTheme, got %s", expectedPrev, currentID)
 	}
 
-	theme.ApplyThemeByID(themeIDs[len(themeIDs)-1])
+	themeManager.SetTheme(themeIDs[len(themeIDs)-1])
 
 	if _, cmd := model.handleShortcutAction(ShortcutAction{Type: ActionThemeCycle}); cmd != nil {
 		t.Fatalf("unexpected command from ActionThemeCycle: %#v", cmd)
 	}
 	expectedCycle := themeIDs[0]
-	if current := theme.GetManager().CurrentID(); current != expectedCycle {
-		t.Fatalf("expected theme %s after ActionThemeCycle, got %s", expectedCycle, current)
+	currentTheme = themeManager.Current()
+	// Find the ID of the current theme
+	currentID = ""
+	for id, th := range theme.Registry {
+		if th.Name == currentTheme.Name {
+			currentID = id
+			break
+		}
+	}
+	if currentID != expectedCycle {
+		t.Fatalf("expected theme %s after ActionThemeCycle, got %s", expectedCycle, currentID)
 	}
 }

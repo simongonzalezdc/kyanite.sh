@@ -220,7 +220,7 @@ func titleGradient(text string, t theme.Theme) string {
 		t.Secondary,
 		t.Accent,
 	}
-	
+
 	var result string
 	textRunes := []rune(text)
 	colorCount := len(colors)

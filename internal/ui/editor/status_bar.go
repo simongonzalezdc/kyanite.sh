@@ -10,7 +10,6 @@ import (
 	"github.com/Kyanite/noise/internal/app"
 	"github.com/Kyanite/noise/internal/theme"
 	"github.com/Kyanite/noise/internal/ui/dimension"
-	"github.com/Kyanite/noise/internal/ui/styles"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -106,44 +105,49 @@ func NewStatusBarModel() *StatusBarModel {
 		compactMode:            false,
 		showMinimalInfo:        false,
 
-		// Initialize styles using Midnight Jazz theme
-		leftSectionStyle: lipgloss.NewStyle().
-			Foreground(styles.TextPrimary).
-			Background(styles.Dark2).
-			Padding(0, 1),
-
-		centerSectionStyle: lipgloss.NewStyle().
-			Foreground(styles.TextSecondary).
-			Background(styles.Dark3).
-			Padding(0, 1),
-
-		rightSectionStyle: lipgloss.NewStyle().
-			Foreground(styles.TextMuted).
-			Background(styles.Dark2).
-			Padding(0, 1),
-
-		autoSaveSavingStyle: lipgloss.NewStyle().
-			Foreground(styles.Accent).
-			Bold(true),
-
-		autoSaveSuccessStyle: lipgloss.NewStyle().
-			Foreground(styles.Success),
-
-		autoSaveErrorStyle: lipgloss.NewStyle().
-			Foreground(styles.Error).
-			Bold(true),
-
-		autoSaveIdleStyle: lipgloss.NewStyle().
-			Foreground(styles.TextMuted),
-
-		modeIndicatorStyle: lipgloss.NewStyle().
-			Foreground(styles.Warning).
-			Bold(true),
-
-		shortcutHintStyle: lipgloss.NewStyle().
-			Foreground(styles.Info).
-			Italic(true),
+		// Styles will be initialized with the theme
 	}
+
+	// Initialize styles with theme
+	t := theme.GetManager().Current()
+
+	// Initialize styles
+	model.leftSectionStyle = lipgloss.NewStyle().
+		Foreground(t.Text).
+		Background(t.Background).
+		Padding(0, 1)
+
+	model.centerSectionStyle = lipgloss.NewStyle().
+		Foreground(t.Secondary).
+		Background(t.Background).
+		Padding(0, 1)
+
+	model.rightSectionStyle = lipgloss.NewStyle().
+		Foreground(t.Text).
+		Background(t.Background).
+		Padding(0, 1)
+
+	model.autoSaveSavingStyle = lipgloss.NewStyle().
+		Foreground(t.Accent).
+		Bold(true)
+
+	model.autoSaveSuccessStyle = lipgloss.NewStyle().
+		Foreground(t.Success)
+
+	model.autoSaveErrorStyle = lipgloss.NewStyle().
+		Foreground(t.Error).
+		Bold(true)
+
+	model.autoSaveIdleStyle = lipgloss.NewStyle().
+		Foreground(t.Text)
+
+	model.modeIndicatorStyle = lipgloss.NewStyle().
+		Foreground(t.Error).
+		Bold(true)
+
+	model.shortcutHintStyle = lipgloss.NewStyle().
+		Foreground(t.Secondary).
+		Italic(true)
 
 	return model
 }
@@ -346,7 +350,7 @@ func (m *StatusBarModel) renderRightSection() StatusBarSection {
 
 	// Theme indicator (shows active theme id)
 	if mgr := theme.GetManager(); mgr != nil {
-		themeID := mgr.CurrentID()
+		themeID := mgr.Current().Name
 		if themeID != "" {
 			themeLabel := m.modeIndicatorStyle.Render("Theme: " + themeID)
 			indicators = append(indicators, themeLabel)
@@ -679,20 +683,24 @@ func (m *StatusBarModel) UpdateResponsiveMode(width int) {
 func (m *StatusBarModel) getContentTypeStyle(contentType string) lipgloss.Style {
 	switch strings.ToLower(contentType) {
 	case "lyrics":
+		t := theme.GetManager().Current()
 		return lipgloss.NewStyle().
-			Foreground(styles.Success).
+			Foreground(t.Success).
 			Bold(true)
 	case "patterns":
+		t := theme.GetManager().Current()
 		return lipgloss.NewStyle().
-			Foreground(styles.Info).
+			Foreground(t.Accent).
 			Bold(true)
 	case "mixed":
+		t := theme.GetManager().Current()
 		return lipgloss.NewStyle().
-			Foreground(styles.Warning).
+			Foreground(t.Error).
 			Bold(true)
 	default:
+		t := theme.GetManager().Current()
 		return lipgloss.NewStyle().
-			Foreground(styles.TextMuted).
+			Foreground(t.Text).
 			Bold(true)
 	}
 }
@@ -701,32 +709,38 @@ func (m *StatusBarModel) getContentTypeStyle(contentType string) lipgloss.Style 
 func (m *StatusBarModel) getCompactContentTypeStyle(contentType string) lipgloss.Style {
 	switch strings.ToLower(contentType) {
 	case "lyrics":
+		t := theme.GetManager().Current()
 		return lipgloss.NewStyle().
-			Foreground(styles.Success).
+			Foreground(t.Success).
 			Bold(true)
 	case "patterns":
+		t := theme.GetManager().Current()
 		return lipgloss.NewStyle().
-			Foreground(styles.Info).
+			Foreground(t.Accent).
 			Bold(true)
 	case "mixed":
+		t := theme.GetManager().Current()
 		return lipgloss.NewStyle().
-			Foreground(styles.Warning).
+			Foreground(t.Error).
 			Bold(true)
 	default:
+		t := theme.GetManager().Current()
 		return lipgloss.NewStyle().
-			Foreground(styles.TextMuted)
+			Foreground(t.Text)
 	}
 }
 
 // getKnowledgeBaseStatusStyle returns the appropriate style for knowledge base status
 func (m *StatusBarModel) getKnowledgeBaseStatusStyle(available bool) lipgloss.Style {
 	if available {
+		t := theme.GetManager().Current()
 		return lipgloss.NewStyle().
-			Foreground(styles.Success).
+			Foreground(t.Success).
 			Bold(true)
 	} else {
+		t := theme.GetManager().Current()
 		return lipgloss.NewStyle().
-			Foreground(styles.TextMuted).
+			Foreground(t.Text).
 			Italic(true)
 	}
 }

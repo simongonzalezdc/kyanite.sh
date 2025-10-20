@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/Kyanite/noise/internal/ui/dimension"
-	"github.com/Kyanite/noise/internal/ui/styles"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -111,27 +111,33 @@ func NewExportModel(content string) *ExportModel {
 		Application:    "noise.sh",
 	}
 
+	t := theme.GetManager().Current()
+
 	model := &ExportModel{
 		content:      content,
 		metadata:     metadata,
 		options:      []ExportFormat{FormatPDF, FormatHTML, FormatPlainText, FormatJSON, FormatMarkdown, FormatChordPro},
 		selected:     0,
 		showProgress: false,
-		focusedStyle: styles.BorderActive,
-		blurredStyle: styles.Border,
+		focusedStyle: lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(t.Primary),
+		blurredStyle: lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(t.Secondary),
 		selectedStyle: lipgloss.NewStyle().
-			Foreground(styles.Background).
-			Background(styles.Primary).
+			Foreground(t.Background).
+			Background(t.Primary).
 			Bold(true).
 			Padding(0, 1),
 		errorStyle: lipgloss.NewStyle().
-			Foreground(styles.Background).
-			Background(styles.Error).
+			Foreground(t.Background).
+			Background(t.Error).
 			Bold(true).
 			Padding(0, 1),
 		successStyle: lipgloss.NewStyle().
-			Foreground(styles.Background).
-			Background(styles.Success).
+			Foreground(t.Background).
+			Background(t.Success).
 			Bold(true).
 			Padding(0, 1),
 	}
@@ -186,8 +192,12 @@ func (m *ExportModel) View() string {
 		style = m.blurredStyle
 	}
 
-	title := styles.TitleGradient("ðŸ“¤ Export Options")
-	title = lipgloss.NewStyle().Bold(true).Padding(0, 2).Render(title)
+	t := theme.GetManager().Current()
+	title := lipgloss.NewStyle().
+		Foreground(t.Primary).
+		Bold(true).
+		Padding(0, 2).
+		Render("ðŸ“¤ Export Options")
 
 	// Format options
 	var options []string
@@ -222,14 +232,15 @@ func (m *ExportModel) View() string {
 
 	// Instructions
 	instructions := lipgloss.NewStyle().
-		Foreground(styles.TextMuted).
+		Foreground(t.Secondary).
 		Render("\nâ†‘â†“ Navigate â€¢ Enter: Export â€¢ Esc: Back")
 
 	// Progress indicator
 	progressView := ""
 	if m.showProgress {
+		t := theme.GetManager().Current()
 		progressView = lipgloss.NewStyle().
-			Foreground(styles.Accent).
+			Foreground(t.Accent).
 			Render("\nâ³ " + m.progressMsg + "...")
 	}
 
@@ -333,7 +344,7 @@ func (m *ExportModel) exportToPDF() (bool, string) {
 	}
 
 	// Write HTML content (can be converted to PDF using external tools)
-	err = os.WriteFile(m.result.OutputPath, []byte(htmlContent), 0644)
+	err = os.WriteFile(m.result.OutputPath, []byte(htmlContent), 0600)
 	if err != nil {
 		return false, fmt.Sprintf("Failed to write PDF file: %v", err)
 	}
@@ -348,7 +359,7 @@ func (m *ExportModel) exportToHTML() (bool, string) {
 		return false, fmt.Sprintf("Failed to generate HTML: %v", err)
 	}
 
-	err = os.WriteFile(m.result.OutputPath, []byte(htmlContent), 0644)
+	err = os.WriteFile(m.result.OutputPath, []byte(htmlContent), 0600)
 	if err != nil {
 		return false, fmt.Sprintf("Failed to write HTML file: %v", err)
 	}
@@ -361,7 +372,7 @@ func (m *ExportModel) exportToPlainText() (bool, string) {
 	// Strip markdown formatting for plain text
 	textContent := m.stripMarkdown(m.content)
 
-	err := os.WriteFile(m.result.OutputPath, []byte(textContent), 0644)
+	err := os.WriteFile(m.result.OutputPath, []byte(textContent), 0600)
 	if err != nil {
 		return false, fmt.Sprintf("Failed to write text file: %v", err)
 	}
@@ -384,7 +395,7 @@ func (m *ExportModel) exportToJSON() (bool, string) {
 		return false, fmt.Sprintf("Failed to marshal JSON: %v", err)
 	}
 
-	err = os.WriteFile(m.result.OutputPath, jsonBytes, 0644)
+	err = os.WriteFile(m.result.OutputPath, jsonBytes, 0600)
 	if err != nil {
 		return false, fmt.Sprintf("Failed to write JSON file: %v", err)
 	}
@@ -394,7 +405,7 @@ func (m *ExportModel) exportToJSON() (bool, string) {
 
 // exportToMarkdown exports content to markdown format (as-is)
 func (m *ExportModel) exportToMarkdown() (bool, string) {
-	err := os.WriteFile(m.result.OutputPath, []byte(m.content), 0644)
+	err := os.WriteFile(m.result.OutputPath, []byte(m.content), 0600)
 	if err != nil {
 		return false, fmt.Sprintf("Failed to write markdown file: %v", err)
 	}
@@ -407,7 +418,7 @@ func (m *ExportModel) exportToChordPro() (bool, string) {
 	// Convert content to ChordPro format
 	chordProContent := m.convertToChordPro(m.content)
 
-	err := os.WriteFile(m.result.OutputPath, []byte(chordProContent), 0644)
+	err := os.WriteFile(m.result.OutputPath, []byte(chordProContent), 0600)
 	if err != nil {
 		return false, fmt.Sprintf("Failed to write ChordPro file: %v", err)
 	}

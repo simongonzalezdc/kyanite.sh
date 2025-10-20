@@ -14,7 +14,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-
 // TheoryModel handles the music theory tools screen
 type TheoryModel struct {
 	// Layout

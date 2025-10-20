@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -193,12 +193,13 @@ func (r *ResponsiveLayoutManager) RenderSizeWarning() string {
 		return ""
 	}
 
+	t := theme.GetManager().Current()
 	warningStyle := lipgloss.NewStyle().
-		Foreground(styles.Warning).
-		Background(styles.Dark1).
+		Foreground(t.Error).
+		Background(t.Background).
 		Padding(0, 1).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(styles.Warning)
+		BorderForeground(t.Error)
 
 	warningText := strings.Join(r.sizeWarnings, "\n")
 	return warningStyle.Render("âš ï¸  " + warningText)

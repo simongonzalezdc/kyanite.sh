@@ -62,7 +62,7 @@ func (s *AIService) GenerateSection(sectionType domain.SectionType, context stri
 }
 
 // RefineLyrics refines existing lyrics based on feedback
-func (s *AIService) RefineLyrics(lyrics string, feedback string) (string, error) {
+func (s *AIService) RefineLyrics(lyrics, feedback string) (string, error) {
 	// Placeholder implementation
 	// In a full implementation, this would use Ollama to refine the lyrics
 
@@ -280,7 +280,7 @@ func (s *AIService) CheckQualityFull(ctx context.Context, content string) (*ai.Q
 }
 
 // CheckQualityByMode performs quality checking based on the editor mode
-func (s *AIService) CheckQualityByMode(ctx context.Context, content string, mode string) (*ai.QuickResponse, error) {
+func (s *AIService) CheckQualityByMode(ctx context.Context, content, mode string) (*ai.QuickResponse, error) {
 	if s.quickAgent != nil {
 		return s.quickAgent.Generate(ctx, ai.QuickRequest{
 			Mode:    ai.QuickIdeaModeCheck,
