@@ -5,7 +5,7 @@ An intelligent CLI task management application within the Kyanite Suite, deliver
 ## Features
 
 - 🤖 **AI-Powered Task Management**: Natural language input parsing with local AI (Ollama) and remote AI (OpenRouter)
-- 🎨 **Beautiful Synthwave Interface**: Stunning terminal UI with cyberpunk aesthetics
+- 🎨 **Beautiful Terminal UI**: Modern themes with Amber Night as default, plus 9 additional color schemes
 - 📅 **Calendar Integration**: Full calendar system with month/week/day views
 - 🧙‍♂️ **Interactive Wizards**: Advanced forms with Huh for task creation and configuration
 - 🌿 **Gum Enhancement**: Interactive inputs and filtering with Gum
@@ -26,7 +26,7 @@ An intelligent CLI task management application within the Kyanite Suite, deliver
 focus --help
 
 # Add a task with natural language
-focus add "Complete the synthwave project by Friday"
+focus add "Complete the project by Friday"
 
 # View tasks in beautiful list format
 focus list
@@ -164,16 +164,35 @@ Contributions are welcome! 🎉 Please read our [Contributing Guide](CONTRIBUTIN
 
 ## 🌈 Themes
 
-focus.sh supports multiple visual themes:
-- **synthwave** (default) - Cyberpunk synthwave aesthetics
-- **light** - Clean light theme
-- **plain** - Simple monochrome theme
+focus.sh includes 10 beautiful color themes:
+
+### Dark Themes
+- **amber-night** (default) - Warm amber and purple accents on dark background
+- **twilight-mist** - Soft purple and blue mist tones
+- **indigo-depths** - Deep blue and indigo palette
+- **forest-path** - Natural green forest colors
+- **clay-earth** - Warm brown earth tones
+- **iron-forge** - Industrial red and gray forge colors
+- **cyan-wave** - Cool cyan and blue ocean tones
+- **electric-rose** - Vibrant pink and electric blue
+
+### Light Theme  
+- **sunlight** - Bright golden yellows and warm tones
+
+### Minimal Theme
+- **monochrome** - Clean black and white design
 
 ```bash
+# List available themes
+focus theme list
+
 # Change theme
-focus theme synthwave
-focus theme light
-focus theme plain
+focus theme amber-night
+focus theme twilight-mist
+focus theme monochrome
+
+# Preview theme before applying
+focus theme preview forest-path
 ```
 
 ## 🚀 Performance

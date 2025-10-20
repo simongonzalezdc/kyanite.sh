@@ -111,31 +111,23 @@ OLLAMA_BASE_URL=http://localhost:11434
 
 ### Themes
 
-Focus.sh includes several built-in themes:
+Focus.sh includes 10 beautiful built-in themes:
 
-#### Synthwave (Default)
-```bash
-focus theme synthwave
-```
-- Cyberpunk aesthetics
-- Neon colors
-- Retro wave styling
+#### Dark Themes
+- **amber-night** (default) - Warm amber and purple accents
+- **twilight-mist** - Soft purple and blue mist tones
+- **indigo-depths** - Deep blue and indigo palette
+- **forest-path** - Natural green forest colors
+- **clay-earth** - Warm brown earth tones
+- **iron-forge** - Industrial red and gray forge colors
+- **cyan-wave** - Cool cyan and blue ocean tones
+- **electric-rose** - Vibrant pink and electric blue
 
-#### Light Theme
-```bash
-focus theme light
-```
-- Clean, minimal design
-- High contrast
-- Daytime friendly
+#### Light Theme  
+- **sunlight** - Bright golden yellows and warm tones
 
-#### Plain Theme
-```bash
-focus theme plain
-```
-- Monochrome styling
-- Terminal compatible
-- Minimal distraction
+#### Minimal Theme
+- **monochrome** - Clean black and white design
 
 #### Custom Themes
 Create custom themes in `~/.config/focus/themes/`:

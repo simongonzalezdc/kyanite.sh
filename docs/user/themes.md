@@ -1,32 +1,86 @@
 # Themes Guide
 
-Focus.sh includes a beautiful theming system that lets you customize the visual appearance of the terminal interface. From cyberpunk synthwave to clean minimal themes, you can personalize your task management experience.
+Focus.sh includes a beautiful theming system with 10 carefully crafted color themes. From warm amber nights to cool cyan waves, you can personalize your task management experience.
 
 ## Built-in Themes
 
-### Synthwave (Default)
-The signature Focus.sh theme with cyberpunk aesthetics.
+Focus.sh comes with 10 professionally designed themes organized by style:
 
-- **Colors**: Neon pink, cyan, purple with dark backgrounds
-- **Vibe**: Retro-futuristic, 80s synthwave
-- **Best for**: Dark terminals, evening use
-- **Usage**: `focus theme synthwave`
+### 🌙 Dark Themes (8 themes)
 
-### Light
-Clean, minimal theme for daytime use.
+#### Amber Night (Default)
+The signature theme with warm, inviting colors.
+- **Primary Colors**: Amber (#D4A574) and purple (#9D84B7)
+- **Vibe**: Warm, professional, easy on the eyes
+- **Best for**: Evening use, low-light environments
+- **Usage**: `focus theme amber-night`
 
-- **Colors**: Light grays, subtle blues, high contrast
-- **Vibe**: Professional, clean, readable
-- **Best for**: Daytime, bright environments
-- **Usage**: `focus theme light`
+#### Twilight Mist
+Soft, dreamy colors inspired by twilight hours.
+- **Primary Colors**: Purple (#B8A3C9) and soft blue (#8E7B9D)
+- **Vibe**: Calm, serene, focused
+- **Best for**: Deep work, concentration
+- **Usage**: `focus theme twilight-mist`
 
-### Plain
-Monochrome theme for maximum compatibility.
+#### Indigo Depths
+Deep blues for a professional, focused environment.
+- **Primary Colors**: Indigo (#4169E1) and steel blue (#5F9EA0)
+- **Vibe**: Professional, corporate, serious
+- **Best for**: Office work, business tasks
+- **Usage**: `focus theme indigo-depths`
 
-- **Colors**: Black and white only
-- **Vibe**: Minimal, distraction-free
+#### Forest Path
+Natural greens inspired by forest walks.
+- **Primary Colors**: Sage green (#8FBC8F) and forest green (#6B8E6B)
+- **Vibe**: Natural, calming, organic
+- **Best for**: Nature lovers, relaxation
+- **Usage**: `focus theme forest-path`
+
+#### Clay Earth
+Warm, earthy tones for a grounded experience.
+- **Primary Colors**: Clay brown (#A0522D) and rich leather (#8B4513)
+- **Vibe**: Earthy, stable, warm
+- **Best for**: Reading, writing, creative work
+- **Usage**: `focus theme clay-earth`
+
+#### Iron Forge
+Industrial reds and grays for a bold look.
+- **Primary Colors**: Fire engine red (#DC143C) and steel gray (#4A4A4A)
+- **Vibe**: Bold, industrial, strong
+- **Best for**: High-energy tasks, deadlines
+- **Usage**: `focus theme iron-forge`
+
+#### Cyan Wave
+Cool oceanic blues and cyans.
+- **Primary Colors**: Dark cyan (#00CED1) and steel blue (#4682B4)
+- **Vibe**: Cool, refreshing, modern
+- **Best for**: Technical work, coding
+- **Usage**: `focus theme cyan-wave`
+
+#### Electric Rose
+Vibrant pink with electric blue accents.
+- **Primary Colors**: Hot pink (#FF1493) and deep pink (#C71585)
+- **Vibe**: Energetic, creative, bold
+- **Best for**: Creative work, design projects
+- **Usage**: `focus theme electric-rose`
+
+### ☀️ Light Themes (1 theme)
+
+#### Sunlight
+Bright, cheerful golden tones for daytime use.
+- **Primary Colors**: Gold (#FFD700) and dark goldenrod (#DAA520)
+- **Vibe**: Bright, optimistic, energetic
+- **Best for**: Daytime use, bright environments
+- **Usage**: `focus theme sunlight`
+
+### ⚪ Minimal Themes (1 theme)
+
+#### Monochrome
+Classic black and white for maximum compatibility.
+- **Primary Colors**: Pure white (#FFFFFF) and gray (#999999)
+- **Vibe**: Minimal, distraction-free, universal
 - **Best for**: Basic terminals, scripting, accessibility
-- **Usage**: `focus theme plain`
+- **Usage**: `focus theme monochrome`
 
 ## Theme Commands
 
