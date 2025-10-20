@@ -418,22 +418,63 @@ func (sep *StubEnhancementProvider) EnhanceLyrics(ctx context.Context, lyrics st
 		Confidence: 0.7, // Stub has moderate confidence
 		Cards:      result.Cards,
 	}
-	
-	if len(result.Cards) > 0 {
-		card := result.Cards[0]
-		if card.Category == "lyrical-techniques" {
-			suggestion.Suggestion = fmt.Sprintf("Consider applying %s to: %s", card.Title, lyrics)
-			suggestion.Reason = card.Content
+
+	// Prefer a card from the requested categories if present in results
+	var chosen *Card
+	if len(result.Cards) > 0 && len(options.Categories) > 0 {
+		for _, cat := range options.Categories {
+			for _, rc := range result.Cards {
+				if rc.Category == cat {
+					tmp := rc
+					chosen = &tmp
+					break
+				}
+			}
+			if chosen != nil {
+				break
+			}
+		}
+	}
+
+	// If no preferred card found, fall back to first result (if any)
+	if chosen == nil && len(result.Cards) > 0 {
+		tmp := result.Cards[0]
+		chosen = &tmp
+	}
+
+	// If still no result but category filters were provided, try to pick a representative
+	if chosen == nil && len(options.Categories) > 0 {
+		for _, cat := range options.Categories {
+			for _, c := range sep.kb.cards {
+				if c.Category == cat {
+					tmp := c
+					chosen = &tmp
+					break
+				}
+			}
+			if chosen != nil {
+				break
+			}
+		}
+	}
+
+	if chosen != nil {
+		if chosen.Category == "lyrical-techniques" {
+			suggestion.Suggestion = fmt.Sprintf("Consider applying %s to: %s", chosen.Title, lyrics)
+			suggestion.Reason = chosen.Content
 			suggestion.Confidence = 0.8
-		} else if card.Category == "inspiration" {
-			suggestion.Suggestion = fmt.Sprintf("Inspired by %s: %s", card.Title, lyrics)
-			suggestion.Reason = card.Content
+		} else if chosen.Category == "inspiration" {
+			suggestion.Suggestion = fmt.Sprintf("Inspired by %s: %s", chosen.Title, lyrics)
+			suggestion.Reason = chosen.Content
 			suggestion.Confidence = 0.75
 		} else {
-			suggestion.Suggestion = fmt.Sprintf("Enhanced with %s insight: %s", card.Category, lyrics)
-			suggestion.Reason = card.Content
+			suggestion.Suggestion = fmt.Sprintf("Enhanced with %s insight: %s", chosen.Category, lyrics)
+			suggestion.Reason = chosen.Content
 		}
+		// Ensure suggestion list reflects chosen card
+		suggestion.Cards = []Card{*chosen}
 	} else {
+		// Fallback generic suggestion
 		suggestion.Suggestion = fmt.Sprintf("Enhanced version: %s", lyrics)
 		suggestion.Reason = "General lyrical enhancement - try adding more sensory details"
 	}

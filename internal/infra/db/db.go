@@ -4,7 +4,9 @@ package db
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -15,6 +17,7 @@ import (
 
 	errutil "github.com/puente-labs/noise/internal/errutil"
 	"github.com/puente-labs/noise/internal/domain"
+	"github.com/puente-labs/noise/internal/logging"
 )
 
 // DB wraps the database connection with helper methods
@@ -83,6 +86,31 @@ func New(cfg Config) (*DB, error) {
 		conn.Close()
 		return nil, errutil.Wrap(err, "initialize schema")
 	}
+
+	logger := logging.GetDefaultLogger()
+
+	schemaHash := sha256.Sum256([]byte(Schema))
+	fingerprint := hex.EncodeToString(schemaHash[:])
+	if len(fingerprint) > 12 {
+		fingerprint = fingerprint[:12]
+	}
+
+	var userVersion int
+	if err := conn.QueryRow("PRAGMA user_version").Scan(&userVersion); err != nil {
+		logger.Warn("Database user_version unavailable", "path", dbPath, "error", err)
+		userVersion = -1
+	}
+
+	var migrationTableCount int
+	if err := conn.QueryRow(`SELECT COUNT(1) FROM sqlite_master WHERE type='table' AND name='schema_migrations'`).Scan(&migrationTableCount); err != nil {
+		logger.Warn("Failed to inspect schema_migrations table", "path", dbPath, "error", err)
+	} else if migrationTableCount == 0 {
+		logger.Warn("Schema migrations table missing", "path", dbPath)
+	} else {
+		logger.Info("Schema migrations table detected", "path", dbPath, "entries", migrationTableCount)
+	}
+
+	logger.Info("Database schema initialized", "path", dbPath, "fingerprint", fingerprint, "user_version", userVersion)
 
 	return &DB{
 		conn:            conn,

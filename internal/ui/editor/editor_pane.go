@@ -2,7 +2,6 @@ package editor
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -181,58 +180,85 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 			}
 		}
 
-		// Handle shortcuts
-		if action, handled := m.shortcuts.HandleKey(msg); handled {
-			if m.handleAIShortcut(action) {
-				m.metrics.UpdateStatusBar(m.state, m.ai)
+		// Handle shortcuts (but do not let shortcuts intercept numeric selections when AI modes are active)
+		if !m.ai.IsRapidBrainstorm() && !m.ai.IsContinueMode() && !m.ai.IsVariationMode() {
+			if action, handled := m.shortcuts.HandleKey(msg); handled {
+				if m.handleAIShortcut(action) {
+					m.metrics.UpdateStatusBar(m.state, m.ai)
+					return m, tea.Batch(cmds...)
+				}
+
+				cmd = m.shortcuts.HandleShortcutAction(action, m.state)
+				if cmd != nil {
+					cmds = append(cmds, cmd)
+				}
 				return m, tea.Batch(cmds...)
 			}
-
-			cmd = m.shortcuts.HandleShortcutAction(action, m.state)
-			if cmd != nil {
-				cmds = append(cmds, cmd)
-			}
-			return m, tea.Batch(cmds...)
 		}
 
 		// Handle rapid prototyping key events
 		if m.ai.IsRapidBrainstorm() {
-			// Handle brainstorm angle selection
-			switch msg.String() {
-			case "1", "2", "3":
-				index, _ := strconv.Atoi(msg.String())
-				m.ai.SelectBrainstormAngle(index-1, m.state)
-				return m, tea.Batch(cmds...)
-			case "esc":
-				// Cancel brainstorm
+			// Robust selection parsing: accept Rune-based KeyMsgs, simple single-char strings,
+			// or the Esc key. This covers various ways tests construct KeyMsg values.
+			if len(msg.Runes) > 0 && msg.Runes[0] >= '1' && msg.Runes[0] <= '9' {
+				index := int(msg.Runes[0] - '0')
+				if index >= 1 && index <= 3 {
+					m.ai.SelectBrainstormAngle(index-1, m.state)
+					return m, tea.Batch(cmds...)
+				}
+			}
+			if s := msg.String(); len(s) == 1 && s[0] >= '1' && s[0] <= '9' {
+				index := int(s[0] - '0')
+				if index >= 1 && index <= 3 {
+					m.ai.SelectBrainstormAngle(index-1, m.state)
+					return m, tea.Batch(cmds...)
+				}
+			}
+			if msg.Type == tea.KeyEsc || strings.ToLower(msg.String()) == "esc" {
 				m.ai.CancelBrainstormMode()
 				return m, tea.Batch(cmds...)
 			}
 		}
 
 		if m.ai.IsContinueMode() {
-			// Handle continue suggestion selection
-			switch msg.String() {
-			case "1", "2", "3":
-				index, _ := strconv.Atoi(msg.String())
-				m.ai.SelectContinueSuggestion(index-1, m.state)
-				return m, tea.Batch(cmds...)
-			case "esc":
-				// Cancel continue mode
+			// Robust selection parsing for continue suggestions
+			if len(msg.Runes) > 0 && msg.Runes[0] >= '1' && msg.Runes[0] <= '9' {
+				index := int(msg.Runes[0] - '0')
+				if index >= 1 && index <= 3 {
+					m.ai.SelectContinueSuggestion(index-1, m.state)
+					return m, tea.Batch(cmds...)
+				}
+			}
+			if s := msg.String(); len(s) == 1 && s[0] >= '1' && s[0] <= '9' {
+				index := int(s[0] - '0')
+				if index >= 1 && index <= 3 {
+					m.ai.SelectContinueSuggestion(index-1, m.state)
+					return m, tea.Batch(cmds...)
+				}
+			}
+			if msg.Type == tea.KeyEsc || strings.ToLower(msg.String()) == "esc" {
 				m.ai.CancelContinueMode()
 				return m, tea.Batch(cmds...)
 			}
 		}
 
 		if m.ai.IsVariationMode() {
-			// Handle variation option selection
-			switch msg.String() {
-			case "1", "2", "3":
-				index, _ := strconv.Atoi(msg.String())
-				m.ai.SelectVariation(index-1, m.state)
-				return m, tea.Batch(cmds...)
-			case "esc":
-				// Cancel variation mode
+			// Robust selection parsing for variation options
+			if len(msg.Runes) > 0 && msg.Runes[0] >= '1' && msg.Runes[0] <= '9' {
+				index := int(msg.Runes[0] - '0')
+				if index >= 1 && index <= 3 {
+					m.ai.SelectVariation(index-1, m.state)
+					return m, tea.Batch(cmds...)
+				}
+			}
+			if s := msg.String(); len(s) == 1 && s[0] >= '1' && s[0] <= '9' {
+				index := int(s[0] - '0')
+				if index >= 1 && index <= 3 {
+					m.ai.SelectVariation(index-1, m.state)
+					return m, tea.Batch(cmds...)
+				}
+			}
+			if msg.Type == tea.KeyEsc || strings.ToLower(msg.String()) == "esc" {
 				m.ai.CancelVariationMode()
 				return m, tea.Batch(cmds...)
 			}
@@ -271,6 +297,17 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 			} else if m.state.AutoIndentEnabled() {
 				// Handle auto-indentation
 				m.state.HandleAutoIndent()
+			}
+		}
+
+		// Forward any unhandled key events to the underlying textarea so that
+		// rune input and editing keystrokes update the buffer as expected by tests.
+		if t := m.state.GetTextarea(); t != nil {
+			updatedTA, taCmd := (*t).Update(msg)
+			// Apply updated textarea state back to the editor state
+			*t = updatedTA
+			if taCmd != nil {
+				cmds = append(cmds, taCmd)
 			}
 		}
 	}

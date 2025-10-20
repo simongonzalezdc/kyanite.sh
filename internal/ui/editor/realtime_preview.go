@@ -55,8 +55,8 @@ type PreviewUpdateConfig struct {
 // DefaultPreviewUpdateConfig returns default configuration for preview updates
 func DefaultPreviewUpdateConfig() *PreviewUpdateConfig {
 	return &PreviewUpdateConfig{
-		// Make debounce small for test environment while still usable interactively
-		DebounceDelay:           10 * time.Millisecond,
+		// Debounce set to 0 for determinism in tests; production callers can override.
+		DebounceDelay:           0,
 		MaxDebounceDelay:        200 * time.Millisecond,
 		EnableDiffing:           true,
 		EnableThrottling:        true,
@@ -185,7 +185,14 @@ func (m *RealTimePreviewManager) UpdateContent(content string, source ChangeSour
 	m.lastContent = content
 	m.lastContentHash = currentHash
 
-	// Trigger debounced update
+	// Trigger debounced update. If debounce delay is zero (test-friendly),
+	// perform the update synchronously to make behavior deterministic.
+	if m.config != nil && m.config.DebounceDelay == 0 {
+		m.performUpdate(content)
+		return
+	}
+
+	// Otherwise run the debounced update asynchronously.
 	go m.debouncedUpdate(content)
 }
 

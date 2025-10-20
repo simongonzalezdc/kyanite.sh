@@ -428,7 +428,7 @@ func (s *AutoSaveService) executeSave(content string) error {
 			lockRetryDelay *= 2 // Exponential backoff
 		}
 
-		_, err := s.db.SaveVersion(0, content, false, versionName)
+		version, err := s.db.SaveVersion(0, content, false, versionName)
 		if err != nil {
 			lastErr = err
 			// Check if it's a database lock error
@@ -440,6 +440,14 @@ func (s *AutoSaveService) executeSave(content string) error {
 				}
 			}
 			return errutil.Wrapf(lastErr, "save auto-save version after %d attempts", attempt+1)
+		}
+
+		if version != nil {
+			if version.SongID == 0 {
+				logging.GetDefaultLogger().Warn("Auto-save stored without song binding", "version_id", version.ID, "milestone_name", version.MilestoneName)
+			} else {
+				logging.GetDefaultLogger().Info("Auto-save snapshot persisted", "song_id", version.SongID, "version_id", version.ID)
+			}
 		}
 
 		// Success - break out of retry loop

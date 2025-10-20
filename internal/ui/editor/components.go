@@ -57,7 +57,7 @@ type EditorState struct {
 
 // NewEditorState creates a new editor state component
 func NewEditorState(textarea *textarea.Model) *EditorState {
-	return &EditorState{
+	s := &EditorState{
 		textarea:         textarea,
 		focused:          true,
 		showLineNumbers:  true,
@@ -78,6 +78,14 @@ func NewEditorState(textarea *textarea.Model) *EditorState {
 		scratchMode:      false,
 		editorMode:       ModeSketch,
 	}
+
+	// Ensure the underlying textarea is focused so it will accept rune input
+	// when tests forward KeyMsg events to it.
+	if s.textarea != nil {
+		(*s.textarea).Focus()
+	}
+
+	return s
 }
 
 // EditorShortcuts handles keyboard shortcuts and actions

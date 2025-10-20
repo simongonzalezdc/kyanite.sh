@@ -206,10 +206,15 @@ func (bm *BackupManager) parseBackupFilename(filename string) (*BackupInfo, erro
 	backupID := filename[7 : len(filename)-5]
 
 	// For now, return basic info - in a full implementation, this would parse more metadata
-	return &BackupInfo{
+	backupInfo := &BackupInfo{
 		ID: backupID,
 		// SongID and other fields would need to be stored in the backup file or filename
-	}, nil
+	}
+
+	// Log backup metadata for integrity tracking
+	bm.logger.Debug("Parsed backup filename", "filename", filename, "backup_id", backupID)
+
+	return backupInfo, nil
 }
 
 func (bm *BackupManager) cleanupOldBackups() error {

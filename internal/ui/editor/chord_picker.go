@@ -14,29 +14,29 @@ import (
 
 // chordPickerModel handles the chord picker UI component
 type chordPickerModel struct {
-	width          int
-	height         int
-	visible        bool
-	progressions   []data.ChordProgression
-	filteredProg   []data.ChordProgression
-	selectedIdx    int
-	activeMood     string
-	showAll        bool
-	loaded         bool
-	
+	width        int
+	height       int
+	visible      bool
+	progressions []data.ChordProgression
+	filteredProg []data.ChordProgression
+	selectedIdx  int
+	activeMood   string
+	showAll      bool
+	loaded       bool
+
 	// Callback to insert chords into editor
 	insertCallback func(chords []string)
-	
+
 	// Animation for visual feedback
 	animationTime time.Time
 	pulseProgress float64
-	
+
 	// Styles
-	containerStyle  lipgloss.Style
-	headerStyle     lipgloss.Style
-	selectedStyle   lipgloss.Style
-	normalStyle     lipgloss.Style
-	moodStyle       lipgloss.Style
+	containerStyle   lipgloss.Style
+	headerStyle      lipgloss.Style
+	selectedStyle    lipgloss.Style
+	normalStyle      lipgloss.Style
+	moodStyle        lipgloss.Style
 	descriptionStyle lipgloss.Style
 	instructionStyle lipgloss.Style
 }
@@ -44,45 +44,45 @@ type chordPickerModel struct {
 // NewChordPickerModel creates a new chord picker model
 func NewChordPickerModel() *chordPickerModel {
 	return &chordPickerModel{
-		visible:      false,
-		selectedIdx:  0,
-		activeMood:   "all",
-		showAll:      true,
-		loaded:       false,
+		visible:       false,
+		selectedIdx:   0,
+		activeMood:    "all",
+		showAll:       true,
+		loaded:        false,
 		animationTime: time.Now(),
-		
+
 		containerStyle: lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(styles.Primary).
 			Background(styles.Background).
 			Padding(1, 2),
-			
+
 		headerStyle: lipgloss.NewStyle().
 			Bold(true).
 			Foreground(styles.Primary).
 			Align(lipgloss.Center).
 			MarginBottom(1),
-			
+
 		selectedStyle: lipgloss.NewStyle().
 			Background(styles.Primary).
 			Foreground(styles.Background).
 			Bold(true).
 			Padding(0, 1),
-			
+
 		normalStyle: lipgloss.NewStyle().
 			Foreground(styles.TextPrimary).
 			Padding(0, 1),
-			
+
 		moodStyle: lipgloss.NewStyle().
 			Foreground(styles.Accent).
 			Bold(true).
 			Padding(0, 1),
-			
+
 		descriptionStyle: lipgloss.NewStyle().
 			Foreground(styles.TextSecondary).
 			Italic(true).
 			MarginLeft(2),
-			
+
 		instructionStyle: lipgloss.NewStyle().
 			Foreground(styles.TextMuted).
 			Align(lipgloss.Center).
@@ -101,7 +101,7 @@ func (m *chordPickerModel) Update(msg tea.Msg) (*chordPickerModel, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		
+
 	case ShowChordPickerMsg:
 		m.visible = true
 		m.insertCallback = msg.InsertCallback
@@ -109,7 +109,7 @@ func (m *chordPickerModel) Update(msg tea.Msg) (*chordPickerModel, tea.Cmd) {
 		m.activeMood = "all"
 		m.showAll = true
 		m.animationTime = time.Now()
-		
+
 		// Load progressions if not already loaded
 		if !m.loaded {
 			if progressions, err := data.GetAllChordProgressions(); err == nil {
@@ -118,33 +118,33 @@ func (m *chordPickerModel) Update(msg tea.Msg) (*chordPickerModel, tea.Cmd) {
 				m.loaded = true
 			}
 		}
-		
+
 		return m, nil
-		
+
 	case HideChordPickerMsg:
 		m.visible = false
 		return m, nil
-		
+
 	case tea.KeyMsg:
 		if !m.visible {
 			return m, nil
 		}
-		
+
 		switch msg.String() {
 		case "esc":
 			m.visible = false
 			return m, nil
-			
+
 		case "up", "k":
 			if m.selectedIdx > 0 {
 				m.selectedIdx--
 			}
-			
+
 		case "down", "j":
 			if m.selectedIdx < len(m.filteredProg)-1 {
 				m.selectedIdx++
 			}
-			
+
 		case "1", "2", "3", "4":
 			// Mood selection
 			moods := []string{"all", "happy", "sad", "tense", "chill"}
@@ -159,18 +159,18 @@ func (m *chordPickerModel) Update(msg tea.Msg) (*chordPickerModel, tea.Cmd) {
 			case "4":
 				idx = 3
 			}
-			
+
 			if idx < len(moods) {
 				m.setMoodFilter(moods[idx])
 			}
-			
+
 		case "r":
 			// Random selection
 			if len(m.filteredProg) > 0 {
 				m.selectedIdx = rand.Intn(len(m.filteredProg))
 				m.animationTime = time.Now()
 			}
-			
+
 		case "enter", " ":
 			// Select and insert chords
 			if m.selectedIdx >= 0 && m.selectedIdx < len(m.filteredProg) {
@@ -182,7 +182,7 @@ func (m *chordPickerModel) Update(msg tea.Msg) (*chordPickerModel, tea.Cmd) {
 			}
 		}
 	}
-	
+
 	return m, nil
 }
 
@@ -191,37 +191,37 @@ func (m *chordPickerModel) View() string {
 	if !m.visible || !m.loaded {
 		return ""
 	}
-	
+
 	// Calculate dimensions
 	maxWidth := m.width - 10
 	if maxWidth < 60 {
 		maxWidth = 60
 	}
-	
+
 	maxHeight := m.height - 10
 	if maxHeight < 20 {
 		maxHeight = 20
 	}
-	
+
 	// Build content
 	var content strings.Builder
-	
+
 	// Header
 	header := m.headerStyle.Render("🎵 Quick Chord Picker")
 	content.WriteString(header)
 	content.WriteString("\n\n")
-	
+
 	// Mood filter
 	content.WriteString(m.renderMoodFilter())
 	content.WriteString("\n\n")
-	
+
 	// Progressions list
 	content.WriteString(m.renderProgressionsList(maxWidth, maxHeight-8))
-	
+
 	// Instructions
 	content.WriteString("\n\n")
 	content.WriteString(m.renderInstructions())
-	
+
 	// Apply container style
 	return m.containerStyle.Width(maxWidth).Render(content.String())
 }
@@ -230,7 +230,7 @@ func (m *chordPickerModel) View() string {
 func (m *chordPickerModel) renderMoodFilter() string {
 	moods := []string{"all", "happy", "sad", "tense", "chill"}
 	var buttons []string
-	
+
 	for i, mood := range moods {
 		var style lipgloss.Style
 		if mood == m.activeMood {
@@ -238,11 +238,11 @@ func (m *chordPickerModel) renderMoodFilter() string {
 		} else {
 			style = m.moodStyle
 		}
-		
+
 		button := style.Render(fmt.Sprintf("[%d] %s", i+1, strings.Title(mood)))
 		buttons = append(buttons, button)
 	}
-	
+
 	return strings.Join(buttons, " ")
 }
 
@@ -251,15 +251,15 @@ func (m *chordPickerModel) renderProgressionsList(maxWidth, maxHeight int) strin
 	if len(m.filteredProg) == 0 {
 		return "No progressions found for this mood."
 	}
-	
+
 	var lines []string
-	
+
 	// Calculate visible items
 	visibleItems := maxHeight
 	if visibleItems > len(m.filteredProg) {
 		visibleItems = len(m.filteredProg)
 	}
-	
+
 	// Calculate scroll position
 	startIdx := m.selectedIdx
 	if startIdx+visibleItems > len(m.filteredProg) {
@@ -268,37 +268,37 @@ func (m *chordPickerModel) renderProgressionsList(maxWidth, maxHeight int) strin
 	if startIdx < 0 {
 		startIdx = 0
 	}
-	
+
 	// Render visible items
 	for i := startIdx; i < startIdx+visibleItems && i < len(m.filteredProg); i++ {
 		progression := m.filteredProg[i]
-		
+
 		var style lipgloss.Style
 		if i == m.selectedIdx {
 			style = m.selectedStyle
 		} else {
 			style = m.normalStyle
 		}
-		
+
 		// Format: [index] Name - Chords
 		chordStr := strings.Join(progression.Chords, " - ")
 		lineText := fmt.Sprintf("%d. %s - %s", i+1, progression.Name, chordStr)
-		
+
 		// Truncate if too long
 		if len(lineText) > maxWidth-4 {
 			lineText = lineText[:maxWidth-7] + "..."
 		}
-		
+
 		line := style.Render(lineText)
 		lines = append(lines, line)
-		
+
 		// Add description for selected item
 		if i == m.selectedIdx {
 			desc := m.descriptionStyle.Render(progression.Description)
 			lines = append(lines, desc)
 		}
 	}
-	
+
 	return strings.Join(lines, "\n")
 }
 
@@ -311,7 +311,7 @@ func (m *chordPickerModel) renderInstructions() string {
 		"[Enter/Space] Insert chords",
 		"[Esc] Cancel",
 	}
-	
+
 	return m.instructionStyle.Render(strings.Join(instructions, " | "))
 }
 
@@ -320,7 +320,7 @@ func (m *chordPickerModel) setMoodFilter(mood string) {
 	m.activeMood = mood
 	m.showAll = (mood == "all")
 	m.selectedIdx = 0
-	
+
 	if m.showAll {
 		m.filteredProg = m.progressions
 	} else {

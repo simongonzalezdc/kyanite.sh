@@ -9,9 +9,9 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/puente-labs/noise/internal/app"
+	"github.com/puente-labs/noise/internal/theme"
 	"github.com/puente-labs/noise/internal/ui/dimension"
 	"github.com/puente-labs/noise/internal/ui/styles"
-	"github.com/puente-labs/noise/internal/theme"
 )
 
 // StatusBarSection represents a section of the status bar
@@ -351,13 +351,13 @@ func (m *StatusBarModel) renderRightSection() StatusBarSection {
 			themeLabel := m.modeIndicatorStyle.Render("Theme: " + themeID)
 			indicators = append(indicators, themeLabel)
 		}
-	
+
 		// Add content type indicator if not already shown in left section
 		if m.contentType != "" && m.contentType != "Unknown" && m.editorMode == "Normal" {
 			contentTypeStyle := m.getCompactContentTypeStyle(m.contentType)
 			indicators = append(indicators, contentTypeStyle.Render(m.contentType))
 		}
-		
+
 		// Add knowledge base status indicator
 		if m.kbStatus != "" {
 			kbStyle := m.getKnowledgeBaseStatusStyle(m.kbAvailable)
@@ -674,7 +674,6 @@ func (m *StatusBarModel) UpdateResponsiveMode(width int) {
 // 	// Full mode: show all information
 // 	return content
 // }
-
 
 // getContentTypeStyle returns the appropriate style for the content type
 func (m *StatusBarModel) getContentTypeStyle(contentType string) lipgloss.Style {

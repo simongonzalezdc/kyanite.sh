@@ -45,7 +45,7 @@ type ResponsiveLayoutManager struct {
 
 // NewResponsiveLayoutManager creates a new responsive layout manager
 func NewResponsiveLayoutManager() *ResponsiveLayoutManager {
-	return &ResponsiveLayoutManager{
+	r := &ResponsiveLayoutManager{
 		currentSize: TerminalSize{Width: 80, Height: 24},
 		minSize:     TerminalSize{Width: 80, Height: 24},
 		breakpoints: []ResponsiveBreakpoint{
@@ -57,10 +57,25 @@ func NewResponsiveLayoutManager() *ResponsiveLayoutManager {
 		},
 		showWarnings: true,
 	}
+
+	// Initialize active breakpoint based on the default size so callers/tests
+	// get a consistent initial value (tests expect "ultra-compact" for 80x24).
+	r.activeBreakpoint = r.getActiveBreakpoint()
+	r.updateSizeWarnings()
+
+	return r
 }
 
 // UpdateSize updates the current terminal size and validates it
 func (r *ResponsiveLayoutManager) UpdateSize(width, height int) {
+	// Ensure we always set a sensible default when tests or callers pass zeroes.
+	if width <= 0 {
+		width = r.currentSize.Width
+	}
+	if height <= 0 {
+		height = r.currentSize.Height
+	}
+
 	r.currentSize.Width = width
 	r.currentSize.Height = height
 	r.activeBreakpoint = r.getActiveBreakpoint()

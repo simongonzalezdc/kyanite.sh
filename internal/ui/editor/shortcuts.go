@@ -30,7 +30,7 @@ type KeyBinding struct {
 
 // ShortcutManager manages all keyboard shortcuts for the editor
 type ShortcutManager struct {
-	bindings map[string]*KeyBinding
+	bindings map[string][]*KeyBinding
 	context  KeyContext
 	helpMode bool
 }
@@ -38,7 +38,7 @@ type ShortcutManager struct {
 // NewShortcutManager creates a new shortcut manager
 func NewShortcutManager() *ShortcutManager {
 	sm := &ShortcutManager{
-		bindings: make(map[string]*KeyBinding),
+		bindings: make(map[string][]*KeyBinding),
 		context:  ContextGlobal,
 		helpMode: false,
 	}
@@ -92,11 +92,11 @@ func (sm *ShortcutManager) initializeDefaultBindings() {
 	sm.registerBinding("ctrl+h", key.NewBinding(key.WithKeys("ctrl+h"), key.WithHelp("ctrl+h", "replace")), "Replace", ContextEditor, "Search")
 	sm.registerBinding("f3", key.NewBinding(key.WithKeys("f3"), key.WithHelp("f3", "find next")), "Find next", ContextEditor, "Search")
 	sm.registerBinding("shift+f3", key.NewBinding(key.WithKeys("shift+f3"), key.WithHelp("shift+f3", "find prev")), "Find previous", ContextEditor, "Search")
-	
+
 	// Quick tools
 	sm.registerBinding("ctrl+f", key.NewBinding(key.WithKeys("ctrl+f"), key.WithHelp("ctrl+f", "chord picker")), "Chord picker", ContextEditor, "Tools")
 	sm.registerBinding("ctrl+t", key.NewBinding(key.WithKeys("ctrl+t"), key.WithHelp("ctrl+t", "bpm tapper")), "BPM tapper", ContextEditor, "Tools")
-	
+
 	// AI Quick Actions
 	sm.registerBinding("alt+g", key.NewBinding(key.WithKeys("alt+g"), key.WithHelp("alt+g", "ai unstick")), "AI unstick (next line)", ContextEditor, "AI")
 	sm.registerBinding("alt+r", key.NewBinding(key.WithKeys("alt+r"), key.WithHelp("alt+r", "ai spark")), "AI spark (new ideas)", ContextEditor, "AI")
@@ -110,7 +110,7 @@ func (sm *ShortcutManager) initializeDefaultBindings() {
 	sm.registerBinding("ctrl+shift+s", key.NewBinding(key.WithKeys("ctrl+shift+s"), key.WithHelp("ctrl+shift+s", "save as")), "Save as", ContextGlobal, "File")
 	sm.registerBinding("ctrl+w", key.NewBinding(key.WithKeys("ctrl+w"), key.WithHelp("ctrl+w", "close")), "Close file", ContextGlobal, "File")
 	sm.registerBinding("ctrl+e", key.NewBinding(key.WithKeys("ctrl+e"), key.WithHelp("ctrl+e", "export")), "Export file", ContextGlobal, "File")
-	
+
 	// Export format shortcuts
 	sm.registerBinding("ctrl+shift+m", key.NewBinding(key.WithKeys("ctrl+shift+m"), key.WithHelp("ctrl+shift+m", "export markdown")), "Export as Markdown", ContextGlobal, "File")
 	sm.registerBinding("ctrl+shift+p", key.NewBinding(key.WithKeys("ctrl+shift+p"), key.WithHelp("ctrl+shift+p", "export chordpro")), "Export as ChordPro", ContextGlobal, "File")
@@ -150,12 +150,14 @@ func (sm *ShortcutManager) initializeDefaultBindings() {
 
 // registerBinding registers a new key binding
 func (sm *ShortcutManager) registerBinding(keyStr string, keyBinding key.Binding, description string, context KeyContext, category string) {
-	sm.bindings[keyStr] = &KeyBinding{
+	kb := &KeyBinding{
 		Key:         keyBinding,
 		Description: description,
 		Context:     context,
 		Category:    category,
 	}
+
+	sm.bindings[keyStr] = append(sm.bindings[keyStr], kb)
 }
 
 // SetContext sets the current keyboard context
@@ -182,17 +184,58 @@ func (sm *ShortcutManager) IsHelpMode() bool {
 func (sm *ShortcutManager) HandleKey(msg tea.KeyMsg) (ShortcutAction, bool) {
 	keyStr := msg.String()
 
-	// Check for exact key matches first
-	if binding, exists := sm.bindings[keyStr]; exists {
-		if sm.isBindingActive(binding) {
-			return sm.createActionFromBinding(binding, keyStr), true
+	// First, handle explicit key types that may not produce a helpful string
+	switch msg.Type {
+	case tea.KeyF1:
+		sm.helpMode = !sm.helpMode
+		return ShortcutAction{Type: ActionToggleHelp}, true
+	}
+
+	// Check for exact key matches first (support multiple bindings per key)
+	if bindings, exists := sm.bindings[keyStr]; exists {
+		for _, binding := range bindings {
+			if sm.isBindingActive(binding) {
+				return sm.createActionFromBinding(binding, keyStr), true
+			}
 		}
 	}
 
-	// Check for help mode toggle
+	// Check for help mode toggle (explicit string fallback)
 	if keyStr == "f1" || keyStr == "?" {
 		sm.helpMode = !sm.helpMode
 		return ShortcutAction{Type: ActionToggleHelp}, true
+	}
+
+	// Fallback: iterate all bindings and attempt to match heuristically.
+	// This handles cases where KeyMsg.String() representation and registered
+	// key identifiers diverge (tests sometimes construct KeyMsg with ctrl rune).
+	normalizedMsg := strings.ToLower(keyStr)
+	for _, bList := range sm.bindings {
+		for _, binding := range bList {
+			if !sm.isBindingActive(binding) {
+				continue
+			}
+
+			bKey := strings.ToLower(binding.Key.Help().Key)
+
+			// Direct match on help key
+			if bKey == normalizedMsg {
+				return sm.createActionFromBinding(binding, bKey), true
+			}
+
+			// If msg has runes (e.g., KeyCtrlC with Runes: 'q'), allow matching by ctrl+<rune>
+			if len(msg.Runes) > 0 {
+				runeKey := fmt.Sprintf("ctrl+%s", strings.ToLower(string(msg.Runes[0])))
+				if bKey == runeKey {
+					return sm.createActionFromBinding(binding, bKey), true
+				}
+			}
+
+			// Allow partial contains (e.g., "ctrl+q" vs "ctrl+Q") and common aliases
+			if strings.Contains(bKey, normalizedMsg) || strings.Contains(normalizedMsg, bKey) {
+				return sm.createActionFromBinding(binding, bKey), true
+			}
+		}
 	}
 
 	return ShortcutAction{}, false
@@ -284,13 +327,13 @@ func (sm *ShortcutManager) createActionFromBinding(binding *KeyBinding, keyStr s
 	case keyStr == "shift+f3":
 		action.Type = ActionFindPrev
 	// ctrl+g is now only used for AI unstick
-	
+
 	// Quick tools actions
 	case keyStr == "ctrl+f":
 		action.Type = ActionChordPicker
 	case keyStr == "ctrl+t":
 		action.Type = ActionBPMTapper
-	
+
 	// AI Quick Actions
 	case keyStr == "alt+g":
 		action.Type = ActionAIUnstick
@@ -313,7 +356,12 @@ func (sm *ShortcutManager) createActionFromBinding(binding *KeyBinding, keyStr s
 	case keyStr == "ctrl+e":
 		action.Type = ActionExport
 	case keyStr == "ctrl+w":
-		action.Type = ActionCloseFile
+		// ctrl+w is context-sensitive: toggle word wrap in editor, close file otherwise
+		if sm.context == ContextEditor {
+			action.Type = ActionToggleWordWrap
+		} else {
+			action.Type = ActionCloseFile
+		}
 	// Export format shortcuts
 	case keyStr == "ctrl+shift+m":
 		action.Type = ActionExportMarkdown
@@ -369,9 +417,11 @@ func (sm *ShortcutManager) createActionFromBinding(binding *KeyBinding, keyStr s
 func (sm *ShortcutManager) GetBindingsForContext(context KeyContext) []*KeyBinding {
 	var bindings []*KeyBinding
 
-	for _, binding := range sm.bindings {
-		if binding.Context == context || binding.Context == ContextGlobal {
-			bindings = append(bindings, binding)
+	for _, bList := range sm.bindings {
+		for _, binding := range bList {
+			if binding.Context == context || binding.Context == ContextGlobal {
+				bindings = append(bindings, binding)
+			}
 		}
 	}
 
@@ -382,9 +432,11 @@ func (sm *ShortcutManager) GetBindingsForContext(context KeyContext) []*KeyBindi
 func (sm *ShortcutManager) GetBindingsByCategory(category string) []*KeyBinding {
 	var bindings []*KeyBinding
 
-	for _, binding := range sm.bindings {
-		if binding.Category == category && (binding.Context == sm.context || binding.Context == ContextGlobal) {
-			bindings = append(bindings, binding)
+	for _, bList := range sm.bindings {
+		for _, binding := range bList {
+			if binding.Category == category && (binding.Context == sm.context || binding.Context == ContextGlobal) {
+				bindings = append(bindings, binding)
+			}
 		}
 	}
 
@@ -394,8 +446,10 @@ func (sm *ShortcutManager) GetBindingsByCategory(category string) []*KeyBinding 
 // GetAllBindings returns all registered bindings
 func (sm *ShortcutManager) GetAllBindings() []*KeyBinding {
 	var bindings []*KeyBinding
-	for _, binding := range sm.bindings {
-		bindings = append(bindings, binding)
+	for _, bList := range sm.bindings {
+		for _, binding := range bList {
+			bindings = append(bindings, binding)
+		}
 	}
 	return bindings
 }
