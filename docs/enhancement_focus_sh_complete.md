@@ -29,9 +29,9 @@ The existing "Neon Focus" codebase (`crush-cli/crush`) has severe **naming/brand
 |-----------|---------|--------|
 | **Module Path** | `github.com/crush-cli/crush` | `github.com/kyanite/focus` |
 | **Binary Name** | `neon.exe` / `todo.exe` | `focus` (all platforms) |
-| **Storage Dir** | `~/.neon/` + `~/.todo/` | `~/.focus/` |
-| **Config File** | `~/.neon/config.yml` | `~/.focus/config.yml` |
-| **AI Cache** | `~/.todo/ai_cache.json` | `~/.focus/ai_cache.json` |
+| **Storage Dir** | `~/.focus/` + `~/.focus/` | `~/.focus/` |
+| **Config File** | `~/.focus/config.yml` | `~/.focus/config.yml` |
+| **AI Cache** | `~/.focus/ai_cache.json` | `~/.focus/ai_cache.json` |
 | **CLI Brand** | "neon", "crush", "todo" | "focus" |
 | **Package Name** | `crush-cli/crush` | `focus` |
 
@@ -105,16 +105,16 @@ focus/
 **Migrate all storage to ~/.focus/**
 
 **Current paths:**
-- `~/.neon/tasks.json` → `~/.focus/tasks.json`
-- `~/.neon/config.yml` → `~/.focus/config.yml`
-- `~/.todo/ai_cache.json` → `~/.focus/ai_cache.json`
+- `~/.focus/tasks.json` → `~/.focus/tasks.json`
+- `~/.focus/config.yml` → `~/.focus/config.yml`
+- `~/.focus/ai_cache.json` → `~/.focus/ai_cache.json`
 
 **Migration strategy:**
 ```go
 func migrateStorage() error {
     // On first run of new version:
-    // 1. Check for ~/.neon/ → copy to ~/.focus/
-    // 2. Check for ~/.todo/ → merge into ~/.focus/
+    // 1. Check for ~/.focus/ → copy to ~/.focus/
+    // 2. Check for ~/.focus/ → merge into ~/.focus/
     // 3. Delete old directories (after backup)
 }
 ```
@@ -134,8 +134,8 @@ func migrateStorage() error {
 | "todo" (brand ref) | "focus" | ~10 files |
 | "NEON" (display) | "focus.sh" | ~5 files |
 | `neonBlue` (color var) | `focusBlue` | styles files |
-| `~/.neon` | `~/.focus` | help text, docs |
-| `~/.todo` | `~/.focus` | help text, docs |
+| `~/.focus` | `~/.focus` | help text, docs |
+| `~/.focus` | `~/.focus` | help text, docs |
 
 **Critical files to audit:**
 - `internal/cli/root.go` - Help text, examples
@@ -360,8 +360,8 @@ Output should include:
 
 **String Updates:**
 - [ ] Replace "neon" brand refs with "focus" (~15 files)
-- [ ] Replace "~/.neon" with "~/.focus" (help text, code, docs)
-- [ ] Replace "~/.todo" with "~/.focus" (all references)
+- [ ] Replace "~/.focus" with "~/.focus" (help text, code, docs)
+- [ ] Replace "~/.focus" with "~/.focus" (all references)
 - [ ] Verify no remaining "crush-cli" references in user-facing text
 
 **Tests & Verification:**
@@ -376,13 +376,13 @@ Output should include:
 
 **Migration Logic:**
 - [ ] Implement `migrateStorage()` in `pkg/utils/storage.go`
-- [ ] On first run of v2.0, detect old `~/.neon/` and `~/.todo/` paths
+- [ ] On first run of v2.0, detect old `~/.focus/` and `~/.focus/` paths
 - [ ] Copy/merge to `~/.focus/`
 - [ ] Create backup: `~/.focus/backup-v1/` (preserve old data)
 - [ ] Delete old directories after successful migration
 
 **Path Updates:**
-- [ ] Update all hardcoded paths: `~/.neon/` → `~/.focus/`
+- [ ] Update all hardcoded paths: `~/.focus/` → `~/.focus/`
 - [ ] Update `pkg/config/config.go`
 - [ ] Update `pkg/utils/storage.go`
 - [ ] Update help text and documentation
@@ -819,9 +819,9 @@ NEW: focus / focus.exe
 COMMAND: grep -r "neon\.exe\|todo\.exe" --include="*.go" --include="*.sh" --include="*.bat"
 
 # Pattern 3: Path references
-OLD: ~/.neon/
+OLD: ~/.focus/
 NEW: ~/.focus/
-COMMAND: grep -r "~/.neon" --include="*.go" --include="*.md"
+COMMAND: grep -r "~/.focus" --include="*.go" --include="*.md"
 
 # Pattern 4: String constants
 OLD: "neon" / "crush" / "todo" (brand)
@@ -842,8 +842,8 @@ COMMAND: grep -r "Use: neon\|neon add\|neon list" --include="*.go"
 
 ### Migration Tests
 - [ ] Backup created at ~/.focus/backup-pre-migration
-- [ ] All tasks from ~/.neon/tasks.json copied to ~/.focus/
-- [ ] AI cache from ~/.todo/ai_cache.json merged
+- [ ] All tasks from ~/.focus/tasks.json copied to ~/.focus/
+- [ ] AI cache from ~/.focus/ai_cache.json merged
 - [ ] Old directories still exist (not deleted) for safety
 - [ ] config.yml created with defaults
 - [ ] Fresh install (no old data) still works
@@ -934,7 +934,7 @@ GitHub Release:
 ## Notes
 
 - **Naming complexity:** This refactor is non-trivial due to identity chaos (3 project names). Execute carefully.
-- **Migration is critical:** Users have data in ~/.neon/ — losing it = disaster. Test thoroughly.
+- **Migration is critical:** Users have data in ~/.focus/ — losing it = disaster. Test thoroughly.
 - **AI unchanged:** Ollama + OpenRouter integration should continue working.
 - **Theme colors:** All 13 hex codes provided above - copy/paste directly into code.
 - **Next phase:** Kyanite suite integration (linking to other tools) comes after shipping.

@@ -61,9 +61,9 @@ C:\Users\Simon\dev\crush-cli\
 **Storage Method:** JSON files (no SQL database)
 
 **File Locations:**
-- Main storage: `~/.neon/tasks.json`
-- Configuration: `~/.neon/config.yml`
-- AI cache: `~/.todo/ai_cache.json`
+- Main storage: `~/.focus/tasks.json`
+- Configuration: `~/.focus/config.yml`
+- AI cache: `~/.focus/ai_cache.json`
 - Test data: `test/test_tasks.json`
 
 **Data Schema (Task):**
@@ -125,7 +125,7 @@ C:\Users\Simon\dev\crush-cli\
 
 **Prompts:** Defined in `internal/ai/manager.go` with cyberpunk persona
 
-**Caching:** 24-hour TTL JSON cache at `~/.todo/ai_cache.json`
+**Caching:** 24-hour TTL JSON cache at `~/.focus/ai_cache.json`
 
 ---
 
@@ -172,9 +172,9 @@ github.com/pterm/pterm v0.12.76
 - `internal/cli/theme.go:17` - "neon colors (default)"
 - `internal/ai/manager.go:235` - "Try using 'neon inspire'"
 - `internal/cli/root.go:12` - `neonBlue` color constant
-- `pkg/config/config.go:69` - Config path: `~/.neon/`
+- `pkg/config/config.go:69` - Config path: `~/.focus/`
 - `internal/cli/add.go:23` - "Example: neon add"
-- `pkg/utils/storage.go:12` - Storage path: `~/.neon/tasks.json`
+- `pkg/utils/storage.go:12` - Storage path: `~/.focus/tasks.json`
 - `pkg/styles/synthwave.go:278` - "Initialize with 'neon add'"
 - `pkg/styles/styles.go:16` - `neonRed` color constant
 - 10+ other command references and help text
@@ -189,7 +189,7 @@ github.com/pterm/pterm v0.12.76
 
 **Inconsistencies:**
 - Module: `github.com/crush-cli/crush` vs UI brand: "NEON"
-- Storage: `~/.neon/` but AI cache: `~/.todo/`
+- Storage: `~/.focus/` but AI cache: `~/.focus/`
 - Build outputs: `neon.exe` vs `todo.exe`
 - CLI commands: `neon` vs some references to `todo`
 
@@ -199,7 +199,7 @@ github.com/pterm/pterm v0.12.76
 
 **Critical Issues:**
 - ❌ **Naming chaos** - 3 different project identities (crush, neon, todo)
-- ❌ **Inconsistent paths** - Mixed `~/.neon/` and `~/.todo/` directories
+- ❌ **Inconsistent paths** - Mixed `~/.focus/` and `~/.focus/` directories
 - ❌ **Build confusion** - Different binary names across platforms
 
 **Performance Issues:**

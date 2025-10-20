@@ -17,31 +17,31 @@ An intelligent CLI task management application with natural language processing 
 
 1. Install [Go 1.21+](https://golang.org/dl/) and [Ollama](https://ollama.ai/)
 2. Pull the required model: `ollama pull qwen2.5:1.5b`
-3. Build with `build.bat` or run directly with `go run cmd/neon/main.go`
+3. Build with `build.bat` or run directly with `go run cmd/focus/main.go`
 
 ## Usage
 
 ```bash
 # View all available commands
-neon --help
+focus --help
 
 # Add a task with natural language
-neon add "Complete the synthwave project by Friday"
+focus add "Complete the synthwave project by Friday"
 
 # View tasks in beautiful list format
-neon list
+focus list
 
 # View tasks in calendar format
-neon calendar today
+focus calendar today
 
 # Add task with specific date
-neon calendar add "Team meeting" 2025-10-20
+focus calendar add "Team meeting" 2025-10-20
 
 # Launch unified dashboard (recommended)
-neon unified
+focus unified
 
 # Launch AI chat for assistance
-neon chat
+focus chat
 ```
 
 ## Configuration
@@ -79,7 +79,7 @@ neon config set ai.model qwen2.5:1.5b
 
 ## Data Storage
 
-Tasks are stored in `~/.neon/tasks.json` on Unix systems or `%USERPROFILE%\.neon\tasks.json` on Windows.
+Tasks are stored in `~/.focus/tasks.json` on Unix systems or `%USERPROFILE%\.focus\tasks.json` on Windows.
 
 ## Development
 

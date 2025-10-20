@@ -394,6 +394,6 @@ func displayConfiguration(config interface{}) {
 	fmt.Println(successStyle.Render("✅ Configuration Saved!"))
 	fmt.Println(strings.Repeat("─", 50))
 	// Implementation would display the actual configuration
-	fmt.Println("📋 Configuration has been saved to ~/.neon/config.yml")
+	fmt.Println("📋 Configuration has been saved to ~/.focus/config.yml")
 	fmt.Println(strings.Repeat("─", 50))
 }

@@ -239,7 +239,7 @@ func configHandler(cmd *cobra.Command, args []string) {
 🎨 Default Theme: %s
 💾 Auto-save: %s minutes
 
-Configuration saved to ~/.neon/config.yml`, aiProvider, defaultTheme, interval),
+Configuration saved to ~/.focus/config.yml`, aiProvider, defaultTheme, interval),
 		"#FF71CE", "#0F0A19", true,
 	)
 

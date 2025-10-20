@@ -14,7 +14,7 @@ func TestGetStoragePath(t *testing.T) {
 		{
 			name:        "normal home directory",
 			setupHomeDir: "/home/user",
-			expectedPath: "/home/user/.neon/tasks.json",
+			expectedPath: "/home/user/.focus/tasks.json",
 		},
 		{
 			name:        "error getting home directory",

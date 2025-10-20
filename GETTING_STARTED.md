@@ -92,6 +92,6 @@ todo.exe delete <task_id>
 
 ### Getting Help
 
-1. Check logs in `~/.todo/tasks.json`
+1. Check logs in `~/.focus/tasks.json`
 2. Run tests with verbose output: `go test -v ./...`
 3. File issues on project repository

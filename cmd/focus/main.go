@@ -16,13 +16,19 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/pkg/styles"
 	"github.com/kyanite/focus/internal/tui"
+	"github.com/kyanite/focus/internal/cli"
 )
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "mcp-server" {
-		if err := runMCPServer(); err != nil {
-			fmt.Fprintf(os.Stderr, "mcp-server error: %v\n", err)
+	if len(os.Args) > 1 {
+		if os.Args[1] == "mcp-server" {
+			if err := runMCPServer(); err != nil {
+				fmt.Fprintf(os.Stderr, "mcp-server error: %v\n", err)
+			}
+			return
 		}
+		// Any other subcommand should be handled by the CLI layer
+		cli.Execute()
 		return
 	}
 
@@ -52,7 +58,7 @@ func runMCPServer() error {
 		cmd.Stderr = os.Stderr
 		return cmd.Run()
 	}
-	cmd := exec.Command("go", "run", "./cmd/mcp-server")
+	cmd := exec.Command("go", "run", "./cmd/focus-mcp")
 	cmd.Dir = root
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -64,7 +70,7 @@ func findRepoRoot() string {
 	d, _ := os.Getwd()
 	for i := 0; i < 10; i++ {
 		gm := filepath.Join(d, "go.mod")
-		mcpmain := filepath.Join(d, "cmd", "mcp-server", "main.go")
+		mcpmain := filepath.Join(d, "cmd", "focus-mcp", "main.go")
 		if _, err := os.Stat(gm); err == nil {
 			if _, err2 := os.Stat(mcpmain); err2 == nil {
 				return d
@@ -369,7 +375,7 @@ func showEpicIntro() {
 		Foreground(styles.SynthwaveCyan).
 		Background(styles.DarkVoid).
 		Italic(true).
-		Render("💫 Type 'neon --help' to begin your productivity mission")
+		Render("💫 Type 'focus --help' to begin your productivity mission")
 	fmt.Println(controlHint)
 	
 	time.Sleep(time.Second * 2)
@@ -397,7 +403,7 @@ a critical error in the neural interface.
 
 ERROR: ` + err.Error() + `
 
-▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 `)
 	
 	fmt.Println(errorTitle)

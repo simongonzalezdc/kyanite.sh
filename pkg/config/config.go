@@ -66,7 +66,7 @@ func LoadConfig() (*Config, error) {
 	// Add config search paths
 	homeDir, err := os.UserHomeDir()
 	if err == nil {
-		viper.AddConfigPath(filepath.Join(homeDir, ".neon"))
+		viper.AddConfigPath(filepath.Join(homeDir, ".focus"))
 	}
 	
 	// Fallback to current directory
@@ -114,7 +114,7 @@ func SaveConfig(config *Config) error {
 		return err
 	}
 
-	configDir := filepath.Join(homeDir, ".neon")
+	configDir := filepath.Join(homeDir, ".focus")
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return err
 	}
@@ -188,7 +188,7 @@ func createDefaultConfig() error {
 		return err
 	}
 
-	configDir := filepath.Join(homeDir, ".neon")
+	configDir := filepath.Join(homeDir, ".focus")
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return err
 	}
@@ -200,7 +200,7 @@ func createDefaultConfig() error {
 // GetConfigPath returns the path to the config file
 func GetConfigPath() string {
 	homeDir, _ := os.UserHomeDir()
-	return filepath.Join(homeDir, ".neon", "config.yaml")
+	return filepath.Join(homeDir, ".focus", "config.yaml")
 }
 
 // IsConfigLoaded returns whether configuration has been loaded

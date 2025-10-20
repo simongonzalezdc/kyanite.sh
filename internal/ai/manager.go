@@ -67,7 +67,7 @@ func New() *Manager {
 	if err != nil {
 		manager.cachePath = "./ai_cache.json"
 	} else {
-		manager.cachePath = filepath.Join(home, ".todo", "ai_cache.json")
+		manager.cachePath = filepath.Join(home, ".focus", "ai_cache.json")
 	}
 	
 	// Load cache if it exists
