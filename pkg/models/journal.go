@@ -31,6 +31,11 @@ const (
 	ExportResearch  ExportType = "research"
 )
 
+// String returns the string representation of ExportType
+func (e ExportType) String() string {
+	return string(e)
+}
+
 // JournalTemplate represents a journal template
 type JournalTemplate struct {
 	Name        string   `json:"name"`

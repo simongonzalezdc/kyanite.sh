@@ -127,7 +127,7 @@ var journalListCmd = &cobra.Command{
 				}
 			}
 
-			line := fmt.Sprintf("%s 📅 %s | 📝 %s | 📊 %d words | 😊 %s",
+			line := fmt.Sprintf("📅 %s | 📝 %s | 📊 %d words | 😊 %s",
 				entry.Date, title, entry.WordCount, entry.Mood)
 
 			fmt.Println(entryStyle.Render(line))
@@ -327,7 +327,7 @@ func createJournalEntry() *models.JournalEntry {
 	}
 
 	// Get content
-	fmt.Printf("📝 %s - %s\n", strings.Title(template), selectedTemplate.Description)
+	fmt.Printf("📝 %s - %s\n", strings.ToUpper(template), selectedTemplate.Description)
 	fmt.Println("Enter your journal entry (press Enter on an empty line to finish):")
 	
 	var content strings.Builder
