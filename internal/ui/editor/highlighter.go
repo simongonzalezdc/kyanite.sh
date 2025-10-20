@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"sort"
 
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -40,6 +40,7 @@ type SyntaxHighlighter struct {
 
 // NewSyntaxHighlighter creates a new syntax highlighter with predefined styles.
 func NewSyntaxHighlighter() *SyntaxHighlighter {
+	t := theme.GetManager().Current()
 	sh := &SyntaxHighlighter{
 		patterns: make(map[ElementType]*regexp.Regexp),
 		styles:   make(map[ElementType]lipgloss.Style),
@@ -55,15 +56,15 @@ func NewSyntaxHighlighter() *SyntaxHighlighter {
 	sh.patterns[ElementList] = regexp.MustCompile(`(?m)^(\s*)([-*+]|\d+\.)\s+(.+)$`)
 	sh.patterns[ElementBlockquote] = regexp.MustCompile(`(?m)^>\s+(.+)$`)
 
-	// Define styles for each element type using Midnight Jazz theme.
-	sh.styles[ElementHeader] = lipgloss.NewStyle().Bold(true).Foreground(styles.Accent)
-	sh.styles[ElementBold] = lipgloss.NewStyle().Bold(true).Foreground(styles.Primary)
-	sh.styles[ElementItalic] = lipgloss.NewStyle().Italic(true).Foreground(styles.TextSecondary)
-	sh.styles[ElementCode] = lipgloss.NewStyle().Background(styles.Dark2).Foreground(styles.Success).Padding(0, 1)
-	sh.styles[ElementCodeBlock] = lipgloss.NewStyle().Background(styles.Dark1).Foreground(styles.TextPrimary)
-	sh.styles[ElementLink] = lipgloss.NewStyle().Foreground(styles.Info).Underline(true)
-	sh.styles[ElementList] = lipgloss.NewStyle().Foreground(styles.TextSecondary)
-	sh.styles[ElementBlockquote] = lipgloss.NewStyle().Foreground(styles.TextMuted).Italic(true)
+	// Define styles for each element type using current theme.
+	sh.styles[ElementHeader] = lipgloss.NewStyle().Bold(true).Foreground(t.Accent)
+	sh.styles[ElementBold] = lipgloss.NewStyle().Bold(true).Foreground(t.Primary)
+	sh.styles[ElementItalic] = lipgloss.NewStyle().Italic(true).Foreground(t.Secondary)
+	sh.styles[ElementCode] = lipgloss.NewStyle().Background(t.Background).Foreground(t.Success).Padding(0, 1)
+	sh.styles[ElementCodeBlock] = lipgloss.NewStyle().Background(t.Background).Foreground(t.Text)
+	sh.styles[ElementLink] = lipgloss.NewStyle().Foreground(t.Accent).Underline(true)
+	sh.styles[ElementList] = lipgloss.NewStyle().Foreground(t.Secondary)
+	sh.styles[ElementBlockquote] = lipgloss.NewStyle().Foreground(t.Secondary).Italic(true)
 
 	return sh
 }

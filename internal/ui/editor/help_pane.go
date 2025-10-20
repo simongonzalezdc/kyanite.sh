@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/Kyanite/noise/internal/ui/dimension"
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -45,13 +45,15 @@ type HelpPaneModel struct {
 
 // NewHelpPaneModel creates a new help pane model
 func NewHelpPaneModel(shortcutManager *ShortcutManager) *HelpPaneModel {
+	t := theme.GetManager().Current()
+	
 	// Initialize search input
 	searchInput := textinput.New()
 	searchInput.Placeholder = "Search shortcuts..."
 	searchInput.Prompt = "ðŸ” "
-	searchInput.PromptStyle = lipgloss.NewStyle().Foreground(styles.Accent)
-	searchInput.TextStyle = lipgloss.NewStyle().Foreground(styles.TextPrimary)
-	searchInput.Cursor.Style = lipgloss.NewStyle().Foreground(styles.Accent)
+	searchInput.PromptStyle = lipgloss.NewStyle().Foreground(t.Accent)
+	searchInput.TextStyle = lipgloss.NewStyle().Foreground(t.Text)
+	searchInput.Cursor.Style = lipgloss.NewStyle().Foreground(t.Accent)
 	searchInput.CharLimit = 50
 	searchInput.Focus()
 
@@ -60,24 +62,32 @@ func NewHelpPaneModel(shortcutManager *ShortcutManager) *HelpPaneModel {
 		searchInput:     searchInput,
 		searchMode:      false,
 		searchQuery:     "",
-		containerStyle:  styles.BorderActive,
+		containerStyle: lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(t.Primary),
 		titleStyle: lipgloss.NewStyle().
 			Bold(true).
-			Foreground(styles.Accent).
+			Foreground(t.Accent).
 			MarginBottom(1),
 		categoryStyle: lipgloss.NewStyle().
 			Bold(true).
-			Foreground(styles.Primary).
+			Foreground(t.Primary).
 			MarginTop(1).
 			MarginBottom(1),
 		shortcutStyle: lipgloss.NewStyle().
-			Foreground(styles.Info).
+			Foreground(t.Accent).
 			Bold(true),
 		descStyle: lipgloss.NewStyle().
-			Foreground(styles.TextSecondary),
-		borderStyle:       styles.Border,
-		searchInputStyle:  styles.BorderActive.Width(50).Padding(0, 1),
-		searchResultStyle: lipgloss.NewStyle().Foreground(styles.Success),
+			Foreground(t.Secondary),
+		borderStyle: lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(t.Secondary),
+		searchInputStyle: lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(t.Primary).
+			Width(50).
+			Padding(0, 1),
+		searchResultStyle: lipgloss.NewStyle().Foreground(t.Success),
 		compactMode:       false,
 		showMinimalHelp:   false,
 		showShortKeys:     false,
@@ -233,7 +243,8 @@ func (m *HelpPaneModel) renderFullHelp() string {
 				searchResults := m.renderSearchResults()
 				searchContent = lipgloss.JoinVertical(lipgloss.Left, searchContent, searchResults)
 			} else {
-				noResults := m.descStyle.Foreground(styles.Warning).Render("No shortcuts found matching '" + m.searchQuery + "'")
+				t := theme.GetManager().Current()
+				noResults := m.descStyle.Foreground(t.Warning).Render("No shortcuts found matching '" + m.searchQuery + "'")
 				searchContent = lipgloss.JoinVertical(lipgloss.Left, searchContent, noResults)
 			}
 		}
@@ -248,8 +259,9 @@ func (m *HelpPaneModel) renderFullHelp() string {
 
 	// Add footer with navigation hints
 	var footer string
+	t := theme.GetManager().Current()
 	footerStyle := lipgloss.NewStyle().
-		Foreground(styles.TextMuted).
+		Foreground(t.Secondary).
 		Align(lipgloss.Center).
 		Width(m.width - 4)
 
@@ -294,7 +306,8 @@ func (m *HelpPaneModel) renderCompactHelp() string {
 				searchResults := m.renderCompactSearchResults()
 				searchContent = lipgloss.JoinVertical(lipgloss.Left, searchContent, searchResults)
 			} else {
-				noResults := m.descStyle.Foreground(styles.Warning).Render("No matches")
+				t := theme.GetManager().Current()
+				noResults := m.descStyle.Foreground(t.Warning).Render("No matches")
 				searchContent = lipgloss.JoinVertical(lipgloss.Left, searchContent, noResults)
 			}
 		}
@@ -315,8 +328,9 @@ func (m *HelpPaneModel) renderCompactHelp() string {
 		footerHints = append(footerHints, "ESC/Q/Enter: back", "/: search")
 	}
 
+	t := theme.GetManager().Current()
 	footer := lipgloss.NewStyle().
-		Foreground(styles.TextMuted).
+		Foreground(t.Secondary).
 		Align(lipgloss.Center).
 		Width(m.width - 4).
 		Render("\n" + strings.Join(footerHints, " | "))
@@ -349,7 +363,8 @@ func (m *HelpPaneModel) renderMinimalHelp() string {
 				searchResults := m.renderMinimalSearchResults()
 				searchContent = lipgloss.JoinVertical(lipgloss.Left, searchContent, searchResults)
 			} else {
-				noResults := m.descStyle.Foreground(styles.Warning).Render("No")
+				t := theme.GetManager().Current()
+				noResults := m.descStyle.Foreground(t.Warning).Render("No")
 				searchContent = lipgloss.JoinVertical(lipgloss.Left, searchContent, noResults)
 			}
 		}
@@ -370,8 +385,9 @@ func (m *HelpPaneModel) renderMinimalHelp() string {
 		footerHints = append(footerHints, "ESC: back", "/: search")
 	}
 
+	t := theme.GetManager().Current()
 	footer := lipgloss.NewStyle().
-		Foreground(styles.TextMuted).
+		Foreground(t.Secondary).
 		Align(lipgloss.Center).
 		Width(m.width - 4).
 		Render("\n" + strings.Join(footerHints, " | "))
@@ -481,7 +497,8 @@ func (m *HelpPaneModel) renderMinimalSearchResults() string {
 		if i >= 9 { // Show max 10 results in minimal mode
 			remaining := len(m.searchResults) - 10
 			if remaining > 0 {
-				lines = append(lines, m.descStyle.Foreground(styles.TextMuted).Render(fmt.Sprintf("  +%d", remaining)))
+				t := theme.GetManager().Current()
+				lines = append(lines, m.descStyle.Foreground(t.Secondary).Render(fmt.Sprintf("  +%d", remaining)))
 			}
 			break
 		}
@@ -521,7 +538,8 @@ func (m *HelpPaneModel) renderSearchResults() string {
 		if i >= 49 { // Show max 50 results
 			remaining := len(m.searchResults) - 50
 			if remaining > 0 {
-				lines = append(lines, m.descStyle.Foreground(styles.TextMuted).Render(fmt.Sprintf("  ... and %d more results", remaining)))
+				t := theme.GetManager().Current()
+				lines = append(lines, m.descStyle.Foreground(t.Secondary).Render(fmt.Sprintf("  ... and %d more results", remaining)))
 			}
 			break
 		}
@@ -575,7 +593,8 @@ func (m *HelpPaneModel) renderCompactSearchResults() string {
 		if i >= 19 { // Show max 20 results in compact mode
 			remaining := len(m.searchResults) - 20
 			if remaining > 0 {
-				lines = append(lines, m.descStyle.Foreground(styles.TextMuted).Render(fmt.Sprintf("  ... +%d more", remaining)))
+				t := theme.GetManager().Current()
+				lines = append(lines, m.descStyle.Foreground(t.Secondary).Render(fmt.Sprintf("  ... +%d more", remaining)))
 			}
 			break
 		}

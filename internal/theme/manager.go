@@ -1,70 +1,129 @@
 package theme
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/Kyanite/noise/internal/config"
 )
 
-// Manager handles runtime theme switching in a thread-safe way.
-// It stores both the active Theme and its ID so callers can query the current ID.
+var (
+	globalManager *Manager
+	once          sync.Once
+)
+
+// Manager handles theme selection and switching
 type Manager struct {
-	mu        sync.RWMutex
-	current   Theme
-	currentID string
+	mu      sync.RWMutex
+	current Theme
 }
 
-// NewManager creates a manager initialized to the given theme id (falls back to default).
-func NewManager(initID string) *Manager {
-	id := initID
-	if id == "" {
-		id = DefaultTheme
-	}
-	return &Manager{
-		current:   GetTheme(id),
-		currentID: id,
-	}
+// GetManager returns the global theme manager (singleton)
+func GetManager() *Manager {
+	once.Do(func() {
+		globalManager = &Manager{
+			current: Default(),
+		}
+		// Load saved theme preference
+		if err := globalManager.LoadThemePreference(); err != nil {
+			// If loading fails, stick with default theme
+		}
+	})
+	return globalManager
 }
 
-// Current returns the currently active theme.
+// SetTheme sets the current theme by ID
+func (m *Manager) SetTheme(id string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.current = GetTheme(id)
+	
+	// Save preference asynchronously
+	go func() {
+		if err := m.SaveThemePreference(); err != nil {
+			// Log error but don't fail the theme change
+			// In a real app, you'd use proper logging
+		}
+	}()
+}
+
+// Current returns the current theme
 func (m *Manager) Current() Theme {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.current
 }
 
-// CurrentID returns the currently active theme id.
-func (m *Manager) CurrentID() string {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-	return m.currentID
-}
-
-// SetTheme sets the current theme by id. Returns true if the id existed.
-func (m *Manager) SetTheme(id string) bool {
+// Next cycles to the next theme in the registry
+func (m *Manager) Next() Theme {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	if t, ok := Registry[id]; ok {
-		m.current = t
-		m.currentID = id
-		return true
+	
+	themes := ListThemes()
+	currentID := ""
+	
+	// Find current theme ID
+	for id, theme := range Registry {
+		if theme.Name == m.current.Name {
+			currentID = id
+			break
+		}
 	}
-	// fallback: try default
-	m.current = Registry[DefaultTheme]
-	m.currentID = DefaultTheme
-	return false
+	
+	// Find next theme
+	for i, id := range themes {
+		if id == currentID {
+			nextIndex := (i + 1) % len(themes)
+			m.current = Registry[themes[nextIndex]]
+			break
+		}
+	}
+	
+	// Save preference asynchronously
+	go func() {
+		if err := m.SaveThemePreference(); err != nil {
+			// Log error but don't fail the theme change
+		}
+	}()
+	
+	return m.current
 }
 
-// SetThemeIfExists sets theme only if the id exists and returns whether it changed.
-func (m *Manager) SetThemeIfExists(id string) (Theme, bool) {
+// Previous cycles to the previous theme in the registry
+func (m *Manager) Previous() Theme {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	if t, ok := Registry[id]; ok {
-		m.current = t
-		m.currentID = id
-		return m.current, true
+	
+	themes := ListThemes()
+	currentID := ""
+	
+	// Find current theme ID
+	for id, theme := range Registry {
+		if theme.Name == m.current.Name {
+			currentID = id
+			break
+		}
 	}
-	return m.current, false
+	
+	// Find previous theme
+	for i, id := range themes {
+		if id == currentID {
+			prevIndex := (i - 1 + len(themes)) % len(themes)
+			m.current = Registry[themes[prevIndex]]
+			break
+		}
+	}
+	
+	// Save preference asynchronously
+	go func() {
+		if err := m.SaveThemePreference(); err != nil {
+			// Log error but don't fail the theme change
+		}
+	}()
+	
+	return m.current
 }
 
 // ApplyConfig applies theme configuration from the app config (UI.Theme).
@@ -83,17 +142,73 @@ func (m *Manager) ApplyConfig(cfg *config.Config) {
 	m.SetTheme(themeID)
 }
 
-// Global singleton
-var (
-	globalManager *Manager
-	once          sync.Once
-)
+// ThemePreference represents a saved theme preference
+type ThemePreference struct {
+	ThemeID string `json:"theme_id"`
+}
 
-// GetManager returns the global theme manager singleton.
-// If not initialized, it uses DefaultTheme.
-func GetManager() *Manager {
-	once.Do(func() {
-		globalManager = NewManager(DefaultTheme)
-	})
-	return globalManager
+// SaveThemePreference saves the current theme preference to file
+func (m *Manager) SaveThemePreference() error {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	configDir := filepath.Join(homeDir, ".config", "noise")
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return err
+	}
+
+	configFile := filepath.Join(configDir, "theme.json")
+	
+	// Find current theme ID
+	currentID := ""
+	for id, theme := range Registry {
+		if theme.Name == m.current.Name {
+			currentID = id
+			break
+		}
+	}
+
+	pref := ThemePreference{
+		ThemeID: currentID,
+	}
+
+	data, err := json.MarshalIndent(pref, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(configFile, data, 0644)
+}
+
+// LoadThemePreference loads theme preference from file
+func (m *Manager) LoadThemePreference() error {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	configFile := filepath.Join(homeDir, ".config", "noise", "theme.json")
+	
+	// Check if file exists
+	if _, err := os.Stat(configFile); os.IsNotExist(err) {
+		return nil // No preference saved, use default
+	}
+
+	data, err := os.ReadFile(configFile)
+	if err != nil {
+		return err
+	}
+
+	var pref ThemePreference
+	if err := json.Unmarshal(data, &pref); err != nil {
+		return err
+	}
+
+	if pref.ThemeID != "" {
+		m.SetTheme(pref.ThemeID)
+	}
+
+	return nil
 }

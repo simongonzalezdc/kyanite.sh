@@ -9,7 +9,6 @@ import (
 	"github.com/Kyanite/noise/internal/plugins"
 	"github.com/Kyanite/noise/internal/theme"
 	"github.com/Kyanite/noise/internal/ui/editor"
-	"github.com/Kyanite/noise/internal/ui/styles"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -93,7 +92,7 @@ type RootModel struct {
 func NewRootModel(pluginManager *plugins.DefaultManager) *RootModel {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(styles.Primary)
+	s.Style = lipgloss.NewStyle().Foreground(theme.GetManager().Current().Primary)
 
 	return &RootModel{
 		currentScreen:        screenSplash,
@@ -248,8 +247,10 @@ func (m *RootModel) initializeChildModels() {
 	}
 	m.config = cfg
 
-	// Initialize theme system from config (applies styles globally)
-	theme.InitFromConfig(cfg)
+	// Initialize theme system from config
+	if cfg.UI.Theme != "" {
+		theme.GetManager().SetTheme(cfg.UI.Theme)
+	}
 
 	m.splash = NewSplashModel()
 	m.menu = NewMenuModel()
@@ -421,7 +422,7 @@ func (m *RootModel) renderSettings() string {
 // renderLoading renders the loading screen
 func (m *RootModel) renderLoading() string {
 	loadingStyle := lipgloss.NewStyle().
-		Foreground(styles.Primary).
+		Foreground(theme.GetManager().Current().Primary).
 		Bold(true).
 		Align(lipgloss.Center).
 		Width(m.width).

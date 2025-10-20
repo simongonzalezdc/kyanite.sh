@@ -12,7 +12,7 @@ import (
 	"github.com/Kyanite/noise/internal/export"
 	"github.com/Kyanite/noise/internal/infra/files"
 	"github.com/Kyanite/noise/internal/ui/dimension"
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -56,6 +56,7 @@ type EditorPaneModel struct {
 // NewEditorPaneModel creates a new editor pane model with refactored components
 func NewEditorPaneModel(textarea textarea.Model) *EditorPaneModel {
 	teaModel := &textarea
+	t := theme.GetManager().Current()
 	model := &EditorPaneModel{
 		state:     NewEditorState(teaModel),
 		shortcuts: NewEditorShortcuts(),
@@ -66,22 +67,28 @@ func NewEditorPaneModel(textarea textarea.Model) *EditorPaneModel {
 		chordPicker: NewChordPickerModel(),
 		bpmTapper:   NewBPMTapperModel(),
 
-		focusedStyle: styles.BorderActive,
-		blurredStyle: styles.Border,
-		borderStyle:  styles.Border,
+		focusedStyle: lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(t.Primary),
+		blurredStyle: lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(t.Secondary),
+		borderStyle: lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(t.Secondary),
 		lineNumberStyle: lipgloss.NewStyle().
-			Foreground(styles.TextMuted).
+			Foreground(t.Secondary).
 			Width(4).
 			Align(lipgloss.Right),
 		cursorLineStyle: lipgloss.NewStyle().
-			Background(styles.Dark2),
+			Background(t.Background),
 		selectionStyle: lipgloss.NewStyle().
-			Background(styles.Dark3),
+			Background(t.Background),
 		searchMatchStyle: lipgloss.NewStyle().
-			Background(styles.Accent).
-			Foreground(styles.Background),
+			Background(t.Accent).
+			Foreground(t.Background),
 		autoSaveStyle: lipgloss.NewStyle().
-			Foreground(styles.Success).
+			Foreground(t.Success).
 			Bold(true),
 	}
 
@@ -377,10 +384,11 @@ func (m *EditorPaneModel) View() string {
 
 	title += modeStr
 
+	t := theme.GetManager().Current()
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(styles.TextPrimary).
-		Background(styles.Dark3).
+		Foreground(t.Text).
+		Background(t.Background).
 		Padding(0, 1).
 		Width(m.width - 4)
 
@@ -616,6 +624,8 @@ func (m *EditorPaneModel) StartRapidBrainstorm(theme string) {
 // StartContinueMode starts continue mode
 func (m *EditorPaneModel) StartContinueMode() {
 	m.ai.StartContinueMode()
+	// Generate continue suggestions based on current content
+	m.ai.GenerateContinueSuggestions(m.state)
 }
 
 // StartVariationMode starts variation mode

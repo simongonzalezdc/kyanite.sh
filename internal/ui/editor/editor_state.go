@@ -9,6 +9,8 @@ import (
 	"github.com/Kyanite/noise/internal/domain"
 	"github.com/Kyanite/noise/internal/export"
 	"github.com/Kyanite/noise/internal/infra/files"
+	"github.com/Kyanite/noise/internal/logging"
+	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -497,6 +499,193 @@ func (s *EditorState) CloseFile() {
 	s.SetText("")
 	s.currentFilePath = ""
 	s.currentSong = nil
+}
+
+// Clipboard operations
+
+// SelectAll selects all text in the editor
+func (s *EditorState) SelectAll() {
+	content := s.GetText()
+	s.selectionStart = 0
+	s.selectionEnd = len(content)
+	s.hasSelection = true
+	logging.Debugf("Selected all text (%d characters)", len(content))
+}
+
+// GetSelectedText returns the currently selected text
+func (s *EditorState) GetSelectedText() string {
+	if !s.hasSelection {
+		return ""
+	}
+	content := s.GetText()
+	if s.selectionStart < 0 || s.selectionEnd > len(content) || s.selectionStart > s.selectionEnd {
+		return ""
+	}
+	return content[s.selectionStart:s.selectionEnd]
+}
+
+// HasSelection returns whether there is currently a selection
+func (s *EditorState) HasSelection() bool {
+	return s.hasSelection
+}
+
+// CopySelectedText copies the selected text to the system clipboard
+func (s *EditorState) CopySelectedText() error {
+	if !s.hasSelection {
+		logging.Warnf("No text selected for copy")
+		return nil
+	}
+
+	selectedText := s.GetSelectedText()
+	if selectedText == "" {
+		logging.Warnf("Selected text is empty")
+		return nil
+	}
+
+	// Copy to system clipboard
+	if err := clipboard.WriteAll(selectedText); err != nil {
+		logging.Errorf("Failed to copy to system clipboard: %v", err)
+		return fmt.Errorf("failed to copy to clipboard: %w", err)
+	}
+
+	// Store in internal clipboard as fallback
+	s.clipboardContent = selectedText
+	logging.Debugf("Copied %d characters to clipboard", len(selectedText))
+	return nil
+}
+
+// PasteFromClipboard pastes text from the system clipboard
+func (s *EditorState) PasteFromClipboard() error {
+	// Try system clipboard first
+	clipboardText, err := clipboard.ReadAll()
+	if err != nil {
+		logging.Warnf("Failed to read from system clipboard: %v, using internal clipboard", err)
+		// Fallback to internal clipboard
+		clipboardText = s.clipboardContent
+		if clipboardText == "" {
+			logging.Warnf("No clipboard content available")
+			return fmt.Errorf("no clipboard content available")
+		}
+	}
+
+	if clipboardText == "" {
+		logging.Warnf("Clipboard is empty")
+		return nil
+	}
+
+	// Save current state for undo
+	s.saveUndoState()
+
+	// If there's a selection, replace it
+	if s.hasSelection {
+		content := s.GetText()
+		newContent := content[:s.selectionStart] + clipboardText + content[s.selectionEnd:]
+		s.SetText(newContent)
+		// Update cursor position to end of pasted text
+		s.selectionEnd = s.selectionStart + len(clipboardText)
+		s.selectionStart = s.selectionEnd
+		s.hasSelection = false
+	} else {
+		// Insert at cursor position
+		(*s.textarea).InsertString(clipboardText)
+	}
+
+	logging.Debugf("Pasted %d characters from clipboard", len(clipboardText))
+	return nil
+}
+
+// CutSelectedText cuts the selected text and copies it to the clipboard
+func (s *EditorState) CutSelectedText() error {
+	if !s.hasSelection {
+		logging.Warnf("No text selected for cut")
+		return nil
+	}
+
+	selectedText := s.GetSelectedText()
+	if selectedText == "" {
+		logging.Warnf("Selected text is empty")
+		return nil
+	}
+
+	// Copy to clipboard first
+	if err := s.CopySelectedText(); err != nil {
+		return err
+	}
+
+	// Save current state for undo
+	s.saveUndoState()
+
+	// Remove selected text
+	content := s.GetText()
+	newContent := content[:s.selectionStart] + content[s.selectionEnd:]
+	s.SetText(newContent)
+
+	// Clear selection
+	s.selectionStart = s.selectionEnd
+	s.hasSelection = false
+
+	logging.Debugf("Cut %d characters", len(selectedText))
+	return nil
+}
+
+// Undo reverses the last edit operation
+func (s *EditorState) Undo() error {
+	if len(s.undoStack) == 0 {
+		logging.Warnf("No undo history available")
+		return fmt.Errorf("no undo history available")
+	}
+
+	// Save current state to redo stack
+	currentContent := s.GetText()
+	s.redoStack = append(s.redoStack, currentContent)
+	if len(s.redoStack) > s.maxUndoStack {
+		s.redoStack = s.redoStack[1:]
+	}
+
+	// Restore previous state
+	previousState := s.undoStack[len(s.undoStack)-1]
+	s.undoStack = s.undoStack[:len(s.undoStack)-1]
+	s.SetText(previousState)
+
+	logging.Debugf("Undo operation restored %d characters", len(previousState))
+	return nil
+}
+
+// Redo reapplies the last undone edit operation
+func (s *EditorState) Redo() error {
+	if len(s.redoStack) == 0 {
+		logging.Warnf("No redo history available")
+		return fmt.Errorf("no redo history available")
+	}
+
+	// Save current state to undo stack
+	s.saveUndoState()
+
+	// Restore redo state
+	redoState := s.redoStack[len(s.redoStack)-1]
+	s.redoStack = s.redoStack[:len(s.redoStack)-1]
+	s.SetText(redoState)
+
+	logging.Debugf("Redo operation restored %d characters", len(redoState))
+	return nil
+}
+
+// saveUndoState saves the current content to the undo stack
+func (s *EditorState) saveUndoState() {
+	currentContent := s.GetText()
+	
+	// Don't save if the content is the same as the last undo state
+	if len(s.undoStack) > 0 && s.undoStack[len(s.undoStack)-1] == currentContent {
+		return
+	}
+
+	s.undoStack = append(s.undoStack, currentContent)
+	if len(s.undoStack) > s.maxUndoStack {
+		s.undoStack = s.undoStack[1:]
+	}
+
+	// Clear redo stack when new content is added
+	s.redoStack = s.redoStack[:0]
 }
 
 // Private helper methods

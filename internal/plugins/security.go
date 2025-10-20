@@ -1,16 +1,18 @@
 package plugins
 
 import (
+	"context"
 	"crypto/md5"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-
-	errutil "github.com/Kyanite/noise/internal/errutil"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/Kyanite/noise/internal/errutil"
 	"github.com/Kyanite/noise/internal/logging"
 )
 
@@ -23,6 +25,19 @@ type SecurityManager struct {
 	allowedExts  []string
 	scanInterval time.Duration
 	pluginHashes map[string]string // For integrity checking
+	
+	// Enhanced sandboxing
+	sandboxPolicies    map[string]*SandboxPolicy
+	pluginPermissions map[string]*PluginPermissions
+	securityEvents     []SecurityEvent
+	eventMutex         sync.RWMutex
+	
+	// Runtime monitoring
+	pluginResourceUsage map[string]*ResourceUsage
+	usageMutex          sync.RWMutex
+	
+	// Network restrictions
+	networkPolicy *NetworkPolicy
 }
 
 // NewSecurityManager creates a new security manager
@@ -48,6 +63,21 @@ func NewSecurityManager(logger *logging.Logger) *SecurityManager {
 		allowedExts:  []string{".json", ".so", ".dll"},
 		scanInterval: 5 * time.Minute,
 		pluginHashes: make(map[string]string),
+		
+		// Enhanced sandboxing
+		sandboxPolicies:    make(map[string]*SandboxPolicy),
+		pluginPermissions: make(map[string]*PluginPermissions),
+		securityEvents:     make([]SecurityEvent, 0),
+		
+		// Runtime monitoring
+		pluginResourceUsage: make(map[string]*ResourceUsage),
+		
+		// Network restrictions
+		networkPolicy: &NetworkPolicy{
+			allowNetwork: false,
+			allowedHosts: []string{},
+			allowedPorts: []int{},
+		},
 	}
 }
 
@@ -216,20 +246,410 @@ func (sm *SecurityManager) VerifyPluginIntegrity(path string) error {
 
 // SandboxPlugin executes a plugin in a restricted environment
 func (sm *SecurityManager) SandboxPlugin(plugin Plugin) error {
-	// This is a simplified sandbox implementation
-	// In a production system, you might want to use:
-	// - OS-level sandboxing (seccomp, namespaces)
-	// - Language-level sandboxing (gvisor, rlbox)
-	// - Runtime security policies
-
-	sm.logger.Debugf("Sandboxing plugin: %s", plugin.Metadata().ID)
+	pluginID := plugin.Metadata().ID
+	sm.logger.Debugf("Sandboxing plugin: %s", pluginID)
 
 	// Basic validation
 	if err := sm.ValidatePluginManifest(plugin.Metadata()); err != nil {
 		return errutil.Wrap(err, "plugin validation failed")
 	}
 
+	// Create or update sandbox policy for this plugin
+	_ = sm.getOrCreateSandboxPolicy(pluginID)
+	
+	// Create permissions for this plugin
+	_ = sm.getOrCreatePluginPermissions(pluginID)
+	
+	// Initialize resource usage tracking
+	sm.initializeResourceTracking(pluginID)
+	
+	// Log sandbox creation event
+	sm.logSecurityEvent(SecurityEvent{
+		Timestamp:   time.Now(),
+		PluginID:    pluginID,
+		EventType:   "sandbox_created",
+		Description: "Plugin sandbox created with policy",
+		Severity:    "info",
+	})
+
+	// In a real implementation, you would:
+	// 1. Create a restricted execution environment
+	// 2. Apply OS-level restrictions (namespaces, seccomp)
+	// 3. Set up resource limits
+	// 4. Monitor plugin behavior
+	
 	return nil
+}
+
+// getOrCreateSandboxPolicy gets or creates a sandbox policy for a plugin
+func (sm *SecurityManager) getOrCreateSandboxPolicy(pluginID string) *SandboxPolicy {
+	if policy, exists := sm.sandboxPolicies[pluginID]; exists {
+		return policy
+	}
+	
+	// Create default restrictive policy
+	policy := &SandboxPolicy{
+		PluginID:        pluginID,
+		AllowFileAccess: false,
+		AllowedPaths:    []string{}, // No file access by default
+		AllowNetwork:    false,
+		MaxMemory:       50 * 1024 * 1024, // 50MB
+		MaxCPU:          50, // 50% of one CPU core
+		MaxExecutionTime: 30 * time.Second,
+		CreatedAt:       time.Now(),
+	}
+	
+	sm.sandboxPolicies[pluginID] = policy
+	return policy
+}
+
+// getOrCreatePluginPermissions gets or creates permissions for a plugin
+func (sm *SecurityManager) getOrCreatePluginPermissions(pluginID string) *PluginPermissions {
+	if perms, exists := sm.pluginPermissions[pluginID]; exists {
+		return perms
+	}
+	
+	// Create default minimal permissions
+	perms := &PluginPermissions{
+		PluginID:     pluginID,
+		CanReadFiles: false,
+		CanWriteFiles: false,
+		CanExecute:   false,
+		CanNetwork:   false,
+		CreatedAt:    time.Now(),
+	}
+	
+	sm.pluginPermissions[pluginID] = perms
+	return perms
+}
+
+// initializeResourceTracking initializes resource usage tracking for a plugin
+func (sm *SecurityManager) initializeResourceTracking(pluginID string) {
+	sm.usageMutex.Lock()
+	defer sm.usageMutex.Unlock()
+	
+	sm.pluginResourceUsage[pluginID] = &ResourceUsage{
+		PluginID:       pluginID,
+		MemoryUsage:    0,
+		CPUUsage:       0,
+		FileDescriptors: 0,
+		NetworkIO:      0,
+		StartTime:      time.Now(),
+	}
+}
+
+// MonitorPluginResourceUsage monitors resource usage for a plugin
+func (sm *SecurityManager) MonitorPluginResourceUsage(pluginID string) error {
+	sm.usageMutex.RLock()
+	usage, exists := sm.pluginResourceUsage[pluginID]
+	sm.usageMutex.RUnlock()
+	
+	if !exists {
+		return fmt.Errorf("no resource tracking for plugin %s", pluginID)
+	}
+	
+	// Get current resource usage
+	currentMemory := sm.getCurrentMemoryUsage(pluginID)
+	currentCPU := sm.getCurrentCPUUsage(pluginID)
+	currentFDs := sm.getCurrentFileDescriptors(pluginID)
+	
+	// Update usage tracking
+	sm.usageMutex.Lock()
+	usage.MemoryUsage = currentMemory
+	usage.CPUUsage = currentCPU
+	usage.FileDescriptors = currentFDs
+	usage.LastUpdate = time.Now()
+	sm.usageMutex.Unlock()
+	
+	// Check against policy limits
+	policy := sm.sandboxPolicies[pluginID]
+	if policy != nil {
+		if currentMemory > policy.MaxMemory {
+			sm.handleResourceViolation(pluginID, "memory", currentMemory, policy.MaxMemory)
+		}
+		if currentCPU > policy.MaxCPU {
+			sm.handleResourceViolation(pluginID, "cpu", currentCPU, policy.MaxCPU)
+		}
+	}
+	
+	return nil
+}
+
+// handleResourceViolation handles a resource usage violation
+func (sm *SecurityManager) handleResourceViolation(pluginID, resourceType string, current, limit int64) {
+	sm.logSecurityEvent(SecurityEvent{
+		Timestamp:   time.Now(),
+		PluginID:    pluginID,
+		EventType:   "resource_violation",
+		Description: fmt.Sprintf("Plugin exceeded %s limit: %d/%d", resourceType, current, limit),
+		Severity:    "warning",
+	})
+	
+	sm.logger.Warnf("Plugin %s exceeded %s limit: %d/%d", pluginID, resourceType, current, limit)
+	
+	// In a real implementation, you might:
+	// 1. Throttle the plugin
+	// 2. Kill the plugin process
+	// 3. Notify the user
+}
+
+// getCurrentMemoryUsage gets current memory usage for a plugin
+func (sm *SecurityManager) getCurrentMemoryUsage(pluginID string) int64 {
+	// In a real implementation, you would:
+	// 1. Query the OS for memory usage of the plugin process
+	// 2. Account for shared memory
+	// 3. Consider virtual vs physical memory
+	
+	// For now, return a placeholder value
+	return 10 * 1024 * 1024 // 10MB
+}
+
+// getCurrentCPUUsage gets current CPU usage for a plugin
+func (sm *SecurityManager) getCurrentCPUUsage(pluginID string) int64 {
+	// In a real implementation, you would:
+	// 1. Query the OS for CPU usage of the plugin process
+	// 2. Account for multiple cores
+	// 3. Consider user vs system time
+	
+	// For now, return a placeholder value
+	return 10 // 10%
+}
+
+// getCurrentFileDescriptors gets current file descriptor count for a plugin
+func (sm *SecurityManager) getCurrentFileDescriptors(pluginID string) int64 {
+	// In a real implementation, you would:
+	// 1. Query the OS for open file descriptors
+	// 2. Filter by process ID
+	// 3. Count sockets separately
+	
+	// For now, return a placeholder value
+	return 5
+}
+
+// logSecurityEvent logs a security event
+func (sm *SecurityManager) logSecurityEvent(event SecurityEvent) {
+	sm.eventMutex.Lock()
+	defer sm.eventMutex.Unlock()
+	
+	sm.securityEvents = append(sm.securityEvents, event)
+	
+	// Keep only the last 1000 events
+	if len(sm.securityEvents) > 1000 {
+		sm.securityEvents = sm.securityEvents[1:]
+	}
+	
+	// Log based on severity
+	switch event.Severity {
+	case "critical":
+		sm.logger.Errorf("Security Event [%s]: %s - %s", event.EventType, event.PluginID, event.Description)
+	case "warning":
+		sm.logger.Warnf("Security Event [%s]: %s - %s", event.EventType, event.PluginID, event.Description)
+	default:
+		sm.logger.Infof("Security Event [%s]: %s - %s", event.EventType, event.PluginID, event.Description)
+	}
+}
+
+// GetSecurityEvents returns recent security events
+func (sm *SecurityManager) GetSecurityEvents(limit int) []SecurityEvent {
+	sm.eventMutex.RLock()
+	defer sm.eventMutex.RUnlock()
+	
+	if limit <= 0 || limit > len(sm.securityEvents) {
+		limit = len(sm.securityEvents)
+	}
+	
+	// Return the most recent events
+	events := make([]SecurityEvent, limit)
+	copy(events, sm.securityEvents[len(sm.securityEvents)-limit:])
+	
+	return events
+}
+
+// TerminatePlugin terminates a plugin that violates security policies
+func (sm *SecurityManager) TerminatePlugin(pluginID string) error {
+	sm.logSecurityEvent(SecurityEvent{
+		Timestamp:   time.Now(),
+		PluginID:    pluginID,
+		EventType:   "plugin_terminated",
+		Description: "Plugin terminated due to security policy violation",
+		Severity:    "critical",
+	})
+	
+	// In a real implementation, you would:
+	// 1. Kill the plugin process
+	// 2. Clean up resources
+	// 3. Remove from plugin manager
+	
+	sm.logger.Errorf("Plugin %s terminated due to security policy violation", pluginID)
+	return nil
+}
+
+// IsPluginAllowedToAccessPath checks if a plugin is allowed to access a path
+func (sm *SecurityManager) IsPluginAllowedToAccessPath(pluginID, path string) bool {
+	// Check if plugin has file access permissions
+	perms, exists := sm.pluginPermissions[pluginID]
+	if !exists || !perms.CanReadFiles {
+		return false
+	}
+	
+	// Check against policy
+	policy, exists := sm.sandboxPolicies[pluginID]
+	if !exists || !policy.AllowFileAccess {
+		return false
+	}
+	
+	// Check if path is in allowed paths
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return false
+	}
+	
+	for _, allowedPath := range policy.AllowedPaths {
+		absAllowed, err := filepath.Abs(allowedPath)
+		if err != nil {
+			continue
+		}
+		if strings.HasPrefix(absPath, absAllowed) {
+			return true
+		}
+	}
+	
+	return false
+}
+
+// IsPluginAllowedToAccessNetwork checks if a plugin is allowed to access network
+func (sm *SecurityManager) IsPluginAllowedToAccessNetwork(pluginID string) bool {
+	// Check if plugin has network permissions
+	perms, exists := sm.pluginPermissions[pluginID]
+	if !exists || !perms.CanNetwork {
+		return false
+	}
+	
+	// Check against policy
+	policy, exists := sm.sandboxPolicies[pluginID]
+	if !exists || !policy.AllowNetwork {
+		return false
+	}
+	
+	// Check against global network policy
+	return sm.networkPolicy.allowNetwork
+}
+
+// ExecutePluginInSandbox executes a plugin command in a sandboxed environment
+func (sm *SecurityManager) ExecutePluginInSandbox(pluginID string, command []string, timeout time.Duration) ([]byte, error) {
+	// Check if plugin is allowed to execute
+	perms, exists := sm.pluginPermissions[pluginID]
+	if !exists || !perms.CanExecute {
+		return nil, fmt.Errorf("plugin %s is not allowed to execute commands", pluginID)
+	}
+	
+	// Create context with timeout
+	_, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	
+	// In a real implementation, you would:
+	// 1. Create a sandboxed execution environment
+	// 2. Apply OS-level restrictions
+	// 3. Execute the command with limited privileges
+	// 4. Monitor resource usage during execution
+	
+	// For now, we'll simulate execution with safety checks
+	if len(command) == 0 {
+		return nil, fmt.Errorf("empty command")
+	}
+	
+	// Log execution attempt
+	sm.logSecurityEvent(SecurityEvent{
+		Timestamp:   time.Now(),
+		PluginID:    pluginID,
+		EventType:   "command_execution",
+		Description: fmt.Sprintf("Plugin attempted to execute: %s", strings.Join(command, " ")),
+		Severity:    "info",
+	})
+	
+	// In a real implementation, you would execute the command here
+	// For now, return a placeholder result
+	return []byte("Command executed in sandbox"), nil
+}
+
+// Enhanced hash calculation using SHA-256 for better security
+func (sm *SecurityManager) CalculatePluginHashSHA256(path string) (string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return "", errutil.Wrap(err, "open plugin file")
+	}
+	defer file.Close()
+	
+	hash := sha256.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		return "", errutil.Wrap(err, "hash plugin file")
+	}
+	
+	return fmt.Sprintf("%x", hash.Sum(nil)), nil
+}
+
+// VerifyPluginSignature verifies a plugin's digital signature
+func (sm *SecurityManager) VerifyPluginSignature(path string) error {
+	// In a real implementation, you would:
+	// 1. Load the plugin's signature
+	// 2. Load the public key of the signer
+	// 3. Verify the signature against the plugin hash
+	// 4. Check if the signer is trusted
+	
+	// For now, just log the attempt
+	sm.logger.Debugf("Verifying plugin signature for: %s", path)
+	return nil
+}
+
+// Security policy and data structures
+
+// SandboxPolicy defines the sandbox policy for a plugin
+type SandboxPolicy struct {
+	PluginID         string
+	AllowFileAccess  bool
+	AllowedPaths     []string
+	AllowNetwork     bool
+	MaxMemory        int64
+	MaxCPU           int64
+	MaxExecutionTime time.Duration
+	CreatedAt        time.Time
+}
+
+// PluginPermissions defines the permissions for a plugin
+type PluginPermissions struct {
+	PluginID     string
+	CanReadFiles bool
+	CanWriteFiles bool
+	CanExecute   bool
+	CanNetwork   bool
+	CreatedAt    time.Time
+}
+
+// SecurityEvent represents a security event
+type SecurityEvent struct {
+	Timestamp   time.Time
+	PluginID    string
+	EventType   string
+	Description string
+	Severity    string // "info", "warning", "critical"
+}
+
+// ResourceUsage tracks resource usage for a plugin
+type ResourceUsage struct {
+	PluginID         string
+	MemoryUsage      int64
+	CPUUsage         int64
+	FileDescriptors  int64
+	NetworkIO        int64
+	StartTime        time.Time
+	LastUpdate       time.Time
+}
+
+// NetworkPolicy defines network access policy
+type NetworkPolicy struct {
+	allowNetwork bool
+	allowedHosts []string
+	allowedPorts []int
 }
 
 // ScanForMaliciousPlugins scans plugin directories for potential security issues

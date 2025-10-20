@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Kyanite/noise/internal/logging"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -47,23 +48,27 @@ func (s *EditorShortcuts) HandleShortcutAction(action ShortcutAction, state Stat
 			// In a full implementation, this would show a user notification
 		}
 	case ActionSelectAll:
-		// Select all text - implementation depends on textarea capabilities
-		// For now, this is a placeholder that would need custom implementation
+		state.SelectAll()
 	case ActionCopy:
-		// Copy selected text - implementation depends on textarea capabilities
-		// For now, this is a placeholder that would need custom implementation
+		if err := state.CopySelectedText(); err != nil {
+			logging.Errorf("Failed to copy text: %v", err)
+		}
 	case ActionPaste:
-		// Paste from clipboard - implementation depends on textarea capabilities
-		// For now, this is a placeholder that would need custom implementation
+		if err := state.PasteFromClipboard(); err != nil {
+			logging.Errorf("Failed to paste text: %v", err)
+		}
 	case ActionCut:
-		// Cut selected text - implementation depends on textarea capabilities
-		// For now, this is a placeholder that would need custom implementation
+		if err := state.CutSelectedText(); err != nil {
+			logging.Errorf("Failed to cut text: %v", err)
+		}
 	case ActionUndo:
-		// Note: Bubble Tea textarea doesn't have built-in undo/redo
-		// This would need custom implementation
+		if err := state.Undo(); err != nil {
+			logging.Errorf("Failed to undo: %v", err)
+		}
 	case ActionRedo:
-		// Note: Bubble Tea textarea doesn't have built-in undo/redo
-		// This would need custom implementation
+		if err := state.Redo(); err != nil {
+			logging.Errorf("Failed to redo: %v", err)
+		}
 	case ActionStartOfLine:
 		s.moveCursorToStartOfLine(state)
 	case ActionEndOfLine:

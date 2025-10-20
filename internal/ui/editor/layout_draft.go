@@ -2,7 +2,7 @@ package editor
 
 import (
 	"github.com/Kyanite/noise/internal/ui/dimension"
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -28,6 +28,7 @@ func (l *DraftLayout) GetDimensions() (int, int) {
 
 // Render renders the draft mode layout
 func (l *DraftLayout) Render(editorContent string, previewContent string, theoryContent string) string {
+	t := theme.GetManager().Current()
 	// Draft mode: Editor + Preview + Theory tools
 	// 50% editor, 25% preview, 25% theory
 
@@ -40,7 +41,7 @@ func (l *DraftLayout) Render(editorContent string, previewContent string, theory
 		Width(editorWidth).
 		Height(l.height).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(styles.Primary)
+		BorderForeground(t.Primary)
 
 	editorPane := editorStyle.Render(editorContent)
 
@@ -49,12 +50,12 @@ func (l *DraftLayout) Render(editorContent string, previewContent string, theory
 		Width(previewWidth).
 		Height(l.height).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(styles.Info).
-		Background(styles.Dark1)
+		BorderForeground(t.Accent).
+		Background(t.Background)
 
 	previewTitle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(styles.Info).
+		Foreground(t.Accent).
 		Align(lipgloss.Center).
 		Width(previewWidth - 2).
 		Render("Preview")
@@ -73,12 +74,12 @@ func (l *DraftLayout) Render(editorContent string, previewContent string, theory
 		Width(theoryWidth).
 		Height(l.height).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(styles.Success).
-		Background(styles.Dark1)
+		BorderForeground(t.Success).
+		Background(t.Background)
 
 	theoryTitle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(styles.Success).
+		Foreground(t.Success).
 		Align(lipgloss.Center).
 		Width(theoryWidth - 2).
 		Render("Theory Tools")
@@ -94,7 +95,7 @@ func (l *DraftLayout) Render(editorContent string, previewContent string, theory
 
 	// Create dividers
 	dividerStyle := lipgloss.NewStyle().
-		Foreground(styles.TextMuted).
+		Foreground(t.Secondary).
 		Render("â”‚")
 
 	// Combine panes

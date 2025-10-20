@@ -2,7 +2,7 @@ package editor
 
 import (
 	"github.com/Kyanite/noise/internal/ui/dimension"
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -28,6 +28,7 @@ func (l *SketchLayout) GetDimensions() (int, int) {
 
 // Render renders the sketch mode layout
 func (l *SketchLayout) Render(editorContent string, brainstormContent string) string {
+	t := theme.GetManager().Current()
 	// Sketch mode: Minimal UI with editor + AI panel only
 	// 80% editor, 20% AI panel
 
@@ -39,7 +40,7 @@ func (l *SketchLayout) Render(editorContent string, brainstormContent string) st
 		Width(editorWidth).
 		Height(l.height).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(styles.Primary)
+		BorderForeground(t.Primary)
 
 	editorPane := editorStyle.Render(editorContent)
 
@@ -48,12 +49,12 @@ func (l *SketchLayout) Render(editorContent string, brainstormContent string) st
 		Width(aiPanelWidth).
 		Height(l.height).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(styles.Accent).
-		Background(styles.Dark2)
+		BorderForeground(t.Accent).
+		Background(t.Background)
 
 	aiPanelTitle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(styles.Accent).
+		Foreground(t.Accent).
 		Align(lipgloss.Center).
 		Width(aiPanelWidth - 2).
 		Render("AI Assistant")
@@ -69,7 +70,7 @@ func (l *SketchLayout) Render(editorContent string, brainstormContent string) st
 
 	// Create divider
 	dividerStyle := lipgloss.NewStyle().
-		Foreground(styles.TextMuted).
+		Foreground(t.Secondary).
 		Render("â”‚")
 
 	// Combine panes

@@ -53,6 +53,15 @@ type EditorState struct {
 	// Editor modes
 	scratchMode bool
 	editorMode  EditorMode
+
+	// Clipboard and undo/redo functionality
+	clipboardContent string
+	undoStack        []string
+	redoStack        []string
+	maxUndoStack     int
+	selectionStart   int
+	selectionEnd     int
+	hasSelection     bool
 }
 
 // NewEditorState creates a new editor state component
@@ -77,6 +86,13 @@ func NewEditorState(textarea *textarea.Model) *EditorState {
 		themeManager:     nil,
 		scratchMode:      false,
 		editorMode:       ModeSketch,
+		clipboardContent: "",
+		undoStack:        make([]string, 0, 50),
+		redoStack:        make([]string, 0, 50),
+		maxUndoStack:     50,
+		selectionStart:   0,
+		selectionEnd:     0,
+		hasSelection:     false,
 	}
 
 	// Ensure the underlying textarea is focused so it will accept rune input
@@ -187,6 +203,15 @@ type StateManagerInterface interface {
 	WordWrapEnabled() bool
 	AutoIndentEnabled() bool
 	BracketMatchingEnabled() bool
+	// Clipboard operations
+	SelectAll()
+	CopySelectedText() error
+	PasteFromClipboard() error
+	CutSelectedText() error
+	Undo() error
+	Redo() error
+	GetSelectedText() string
+	HasSelection() bool
 }
 
 // ShortcutsInterface defines the interface for shortcut handling

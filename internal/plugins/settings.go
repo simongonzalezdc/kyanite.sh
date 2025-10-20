@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/Kyanite/noise/internal/ui/dimension"
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -123,10 +123,16 @@ func (m *PluginSettingsModel) View() string {
 func (m *PluginSettingsModel) renderEmptyState() string {
 	content := strings.Builder{}
 
-	title := styles.Title.Width(m.width).Render("Plugin Manager")
+	t := theme.GetManager().Current()
+	titleStyle := lipgloss.NewStyle().
+		Foreground(t.Primary).
+		Bold(true).
+		Width(m.width)
+	title := titleStyle.Render("Plugin Manager")
 	content.WriteString(title + "\n\n")
 
-	emptyState := styles.Muted.
+	emptyState := lipgloss.NewStyle().
+		Foreground(t.Secondary).
 		Align(lipgloss.Center).
 		Width(m.width - 4).
 		Padding(2).
@@ -141,7 +147,12 @@ func (m *PluginSettingsModel) renderEmptyState() string {
 func (m *PluginSettingsModel) renderPluginList() string {
 	content := strings.Builder{}
 
-	title := styles.Title.Width(m.width).Render("Plugin Manager")
+	t := theme.GetManager().Current()
+	titleStyle := lipgloss.NewStyle().
+		Foreground(t.Primary).
+		Bold(true).
+		Width(m.width)
+	title := titleStyle.Render("Plugin Manager")
 	content.WriteString(title + "\n\n")
 
 	pluginIDs := m.getPluginIDs()
@@ -157,18 +168,26 @@ func (m *PluginSettingsModel) renderPluginList() string {
 		pluginID := pluginIDs[i]
 		plugin, _ := m.manager.GetPlugin(pluginID)
 
+		t := theme.GetManager().Current()
 		var style lipgloss.Style
 		if i == m.selectedPlugin {
-			style = styles.ListItemSelected.Width(m.width - 4)
+			style = lipgloss.NewStyle().
+				Background(t.Primary).
+				Foreground(t.Background).
+				Width(m.width - 4).
+				Padding(0, 1)
 		} else {
-			style = styles.ListItem.Width(m.width - 4)
+			style = lipgloss.NewStyle().
+				Foreground(t.Text).
+				Width(m.width - 4).
+				Padding(0, 1)
 		}
 
 		status := "Disabled"
-		statusColor := styles.Error
+		statusColor := t.Error
 		if plugin.IsEnabled() {
 			status = "Enabled"
-			statusColor = styles.Success
+			statusColor = t.Success
 		}
 
 		statusStyled := lipgloss.NewStyle().Foreground(statusColor).Render(status)
@@ -182,7 +201,9 @@ func (m *PluginSettingsModel) renderPluginList() string {
 	}
 
 	// Help text
-	help := styles.Muted.
+	t = theme.GetManager().Current()
+	help := lipgloss.NewStyle().
+		Foreground(t.Secondary).
 		Width(m.width).
 		Padding(1).
 		Render("â†‘/â†“: Navigate â€¢ Enter: Toggle/Details â€¢ D: Back â€¢ Esc: Exit")
@@ -195,6 +216,7 @@ func (m *PluginSettingsModel) renderPluginList() string {
 // renderPluginDetails renders detailed information about a specific plugin
 func (m *PluginSettingsModel) renderPluginDetails() string {
 	content := strings.Builder{}
+	t := theme.GetManager().Current()
 
 	plugin, err := m.manager.GetPlugin(m.detailsPlugin)
 	if err != nil {
@@ -202,12 +224,19 @@ func (m *PluginSettingsModel) renderPluginDetails() string {
 	}
 
 	metadata := plugin.Metadata()
-
-	title := styles.Title.Width(m.width).Render(fmt.Sprintf("Plugin: %s", metadata.Name))
+	titleStyle := lipgloss.NewStyle().
+		Foreground(t.Primary).
+		Bold(true).
+		Width(m.width)
+	title := titleStyle.Render(fmt.Sprintf("Plugin: %s", metadata.Name))
 	content.WriteString(title + "\n\n")
 
 	// Plugin information
-	info := styles.Text.Width(m.width - 4).Padding(1).Render(fmt.Sprintf(`
+	info := lipgloss.NewStyle().
+		Foreground(t.Text).
+		Width(m.width - 4).
+		Padding(1).
+		Render(fmt.Sprintf(`
 ID:          %s
 Version:     %s
 Author:      %s
@@ -230,7 +259,8 @@ Loaded:      %s
 	// Capabilities
 	if len(metadata.Capabilities) > 0 {
 		capabilities := strings.Join(m.formatCapabilities(metadata.Capabilities), ", ")
-		caps := styles.Text.
+		caps := lipgloss.NewStyle().
+			Foreground(t.Text).
 			Width(m.width - 4).
 			Padding(1).
 			Render(fmt.Sprintf("Capabilities: %s", capabilities))
@@ -242,7 +272,9 @@ Loaded:      %s
 	content.WriteString(actions + "\n")
 
 	// Help text
-	help := styles.Muted.
+	t = theme.GetManager().Current()
+	help := lipgloss.NewStyle().
+		Foreground(t.Secondary).
 		Width(m.width).
 		Padding(1).
 		Render("Enter: Toggle Enable/Disable â€¢ D: Back to List â€¢ Esc: Exit")

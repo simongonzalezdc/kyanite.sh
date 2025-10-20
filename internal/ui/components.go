@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -25,7 +25,8 @@ type AnimatedLoadingSpinner struct {
 func NewAnimatedLoadingSpinner(message string) *AnimatedLoadingSpinner {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(styles.Primary)
+	t := theme.GetManager().Current()
+	s.Style = lipgloss.NewStyle().Foreground(t.Primary)
 
 	return &AnimatedLoadingSpinner{
 		spinner:   s,
@@ -71,10 +72,11 @@ func (als *AnimatedLoadingSpinner) Update(msg tea.Msg) tea.Cmd {
 func (als *AnimatedLoadingSpinner) View() string {
 	fadeProgress := als.animation.GetAnimationProgress("spinner_fade")
 	pulseProgress := als.animation.GetAnimationProgress("spinner_pulse")
+	t := theme.GetManager().Current()
 
 	// Create animated spinner style
 	spinnerStyle := lipgloss.NewStyle().
-		Foreground(styles.Primary).
+		Foreground(t.Primary).
 		Align(lipgloss.Center).
 		Width(als.width).
 		Height(als.height)
@@ -181,18 +183,19 @@ func (asb *AnimatedStatusBar) SetStatus(status StatusType, message string) {
 func (asb *AnimatedStatusBar) View() string {
 	// Base style
 	var baseStyle lipgloss.Style
+	t := theme.GetManager().Current()
 
 	switch asb.status {
 	case StatusSuccess:
-		baseStyle = lipgloss.NewStyle().Foreground(styles.Success)
+		baseStyle = lipgloss.NewStyle().Foreground(t.Success)
 	case StatusError:
-		baseStyle = lipgloss.NewStyle().Foreground(styles.Error)
+		baseStyle = lipgloss.NewStyle().Foreground(t.Error)
 	case StatusWarning:
-		baseStyle = lipgloss.NewStyle().Foreground(styles.Warning)
+		baseStyle = lipgloss.NewStyle().Foreground(t.Warning)
 	case StatusLoading:
-		baseStyle = lipgloss.NewStyle().Foreground(styles.Primary)
+		baseStyle = lipgloss.NewStyle().Foreground(t.Primary)
 	default:
-		baseStyle = lipgloss.NewStyle().Foreground(styles.TextPrimary)
+		baseStyle = lipgloss.NewStyle().Foreground(t.Text)
 	}
 
 	// Apply animation effects
@@ -286,6 +289,7 @@ func (an *AnimatedNotification) View() string {
 
 	slideProgress := an.animation.GetAnimationProgress("notification_slide")
 	fadeProgress := an.animation.GetAnimationProgress("notification_fade_out")
+	t := theme.GetManager().Current()
 
 	// Apply slide-in effect
 	var style lipgloss.Style
@@ -302,13 +306,13 @@ func (an *AnimatedNotification) View() string {
 	// Style based on notification type
 	switch an.notifType {
 	case "success":
-		style = style.Background(styles.Success).Foreground(styles.Background).Bold(true).Padding(0, 1)
+		style = style.Background(t.Success).Foreground(t.Background).Bold(true).Padding(0, 1)
 	case "error":
-		style = style.Background(styles.Error).Foreground(styles.Background).Bold(true).Padding(0, 1)
+		style = style.Background(t.Error).Foreground(t.Background).Bold(true).Padding(0, 1)
 	case "warning":
-		style = style.Background(styles.Warning).Foreground(styles.Background).Bold(true).Padding(0, 1)
+		style = style.Background(t.Warning).Foreground(t.Background).Bold(true).Padding(0, 1)
 	default:
-		style = style.Background(styles.Primary).Foreground(styles.Background).Bold(true).Padding(0, 1)
+		style = style.Background(t.Primary).Foreground(t.Background).Bold(true).Padding(0, 1)
 	}
 
 	return style.Render(an.message)

@@ -10,8 +10,8 @@ type NoiseExport struct {
 	Version  string         `json:"version"`
 	Metadata ExportMetadata `json:"metadata"`
 	Patterns []string       `json:"patterns"`
-	Lyrics   string         `json:"lyrics,omitempty"`
 	Chords   []string       `json:"chords,omitempty"`
+	Lyrics   string         `json:"lyrics,omitempty"`
 	Notes    string         `json:"notes,omitempty"`
 }
 
@@ -26,6 +26,7 @@ type ExportMetadata struct {
 // ExportType represents different types of exports
 type ExportType int
 
+// ExportType represents different types of exports.
 const (
 	ExportTypePattern ExportType = iota
 	ExportTypeLyrics
@@ -60,11 +61,11 @@ func (et ExportType) String() string {
 
 // ExportOptions contains options for the export
 type ExportOptions struct {
-	Type         ExportType
 	Title        string
+	Type         ExportType
+	OutputPath   string
 	BPM          int
 	IncludeNotes bool
-	OutputPath   string
 }
 
 // DefaultExportOptions returns default export options

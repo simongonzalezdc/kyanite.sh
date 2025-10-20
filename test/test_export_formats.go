@@ -9,245 +9,192 @@ import (
 	"github.com/Kyanite/noise/internal/export"
 )
 
-func TestExportMarkdown(t *testing.T) {
-	// Create a temporary directory for test exports
-	tempDir, err := os.MkdirTemp("", "noise_export_test")
-	if err != nil {
-		t.Fatalf("Failed to create temp directory: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
+const (
+	sampleExportTitle        = "Test Song"
+	sampleChordLine          = "C        G        Am        F"
+	samplePlainTextLyricLine = "This is the first line of the verse"
+	sampleBPMMarkdown        = "**BPM:** 120"
+	chordProTitleDirective   = "{title:Test Song}"
+	chordProTempoDirective   = "{tempo:120}"
+	chordProKeyDirective     = "{key:C}"
+	markdownSectionVerse     = "## Verse"
+	markdownChordLine        = "`" + sampleChordLine + "`"
+	testTitle                = "Test"
+)
 
-	// Create export service
+var sampleExportContent = strings.Join([]string{
+	"# My Song",
+	"",
+	"This is a test song with chords and lyrics.",
+	"",
+	"[Verse]",
+	sampleChordLine,
+	samplePlainTextLyricLine,
+	"G        C        G         C",
+	"This is the second line of the verse",
+	"",
+	"[Chorus]",
+	"F        C        G        Am",
+	"This is the chorus line",
+	"F        C        G        C",
+	"This is the second chorus line",
+	"",
+	"BPM: 120",
+	"Key: C",
+}, "\n")
+
+func newExportService(t *testing.T) *export.ExportService {
+	t.Helper()
+	tempDir := t.TempDir()
 	service := export.NewExportService(tempDir)
+	t.Logf("initialized export service with tempDir=%s", tempDir)
+	return service
+}
 
-	// Test content with various elements
-	content := `# My Song
-
-This is a test song with chords and lyrics.
-
-[Verse]
-C        G        Am        F
-This is the first line of the verse
-G        C        G         C
-This is the second line of the verse
-
-[Chorus]
-F        C        G        Am
-This is the chorus line
-F        C        G        C
-This is the second chorus line
-
-BPM: 120
-Key: C`
-
-	// Export as Markdown
-	outputPath, err := service.ExportToMarkdown(content, "Test Song")
+func assertFileExists(t *testing.T, path string) {
+	t.Helper()
+	cleanPath := filepath.Clean(path)
+	info, err := os.Stat(cleanPath)
 	if err != nil {
-		t.Fatalf("Failed to export to Markdown: %v", err)
+		t.Fatalf("expected file to exist: %s: %v", cleanPath, err)
+	}
+	if info.IsDir() {
+		t.Fatalf("expected file, found directory: %s", cleanPath)
+	}
+	t.Logf("verified export file exists: %s", cleanPath)
+}
+
+func readExportFile(t *testing.T, path string) []byte {
+	t.Helper()
+	cleanPath := filepath.Clean(path)
+	data, err := os.ReadFile(cleanPath)
+	if err != nil {
+		t.Fatalf("failed to read export file %s: %v", cleanPath, err)
+	}
+	t.Logf("read %d bytes from export file %s", len(data), cleanPath)
+	return data
+}
+
+// TestExportMarkdown tests Markdown export functionality.
+func TestExportMarkdown(t *testing.T) {
+	service := newExportService(t)
+
+	outputPath, err := service.ExportToMarkdown(sampleExportContent, sampleExportTitle)
+	if err != nil {
+		t.Fatalf("failed to export to Markdown: %v", err)
 	}
 
-	// Verify file was created
-	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
-		t.Fatalf("Export file was not created: %s", outputPath)
-	}
+	t.Logf("markdown export produced output at %s", outputPath)
 
-	// Verify file extension
 	if filepath.Ext(outputPath) != ".md" {
-		t.Errorf("Expected .md extension, got %s", filepath.Ext(outputPath))
+		t.Errorf("expected .md extension, got %s", filepath.Ext(outputPath))
 	}
 
-	// Read and verify content
-	data, err := os.ReadFile(outputPath)
-	if err != nil {
-		t.Fatalf("Failed to read export file: %v", err)
-	}
+	assertFileExists(t, outputPath)
 
-	contentStr := string(data)
+	contentStr := string(readExportFile(t, outputPath))
 
-	// Check for markdown formatting
 	if !strings.Contains(contentStr, "# Test Song") {
-		t.Error("Markdown title not found")
+		t.Error("markdown title not found")
 	}
 
-	if !strings.Contains(contentStr, "**BPM:** 120") {
+	if !strings.Contains(contentStr, sampleBPMMarkdown) {
 		t.Error("BPM metadata not found")
 	}
 
-	if !strings.Contains(contentStr, "## Verse") {
-		t.Error("Section header not formatted correctly")
+	if !strings.Contains(contentStr, markdownSectionVerse) {
+		t.Error("section header not formatted correctly")
 	}
 
-	if !strings.Contains(contentStr, "`C        G        Am        F`") {
-		t.Error("Chord line not formatted with code formatting")
+	if !strings.Contains(contentStr, markdownChordLine) {
+		t.Error("chord line not formatted with code formatting")
 	}
 }
 
+// TestExportPlainText tests plain text export functionality.
 func TestExportPlainText(t *testing.T) {
-	// Create a temporary directory for test exports
-	tempDir, err := os.MkdirTemp("", "noise_export_test")
+	service := newExportService(t)
+
+	outputPath, err := service.ExportToPlainText(sampleExportContent, sampleExportTitle)
 	if err != nil {
-		t.Fatalf("Failed to create temp directory: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
-
-	// Create export service
-	service := export.NewExportService(tempDir)
-
-	// Test content with various elements
-	content := `# My Song
-
-This is a test song with chords and lyrics.
-
-[Verse]
-C        G        Am        F
-This is the first line of the verse
-G        C        G         C
-This is the second line of the verse
-
-[Chorus]
-F        C        G        Am
-This is the chorus line
-F        C        G        C
-This is the second chorus line
-
-BPM: 120
-Key: C`
-
-	// Export as Plain Text
-	outputPath, err := service.ExportToPlainText(content, "Test Song")
-	if err != nil {
-		t.Fatalf("Failed to export to Plain Text: %v", err)
+		t.Fatalf("failed to export to Plain Text: %v", err)
 	}
 
-	// Verify file was created
-	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
-		t.Fatalf("Export file was not created: %s", outputPath)
-	}
+	t.Logf("plain text export produced output at %s", outputPath)
 
-	// Verify file extension
 	if filepath.Ext(outputPath) != ".txt" {
-		t.Errorf("Expected .txt extension, got %s", filepath.Ext(outputPath))
+		t.Errorf("expected .txt extension, got %s", filepath.Ext(outputPath))
 	}
 
-	// Read and verify content
-	data, err := os.ReadFile(outputPath)
-	if err != nil {
-		t.Fatalf("Failed to read export file: %v", err)
-	}
+	assertFileExists(t, outputPath)
 
-	contentStr := string(data)
+	contentStr := string(readExportFile(t, outputPath))
 
-	// Check that markdown formatting is removed
 	if strings.Contains(contentStr, "# ") {
-		t.Error("Markdown headers should be removed in plain text")
+		t.Error("markdown headers should be removed in plain text")
 	}
 
 	if strings.Contains(contentStr, "**") {
-		t.Error("Markdown bold formatting should be removed in plain text")
+		t.Error("markdown bold formatting should be removed in plain text")
 	}
 
-	// Check that chord lines are skipped
-	if strings.Contains(contentStr, "C        G        Am        F") {
-		t.Error("Chord lines should be skipped in plain text export")
+	if strings.Contains(contentStr, sampleChordLine) {
+		t.Error("chord lines should be skipped in plain text export")
 	}
 
-	// Check that lyrics are preserved
-	if !strings.Contains(contentStr, "This is the first line of the verse") {
-		t.Error("Lyrics should be preserved in plain text export")
+	if !strings.Contains(contentStr, samplePlainTextLyricLine) {
+		t.Error("lyrics should be preserved in plain text export")
 	}
 }
 
+// TestExportChordPro tests ChordPro export functionality.
 func TestExportChordPro(t *testing.T) {
-	// Create a temporary directory for test exports
-	tempDir, err := os.MkdirTemp("", "noise_export_test")
+	service := newExportService(t)
+
+	outputPath, err := service.ExportToChordPro(sampleExportContent, sampleExportTitle)
 	if err != nil {
-		t.Fatalf("Failed to create temp directory: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
-
-	// Create export service
-	service := export.NewExportService(tempDir)
-
-	// Test content with various elements
-	content := `# My Song
-
-This is a test song with chords and lyrics.
-
-[Verse]
-C        G        Am        F
-This is the first line of the verse
-G        C        G         C
-This is the second line of the verse
-
-[Chorus]
-F        C        G        Am
-This is the chorus line
-F        C        G        C
-This is the second chorus line
-
-BPM: 120
-Key: C`
-
-	// Export as ChordPro
-	outputPath, err := service.ExportToChordPro(content, "Test Song")
-	if err != nil {
-		t.Fatalf("Failed to export to ChordPro: %v", err)
+		t.Fatalf("failed to export to ChordPro: %v", err)
 	}
 
-	// Verify file was created
-	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
-		t.Fatalf("Export file was not created: %s", outputPath)
-	}
+	t.Logf("ChordPro export produced output at %s", outputPath)
 
-	// Verify file extension
 	if filepath.Ext(outputPath) != ".cho" {
-		t.Errorf("Expected .cho extension, got %s", filepath.Ext(outputPath))
+		t.Errorf("expected .cho extension, got %s", filepath.Ext(outputPath))
 	}
 
-	// Read and verify content
-	data, err := os.ReadFile(outputPath)
-	if err != nil {
-		t.Fatalf("Failed to read export file: %v", err)
-	}
+	assertFileExists(t, outputPath)
 
-	contentStr := string(data)
+	contentStr := string(readExportFile(t, outputPath))
 
-	// Check for ChordPro metadata directives
-	if !strings.Contains(contentStr, "{title:Test Song}") {
+	if !strings.Contains(contentStr, chordProTitleDirective) {
 		t.Error("ChordPro title directive not found")
 	}
 
-	if !strings.Contains(contentStr, "{tempo:120}") {
+	if !strings.Contains(contentStr, chordProTempoDirective) {
 		t.Error("ChordPro tempo directive not found")
 	}
 
-	if !strings.Contains(contentStr, "{key:C}") {
+	if !strings.Contains(contentStr, chordProKeyDirective) {
 		t.Error("ChordPro key directive not found")
 	}
 
-	// Check for ChordPro section directives
 	if !strings.Contains(contentStr, "{start_of_verse}") {
 		t.Error("ChordPro section directive not found")
 	}
 
-	// Check that chords are preserved
-	if !strings.Contains(contentStr, "C        G        Am        F") {
-		t.Error("Chord lines should be preserved in ChordPro export")
+	if !strings.Contains(contentStr, sampleChordLine) {
+		t.Error("chord lines should be preserved in ChordPro export")
 	}
 
-	// Check that lyrics are preserved
-	if !strings.Contains(contentStr, "This is the first line of the verse") {
-		t.Error("Lyrics should be preserved in ChordPro export")
+	if !strings.Contains(contentStr, samplePlainTextLyricLine) {
+		t.Error("lyrics should be preserved in ChordPro export")
 	}
 }
 
+// TestExportFormatDetection tests format detection logic.
 func TestExportFormatDetection(t *testing.T) {
-	// Test the helper methods for format detection
-
-	// Create a formatter to test the helper methods
 	formatter := export.NewExportFormatter()
 
-	// Test section header detection
 	testCases := []struct {
 		line     string
 		expected bool
@@ -258,88 +205,83 @@ func TestExportFormatDetection(t *testing.T) {
 		{"Verse", true},
 		{"Chorus:", true},
 		{"This is a lyric line", false},
-		{"C        G        Am        F", false},
+		{sampleChordLine, false},
 	}
 
 	for _, tc := range testCases {
-		// We can't directly test private methods, but we can test through the export
-		// functionality which uses these methods internally
 		content := tc.line + "\nThis is a test line"
 
-		// Test with Markdown export
 		options := export.DefaultExportOptions()
 		options.Type = export.ExportTypeMarkdown
-		options.Title = "Test"
+		options.Title = testTitle
 
 		result, err := formatter.FormatExport(content, options)
 		if err != nil {
-			t.Fatalf("Failed to format export: %v", err)
+			t.Fatalf("failed to format export: %v", err)
 		}
 
-		// Check if section was detected and formatted
 		hasSectionHeader := strings.Contains(result.Lyrics, "## ")
+		t.Logf("format detection for %q produced section header=%t", tc.line, hasSectionHeader)
+
 		if tc.expected && !hasSectionHeader {
-			t.Errorf("Expected section header for line: %s", tc.line)
+			t.Errorf("expected section header for line: %s", tc.line)
 		}
 		if !tc.expected && hasSectionHeader {
-			t.Errorf("Did not expect section header for line: %s", tc.line)
+			t.Errorf("did not expect section header for line: %s", tc.line)
 		}
 	}
 }
 
+// TestExportKeyDetection tests key detection from chords.
 func TestExportKeyDetection(t *testing.T) {
-	// Test key detection from chord content
 	content := `C        G        Am        F
 This is a test line
 G        D        Em        C
 Another test line`
 
-	// Create a formatter to test key detection
 	formatter := export.NewExportFormatter()
 
-	// Test with ChordPro export
 	options := export.DefaultExportOptions()
 	options.Type = export.ExportTypeChordPro
 	options.Title = "Test"
 
 	result, err := formatter.FormatExport(content, options)
 	if err != nil {
-		t.Fatalf("Failed to format export: %v", err)
+		t.Fatalf("failed to format export: %v", err)
 	}
 
-	// Check if key was detected (should be C or G based on frequency)
+	t.Logf("key detection produced lyrics: %s", result.Lyrics)
+
 	if !strings.Contains(result.Lyrics, "{key:") {
-		t.Error("Key detection failed - no key directive found")
+		t.Error("key detection failed - no key directive found")
 	}
 }
 
+// TestExportBPMDetection tests BPM detection from content.
 func TestExportBPMDetection(t *testing.T) {
-	// Test BPM detection from content
 	content := `BPM: 120
 This is a test line
 tempo: 140
 Another test line`
 
-	// Create a formatter to test BPM detection
 	formatter := export.NewExportFormatter()
 
-	// Test with ChordPro export
 	options := export.DefaultExportOptions()
 	options.Type = export.ExportTypeChordPro
 	options.Title = "Test"
 
 	result, err := formatter.FormatExport(content, options)
 	if err != nil {
-		t.Fatalf("Failed to format export: %v", err)
+		t.Fatalf("failed to format export: %v", err)
 	}
 
-	// Check if BPM was detected
+	t.Logf("BPM detection produced lyrics: %s", result.Lyrics)
+
 	if !strings.Contains(result.Lyrics, "{tempo:") {
 		t.Error("BPM detection failed - no tempo directive found")
 	}
 
-	// Should detect the first BPM (120)
 	if !strings.Contains(result.Lyrics, "{tempo:120}") {
-		t.Error("Expected BPM 120 not detected correctly")
+		t.Error("expected BPM 120 not detected correctly")
 	}
 }

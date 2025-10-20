@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -35,28 +35,31 @@ func NewMenuModel() *MenuModel {
 		item{title: "Exit", desc: "Exit noise.sh", screen: screenSplash},
 	}
 
-	// Create custom delegate with Midnight Jazz styling
+	// Get current theme
+	t := theme.GetManager().Current()
+
+	// Create custom delegate with theme styling
 	delegate := list.NewDefaultDelegate()
 	delegate.Styles.SelectedTitle = lipgloss.NewStyle().
-		Foreground(styles.Background).
-		Background(styles.Primary).
+		Foreground(t.Background).
+		Background(t.Primary).
 		Bold(true).
 		Padding(0, 1)
 	delegate.Styles.SelectedDesc = lipgloss.NewStyle().
-		Foreground(styles.TextMuted).
-		Background(styles.Primary).
+		Foreground(t.Secondary).
+		Background(t.Primary).
 		Padding(0, 1)
 	delegate.Styles.DimmedTitle = lipgloss.NewStyle().
-		Foreground(styles.TextMuted)
+		Foreground(t.Secondary)
 	delegate.Styles.DimmedDesc = lipgloss.NewStyle().
-		Foreground(styles.TextMuted)
+		Foreground(t.Secondary)
 	delegate.Styles.NormalTitle = lipgloss.NewStyle().
-		Foreground(styles.TextPrimary)
+		Foreground(t.Text)
 	delegate.Styles.NormalDesc = lipgloss.NewStyle().
-		Foreground(styles.TextSecondary)
+		Foreground(t.Secondary)
 
 	l := list.New(items, delegate, 0, 0)
-	l.Title = styles.TitleGradient("ðŸŽµ noise.sh")
+	l.Title = titleGradient("🎵 noise.sh", t)
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.SetShowHelp(false)
@@ -139,7 +142,7 @@ func (m *MenuModel) View() string {
 			return m.list.Title
 		}
 		// Fallback plain title
-		return "ðŸŽµ noise.sh"
+		return "🎵 noise.sh"
 	}
 
 	// Update responsive mode based on current dimensions
@@ -188,14 +191,15 @@ func (m *MenuModel) updateResponsiveMode() {
 func (m *MenuModel) applyResponsiveStyling() list.Model {
 	// Create a copy of the list to modify
 	styledList := m.list
+	t := theme.GetManager().Current()
 
 	// Adjust title based on responsive mode
 	if m.showMinimalMenu {
-		styledList.Title = styles.TitleGradient("ðŸŽµ LF")
+		styledList.Title = titleGradient("🎵 LF", t)
 	} else if m.showShortTitles {
-		styledList.Title = styles.TitleGradient("ðŸŽµ noise.sh")
+		styledList.Title = titleGradient("🎵 noise.sh", t)
 	} else {
-		styledList.Title = styles.TitleGradient("ðŸŽµ noise.sh")
+		styledList.Title = titleGradient("🎵 noise.sh", t)
 	}
 
 	// Adjust list dimensions for responsive layout
@@ -207,6 +211,34 @@ func (m *MenuModel) applyResponsiveStyling() list.Model {
 	}
 
 	return styledList
+}
+
+// titleGradient creates a gradient effect for titles using theme colors
+func titleGradient(text string, t theme.Theme) string {
+	colors := []lipgloss.Color{
+		t.Primary,
+		t.Secondary,
+		t.Accent,
+	}
+	
+	var result string
+	textRunes := []rune(text)
+	colorCount := len(colors)
+
+	for i, char := range textRunes {
+		if char == ' ' {
+			result += " "
+			continue
+		}
+		colorIdx := (i * colorCount) / len(textRunes)
+		if colorIdx >= colorCount {
+			colorIdx = colorCount - 1
+		}
+		style := lipgloss.NewStyle().Foreground(colors[colorIdx])
+		result += style.Render(string(char))
+	}
+
+	return result
 }
 
 // item represents a menu item

@@ -133,8 +133,12 @@ BPM: 95
 	}
 
 	// ListExports should find JSON files; create two json files
-	os.WriteFile(filepath.Join(outDir, "a.json"), []byte("{}"), 0644)
-	os.WriteFile(filepath.Join(outDir, "b.json"), []byte("{}"), 0644)
+	if err := os.WriteFile(filepath.Join(outDir, "a.json"), []byte("{}"), 0o600); err != nil {
+		t.Fatalf("failed to write test file a.json: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(outDir, "b.json"), []byte("{}"), 0o600); err != nil {
+		t.Fatalf("failed to write test file b.json: %v", err)
+	}
 
 	exports, err := es.ListExports()
 	if err != nil {

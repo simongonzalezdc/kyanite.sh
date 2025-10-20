@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Kyanite/noise/internal/app/ai"
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/logging"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -17,12 +19,50 @@ func (a *EditorAI) StartRapidBrainstorm(theme string) {
 	a.rapidBrainstorm = true
 	a.brainstormTheme = theme
 
-	// For now, we'll use placeholder angles
-	// In a full implementation, this would call the AI service
-	a.brainstormAngles = []string{
-		"Explore " + theme + " through personal memories",
-		"Use nature imagery to symbolize " + theme,
-		"Focus on sensory details related to " + theme,
+	// Use the AI agent to generate brainstorm angles
+	if a.aiAgent == nil {
+		logging.Warnf("AI agent not initialized, using fallback brainstorm angles")
+		a.brainstormAngles = []string{
+			"Explore " + theme + " through personal memories",
+			"Use nature imagery to symbolize " + theme,
+			"Focus on sensory details related to " + theme,
+		}
+		return
+	}
+
+	// Create a request for brainstorm angles
+	req := ai.QuickRequest{
+		Mode:    ai.QuickIdeaModeSpark,
+		Context: theme,
+		Options: map[string]string{"theme": theme},
+	}
+
+	// Call the AI agent with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	resp, err := a.aiAgent.Generate(ctx, req)
+	if err != nil {
+		logging.Errorf("Failed to generate brainstorm angles: %v", err)
+		// Use fallback angles
+		a.brainstormAngles = []string{
+			"Explore " + theme + " through personal memories",
+			"Use nature imagery to symbolize " + theme,
+			"Focus on sensory details related to " + theme,
+		}
+		return
+	}
+
+	if len(resp.Suggestions) > 0 {
+		a.brainstormAngles = resp.Suggestions
+		logging.Debugf("Generated %d brainstorm angles for theme: %s", len(resp.Suggestions), theme)
+	} else {
+		// Use fallback angles
+		a.brainstormAngles = []string{
+			"Explore " + theme + " through personal memories",
+			"Use nature imagery to symbolize " + theme,
+			"Focus on sensory details related to " + theme,
+		}
 	}
 }
 
@@ -46,18 +86,54 @@ func (a *EditorAI) SelectBrainstormAngle(index int, state StateManagerInterface)
 
 	selectedAngle := a.brainstormAngles[index]
 
-	// For now, we'll use a placeholder opening line
-	// In a full implementation, this would call the AI service
-	openingLine := "Opening line for: " + selectedAngle
+	// Use the AI agent to generate an opening line based on the selected angle
+	if a.aiAgent == nil {
+		logging.Warnf("AI agent not initialized, using fallback opening line")
+		a.insertOpeningLine(state, "Opening line for: "+selectedAngle)
+		a.clearBrainstormState()
+		return
+	}
 
+	// Create a request for an opening line
+	req := ai.QuickRequest{
+		Mode:    ai.QuickIdeaModeSpark,
+		Context: selectedAngle,
+		Options: map[string]string{"theme": a.brainstormTheme, "angle": selectedAngle},
+	}
+
+	// Call the AI agent with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	resp, err := a.aiAgent.Generate(ctx, req)
+	if err != nil {
+		logging.Errorf("Failed to generate opening line: %v", err)
+		// Use fallback opening line
+		a.insertOpeningLine(state, "Opening line for: "+selectedAngle)
+	} else if len(resp.Suggestions) > 0 {
+		// Use the first suggestion as the opening line
+		a.insertOpeningLine(state, resp.Suggestions[0])
+		logging.Debugf("Generated opening line: %s", resp.Suggestions[0])
+	} else {
+		// Use fallback opening line
+		a.insertOpeningLine(state, "Opening line for: "+selectedAngle)
+	}
+
+	a.clearBrainstormState()
+}
+
+// insertOpeningLine inserts an opening line at the appropriate position
+func (a *EditorAI) insertOpeningLine(state StateManagerInterface, openingLine string) {
 	// Insert the opening line at the current cursor position
 	currentContent := state.GetText()
 	if currentContent != "" {
 		openingLine = "\n" + openingLine
 	}
 	state.SetText(currentContent + openingLine)
+}
 
-	// Clear brainstorm state
+// clearBrainstormState clears the brainstorm state
+func (a *EditorAI) clearBrainstormState() {
 	a.rapidBrainstorm = false
 	a.brainstormTheme = ""
 	a.brainstormAngles = nil
@@ -67,13 +143,20 @@ func (a *EditorAI) SelectBrainstormAngle(index int, state StateManagerInterface)
 func (a *EditorAI) StartContinueMode() {
 	a.continueMode = true
 
-	// For now, we'll use placeholder suggestions
-	// In a full implementation, this would call the AI service
-	a.continueSuggestions = []string{
-		"Continue with this line...",
-		"Or try this alternative...",
-		"Perhaps this direction...",
+	// Use the AI agent to generate continue suggestions
+	if a.aiAgent == nil {
+		logging.Warnf("AI agent not initialized, using fallback continue suggestions")
+		a.continueSuggestions = []string{
+			"Continue with this line...",
+			"Or try this alternative...",
+			"Perhaps this direction...",
+		}
+		return
 	}
+
+	// Get the current content from the state (will be provided in SelectContinueSuggestion)
+	// For now, we'll generate suggestions based on an empty context
+	// The actual content will be provided when a suggestion is selected
 }
 
 // GetContinueSuggestions returns the current continue suggestions
@@ -101,6 +184,65 @@ func (a *EditorAI) SelectContinueSuggestion(index int, state StateManagerInterfa
 	a.continueSuggestions = nil
 }
 
+// GenerateContinueSuggestions generates continue suggestions based on current content
+func (a *EditorAI) GenerateContinueSuggestions(state StateManagerInterface) {
+	currentContent := state.GetText()
+	if currentContent == "" {
+		a.continueSuggestions = []string{
+			"Start with a compelling first line...",
+			"Begin with a vivid image...",
+			"Open with an intriguing question...",
+		}
+		return
+	}
+
+	// Use the AI agent to generate continue suggestions
+	if a.aiAgent == nil {
+		logging.Warnf("AI agent not initialized, using fallback continue suggestions")
+		a.continueSuggestions = []string{
+			"Continue with this line...",
+			"Or try this alternative...",
+			"Perhaps this direction...",
+		}
+		return
+	}
+
+	// Create a request for continue suggestions
+	req := ai.QuickRequest{
+		Mode:    ai.QuickIdeaModeUnstick,
+		Context: currentContent,
+		Options: map[string]string{},
+	}
+
+	// Call the AI agent with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	resp, err := a.aiAgent.Generate(ctx, req)
+	if err != nil {
+		logging.Errorf("Failed to generate continue suggestions: %v", err)
+		// Use fallback suggestions
+		a.continueSuggestions = []string{
+			"Continue with this line...",
+			"Or try this alternative...",
+			"Perhaps this direction...",
+		}
+		return
+	}
+
+	if len(resp.Suggestions) > 0 {
+		a.continueSuggestions = resp.Suggestions
+		logging.Debugf("Generated %d continue suggestions", len(resp.Suggestions))
+	} else {
+		// Use fallback suggestions
+		a.continueSuggestions = []string{
+			"Continue with this line...",
+			"Or try this alternative...",
+			"Perhaps this direction...",
+		}
+	}
+}
+
 // CancelContinueMode cancels the continue writing mode
 func (a *EditorAI) CancelContinueMode() {
 	a.continueMode = false
@@ -112,12 +254,50 @@ func (a *EditorAI) StartVariationMode(selectedText string) {
 	a.variationMode = true
 	a.variationOriginal = selectedText
 
-	// For now, we'll use placeholder variations
-	// In a full implementation, this would call the AI service
-	a.variationOptions = []string{
-		"Variation 1 of: " + selectedText,
-		"Variation 2 of: " + selectedText,
-		"Variation 3 of: " + selectedText,
+	// Use the AI agent to generate variations
+	if a.aiAgent == nil {
+		logging.Warnf("AI agent not initialized, using fallback variations")
+		a.variationOptions = []string{
+			"Variation 1 of: " + selectedText,
+			"Variation 2 of: " + selectedText,
+			"Variation 3 of: " + selectedText,
+		}
+		return
+	}
+
+	// Create a request for variations
+	req := ai.QuickRequest{
+		Mode:    ai.QuickIdeaModeTweak,
+		Context: selectedText,
+		Options: map[string]string{},
+	}
+
+	// Call the AI agent with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	resp, err := a.aiAgent.Generate(ctx, req)
+	if err != nil {
+		logging.Errorf("Failed to generate variations: %v", err)
+		// Use fallback variations
+		a.variationOptions = []string{
+			"Variation 1 of: " + selectedText,
+			"Variation 2 of: " + selectedText,
+			"Variation 3 of: " + selectedText,
+		}
+		return
+	}
+
+	if len(resp.Suggestions) > 0 {
+		a.variationOptions = resp.Suggestions
+		logging.Debugf("Generated %d variations", len(resp.Suggestions))
+	} else {
+		// Use fallback variations
+		a.variationOptions = []string{
+			"Variation 1 of: " + selectedText,
+			"Variation 2 of: " + selectedText,
+			"Variation 3 of: " + selectedText,
+		}
 	}
 }
 
@@ -158,21 +338,46 @@ func (a *EditorAI) CancelVariationMode() {
 
 // PerformQualityCheck performs a quality check on the current content
 func (a *EditorAI) PerformQualityCheck(state StateManagerInterface) {
-	// For now, we'll use a placeholder implementation
-	// In a full implementation, this would call the AI service
 	content := state.GetText()
 	if content == "" {
 		return
 	}
 
-	// Placeholder quality check results
-	// In a full implementation, this would use the QuickIdeaAgent
-	qualityRating := "OKAY"
-	qualityTip := "Add vivid sensory image"
+	// Use the AI agent to perform quality check
+	if a.aiAgent == nil {
+		logging.Warnf("AI agent not initialized, using fallback quality check")
+		a.addQualityCheckResult(state, "OKAY", "Add vivid sensory image")
+		return
+	}
 
-	// Create a simple overlay to show the quality check result
-	// For now, we'll just add it as a comment
-	qualityComment := fmt.Sprintf("\n\n<!-- Quality Check: %s - %s -->", qualityRating, qualityTip)
+	// Create a request for quality check
+	req := ai.QuickRequest{
+		Mode:    ai.QuickIdeaModeCheck,
+		Context: content,
+		Options: map[string]string{},
+	}
+
+	// Call the AI agent with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	resp, err := a.aiAgent.Generate(ctx, req)
+	if err != nil {
+		logging.Errorf("Failed to perform quality check: %v", err)
+		// Use fallback quality check
+		a.addQualityCheckResult(state, "OKAY", "Add vivid sensory image")
+		return
+	}
+
+	// Add quality check result
+	a.addQualityCheckResult(state, resp.Rating, resp.Tip)
+	logging.Debugf("Quality check result: %s - %s", resp.Rating, resp.Tip)
+}
+
+// addQualityCheckResult adds the quality check result to the content
+func (a *EditorAI) addQualityCheckResult(state StateManagerInterface, rating, tip string) {
+	// Create a quality check comment
+	qualityComment := fmt.Sprintf("\n\n<!-- Quality Check: %s - %s -->", rating, tip)
 
 	// Get current content
 	currentContent := state.GetText()
@@ -277,18 +482,19 @@ func (a *EditorAI) renderBrainstormOverlay(width int) string {
 		return ""
 	}
 
+	t := theme.GetManager().Current()
 	// Create overlay style
 	overlayStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(styles.Accent).
+		BorderForeground(t.Accent).
 		Padding(0, 1).
 		Width(width - 8).
-		Background(styles.Dark2)
+		Background(t.Background)
 
 	// Create title
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(styles.Primary).
+		Foreground(t.Primary).
 		Align(lipgloss.Center)
 
 	title := titleStyle.Render("Theme: " + a.brainstormTheme)
@@ -305,7 +511,7 @@ func (a *EditorAI) renderBrainstormOverlay(width int) string {
 	// Create instructions
 	instructions := "Press 1-3 to select, Esc to cancel"
 	instructionStyle := lipgloss.NewStyle().
-		Foreground(styles.TextMuted).
+		Foreground(t.Secondary).
 		Align(lipgloss.Center).
 		Italic(true)
 
@@ -323,18 +529,19 @@ func (a *EditorAI) renderContinueOverlay(width int) string {
 		return ""
 	}
 
+	t := theme.GetManager().Current()
 	// Create overlay style
 	overlayStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(styles.Info).
+		BorderForeground(t.Accent).
 		Padding(0, 1).
 		Width(width - 8).
-		Background(styles.Dark2)
+		Background(t.Background)
 
 	// Create title
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(styles.Info).
+		Foreground(t.Accent).
 		Align(lipgloss.Center)
 
 	title := titleStyle.Render("Continue with:")
@@ -351,7 +558,7 @@ func (a *EditorAI) renderContinueOverlay(width int) string {
 	// Create instructions
 	instructions := "Press 1-3 to select, Esc to write manually"
 	instructionStyle := lipgloss.NewStyle().
-		Foreground(styles.TextMuted).
+		Foreground(t.Secondary).
 		Align(lipgloss.Center).
 		Italic(true)
 
@@ -369,25 +576,26 @@ func (a *EditorAI) renderVariationOverlay(width int) string {
 		return ""
 	}
 
+	t := theme.GetManager().Current()
 	// Create overlay style
 	overlayStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(styles.Success).
+		BorderForeground(t.Success).
 		Padding(0, 1).
 		Width(width - 8).
-		Background(styles.Dark2)
+		Background(t.Background)
 
 	// Create title
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(styles.Success).
+		Foreground(t.Success).
 		Align(lipgloss.Center)
 
 	title := titleStyle.Render("Variations for:")
 
 	// Show original text
 	originalStyle := lipgloss.NewStyle().
-		Foreground(styles.TextSecondary).
+		Foreground(t.Secondary).
 		Italic(true)
 
 	originalText := originalStyle.Render(a.variationOriginal)
@@ -404,7 +612,7 @@ func (a *EditorAI) renderVariationOverlay(width int) string {
 	// Create instructions
 	instructions := "Press 1-3 to replace, Enter to keep original, Esc to cancel"
 	instructionStyle := lipgloss.NewStyle().
-		Foreground(styles.TextMuted).
+		Foreground(t.Secondary).
 		Align(lipgloss.Center).
 		Italic(true)
 

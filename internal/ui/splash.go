@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -25,7 +25,7 @@ type SplashModel struct {
 func NewSplashModel() *SplashModel {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(styles.Primary)
+	s.Style = lipgloss.NewStyle().Foreground(theme.GetManager().Current().Primary)
 
 	return &SplashModel{
 		spinner:      s,
@@ -79,8 +79,9 @@ func (m *SplashModel) Update(msg tea.Msg) tea.Cmd {
 
 // View renders the splash screen
 func (m *SplashModel) View() string {
+	t := theme.GetManager().Current()
 	titleStyle := lipgloss.NewStyle().
-		Foreground(styles.Primary).
+		Foreground(t.Primary).
 		Bold(true).
 		Align(lipgloss.Center).
 		Width(m.width).

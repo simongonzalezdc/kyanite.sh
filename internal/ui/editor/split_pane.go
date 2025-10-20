@@ -2,6 +2,7 @@ package editor
 
 import (
 	"context"
+	"fmt"
 	"sort"
 
 	"github.com/Kyanite/noise/internal/app"
@@ -42,6 +43,7 @@ type SplitPaneModel struct {
 	// Child components
 	editorPane  *EditorPaneModel
 	previewPane *PreviewPaneModel
+	fileDialog  *FileDialogModel
 
 	// State
 	focusedPane     FocusedPane
@@ -103,6 +105,7 @@ func NewSplitPaneModel(database *db.DB) *SplitPaneModel {
 		splitRatio:      splitRatio,
 		editorPane:      NewEditorPaneModel(editorTA),
 		previewPane:     NewPreviewPaneModel(),
+		fileDialog:      NewFileDialogModel(DialogOpen, "Open File", "./songs", []string{".md", ".txt"}),
 		focusedPane:     EditorPane,
 		database:        database,
 		autoSaveService: autoSaveService,
@@ -130,9 +133,13 @@ func NewSplitPaneModel(database *db.DB) *SplitPaneModel {
 
 // Init initializes the split-pane model
 func (m *SplitPaneModel) Init() tea.Cmd {
+	// Set up file dialog callbacks
+	m.setupFileDialogCallbacks()
+	
 	return tea.Batch(
 		m.editorPane.Init(),
 		m.previewPane.Init(),
+		m.fileDialog.Init(),
 	)
 }
 
@@ -140,11 +147,23 @@ func (m *SplitPaneModel) Init() tea.Cmd {
 func (m *SplitPaneModel) Update(msg tea.Msg) (*SplitPaneModel, tea.Cmd) {
 	var cmds []tea.Cmd
 
+	// Handle file dialog first (highest priority)
+	if m.fileDialog.IsVisible() {
+		var cmd tea.Cmd
+		m.fileDialog, cmd = m.fileDialog.Update(msg)
+		if cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+		return m, tea.Batch(cmds...)
+	}
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
 		m.updatePaneDimensions()
+		// Update file dialog dimensions
+		m.fileDialog.SetDimensions(m.width, m.height)
 
 	case tea.KeyMsg:
 		// Set context based on focused pane
@@ -217,6 +236,18 @@ func (m *SplitPaneModel) Update(msg tea.Msg) (*SplitPaneModel, tea.Cmd) {
 func (m *SplitPaneModel) View() string {
 	if m.width == 0 || m.height == 0 {
 		return "Initializing..."
+	}
+
+	// If file dialog is visible, render it as overlay
+	if m.fileDialog.IsVisible() {
+		// Render the background first
+		background := m.renderDefaultLayout()
+		
+		// Render file dialog overlay
+		dialogView := m.fileDialog.View()
+		
+		// Combine background with dialog overlay
+		return lipgloss.JoinVertical(lipgloss.Left, background, dialogView)
 	}
 
 	// Get the current editor mode
@@ -478,8 +509,8 @@ func (m *SplitPaneModel) handleShortcutAction(action ShortcutAction) (*SplitPane
 		m.editorPane.SetText("")
 		return m, nil
 	case ActionOpenFile:
-		// This would need file dialog implementation
-		// For now, this is a placeholder
+		// Show open file dialog
+		m.showOpenFileDialog()
 		return m, nil
 	case ActionSave:
 		// Trigger save in editor pane
@@ -492,8 +523,8 @@ func (m *SplitPaneModel) handleShortcutAction(action ShortcutAction) (*SplitPane
 		}
 		return m, nil
 	case ActionSaveAs:
-		// This would need file dialog implementation
-		// For now, this is a placeholder
+		// Show save as file dialog
+		m.showSaveAsDialog()
 		return m, nil
 	case ActionExport:
 		// Navigate to export screen
@@ -569,4 +600,66 @@ func (m *SplitPaneModel) SetQuickStartConfig(theme string, scratchMode bool, aut
 	if autoBrainstorm && theme != "" {
 		m.editorPane.StartRapidBrainstorm(theme)
 	}
+}
+
+// File dialog helper methods
+
+// setupFileDialogCallbacks sets up the callbacks for the file dialog
+func (m *SplitPaneModel) setupFileDialogCallbacks() {
+	// Open file callback
+	m.fileDialog.SetConfirmCallback(func(path string) error {
+		if err := m.editorPane.state.OpenFile(path); err != nil {
+			logging.Errorf("Failed to open file: %v", err)
+			return fmt.Errorf("failed to open file: %w", err)
+		}
+		logging.Infof("Opened file: %s", path)
+		return nil
+	})
+
+	// Cancel callback
+	m.fileDialog.SetCancelCallback(func() {
+		logging.Debugf("File dialog cancelled")
+	})
+}
+
+// showOpenFileDialog shows the open file dialog
+func (m *SplitPaneModel) showOpenFileDialog() {
+	// Create a new open file dialog
+	currentPath := m.editorPane.GetCurrentFilePath()
+	if currentPath == "" {
+		currentPath = "./songs"
+	}
+	
+	m.fileDialog = NewFileDialogModel(DialogOpen, "Open File", currentPath, []string{".md", ".txt"})
+	m.fileDialog.SetDimensions(m.width, m.height)
+	m.setupFileDialogCallbacks()
+	m.fileDialog.Show()
+}
+
+// showSaveAsDialog shows the save as file dialog
+func (m *SplitPaneModel) showSaveAsDialog() {
+	// Create a new save as dialog
+	currentPath := m.editorPane.GetCurrentFilePath()
+	if currentPath == "" {
+		currentPath = "./songs/untitled.md"
+	}
+	
+	m.fileDialog = NewFileDialogModel(DialogSaveAs, "Save As", currentPath, []string{".md", ".txt"})
+	m.fileDialog.SetDimensions(m.width, m.height)
+	
+	// Set up save as callback
+	m.fileDialog.SetConfirmCallback(func(path string) error {
+		if err := m.editorPane.state.SaveAs(path); err != nil {
+			logging.Errorf("Failed to save file: %v", err)
+			return fmt.Errorf("failed to save file: %w", err)
+		}
+		logging.Infof("Saved file: %s", path)
+		return nil
+	})
+	
+	m.fileDialog.SetCancelCallback(func() {
+		logging.Debugf("Save as dialog cancelled")
+	})
+	
+	m.fileDialog.Show()
 }

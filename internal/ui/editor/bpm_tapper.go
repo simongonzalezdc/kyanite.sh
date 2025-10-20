@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -38,6 +38,7 @@ type bpmTapperModel struct {
 
 // NewBPMTapperModel creates a new BPM tapper model
 func NewBPMTapperModel() *bpmTapperModel {
+	t := theme.GetManager().Current()
 	return &bpmTapperModel{
 		visible:    false,
 		currentBPM: 120, // Default 120 BPM
@@ -46,29 +47,29 @@ func NewBPMTapperModel() *bpmTapperModel {
 
 		containerStyle: lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(styles.Info).
-			Background(styles.Background).
+			BorderForeground(t.Accent).
+			Background(t.Background).
 			Padding(1, 2),
 
 		headerStyle: lipgloss.NewStyle().
 			Bold(true).
-			Foreground(styles.Info).
+			Foreground(t.Accent).
 			Align(lipgloss.Center).
 			MarginBottom(1),
 
 		bpmStyle: lipgloss.NewStyle().
-			Foreground(styles.Primary).
+			Foreground(t.Primary).
 			Bold(true).
 			Align(lipgloss.Center).
 			MarginBottom(1),
 
 		tapStyle: lipgloss.NewStyle().
-			Foreground(styles.Success).
+			Foreground(t.Success).
 			Align(lipgloss.Center).
 			MarginBottom(1),
 
 		instructionStyle: lipgloss.NewStyle().
-			Foreground(styles.TextMuted).
+			Foreground(t.Secondary).
 			Align(lipgloss.Center).
 			MarginTop(1),
 	}

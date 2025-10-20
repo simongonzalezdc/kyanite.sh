@@ -2,7 +2,7 @@ package editor
 
 import (
 	"github.com/Kyanite/noise/internal/ui/dimension"
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -28,6 +28,7 @@ func (l *PolishLayout) GetDimensions() (int, int) {
 
 // Render renders the polish mode layout
 func (l *PolishLayout) Render(editorContent string, previewContent string, theoryContent string, critiqueContent string) string {
+	t := theme.GetManager().Current()
 	// Polish mode: Full suite with all tools
 	// 40% editor, 20% preview, 20% theory, 20% critique
 
@@ -41,7 +42,7 @@ func (l *PolishLayout) Render(editorContent string, previewContent string, theor
 		Width(editorWidth).
 		Height(l.height).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(styles.Primary)
+		BorderForeground(t.Primary)
 
 	editorPane := editorStyle.Render(editorContent)
 
@@ -50,12 +51,12 @@ func (l *PolishLayout) Render(editorContent string, previewContent string, theor
 		Width(previewWidth).
 		Height(l.height).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(styles.Info).
-		Background(styles.Dark1)
+		BorderForeground(t.Accent).
+		Background(t.Background)
 
 	previewTitle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(styles.Info).
+		Foreground(t.Accent).
 		Align(lipgloss.Center).
 		Width(previewWidth - 2).
 		Render("Preview")
@@ -74,12 +75,12 @@ func (l *PolishLayout) Render(editorContent string, previewContent string, theor
 		Width(theoryWidth).
 		Height(l.height).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(styles.Success).
-		Background(styles.Dark1)
+		BorderForeground(t.Success).
+		Background(t.Background)
 
 	theoryTitle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(styles.Success).
+		Foreground(t.Success).
 		Align(lipgloss.Center).
 		Width(theoryWidth - 2).
 		Render("Theory Tools")
@@ -98,12 +99,12 @@ func (l *PolishLayout) Render(editorContent string, previewContent string, theor
 		Width(critiqueWidth).
 		Height(l.height).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(styles.Warning).
-		Background(styles.Dark1)
+		BorderForeground(t.Warning).
+		Background(t.Background)
 
 	critiqueTitle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(styles.Warning).
+		Foreground(t.Warning).
 		Align(lipgloss.Center).
 		Width(critiqueWidth - 2).
 		Render("AI Critique")
@@ -119,7 +120,7 @@ func (l *PolishLayout) Render(editorContent string, previewContent string, theor
 
 	// Create dividers
 	dividerStyle := lipgloss.NewStyle().
-		Foreground(styles.TextMuted).
+		Foreground(t.Secondary).
 		Render("â”‚")
 
 	// Combine panes

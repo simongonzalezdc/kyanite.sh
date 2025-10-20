@@ -2,166 +2,201 @@ package theme
 
 import "github.com/charmbracelet/lipgloss"
 
-// Registry holds all available built-in themes.
-// Keys are kebab-case IDs used for config and switching.
-var Registry = make(map[string]Theme)
+// All 10 Kyanite Suite themes
+var (
+	Monochrome = Theme{
+		Name:       "Monochrome",
+		Primary:    lipgloss.Color("#FFFFFF"),
+		Secondary:  lipgloss.Color("#999999"),
+		Accent:     lipgloss.Color("#FFFFFF"),
+		Background: lipgloss.Color("#000000"),
+		Text:       lipgloss.Color("#FFFFFF"),
+		Success:    lipgloss.Color("#CCCCCC"),
+		Warning:    lipgloss.Color("#888888"),
+		Error:      lipgloss.Color("#666666"),
+	}
+
+	AmberNight = Theme{
+		Name:       "Amber Night",
+		Primary:    lipgloss.Color("#D4A574"),
+		Secondary:  lipgloss.Color("#9D84B7"),
+		Accent:     lipgloss.Color("#F4D03F"),
+		Background: lipgloss.Color("#0A0E27"),
+		Text:       lipgloss.Color("#E8DFF5"),
+		Success:    lipgloss.Color("#52D3AA"),
+		Warning:    lipgloss.Color("#FFA502"),
+		Error:      lipgloss.Color("#EA2027"),
+	}
+
+	TwilightMist = Theme{
+		Name:       "Twilight Mist",
+		Primary:    lipgloss.Color("#B8A3C9"),
+		Secondary:  lipgloss.Color("#8E7B9D"),
+		Accent:     lipgloss.Color("#D4C5E0"),
+		Background: lipgloss.Color("#151520"),
+		Text:       lipgloss.Color("#E8E4F0"),
+		Success:    lipgloss.Color("#90C695"),
+		Warning:    lipgloss.Color("#C9A87C"),
+		Error:      lipgloss.Color("#C77777"),
+	}
+
+	IndigoDepths = Theme{
+		Name:       "Indigo Depths",
+		Primary:    lipgloss.Color("#4169E1"),
+		Secondary:  lipgloss.Color("#5F9EA0"),
+		Accent:     lipgloss.Color("#87CEEB"),
+		Background: lipgloss.Color("#0A0A1A"),
+		Text:       lipgloss.Color("#E6F2FF"),
+		Success:    lipgloss.Color("#52D3AA"),
+		Warning:    lipgloss.Color("#FFB84D"),
+		Error:      lipgloss.Color("#FF6B6B"),
+	}
+
+	ForestPath = Theme{
+		Name:       "Forest Path",
+		Primary:    lipgloss.Color("#8FBC8F"),
+		Secondary:  lipgloss.Color("#6B8E6B"),
+		Accent:     lipgloss.Color("#B4D7B4"),
+		Background: lipgloss.Color("#1A1F1A"),
+		Text:       lipgloss.Color("#E8F5E8"),
+		Success:    lipgloss.Color("#90EE90"),
+		Warning:    lipgloss.Color("#DAA520"),
+		Error:      lipgloss.Color("#CD5C5C"),
+	}
+
+	ClayEarth = Theme{
+		Name:       "Clay Earth",
+		Primary:    lipgloss.Color("#A0522D"),
+		Secondary:  lipgloss.Color("#8B4513"),
+		Accent:     lipgloss.Color("#DEB887"),
+		Background: lipgloss.Color("#1A1410"),
+		Text:       lipgloss.Color("#F5E6D3"),
+		Success:    lipgloss.Color("#8FBC8F"),
+		Warning:    lipgloss.Color("#CD853F"),
+		Error:      lipgloss.Color("#CD5C5C"),
+	}
+
+	IronForge = Theme{
+		Name:       "Iron Forge",
+		Primary:    lipgloss.Color("#DC143C"),
+		Secondary:  lipgloss.Color("#4A4A4A"),
+		Accent:     lipgloss.Color("#FF6347"),
+		Background: lipgloss.Color("#1A0A0A"),
+		Text:       lipgloss.Color("#FFE6E6"),
+		Success:    lipgloss.Color("#90C695"),
+		Warning:    lipgloss.Color("#FFB84D"),
+		Error:      lipgloss.Color("#FF4444"),
+	}
+
+	Sunlight = Theme{
+		Name:       "Sunlight",
+		Primary:    lipgloss.Color("#FFD700"),
+		Secondary:  lipgloss.Color("#DAA520"),
+		Accent:     lipgloss.Color("#FFF8DC"),
+		Background: lipgloss.Color("#0F0F0A"),
+		Text:       lipgloss.Color("#FFFACD"),
+		Success:    lipgloss.Color("#98D982"),
+		Warning:    lipgloss.Color("#FF9800"),
+		Error:      lipgloss.Color("#D32F2F"),
+	}
+
+	CyanWave = Theme{
+		Name:       "Cyan Wave",
+		Primary:    lipgloss.Color("#00CED1"),
+		Secondary:  lipgloss.Color("#4682B4"),
+		Accent:     lipgloss.Color("#7FFFD4"),
+		Background: lipgloss.Color("#0A1418"),
+		Text:       lipgloss.Color("#E0F7FA"),
+		Success:    lipgloss.Color("#52D3AA"),
+		Warning:    lipgloss.Color("#FFB84D"),
+		Error:      lipgloss.Color("#FF6B6B"),
+	}
+
+	ElectricRose = Theme{
+		Name:       "Electric Rose",
+		Primary:    lipgloss.Color("#FF1493"),
+		Secondary:  lipgloss.Color("#C71585"),
+		Accent:     lipgloss.Color("#00CED1"),
+		Background: lipgloss.Color("#1A0A1A"),
+		Text:       lipgloss.Color("#FFF0F8"),
+		Success:    lipgloss.Color("#52D3AA"),
+		Warning:    lipgloss.Color("#FFB84D"),
+		Error:      lipgloss.Color("#FF4444"),
+	}
+)
+
+// Registry maps theme IDs to Theme structs
+var Registry = map[string]Theme{
+	"monochrome":    Monochrome,
+	"amber-night":   AmberNight,
+	"twilight-mist": TwilightMist,
+	"indigo-depths": IndigoDepths,
+	"forest-path":   ForestPath,
+	"clay-earth":    ClayEarth,
+	"iron-forge":    IronForge,
+	"sunlight":      Sunlight,
+	"cyan-wave":     CyanWave,
+	"electric-rose": ElectricRose,
+}
 
 // DefaultTheme is the ID used when no valid theme is selected.
 var DefaultTheme = "amber-night"
 
-func init() {
-	// Built-in themes from specification (12)
-	Registry["slate"] = Theme{
-		Name:       "Slate Mist",
-		Primary:    lipgloss.Color("#E0E0E0"),
-		Secondary:  lipgloss.Color("#B0B0B0"),
-		Accent:     lipgloss.Color("#FFFFFF"),
-		Background: lipgloss.Color("#1A1A1A"),
-		Text:       lipgloss.Color("#E8E8E8"),
-		Success:    lipgloss.Color("#90C695"),
-	}
-
-	Registry["amber-night"] = Theme{
-		Name:       "Amber Night",
-		Primary:    lipgloss.Color("#B8936E"),
-		Secondary:  lipgloss.Color("#6D5B8B"),
-		Accent:     lipgloss.Color("#E8C547"),
-		Background: lipgloss.Color("#12101A"),
-		Text:       lipgloss.Color("#F0E6D8"),
-		Success:    lipgloss.Color("#7FB89C"),
-	}
-
-	Registry["molten-gold"] = Theme{
-		Name:       "Molten Gold",
-		Primary:    lipgloss.Color("#FFD700"),
-		Secondary:  lipgloss.Color("#FF6600"),
-		Accent:     lipgloss.Color("#8B00FF"),
-		Background: lipgloss.Color("#0D0D0D"),
-		Text:       lipgloss.Color("#FFFFFF"),
-		Success:    lipgloss.Color("#00FF7F"),
-	}
-
-	Registry["clay-roads"] = Theme{
-		Name:       "Clay Roads",
-		Primary:    lipgloss.Color("#CC5500"),
-		Secondary:  lipgloss.Color("#D2691E"),
-		Accent:     lipgloss.Color("#FFD700"),
-		Background: lipgloss.Color("#1C1410"),
-		Text:       lipgloss.Color("#FFF8DC"),
-		Success:    lipgloss.Color("#9ACD32"),
-	}
-
-	Registry["iron-storm"] = Theme{
-		Name:       "Iron Storm",
-		Primary:    lipgloss.Color("#DC143C"),
-		Secondary:  lipgloss.Color("#708090"),
-		Accent:     lipgloss.Color("#FF4500"),
-		Background: lipgloss.Color("#0D0D0D"),
-		Text:       lipgloss.Color("#E8E8E8"),
-		Success:    lipgloss.Color("#4A6741"),
-	}
-
-	Registry["jade-tide"] = Theme{
-		Name:       "Jade Tide",
-		Primary:    lipgloss.Color("#20B2AA"),
-		Secondary:  lipgloss.Color("#2E8B87"),
-		Accent:     lipgloss.Color("#E0F2F1"),
-		Background: lipgloss.Color("#0F1419"),
-		Text:       lipgloss.Color("#F5F8FA"),
-		Success:    lipgloss.Color("#7FB89C"),
-	}
-
-	Registry["sunset-ember"] = Theme{
-		Name:       "Sunset Ember",
-		Primary:    lipgloss.Color("#FF6B9D"),
-		Secondary:  lipgloss.Color("#FF8C42"),
-		Accent:     lipgloss.Color("#FFC312"),
-		Background: lipgloss.Color("#1e1e2e"),
-		Text:       lipgloss.Color("#FFEAA7"),
-		Success:    lipgloss.Color("#55E6C1"),
-	}
-
-	Registry["forest-whisper"] = Theme{
-		Name:       "Forest Whisper",
-		Primary:    lipgloss.Color("#52B788"),
-		Secondary:  lipgloss.Color("#52A068"),
-		Accent:     lipgloss.Color("#95D5B2"),
-		Background: lipgloss.Color("#1B263B"),
-		Text:       lipgloss.Color("#D8F3DC"),
-		Success:    lipgloss.Color("#B7E4C7"),
-	}
-
-	Registry["electric-bloom"] = Theme{
-		Name:       "Electric Bloom",
-		Primary:    lipgloss.Color("#FF0080"),
-		Secondary:  lipgloss.Color("#00D4FF"),
-		Accent:     lipgloss.Color("#FFE600"),
-		Background: lipgloss.Color("#0D0221"),
-		Text:       lipgloss.Color("#F0F3FF"),
-		Success:    lipgloss.Color("#39FF14"),
-	}
-
-	Registry["plasma-pulse"] = Theme{
-		Name:       "Plasma Pulse",
-		Primary:    lipgloss.Color("#39FF14"),
-		Secondary:  lipgloss.Color("#00F5FF"),
-		Accent:     lipgloss.Color("#FF1493"),
-		Background: lipgloss.Color("#0A0118"),
-		Text:       lipgloss.Color("#E0FFFF"),
-		Success:    lipgloss.Color("#00FF7F"),
-	}
-
-	Registry["indigo-depths"] = Theme{
-		Name:       "Indigo Depths",
-		Primary:    lipgloss.Color("#4169E1"),
-		Secondary:  lipgloss.Color("#5F9EA0"),
-		Accent:     lipgloss.Color("#DEB887"),
-		Background: lipgloss.Color("#0C0C1E"),
-		Text:       lipgloss.Color("#F0E68C"),
-		Success:    lipgloss.Color("#5F9EA0"),
-	}
-
-	Registry["sage-meadow"] = Theme{
-		Name:       "Sage Meadow",
-		Primary:    lipgloss.Color("#8FBC8F"),
-		Secondary:  lipgloss.Color("#D2B48C"),
-		Accent:     lipgloss.Color("#F4A460"),
-		Background: lipgloss.Color("#1A1612"),
-		Text:       lipgloss.Color("#FAF0E6"),
-		Success:    lipgloss.Color("#9ACD32"),
-	}
-
-	// Preserve original "Violet Dusk" (existing app theme historically named "Midnight Jazz").
-	// Keep name, assets and settings intact; provide ID "violet-dusk".
-	Registry["violet-dusk"] = Theme{
-		Name:       "Violet Dusk",
-		Primary:    lipgloss.Color("#9D84B7"), // Soft purple - main brand
-		Secondary:  lipgloss.Color("#5E4B8B"), // Deep purple - secondary actions
-		Accent:     lipgloss.Color("#F4D03F"), // Gold - highlights
-		Background: lipgloss.Color("#0A0E27"), // Deep navy - main background
-		Text:       lipgloss.Color("#E8DFF5"), // Light lavender - main text
-		Success:    lipgloss.Color("#52D3AA"), // Mint green - success states
-	}
-
-	// Backwards-compatible alias: some configs use "midnight_jazz" (snake) or "midnight-jazz" (kebab).
-	Registry["midnight-jazz"] = Registry["violet-dusk"]
-	Registry["midnight_jazz"] = Registry["violet-dusk"]
-	Registry["purple-jazz"] = Registry["violet-dusk"] // Additional alias for old name
+// Default returns the default theme (Amber Night)
+func Default() Theme {
+	return AmberNight
 }
 
-// GetTheme returns a theme by id; falls back to DefaultTheme if not found.
+// GetTheme returns a theme by ID, falling back to default
 func GetTheme(id string) Theme {
-	if t, ok := Registry[id]; ok {
-		return t
+	// Check if migration needed
+	id = migrateThemeID(id)
+	
+	if theme, ok := Registry[id]; ok {
+		return theme
 	}
-	return Registry[DefaultTheme]
+	return Default()
 }
 
-// ListThemes returns the list of registered theme IDs (unordered).
+// ListThemes returns all theme IDs in order
 func ListThemes() []string {
-	out := make([]string, 0, len(Registry))
-	for k := range Registry {
-		out = append(out, k)
+	return []string{
+		"monochrome",
+		"amber-night",
+		"twilight-mist",
+		"indigo-depths",
+		"forest-path",
+		"clay-earth",
+		"iron-forge",
+		"sunlight",
+		"cyan-wave",
+		"electric-rose",
 	}
-	return out
 }
+
+// migrateThemeID migrates old theme IDs to new ones
+func migrateThemeID(oldID string) string {
+	migrations := map[string]string{
+		"slate":         "twilight-mist",
+		"slate-mist":    "twilight-mist",
+		"violet-dusk":   "twilight-mist",
+		"molten-gold":   "sunlight",
+		"clay-roads":    "clay-earth",
+		"iron-storm":    "iron-forge",
+		"jade-tide":     "cyan-wave",
+		"sunset-ember":  "electric-rose",
+		"forest-whisper": "forest-path",
+		"electric-bloom": "electric-rose",
+		"plasma-pulse":  "amber-night",  // Fallback to default
+		"sage-meadow":   "forest-path",
+		"midnight-jazz": "amber-night",  // Migrate to default
+		"midnight_jazz": "amber-night",
+		"purple-jazz":   "amber-night",
+	}
+	
+	if newID, ok := migrations[oldID]; ok {
+		return newID
+	}
+	return oldID
+}
+

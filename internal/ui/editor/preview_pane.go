@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/Kyanite/noise/internal/ui/dimension"
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/harmonica"
@@ -121,33 +121,43 @@ func NewPreviewPaneModel() *PreviewPaneModel {
 		currentScroll:   0.0,
 		isScrolling:     false,
 		shortcutManager: NewShortcutManager(),
-		focusedStyle:    styles.BorderActive,
-		blurredStyle:    styles.Border,
-		borderStyle:     styles.Border,
-		titleStyle: lipgloss.NewStyle().
-			Bold(true).
-			Foreground(styles.TextPrimary).
-			Background(styles.Dark3).
-			Padding(0, 1).
-			Width(20),
-		// Initialize real-time preview features
-		realtimeManager:     NewRealTimePreviewManager(DefaultPreviewUpdateConfig()),
-		lastScrollPositions: make(map[string]int),
-		scrollSyncEnabled:   true,
-		showWordCount:       true,
-		showReadingTime:     true,
-		showTOC:             true,
-		renderCache:         make(map[string]string),
-		maxCacheSize:        50,    // Will be adjusted based on terminal size in SetDimensions
-		contentThreshold:    50000, // 50KB threshold for enabling optimizations
-		enableThrottling:    true,
-		throttleDuration:    100 * time.Millisecond,
-		lastContentUpdate:   time.Now(),
-		lazyLoadingEnabled:  true,
-		visibleStartLine:    0,
-		visibleEndLine:      0,
-		totalLines:          0,
 	}
+	
+	t := theme.GetManager().Current()
+	model.focusedStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(t.Primary)
+	model.blurredStyle = lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(t.Secondary)
+	model.borderStyle = lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(t.Secondary)
+	model.titleStyle = lipgloss.NewStyle().
+		Bold(true).
+		Foreground(t.Text).
+		Background(t.Background).
+		Padding(0, 1).
+		Width(20)
+	}
+	
+	// Initialize real-time preview features
+	model.realtimeManager = NewRealTimePreviewManager(DefaultPreviewUpdateConfig())
+	model.lastScrollPositions = make(map[string]int)
+	model.scrollSyncEnabled = true
+	model.showWordCount = true
+	model.showReadingTime = true
+	model.showTOC = true
+	model.renderCache = make(map[string]string)
+	model.maxCacheSize = 50 // Will be adjusted based on terminal size in SetDimensions
+	model.contentThreshold = 50000 // 50KB threshold for enabling optimizations
+	model.enableThrottling = true
+	model.throttleDuration = 100 * time.Millisecond
+	model.lastContentUpdate = time.Now()
+	model.lazyLoadingEnabled = true
+	model.visibleStartLine = 0
+	model.visibleEndLine = 0
+	model.totalLines = 0
 
 	// Set up real-time preview callbacks
 	model.realtimeManager.SetCallbacks(
@@ -163,6 +173,7 @@ func NewPreviewPaneModel() *PreviewPaneModel {
 
 // createMidnightJazzStyle creates a custom dark theme for the "Midnight Jazz" aesthetic
 func createMidnightJazzStyle() string {
+	t := theme.GetManager().Current()
 	return fmt.Sprintf(`
 {
 	"document": {
@@ -268,32 +279,33 @@ func createMidnightJazzStyle() string {
 }
 `,
 		// Background colors
-		styles.ToHex(styles.Dark1),
-		styles.ToHex(styles.TextPrimary),
-		styles.Dark2,
-		styles.BorderColor,
-		styles.TextSecondary,
-		styles.Dark2,
-		styles.Accent,
-		styles.Dark1,
-		styles.TextPrimary,
-		styles.BorderColor,
-		styles.TextAccent,
-		styles.Primary,
-		styles.Success,
-		styles.Secondary,
-		styles.TextAccent,
-		styles.Accent,
-		styles.Info,
-		styles.TextSecondary,
-		styles.BorderColor,
-		styles.Dark2,
-		styles.BorderColor,
-		styles.Dark3,
-		styles.BorderColor,
-		styles.BorderColor,
-		styles.BorderColor,
-		styles.Primary,
+		t.Background,
+		t.Text,
+		t.Background,
+		t.Secondary,
+		t.Secondary,
+		t.Background,
+		t.Success,
+		t.Background,
+		t.Text,
+		t.Secondary,
+		t.Accent,
+		t.Primary,
+		t.Success,
+		t.Secondary,
+		t.Accent,
+		t.Accent,
+		t.Accent,
+		t.Secondary,
+		t.Secondary,
+		t.Background,
+		t.Secondary,
+		t.Background,
+		t.Secondary,
+		t.Secondary,
+		t.Secondary,
+		t.Secondary,
+		t.Primary,
 	)
 }
 
@@ -484,8 +496,9 @@ func (m *PreviewPaneModel) View() string {
 			scrollPercent = 1.0
 		}
 		progressBar := strings.Repeat("â–ˆ", int(scrollPercent*20)) + strings.Repeat("â–‘", 20-int(scrollPercent*20))
+		t := theme.GetManager().Current()
 		scrollIndicator = lipgloss.NewStyle().
-			Foreground(styles.TextMuted).
+			Foreground(t.Secondary).
 			Align(lipgloss.Center).
 			Width(m.width - 4).
 			Render("â†“ " + progressBar + " â†‘")
@@ -502,11 +515,12 @@ func (m *PreviewPaneModel) View() string {
 			statsParts = append(statsParts, fmt.Sprintf("%s read", m.formatDuration(m.previewStats.ReadingTime)))
 		}
 		if len(statsParts) > 0 {
-			statsInfo = lipgloss.NewStyle().
-				Foreground(styles.TextMuted).
-				Align(lipgloss.Center).
-				Width(m.width - 4).
-				Render(strings.Join(statsParts, " â€¢ "))
+		t := theme.GetManager().Current()
+		statsInfo = lipgloss.NewStyle().
+			Foreground(t.Secondary).
+			Align(lipgloss.Center).
+			Width(m.width - 4).
+			Render(strings.Join(statsParts, " â€¢ "))
 		}
 	}
 
@@ -519,8 +533,9 @@ func (m *PreviewPaneModel) View() string {
 	// Add controls info if focused
 	controlsInfo := ""
 	if m.focused {
+		t := theme.GetManager().Current()
 		controlsInfo = lipgloss.NewStyle().
-			Foreground(styles.TextMuted).
+			Foreground(t.Secondary).
 			Align(lipgloss.Center).
 			Width(m.width - 4).
 			Render("Controls: â†‘â†“/jk: scroll | Ctrl+R: refresh | Ctrl+Â±: zoom | Ctrl+0: reset zoom")
@@ -786,8 +801,9 @@ func (m *PreviewPaneModel) renderBasicContent() string {
 // renderError renders an error message
 func (m *PreviewPaneModel) renderError(err error) string {
 	errorMsg := fmt.Sprintf("Error rendering markdown: %s", err.Error())
+	t := theme.GetManager().Current()
 	return lipgloss.NewStyle().
-		Foreground(styles.Error).
+		Foreground(t.Error).
 		Render("âš ï¸  " + errorMsg)
 }
 
@@ -917,12 +933,13 @@ func (m *PreviewPaneModel) renderTOC() string {
 
 	tocContent := strings.Join(tocLines, "\n")
 
+	t := theme.GetManager().Current()
 	return lipgloss.NewStyle().
-		Foreground(styles.TextMuted).
+		Foreground(t.Secondary).
 		Align(lipgloss.Left).
 		Width(m.width-4).
 		Border(lipgloss.NormalBorder()).
-		BorderForeground(styles.BorderColor).
+		BorderForeground(t.Secondary).
 		Padding(0, 1).
 		Render(tocContent)
 }

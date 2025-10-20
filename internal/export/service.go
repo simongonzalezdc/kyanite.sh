@@ -10,57 +10,75 @@ import (
 	errutil "github.com/Kyanite/noise/internal/errutil"
 )
 
-// ExportService handles the export functionality
+// ExportService handles the export functionality.
 type ExportService struct {
 	formatter *ExportFormatter
 	outputDir string
 }
 
-// NewExportService creates a new export service
+// NewExportService creates a new export service.
 func NewExportService(outputDir string) *ExportService {
+	sanitized := sanitizeOutputDirectory(outputDir)
 	return &ExportService{
 		formatter: NewExportFormatter(),
-		outputDir: outputDir,
+		outputDir: sanitized,
 	}
 }
 
-// Export exports content based on options
+// Export exports content based on options.
 func (es *ExportService) Export(content string, options *ExportOptions) (string, error) {
-	// Format the export
-	export, err := es.formatter.FormatExport(content, options)
+	exportData, err := es.formatter.FormatExport(content, options)
 	if err != nil {
 		return "", errutil.Wrap(err, "format export")
 	}
 
-	// Generate output path if not provided
 	outputPath := options.OutputPath
 	if outputPath == "" {
 		outputPath = es.generateOutputPath(options)
 	}
 
-	// Ensure the path is absolute
-	if !filepath.IsAbs(outputPath) {
-		outputPath = filepath.Join(es.outputDir, outputPath)
+	baseDir := es.outputDir
+	if baseDir == "" {
+		baseDir = "."
+	}
+	if !filepath.IsAbs(baseDir) {
+		baseDir, err = filepath.Abs(baseDir)
+		if err != nil {
+			return "", errutil.Wrap(err, "resolve export directory")
+		}
+		es.outputDir = baseDir
 	}
 
-	// Save to file
-	if err := es.formatter.SaveToFile(export, outputPath); err != nil {
+	cleanPath := filepath.Clean(outputPath)
+	if !filepath.IsAbs(cleanPath) {
+		cleanPath = filepath.Join(baseDir, cleanPath)
+	}
+
+	relPath, err := filepath.Rel(baseDir, cleanPath)
+	if err != nil {
+		return "", errutil.Wrap(err, "validate export path")
+	}
+	if relPath == ".." || strings.HasPrefix(relPath, ".."+string(filepath.Separator)) || strings.HasPrefix(relPath, "../") {
+		return "", errutil.Wrap(fmt.Errorf("output path escapes export directory"), "validate export path")
+	}
+
+	if err := es.formatter.SaveToFile(exportData, cleanPath); err != nil {
 		return "", errutil.Wrap(err, "save export")
 	}
 
-	return outputPath, nil
+	return cleanPath, nil
 }
 
-// QuickExport performs a quick export with default options
-func (es *ExportService) QuickExport(content string, title string) (string, error) {
+// QuickExport performs a quick export with default options.
+func (es *ExportService) QuickExport(content, title string) (string, error) {
 	options := DefaultExportOptions()
 	options.Title = title
 
 	return es.Export(content, options)
 }
 
-// ExportToPattern exports content as a pattern
-func (es *ExportService) ExportToPattern(content string, title string) (string, error) {
+// ExportToPattern exports content as a pattern.
+func (es *ExportService) ExportToPattern(content, title string) (string, error) {
 	options := DefaultExportOptions()
 	options.Type = ExportTypePattern
 	options.Title = title
@@ -68,8 +86,8 @@ func (es *ExportService) ExportToPattern(content string, title string) (string, 
 	return es.Export(content, options)
 }
 
-// ExportToLyrics exports content as lyrics
-func (es *ExportService) ExportToLyrics(content string, title string) (string, error) {
+// ExportToLyrics exports content as lyrics.
+func (es *ExportService) ExportToLyrics(content, title string) (string, error) {
 	options := DefaultExportOptions()
 	options.Type = ExportTypeLyrics
 	options.Title = title
@@ -77,8 +95,8 @@ func (es *ExportService) ExportToLyrics(content string, title string) (string, e
 	return es.Export(content, options)
 }
 
-// ExportToChords exports content as chords
-func (es *ExportService) ExportToChords(content string, title string) (string, error) {
+// ExportToChords exports content as chords.
+func (es *ExportService) ExportToChords(content, title string) (string, error) {
 	options := DefaultExportOptions()
 	options.Type = ExportTypeChords
 	options.Title = title
@@ -86,8 +104,8 @@ func (es *ExportService) ExportToChords(content string, title string) (string, e
 	return es.Export(content, options)
 }
 
-// ExportFull exports all content types
-func (es *ExportService) ExportFull(content string, title string, bpm int, includeNotes bool) (string, error) {
+// ExportFull exports all content types.
+func (es *ExportService) ExportFull(content, title string, bpm int, includeNotes bool) (string, error) {
 	options := DefaultExportOptions()
 	options.Type = ExportTypeFull
 	options.Title = title
@@ -97,8 +115,8 @@ func (es *ExportService) ExportFull(content string, title string, bpm int, inclu
 	return es.Export(content, options)
 }
 
-// ExportToMarkdown exports content as Markdown
-func (es *ExportService) ExportToMarkdown(content string, title string) (string, error) {
+// ExportToMarkdown exports content as Markdown.
+func (es *ExportService) ExportToMarkdown(content, title string) (string, error) {
 	options := DefaultExportOptions()
 	options.Type = ExportTypeMarkdown
 	options.Title = title
@@ -106,8 +124,8 @@ func (es *ExportService) ExportToMarkdown(content string, title string) (string,
 	return es.Export(content, options)
 }
 
-// ExportToPlainText exports content as plain text
-func (es *ExportService) ExportToPlainText(content string, title string) (string, error) {
+// ExportToPlainText exports content as plain text.
+func (es *ExportService) ExportToPlainText(content, title string) (string, error) {
 	options := DefaultExportOptions()
 	options.Type = ExportTypePlainText
 	options.Title = title
@@ -115,8 +133,8 @@ func (es *ExportService) ExportToPlainText(content string, title string) (string
 	return es.Export(content, options)
 }
 
-// ExportToChordPro exports content as ChordPro
-func (es *ExportService) ExportToChordPro(content string, title string) (string, error) {
+// ExportToChordPro exports content as ChordPro.
+func (es *ExportService) ExportToChordPro(content, title string) (string, error) {
 	options := DefaultExportOptions()
 	options.Type = ExportTypeChordPro
 	options.Title = title
@@ -124,22 +142,19 @@ func (es *ExportService) ExportToChordPro(content string, title string) (string,
 	return es.Export(content, options)
 }
 
-// ListExports returns a list of all exports in the output directory
+// ListExports returns a list of all exports in the output directory.
 func (es *ExportService) ListExports() ([]string, error) {
 	var exports []string
 
-	// Ensure output directory exists
-	if err := os.MkdirAll(es.outputDir, 0755); err != nil {
+	if err := os.MkdirAll(es.outputDir, 0o700); err != nil {
 		return nil, errutil.Wrap(err, "create output directory")
 	}
 
-	// Read directory
 	entries, err := os.ReadDir(es.outputDir)
 	if err != nil {
 		return nil, errutil.Wrap(err, "read output directory")
 	}
 
-	// Filter for JSON files
 	for _, entry := range entries {
 		if !entry.IsDir() && filepath.Ext(entry.Name()) == ".json" {
 			exports = append(exports, entry.Name())
@@ -149,54 +164,62 @@ func (es *ExportService) ListExports() ([]string, error) {
 	return exports, nil
 }
 
-// DeleteExport deletes an export file
+// DeleteExport deletes an export file.
 func (es *ExportService) DeleteExport(filename string) error {
-	// Ensure the path is absolute
-	if !filepath.IsAbs(filename) {
-		filename = filepath.Join(es.outputDir, filename)
+	baseDir, err := filepath.Abs(es.outputDir)
+	if err != nil {
+		return errutil.Wrap(err, "resolve export directory")
 	}
 
-	// Delete file
-	if err := os.Remove(filename); err != nil {
+	cleanFilename := filepath.Clean(filename)
+	if !filepath.IsAbs(cleanFilename) {
+		cleanFilename = filepath.Join(baseDir, cleanFilename)
+	}
+
+	relPath, err := filepath.Rel(baseDir, cleanFilename)
+	if err != nil {
+		return errutil.Wrap(err, "validate export path")
+	}
+	if relPath == ".." || strings.HasPrefix(relPath, ".."+string(filepath.Separator)) || strings.HasPrefix(relPath, "../") {
+		return errutil.Wrap(fmt.Errorf("export filename escapes output directory"), "validate export path")
+	}
+
+	if err := os.Remove(cleanFilename); err != nil {
 		return errutil.Wrap(err, "delete export")
 	}
 
 	return nil
 }
 
-// GetExportPath returns the full path to an export file
+// GetExportPath returns the full path to an export file.
 func (es *ExportService) GetExportPath(filename string) string {
-	if !filepath.IsAbs(filename) {
-		return filepath.Join(es.outputDir, filename)
+	cleanFilename := filepath.Clean(filename)
+	if filepath.IsAbs(cleanFilename) {
+		return cleanFilename
 	}
-	return filename
+	return filepath.Join(es.outputDir, cleanFilename)
 }
 
-// SetOutputDir sets the output directory for exports
+// SetOutputDir sets the output directory for exports.
 func (es *ExportService) SetOutputDir(outputDir string) {
-	es.outputDir = outputDir
+	es.outputDir = sanitizeOutputDirectory(outputDir)
 }
 
-// GetOutputDir returns the current output directory
+// GetOutputDir returns the current output directory.
 func (es *ExportService) GetOutputDir() string {
 	return es.outputDir
 }
 
-// generateOutputPath generates a unique output path for an export
+// generateOutputPath generates a unique output path for an export.
 func (es *ExportService) generateOutputPath(options *ExportOptions) string {
-	// Create filename from title and timestamp
 	title := options.Title
 	if title == "" {
 		title = "untitled"
 	}
 
-	// Sanitize title
 	sanitized := sanitizeFilename(title)
-
-	// Add timestamp
 	timestamp := time.Now().Format("20060102_150405")
 
-	// Determine file extension based on export type
 	var extension string
 	switch options.Type {
 	case ExportTypeMarkdown:
@@ -206,26 +229,32 @@ func (es *ExportService) generateOutputPath(options *ExportOptions) string {
 	case ExportTypeChordPro:
 		extension = "cho"
 	default:
-		extension = "json" // Keep JSON for existing formats
+		extension = "json"
 	}
 
-	filename := fmt.Sprintf("%s_%s.%s", sanitized, timestamp, extension)
-
-	return filename
+	return fmt.Sprintf("%s_%s.%s", sanitized, timestamp, extension)
 }
 
-// sanitizeFilename sanitizes a string for use as a filename
+func sanitizeOutputDirectory(outputDir string) string {
+	if outputDir == "" {
+		outputDir = "."
+	}
+	absDir, err := filepath.Abs(outputDir)
+	if err != nil {
+		return filepath.Clean(outputDir)
+	}
+	return absDir
+}
+
+// sanitizeFilename sanitizes a string for use as a filename.
 func sanitizeFilename(name string) string {
-	// Replace spaces with underscores
 	name = strings.ReplaceAll(name, " ", "_")
 
-	// Remove invalid characters
 	invalid := []string{"/", "\\", ":", "*", "?", "\"", "<", ">", "|"}
 	for _, char := range invalid {
 		name = strings.ReplaceAll(name, char, "")
 	}
 
-	// Ensure it's not empty
 	if name == "" {
 		name = "untitled"
 	}

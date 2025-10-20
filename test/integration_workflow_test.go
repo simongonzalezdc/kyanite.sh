@@ -19,7 +19,11 @@ func TestEditorWorkflow(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create db: %v", err)
 	}
-	defer database.Close()
+	t.Cleanup(func() {
+		if err := database.Close(); err != nil {
+			t.Fatalf("failed to close db: %v", err)
+		}
+	})
 
 	autoCfg := app.DefaultAutoSaveConfig()
 	autoCfg.IntervalSeconds = 1
@@ -63,7 +67,11 @@ func TestPreviewSync(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create db: %v", err)
 	}
-	defer database.Close()
+	t.Cleanup(func() {
+		if err := database.Close(); err != nil {
+			t.Fatalf("failed to close db: %v", err)
+		}
+	})
 
 	sp := editor.NewSplitPaneModel(database)
 	sp.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
@@ -95,7 +103,11 @@ func TestDatabaseAndAutoSave(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create db: %v", err)
 	}
-	defer database.Close()
+	t.Cleanup(func() {
+		if err := database.Close(); err != nil {
+			t.Fatalf("failed to close db: %v", err)
+		}
+	})
 
 	editorSvc := app.NewEditorService(database, database)
 	song, err := editorSvc.CreateSong("DB Song", "Tester")

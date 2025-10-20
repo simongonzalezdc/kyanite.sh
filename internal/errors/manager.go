@@ -43,12 +43,41 @@ type RecoveryAttempt struct {
 	Result      string        `json:"result,omitempty"`
 }
 
+// ErrorContext contains contextual information for an error
+type ErrorContext struct {
+	RequestID   string            `json:"request_id,omitempty"`
+	UserID      string            `json:"user_id,omitempty"`
+	SessionID   string            `json:"session_id,omitempty"`
+	TraceID     string            `json:"trace_id,omitempty"`
+	Component   string            `json:"component,omitempty"`
+	Operation   string            `json:"operation,omitempty"`
+	Metadata    map[string]string `json:"metadata,omitempty"`
+	CreatedAt   time.Time         `json:"created_at"`
+}
+
+// RecoveryStats tracks statistics for recovery attempts
+type RecoveryStats struct {
+	Strategy     ErrorRecovery `json:"strategy"`
+	SuccessCount int           `json:"success_count"`
+	FailureCount int           `json:"failure_count"`
+	LastAttempt  time.Time     `json:"last_attempt"`
+}
+
 // ErrorManager manages error handling, logging, and recovery
 type ErrorManager struct {
 	logger    *logging.Logger
 	config    *ErrorConfig
 	reporters []ErrorReporter
 	mu        sync.RWMutex
+	
+	// Enhanced error tracking
+	errorStats    map[string]int
+	errorHistory  []ErrorReport
+	historyLimit  int
+	contextStore  map[string]*ErrorContext
+	
+	// Performance monitoring
+	recoveryStats map[ErrorRecovery]*RecoveryStats
 }
 
 // ErrorConfig contains configuration for error handling
@@ -105,9 +134,14 @@ func NewErrorManager(logger *logging.Logger, config *ErrorConfig) *ErrorManager 
 	}
 
 	manager := &ErrorManager{
-		logger:    logger,
-		config:    config,
-		reporters: make([]ErrorReporter, 0),
+		logger:        logger,
+		config:        config,
+		reporters:     make([]ErrorReporter, 0),
+		errorStats:    make(map[string]int),
+		errorHistory:  make([]ErrorReport, 0),
+		historyLimit:  1000,
+		contextStore:  make(map[string]*ErrorContext),
+		recoveryStats: make(map[ErrorRecovery]*RecoveryStats),
 	}
 
 	// Create log directory if needed
@@ -129,15 +163,27 @@ func (em *ErrorManager) AddReporter(reporter ErrorReporter) {
 
 // HandleError handles an error with logging and reporting
 func (em *ErrorManager) HandleError(ctx context.Context, err error) *ErrorReport {
+	appErr := em.wrapError(err)
+	
+	// Update error statistics
+	em.updateErrorStats(appErr.Category)
+	
+	// Extract context information
+	errorContext := em.extractContext(ctx, appErr)
+	
 	report := &ErrorReport{
-		Error:     em.wrapError(err),
+		Error:     appErr,
 		Handled:   true,
 		Recovered: false,
+		Context:   errorContext,
 		Timestamp: time.Now(),
 	}
 
-	// Log the error
-	em.logError(report.Error)
+	// Store error in history
+	em.storeErrorInHistory(*report)
+
+	// Log the error with structured fields
+	em.logErrorWithContext(report.Error, errorContext)
 
 	// Report the error if configured
 	if em.config.EnableReporting {
@@ -358,13 +404,284 @@ func contains(s string, substrings ...string) bool {
 
 // GetErrorStats returns statistics about error handling
 func (em *ErrorManager) GetErrorStats() map[string]interface{} {
-	// In a full implementation, this would track and return error statistics
-	return map[string]interface{}{
+	em.mu.RLock()
+	defer em.mu.RUnlock()
+
+	stats := map[string]interface{}{
 		"total_errors":      0,
 		"critical_errors":   0,
+		"high_errors":       0,
+		"medium_errors":     0,
+		"low_errors":        0,
 		"recovery_success":  0,
 		"recovery_failures": 0,
+		"error_categories":  make(map[string]int),
+		"recent_errors":     0,
+		"error_rate":        0.0,
 	}
+
+	// Count errors by category and severity
+	categoryCounts := make(map[string]int)
+	severityCounts := map[string]int{
+		"critical": 0,
+		"high":      0,
+		"medium":    0,
+		"low":       0,
+	}
+
+	for category, count := range em.errorStats {
+		stats["total_errors"] = stats["total_errors"].(int) + count
+		categoryCounts[string(category)] = count
+		stats["error_categories"].(map[string]int)[string(category)] = count
+	}
+
+	// Count recent errors (last hour)
+	recentCount := 0
+	now := time.Now()
+	oneHourAgo := now.Add(-time.Hour)
+	for _, report := range em.errorHistory {
+		if report.Timestamp.After(oneHourAgo) {
+			recentCount++
+		}
+		
+		// Count by severity
+		switch report.Error.Severity {
+		case SeverityCritical:
+			severityCounts["critical"]++
+			stats["critical_errors"] = stats["critical_errors"].(int) + 1
+		case SeverityHigh:
+			severityCounts["high"]++
+			stats["high_errors"] = stats["high_errors"].(int) + 1
+		case SeverityMedium:
+			severityCounts["medium"]++
+			stats["medium_errors"] = stats["medium_errors"].(int) + 1
+		case SeverityLow:
+			severityCounts["low"]++
+			stats["low_errors"] = stats["low_errors"].(int) + 1
+		}
+	}
+	
+	stats["recent_errors"] = recentCount
+	
+	// Calculate error rate (errors per hour)
+	hours := 24.0 // Default to 24 hours for now
+	if len(em.errorHistory) > 0 {
+		earliest := em.errorHistory[0].Timestamp
+		elapsed := now.Sub(earliest).Hours()
+		if elapsed > 0 {
+			hours = elapsed
+		}
+	}
+	
+	if hours > 0 {
+		stats["error_rate"] = float64(stats["total_errors"].(int)) / hours
+	}
+	
+	// Add recovery statistics
+	for _, recStats := range em.recoveryStats {
+		stats["recovery_success"] = stats["recovery_success"].(int) + recStats.SuccessCount
+		stats["recovery_failures"] = stats["recovery_failures"].(int) + recStats.FailureCount
+	}
+
+	return stats
+}
+
+// updateErrorStats updates error statistics
+func (em *ErrorManager) updateErrorStats(category ErrorCategory) {
+	em.mu.Lock()
+	defer em.mu.Unlock()
+	
+	em.errorStats[string(category)]++
+}
+
+// storeErrorInHistory stores an error in the history
+func (em *ErrorManager) storeErrorInHistory(report ErrorReport) {
+	em.mu.Lock()
+	defer em.mu.Unlock()
+	
+	em.errorHistory = append(em.errorHistory, report)
+	
+	// Limit history size
+	if len(em.errorHistory) > em.historyLimit {
+		em.errorHistory = em.errorHistory[1:]
+	}
+}
+
+// extractContext extracts context information for an error
+func (em *ErrorManager) extractContext(ctx context.Context, err *AppError) map[string]string {
+	context := make(map[string]string)
+	
+	// Extract basic error information
+	context["error_code"] = err.Code
+	context["error_category"] = string(err.Category)
+	context["error_severity"] = string(err.Severity)
+	context["error_recovery"] = string(err.Recovery)
+	
+	if err.Operation != "" {
+		context["operation"] = err.Operation
+	}
+	
+	// Extract context values from the context if available
+	if ctx != nil {
+		if reqID := ctx.Value("request_id"); reqID != nil {
+			if id, ok := reqID.(string); ok {
+				context["request_id"] = id
+			}
+		}
+		
+		if userID := ctx.Value("user_id"); userID != nil {
+			if id, ok := userID.(string); ok {
+				context["user_id"] = id
+			}
+		}
+		
+		if sessionID := ctx.Value("session_id"); sessionID != nil {
+			if id, ok := sessionID.(string); ok {
+				context["session_id"] = id
+			}
+		}
+		
+		if traceID := ctx.Value("trace_id"); traceID != nil {
+			if id, ok := traceID.(string); ok {
+				context["trace_id"] = id
+			}
+		}
+	}
+	
+	return context
+}
+
+// logErrorWithContext logs an error with structured context fields
+func (em *ErrorManager) logErrorWithContext(err *AppError, context map[string]string) {
+	if err == nil {
+		return
+	}
+
+	// Create a slice of key-value pairs for structured logging
+	fields := make([]interface{}, 0)
+	for k, v := range context {
+		fields = append(fields, k, v)
+	}
+	
+	// Add error-specific fields
+	fields = append(fields, "error", err.Error())
+	fields = append(fields, "error_code", err.Code)
+	fields = append(fields, "error_category", err.Category)
+	fields = append(fields, "error_severity", err.Severity)
+	
+	if err.Operation != "" {
+		fields = append(fields, "operation", err.Operation)
+	}
+	
+	if err.StackTrace != "" {
+		fields = append(fields, "stack_trace", err.StackTrace)
+	}
+
+	// Create log message
+	logMsg := fmt.Sprintf("[%s] %s", err.Category, err.Message)
+	if err.Operation != "" {
+		logMsg = fmt.Sprintf("%s (operation: %s)", logMsg, err.Operation)
+	}
+
+	// Log based on severity with structured fields
+	switch err.Severity {
+	case SeverityCritical:
+		em.logger.Error(logMsg, fields)
+	case SeverityHigh:
+		em.logger.Warn(logMsg, fields)
+	case SeverityMedium:
+		em.logger.Info(logMsg, fields)
+	case SeverityLow:
+		em.logger.Debug(logMsg, fields)
+	default:
+		em.logger.Debug(logMsg, fields)
+	}
+}
+
+// UpdateRecoveryStats updates recovery statistics
+func (em *ErrorManager) UpdateRecoveryStats(recovery ErrorRecovery, success bool) {
+	em.mu.Lock()
+	defer em.mu.Unlock()
+	
+	stats, exists := em.recoveryStats[recovery]
+	if !exists {
+		stats = &RecoveryStats{
+			Strategy:     recovery,
+			SuccessCount: 0,
+			FailureCount: 0,
+			LastAttempt:  time.Time{},
+		}
+		em.recoveryStats[recovery] = stats
+	}
+	
+	stats.LastAttempt = time.Now()
+	if success {
+		stats.SuccessCount++
+	} else {
+		stats.FailureCount++
+	}
+}
+
+// GetRecentErrors returns recent errors within the specified duration
+func (em *ErrorManager) GetRecentErrors(duration time.Duration) []ErrorReport {
+	em.mu.RLock()
+	defer em.mu.RUnlock()
+	
+	cutoff := time.Now().Add(-duration)
+	var recent []ErrorReport
+	
+	for _, report := range em.errorHistory {
+		if report.Timestamp.After(cutoff) {
+			recent = append(recent, report)
+		}
+	}
+	
+	return recent
+}
+
+// GetErrorHistory returns the full error history
+func (em *ErrorManager) GetErrorHistory() []ErrorReport {
+	em.mu.RLock()
+	defer em.mu.RUnlock()
+	
+	// Return a copy to prevent external modification
+	history := make([]ErrorReport, len(em.errorHistory))
+	copy(history, em.errorHistory)
+	
+	return history
+}
+
+// ClearErrorHistory clears the error history
+func (em *ErrorManager) ClearErrorHistory() {
+	em.mu.Lock()
+	defer em.mu.Unlock()
+	
+	em.errorHistory = make([]ErrorReport, 0)
+	em.errorStats = make(map[string]int)
+}
+
+// SetErrorContext stores context information for future errors
+func (em *ErrorManager) SetErrorContext(key string, context *ErrorContext) {
+	em.mu.Lock()
+	defer em.mu.Unlock()
+	
+	em.contextStore[key] = context
+}
+
+// GetErrorContext retrieves stored context information
+func (em *ErrorManager) GetErrorContext(key string) *ErrorContext {
+	em.mu.RLock()
+	defer em.mu.RUnlock()
+	
+	return em.contextStore[key]
+}
+
+// ClearErrorContext clears stored context information
+func (em *ErrorManager) ClearErrorContext(key string) {
+	em.mu.Lock()
+	defer em.mu.Unlock()
+	
+	delete(em.contextStore, key)
 }
 
 // Close gracefully shuts down the error manager

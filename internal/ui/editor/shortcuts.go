@@ -129,11 +129,8 @@ func (sm *ShortcutManager) initializeDefaultBindings() {
 	sm.registerBinding("ctrl+q", key.NewBinding(key.WithKeys("ctrl+q"), key.WithHelp("ctrl+q", "quit")), "Quit application", ContextGlobal, "Application")
 	sm.registerBinding("ctrl+,", key.NewBinding(key.WithKeys("ctrl+,"), key.WithHelp("ctrl+,", "settings")), "Settings", ContextGlobal, "Application")
 
-	// Theory tools (when available) - rebind:
-	//  - ctrl+shift+t -> Theory Tools (preserve original behavior)
-	//  - ctrl+t       -> Cycle themes (new)
-	sm.registerBinding("ctrl+shift+t", key.NewBinding(key.WithKeys("ctrl+shift+t"), key.WithHelp("ctrl+shift+t", "theory tools")), "Theory tools", ContextGlobal, "Tools")
-	sm.registerBinding("ctrl+t", key.NewBinding(key.WithKeys("ctrl+t"), key.WithHelp("ctrl+t", "cycle themes")), "Cycle themes", ContextGlobal, "Tools")
+	// Theory tools (when available)
+	sm.registerBinding("ctrl+shift+t", key.NewBinding(key.WithKeys("ctrl+shift+t"), key.WithHelp("ctrl+shift+t", "cycle themes")), "Cycle themes", ContextGlobal, "Tools")
 	// Additional theme shortcuts
 	sm.registerBinding("ctrl+shift+n", key.NewBinding(key.WithKeys("ctrl+shift+n"), key.WithHelp("ctrl+shift+n", "next theme")), "Next theme", ContextGlobal, "Tools")
 	sm.registerBinding("ctrl+shift+p", key.NewBinding(key.WithKeys("ctrl+shift+p"), key.WithHelp("ctrl+shift+p", "prev theme")), "Previous theme", ContextGlobal, "Tools")
@@ -385,8 +382,6 @@ func (sm *ShortcutManager) createActionFromBinding(binding *KeyBinding, keyStr s
 	case keyStr == "ctrl+,":
 		action.Type = ActionSettings
 	case keyStr == "ctrl+shift+t":
-		action.Type = ActionTheoryTools
-	case keyStr == "ctrl+t":
 		action.Type = ActionThemeCycle
 	case keyStr == "ctrl+shift+n":
 		action.Type = ActionNextTheme

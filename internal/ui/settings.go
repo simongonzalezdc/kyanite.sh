@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Kyanite/noise/internal/config"
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -160,8 +160,8 @@ func (m *SettingsModel) initSettings() {
 		Description: "Color theme for the application",
 		Type:        TypeSelect,
 		Value:       m.config.UI.Theme,
-		Default:     "violet-dusk",
-		Options:     []string{"violet-dusk", "light", "dark", "solarized", "dracula", "nord", "gruvbox"},
+		Default:     "amber-night",
+		Options:     []string{"monochrome", "amber-night", "twilight-mist", "indigo-depths", "forest-path", "clay-earth", "iron-forge", "sunlight", "cyan-wave", "electric-rose"},
 		Callback:    m.onThemeChange,
 	})
 
@@ -840,9 +840,20 @@ func (m *SettingsModel) View() string {
 		Height(m.height).
 		Padding(1)
 
+	// Get current theme
+	t := theme.GetManager().Current()
+
 	// Header
-	header := styles.Title.Render("Settings")
-	header = styles.Border.Render(header)
+	headerStyle := lipgloss.NewStyle().
+		Foreground(t.Primary).
+		Bold(true).
+		MarginBottom(1)
+	header := headerStyle.Render("Settings")
+	borderStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(t.Primary).
+		Padding(0, 1)
+	header = borderStyle.Render(header)
 	header += "\n\n"
 
 	// Categories section
@@ -850,7 +861,7 @@ func (m *SettingsModel) View() string {
 	if m.focused == FocusCategories {
 		categoryStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(styles.Accent).
+			BorderForeground(t.Accent).
 			Padding(1).
 			MarginRight(2).
 			Width(27).
@@ -858,7 +869,7 @@ func (m *SettingsModel) View() string {
 	} else {
 		categoryStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(styles.BorderColor).
+			BorderForeground(t.Secondary).
 			Padding(1).
 			MarginRight(2).
 			Width(27).
@@ -872,14 +883,14 @@ func (m *SettingsModel) View() string {
 	if m.focused == FocusSettings {
 		settingsStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(styles.Accent).
+			BorderForeground(t.Accent).
 			Padding(1).
 			Width(52).
 			Height(m.height - 8)
 	} else {
 		settingsStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(styles.BorderColor).
+			BorderForeground(t.Secondary).
 			Padding(1).
 			Width(52).
 			Height(m.height - 8)
@@ -893,7 +904,10 @@ func (m *SettingsModel) View() string {
 	// Save message
 	var saveMsg string
 	if m.showSaveMsg {
-		saveMsg = styles.StatusSuccess.Render("âœ“ Settings saved successfully!")
+		saveMsgStyle := lipgloss.NewStyle().
+			Foreground(t.Success).
+			Bold(true)
+		saveMsg = saveMsgStyle.Render("✔ Settings saved successfully!")
 	}
 
 	// Combine sections
@@ -925,7 +939,10 @@ func (m *SettingsModel) renderInstructions() string {
 		"Esc: Back/Quit",
 	}
 
-	return styles.Muted.Render(strings.Join(instructions, " â€¢ "))
+	t := theme.GetManager().Current()
+	mutedStyle := lipgloss.NewStyle().
+		Foreground(t.Secondary)
+	return mutedStyle.Render(strings.Join(instructions, " â€¢ "))
 }
 
 // Helper types for list items
@@ -939,8 +956,9 @@ func (c categoryItem) FilterValue() string {
 
 // Render renders the category item for display in the list
 func (c categoryItem) Render() string {
+	t := theme.GetManager().Current()
 	style := lipgloss.NewStyle().
-		Foreground(styles.Primary).
+		Foreground(t.Primary).
 		Bold(true).
 		Padding(0, 2)
 
@@ -958,26 +976,28 @@ func (s settingItem) FilterValue() string {
 
 // Render renders the setting item for display in the list
 func (s settingItem) Render() string {
+	t := theme.GetManager().Current()
+	
 	// Main setting name and description
 	nameStyle := lipgloss.NewStyle().
-		Foreground(styles.TextPrimary).
+		Foreground(t.Text).
 		Bold(true)
 
 	descStyle := lipgloss.NewStyle().
-		Foreground(styles.TextSecondary).
+		Foreground(t.Secondary).
 		Italic(true)
 
 	valueStyle := lipgloss.NewStyle().
-		Foreground(styles.Accent)
+		Foreground(t.Accent)
 
 	// Format the value based on type
 	var valueStr string
 	switch s.setting.Type {
 	case TypeBool:
 		if s.setting.Value.(bool) {
-			valueStr = valueStyle.Render("âœ“ Yes")
+			valueStr = valueStyle.Render("✔ Yes")
 		} else {
-			valueStr = styles.Muted.Render("â—‹ No")
+			valueStr = valueStyle.Render("â—‹ No")
 		}
 	case TypeInt:
 		if s.setting.Unit != "" {
@@ -1014,7 +1034,7 @@ func (s settingItem) Render() string {
 		Padding(1, 2).
 		MarginBottom(1).
 		Border(lipgloss.NormalBorder()).
-		BorderForeground(styles.BorderColor)
+		BorderForeground(t.Secondary)
 
 	return itemStyle.Render(content)
 }

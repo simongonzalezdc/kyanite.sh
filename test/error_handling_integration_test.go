@@ -33,10 +33,10 @@ func newTestLogger(t *testing.T) *logging.Logger {
 }
 
 type mockReporter struct {
-	name      string
-	called    bool
 	last      *appErrors.ErrorReport
 	reportErr error
+	name      string
+	called    bool
 }
 
 func (m *mockReporter) Report(ctx context.Context, report *appErrors.ErrorReport) error {
@@ -121,8 +121,10 @@ func TestExternalErrorReporterHTTPIntegration(t *testing.T) {
 
 	// Test failing response
 	ts2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(500)
-		w.Write([]byte("server error"))
+		w.WriteHeader(http.StatusInternalServerError)
+		if _, err := w.Write([]byte("server error")); err != nil {
+			panic(err)
+		}
 	}))
 	defer ts2.Close()
 
@@ -210,13 +212,13 @@ func TestFileCorruptionDetectorDetectAndRecoverJSON(t *testing.T) {
 	backup := orig + ".backup"
 
 	// Write corrupted JSON
-	if err := os.WriteFile(orig, []byte("{invalid json:"), 0644); err != nil {
+	if err := os.WriteFile(orig, []byte("{invalid json:"), 0o644); err != nil {
 		t.Fatalf("write corrupted: %v", err)
 	}
 	// Write valid backup
 	valid := map[string]interface{}{"hello": "world"}
 	bs, _ := json.Marshal(valid)
-	if err := os.WriteFile(backup, bs, 0644); err != nil {
+	if err := os.WriteFile(backup, bs, 0o644); err != nil {
 		t.Fatalf("write backup: %v", err)
 	}
 
@@ -250,7 +252,7 @@ func TestFileCorruptionDetectorNoBackup(t *testing.T) {
 	orig := filepath.Join(dir, "no_backup.json")
 
 	// Write corrupted JSON
-	if err := os.WriteFile(orig, []byte("{invalid json:"), 0644); err != nil {
+	if err := os.WriteFile(orig, []byte("{invalid json:"), 0o644); err != nil {
 		t.Fatalf("write corrupted: %v", err)
 	}
 
@@ -305,7 +307,6 @@ func TestFileAndConsoleReportersAndComposite(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed create file reporter: %v", err)
 	}
-	defer frep.Close()
 
 	appErr := appErrors.NewAppError("F1", "file report", nil, appErrors.CategoryUnknown, appErrors.SeverityMedium, appErrors.RecoveryNone)
 	report := &appErrors.ErrorReport{Error: appErr, Handled: true, Timestamp: time.Now()}
@@ -314,7 +315,9 @@ func TestFileAndConsoleReportersAndComposite(t *testing.T) {
 		t.Fatalf("expected file report to succeed, got %v", err)
 	}
 	// Check contents in file
-	_ = frep.Close()
+	if err := frep.Close(); err != nil {
+		t.Fatalf("failed to close file reporter: %v", err)
+	}
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		t.Fatalf("failed read log file: %v", err)

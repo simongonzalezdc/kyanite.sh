@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Kyanite/noise/internal/data"
-	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/Kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -43,6 +43,7 @@ type chordPickerModel struct {
 
 // NewChordPickerModel creates a new chord picker model
 func NewChordPickerModel() *chordPickerModel {
+	t := theme.GetManager().Current()
 	return &chordPickerModel{
 		visible:       false,
 		selectedIdx:   0,
@@ -53,38 +54,38 @@ func NewChordPickerModel() *chordPickerModel {
 
 		containerStyle: lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(styles.Primary).
-			Background(styles.Background).
+			BorderForeground(t.Primary).
+			Background(t.Background).
 			Padding(1, 2),
 
 		headerStyle: lipgloss.NewStyle().
 			Bold(true).
-			Foreground(styles.Primary).
+			Foreground(t.Primary).
 			Align(lipgloss.Center).
 			MarginBottom(1),
 
 		selectedStyle: lipgloss.NewStyle().
-			Background(styles.Primary).
-			Foreground(styles.Background).
+			Background(t.Primary).
+			Foreground(t.Background).
 			Bold(true).
 			Padding(0, 1),
 
 		normalStyle: lipgloss.NewStyle().
-			Foreground(styles.TextPrimary).
+			Foreground(t.Text).
 			Padding(0, 1),
 
 		moodStyle: lipgloss.NewStyle().
-			Foreground(styles.Accent).
+			Foreground(t.Accent).
 			Bold(true).
 			Padding(0, 1),
 
 		descriptionStyle: lipgloss.NewStyle().
-			Foreground(styles.TextSecondary).
+			Foreground(t.Secondary).
 			Italic(true).
 			MarginLeft(2),
 
 		instructionStyle: lipgloss.NewStyle().
-			Foreground(styles.TextMuted).
+			Foreground(t.Secondary).
 			Align(lipgloss.Center).
 			MarginTop(1),
 	}
@@ -228,13 +229,14 @@ func (m *chordPickerModel) View() string {
 
 // renderMoodFilter renders the mood filter buttons
 func (m *chordPickerModel) renderMoodFilter() string {
+	t := theme.GetManager().Current()
 	moods := []string{"all", "happy", "sad", "tense", "chill"}
 	var buttons []string
 
 	for i, mood := range moods {
 		var style lipgloss.Style
 		if mood == m.activeMood {
-			style = m.moodStyle.Background(styles.Primary).Foreground(styles.Background)
+			style = m.moodStyle.Background(t.Primary).Foreground(t.Background)
 		} else {
 			style = m.moodStyle
 		}

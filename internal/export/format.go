@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-
-	errutil "github.com/Kyanite/noise/internal/errutil"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	errutil "github.com/Kyanite/noise/internal/errutil"
 )
 
 // ExportFormatter handles formatting of exports
@@ -46,10 +46,7 @@ func (ef *ExportFormatter) FormatExport(content string, options *ExportOptions) 
 	// Parse content based on export type
 	switch options.Type {
 	case ExportTypePattern:
-		patterns, err := ef.extractPatterns(content)
-		if err != nil {
-			return nil, errutil.Wrap(err, "extract patterns")
-		}
+		patterns := ef.extractPatterns(content)
 		export.Patterns = patterns
 
 		// Try to extract BPM from content if not provided
@@ -69,10 +66,7 @@ func (ef *ExportFormatter) FormatExport(content string, options *ExportOptions) 
 		export.Chords = chords
 
 	case ExportTypeFull:
-		patterns, err := ef.extractPatterns(content)
-		if err != nil {
-			return nil, errutil.Wrap(err, "extract patterns")
-		}
+		patterns := ef.extractPatterns(content)
 		export.Patterns = patterns
 
 		lyrics := ef.extractLyrics(content)
@@ -133,7 +127,7 @@ func (ef *ExportFormatter) FormatExport(content string, options *ExportOptions) 
 func (ef *ExportFormatter) SaveToFile(export *NoiseExport, outputPath string) error {
 	// Create directory if it doesn't exist
 	dir := filepath.Dir(outputPath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o750); err != nil {
 		return errutil.Wrap(err, "create directory")
 	}
 
@@ -162,7 +156,7 @@ func (ef *ExportFormatter) SaveToFile(export *NoiseExport, outputPath string) er
 	}
 
 	// Write to file
-	if err := os.WriteFile(outputPath, data, 0644); err != nil {
+	if err := os.WriteFile(outputPath, data, 0o600); err != nil {
 		return errutil.Wrap(err, "write file")
 	}
 
@@ -170,7 +164,7 @@ func (ef *ExportFormatter) SaveToFile(export *NoiseExport, outputPath string) er
 }
 
 // extractPatterns extracts pattern data from content
-func (ef *ExportFormatter) extractPatterns(content string) ([]string, error) {
+func (ef *ExportFormatter) extractPatterns(content string) []string {
 	var patterns []string
 
 	// Split content into lines
@@ -222,7 +216,7 @@ func (ef *ExportFormatter) extractPatterns(content string) ([]string, error) {
 		patterns = append(patterns, content)
 	}
 
-	return patterns, nil
+	return patterns
 }
 
 // extractLyrics extracts lyrics from content
@@ -246,7 +240,7 @@ func (ef *ExportFormatter) extractChords(content string) []string {
 
 	// Look for chord lines (lines with chord symbols)
 	lines := strings.Split(content, "\n")
-	chordRegex := regexp.MustCompile(`\b[A-G](#|b)?(m|maj|min|dim|aug|sus|add)?[0-9]*\b`)
+	chordRegex := regexp.MustCompile(`\b[A-G]([#b])?(m|maj|min|dim|aug|sus|add)?\d*\b`)
 
 	for _, line := range lines {
 		// Skip lines that are clearly not chord lines
@@ -325,9 +319,9 @@ func (ef *ExportFormatter) removeCodeBlocks(content string) string {
 
 // removePatterns removes pattern sections from content
 func (ef *ExportFormatter) removePatterns(content string) string {
-	patternRegex := regexp.MustCompile("(?m)^[ \\t]*pattern:.*")
+	patternRegex := regexp.MustCompile(`(?m)^[ \t]*pattern:.*`)
 	lines := strings.Split(content, "\n")
-	var result []string
+	result := make([]string, 0, 32)
 	skip := false
 
 	for _, line := range lines {
@@ -420,7 +414,7 @@ func (ef *ExportFormatter) formatAsMarkdown(content string, options *ExportOptio
 			sectionType := ef.extractSectionType(trimmed)
 			if sectionType != "" {
 				builder.WriteString("## ")
-				builder.WriteString(strings.Title(sectionType))
+				builder.WriteString(strings.ToUpper(sectionType[:1]) + sectionType[1:])
 				builder.WriteString("\n\n")
 				continue
 			}
@@ -569,10 +563,6 @@ func (ef *ExportFormatter) isSectionHeader(line string) bool {
 func (ef *ExportFormatter) extractSectionType(line string) string {
 	lowerLine := strings.ToLower(line)
 
-	// Remove brackets if present
-	line = strings.ReplaceAll(line, "[", "")
-	line = strings.ReplaceAll(line, "]", "")
-
 	sections := map[string]string{
 		"verse":      "verse",
 		"chorus":     "chorus",
@@ -594,7 +584,7 @@ func (ef *ExportFormatter) extractSectionType(line string) string {
 // isChordLine checks if a line contains primarily chords
 func (ef *ExportFormatter) isChordLine(line string) bool {
 	// Count chord symbols vs regular text
-	chordRegex := regexp.MustCompile(`\b[A-G](#|b)?(m|maj|min|dim|aug|sus|add)?[0-9]*\b`)
+	chordRegex := regexp.MustCompile(`\b[A-G]([#b])?(m|maj|min|dim|aug|sus|add)?\d*\b`)
 	chords := chordRegex.FindAllString(line, -1)
 
 	// If we have multiple chords and the line is short, it's likely a chord line
@@ -615,7 +605,7 @@ func (ef *ExportFormatter) isChordLine(line string) bool {
 
 // detectKey attempts to detect the key of the song from chords
 func (ef *ExportFormatter) detectKey(content string) string {
-	chordRegex := regexp.MustCompile(`\b([A-G])(#|b)?\b`)
+	chordRegex := regexp.MustCompile(`\b([A-G])([#b])?\b`)
 	matches := chordRegex.FindAllStringSubmatch(content, -1)
 
 	if len(matches) == 0 {

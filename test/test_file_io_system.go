@@ -1,174 +1,190 @@
-// Test file for the File I/O system
-// This file tests the basic functionality of the file I/O system
 package noise
 
 import (
-	"fmt"
-	"log"
-	"os"
 	"path/filepath"
+	"testing"
 	"time"
 
 	"github.com/Kyanite/noise/internal/domain"
 	"github.com/Kyanite/noise/internal/infra/files"
 )
 
-// TestFileIO tests the file I/O system functionality
-func TestFileIO() {
-	fmt.Println("Testing File I/O System...")
+// TestFileIO runs a suite of sub-tests covering the end-to-end file service
+// workflow while maintaining manageable complexity and test-only logging.
+func TestFileIO(t *testing.T) {
+	env := newFileIOEnv(t)
 
-	// Create a temporary directory for testing
-	testDir := "./test_songs"
-	if err := os.MkdirAll(testDir, 0o755); err != nil {
-		log.Fatalf("Failed to create test directory: %v", err)
-	}
-	defer os.RemoveAll(testDir)
+	t.Run("SaveSong", env.saveSong)
+	t.Run("ListSongs", env.listSongs)
+	t.Run("ReadSong", env.readSong)
+	t.Run("CacheSong", env.checkCache)
+	t.Run("WatchSong", env.watchSong)
+	t.Run("DeleteSong", env.deleteSong)
+	t.Run("BackupSong", env.backupSong)
+}
 
-	// Create file service
-	fileService, err := files.New(files.Config{
-		BaseDir:          testDir,
+type fileIOTestEnv struct {
+	service      *files.Service
+	baseDir      string
+	song         *domain.Song
+	testFilePath string
+}
+
+func newFileIOEnv(t *testing.T) *fileIOTestEnv {
+	t.Helper()
+
+	baseDir := t.TempDir()
+
+	service, err := files.New(files.Config{
+		BaseDir:          baseDir,
 		AutoSave:         true,
 		AutoSaveInterval: time.Minute,
 		BackupCount:      3,
 	})
 	if err != nil {
-		log.Fatalf("Failed to create file service: %v", err)
+		t.Fatalf("Failed to create file service: %v", err)
 	}
-	defer fileService.Close()
+	t.Cleanup(func() {
+		if err := service.Close(); err != nil {
+			t.Fatalf("Failed to close file service: %v", err)
+		}
+	})
 
-	// Test 1: Create a new song
-	fmt.Println("\n1. Creating a new song...")
-	song := &domain.Song{
-		Metadata: domain.SongMetadata{
-			Title:         "Test Song",
-			Artist:        "Test Artist",
-			Key:           "C Major",
-			Tempo:         120,
-			TimeSignature: "4/4",
-			Tags:          []string{"test", "demo"},
-			CreatedAt:     time.Now(),
-			UpdatedAt:     time.Now(),
-		},
-		Sections: []domain.Section{
-			{
-				Type:   domain.SectionVerse,
-				Number: 1,
-				Lines: []domain.Line{
-					{Text: "This is the first line of the verse", Syllables: 8},
-					{Text: "This is the second line of the verse", Syllables: 8},
+	return &fileIOTestEnv{
+		service: service,
+		baseDir: baseDir,
+		song: &domain.Song{
+			Metadata: domain.SongMetadata{
+				Title:         "Test Song",
+				Artist:        "Test Artist",
+				Key:           "C Major",
+				Tempo:         120,
+				TimeSignature: "4/4",
+				Tags:          []string{"test", "demo"},
+				CreatedAt:     time.Now(),
+				UpdatedAt:     time.Now(),
+			},
+			Sections: []domain.Section{
+				{
+					Type:   domain.SectionVerse,
+					Number: 1,
+					Lines: []domain.Line{
+						{Text: "This is the first line of the verse", Syllables: 8},
+						{Text: "This is the second line of the verse", Syllables: 8},
+					},
+				},
+				{
+					Type:   domain.SectionChorus,
+					Number: 1,
+					Lines: []domain.Line{
+						{Text: "This is the chorus line", Syllables: 5},
+						{Text: "Another chorus line here", Syllables: 5},
+					},
 				},
 			},
-			{
-				Type:   domain.SectionChorus,
-				Number: 1,
-				Lines: []domain.Line{
-					{Text: "This is the chorus line", Syllables: 5},
-					{Text: "Another chorus line here", Syllables: 5},
-				},
-			},
 		},
+		testFilePath: "test_song.md",
 	}
+}
 
-	// Test 2: Save song to file
-	fmt.Println("2. Saving song to file...")
-	testFilePath := "test_song.md"
-	if err := fileService.WriteSong(song, testFilePath); err != nil {
-		log.Fatalf("Failed to save song: %v", err)
+func (env *fileIOTestEnv) saveSong(t *testing.T) {
+	t.Helper()
+	if err := env.service.WriteSong(env.song, env.testFilePath); err != nil {
+		t.Fatalf("Failed to save song: %v", err)
 	}
-	fmt.Printf("   Song saved to: %s\n", testFilePath)
+	t.Logf("Song saved to: %s", env.testFilePath)
+}
 
-	// Test 3: List songs
-	fmt.Println("3. Listing songs...")
-	songFiles, err := fileService.ListSongs()
+func (env *fileIOTestEnv) listSongs(t *testing.T) {
+	t.Helper()
+	songFiles, err := env.service.ListSongs()
 	if err != nil {
-		log.Fatalf("Failed to list songs: %v", err)
+		t.Fatalf("Failed to list songs: %v", err)
 	}
-	fmt.Printf("   Found %d song files:\n", len(songFiles))
+	t.Logf("Found %d song files:", len(songFiles))
 	for _, file := range songFiles {
-		fmt.Printf("   - %s\n", file)
+		t.Logf("  - %s", file)
 	}
+}
 
-	// Test 4: Read song from file
-	fmt.Println("4. Reading song from file...")
-	loadedSong, err := fileService.ReadSong(testFilePath)
+func (env *fileIOTestEnv) readSong(t *testing.T) {
+	t.Helper()
+	loadedSong, err := env.service.ReadSong(env.testFilePath)
 	if err != nil {
-		log.Fatalf("Failed to read song: %v", err)
+		t.Fatalf("Failed to read song: %v", err)
 	}
-	fmt.Printf("   Loaded song: %s by %s\n", loadedSong.Metadata.Title, loadedSong.Metadata.Artist)
-	fmt.Printf("   Sections: %d\n", len(loadedSong.Sections))
+	t.Logf("Loaded song: %s by %s", loadedSong.Metadata.Title, loadedSong.Metadata.Artist)
+	t.Logf("Sections: %d", len(loadedSong.Sections))
 
-	// Test 5: Verify YAML frontmatter
-	fmt.Println("5. Verifying YAML frontmatter...")
-	if loadedSong.Metadata.Title != song.Metadata.Title {
-		log.Fatalf("Title mismatch: expected %s, got %s", song.Metadata.Title, loadedSong.Metadata.Title)
+	if loadedSong.Metadata.Title != env.song.Metadata.Title {
+		t.Fatalf("Title mismatch: expected %s, got %s", env.song.Metadata.Title, loadedSong.Metadata.Title)
 	}
-	if loadedSong.Metadata.Artist != song.Metadata.Artist {
-		log.Fatalf("Artist mismatch: expected %s, got %s", song.Metadata.Artist, loadedSong.Metadata.Artist)
+	if loadedSong.Metadata.Artist != env.song.Metadata.Artist {
+		t.Fatalf("Artist mismatch: expected %s, got %s", env.song.Metadata.Artist, loadedSong.Metadata.Artist)
 	}
-	fmt.Printf("   Title: %s\n", loadedSong.Metadata.Title)
-	fmt.Printf("   Artist: %s\n", loadedSong.Metadata.Artist)
-	fmt.Printf("   Key: %s\n", loadedSong.Metadata.Key)
-	fmt.Printf("   Tempo: %d\n", loadedSong.Metadata.Tempo)
+	t.Logf("Title: %s", loadedSong.Metadata.Title)
+	t.Logf("Artist: %s", loadedSong.Metadata.Artist)
+	t.Logf("Key: %s", loadedSong.Metadata.Key)
+	t.Logf("Tempo: %d", loadedSong.Metadata.Tempo)
+}
 
-	// Test 6: Test file caching
-	fmt.Println("6. Testing file caching...")
-	_, exists := fileService.GetCachedFile(testFilePath)
-	if !exists {
-		log.Fatalf("File not found in cache")
+func (env *fileIOTestEnv) checkCache(t *testing.T) {
+	t.Helper()
+	if _, exists := env.service.GetCachedFile(env.testFilePath); !exists {
+		t.Fatalf("File not found in cache")
 	}
-	fmt.Printf("   File is cached: %v\n", exists)
+	t.Log("File cache check passed")
+}
 
-	// Test 7: Test file watcher
-	fmt.Println("7. Testing file watcher...")
-	watchReceived := make(chan bool, 1)
-	watcher := &testWatcher{
-		events: watchReceived,
+func (env *fileIOTestEnv) watchSong(t *testing.T) {
+	t.Helper()
+
+	events := make(chan bool, 1)
+	watcher := &logWatcher{t: t, events: events}
+
+	if err := env.service.WatchFile(env.testFilePath, watcher); err != nil {
+		t.Fatalf("Failed to watch file: %v", err)
 	}
-
-	if err := fileService.WatchFile(testFilePath, watcher); err != nil {
-		log.Fatalf("Failed to watch file: %v", err)
-	}
-
-	// Modify the file to trigger watcher
-	go func() {
-		time.Sleep(100 * time.Millisecond)
-		song.Metadata.UpdatedAt = time.Now()
-		if err := fileService.WriteSong(song, testFilePath); err != nil {
-			fmt.Printf("   Warning: Failed to write song for watcher test: %v\n", err)
+	defer func() {
+		if err := env.service.UnwatchFile(env.testFilePath, watcher); err != nil {
+			t.Fatalf("Failed to unwatch file: %v", err)
 		}
 	}()
 
-	// Wait for watcher event
+	time.Sleep(50 * time.Millisecond) // allow watcher registration
+
+	env.song.Metadata.UpdatedAt = time.Now()
+	if err := env.service.WriteSong(env.song, env.testFilePath); err != nil {
+		t.Fatalf("Failed to write song during watcher test: %v", err)
+	}
+
 	select {
-	case <-watchReceived:
-		fmt.Println("   Watcher event received successfully")
+	case <-events:
+		t.Log("Watcher event received successfully")
 	case <-time.After(time.Second):
-		fmt.Println("   Watcher event timeout (this may be normal)")
+		t.Log("Watcher event timeout (this may be expected on some platforms)")
 	}
+}
 
-	// Cleanup
-	if err := fileService.UnwatchFile(testFilePath, watcher); err != nil {
-		fmt.Printf("   Warning: Failed to unwatch file: %v\n", err)
+func (env *fileIOTestEnv) deleteSong(t *testing.T) {
+	t.Helper()
+	if err := env.service.DeleteSong(env.testFilePath); err != nil {
+		t.Fatalf("Failed to delete song: %v", err)
 	}
-
-	// Test 8: Test file deletion
-	fmt.Println("8. Testing file deletion...")
-	if err := fileService.DeleteSong(testFilePath); err != nil {
-		log.Fatalf("Failed to delete song: %v", err)
+	exists, err := env.service.SongExists(env.testFilePath)
+	if err != nil {
+		t.Fatalf("Failed to check song existence: %v", err)
 	}
-	fmt.Println("   Song file deleted successfully")
-
-	// Verify deletion
-	if exists, _ := fileService.SongExists(testFilePath); exists {
-		log.Fatalf("Song still exists after deletion")
+	if exists {
+		t.Fatalf("Song still exists after deletion")
 	}
-	fmt.Println("   Verified song no longer exists")
+	t.Log("Song file deleted and verified")
+}
 
-	// Test 9: Test backup functionality
-	fmt.Println("9. Testing backup functionality...")
+func (env *fileIOTestEnv) backupSong(t *testing.T) {
+	t.Helper()
+
 	backupTestFile := "backup_test.md"
-
-	// Create and save a song
 	backupSong := &domain.Song{
 		Metadata: domain.SongMetadata{
 			Title:     "Backup Test Song",
@@ -185,43 +201,44 @@ func TestFileIO() {
 		},
 	}
 
-	if err := fileService.WriteSong(backupSong, backupTestFile); err != nil {
-		log.Fatalf("Failed to save backup test song: %v", err)
+	if err := env.service.WriteSong(backupSong, backupTestFile); err != nil {
+		t.Fatalf("Failed to save backup test song: %v", err)
+	}
+	if err := env.service.CreateBackup(backupTestFile); err != nil {
+		t.Fatalf("Failed to create backup: %v", err)
 	}
 
-	// Create backup
-	if err := fileService.CreateBackup(backupTestFile); err != nil {
-		log.Fatalf("Failed to create backup: %v", err)
+	backupGlob := filepath.Join(env.baseDir, backupTestFile+".backup.*")
+	matches, err := filepath.Glob(backupGlob)
+	if err != nil {
+		t.Fatalf("Failed to glob backup files: %v", err)
 	}
-	fmt.Println("   Backup created successfully")
-
-	// Verify backup exists (check in the test directory)
-	backupPath := filepath.Join(testDir, backupTestFile+".backup.*")
-	matches, err := filepath.Glob(backupPath)
-	if err != nil || len(matches) == 0 {
-		fmt.Println("   Warning: Backup file not found (may be in different location)")
+	if len(matches) == 0 {
+		t.Log("Warning: Backup file not found (may be generated in a different location)")
 	} else {
-		fmt.Printf("   Backup file created: %s\n", matches[0])
+		t.Logf("Backup file created: %s", matches[0])
 	}
-
-	fmt.Println("\nâœ… All File I/O tests completed successfully!")
 }
 
-// testWatcher implements the FileWatcher interface for testing
-type testWatcher struct {
+type logWatcher struct {
+	t      *testing.T
 	events chan<- bool
 }
 
-func (w *testWatcher) OnFileChanged(filePath string, event files.FileEvent) {
-	fmt.Printf("   File changed: %s (event: %s)\n", filePath, event)
+func (w *logWatcher) OnFileChanged(filePath string, event files.FileEvent) {
+	if w.t != nil {
+		w.t.Logf("File changed: %s (event: %s)", filePath, event)
+	}
 	select {
 	case w.events <- true:
 	default:
 	}
 }
 
-func (w *testWatcher) OnFileDeleted(filePath string) {
-	fmt.Printf("   File deleted: %s\n", filePath)
+func (w *logWatcher) OnFileDeleted(filePath string) {
+	if w.t != nil {
+		w.t.Logf("File deleted: %s", filePath)
+	}
 	select {
 	case w.events <- true:
 	default:

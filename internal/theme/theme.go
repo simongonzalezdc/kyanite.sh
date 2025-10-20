@@ -5,12 +5,14 @@ import "github.com/charmbracelet/lipgloss"
 // Theme represents a color scheme used by the TUI.
 type Theme struct {
 	Name       string
-	Primary    lipgloss.Color
-	Secondary  lipgloss.Color
-	Accent     lipgloss.Color
-	Background lipgloss.Color
-	Text       lipgloss.Color
-	Success    lipgloss.Color
+	Primary    lipgloss.Color  // Main UI elements
+	Secondary  lipgloss.Color  // Supporting elements
+	Accent     lipgloss.Color  // Highlights, focus state
+	Background lipgloss.Color  // Base background
+	Text       lipgloss.Color  // Primary text
+	Success    lipgloss.Color  // Success states
+	Warning    lipgloss.Color  // Warning states
+	Error      lipgloss.Color  // Error states
 }
 
 // GetStyle returns a lipgloss style using given foreground and background.
@@ -45,6 +47,22 @@ func (t Theme) AccentStyle() lipgloss.Style {
 func (t Theme) SuccessStyle() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Foreground(t.Success).
+		Background(t.Background).
+		Bold(true)
+}
+
+// WarningStyle returns a style intended for warning messages.
+func (t Theme) WarningStyle() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(t.Warning).
+		Background(t.Background).
+		Bold(true)
+}
+
+// ErrorStyle returns a style intended for error messages.
+func (t Theme) ErrorStyle() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(t.Error).
 		Background(t.Background).
 		Bold(true)
 }
