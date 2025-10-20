@@ -1,9 +1,9 @@
 package editor
 
 import (
-	"github.com/charmbracelet/lipgloss"
 	"github.com/Kyanite/noise/internal/ui/dimension"
 	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // SketchLayout represents the layout for sketch mode

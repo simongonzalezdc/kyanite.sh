@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Kyanite/noise/internal/ui/editor"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 // TestPreviewPaneModelCreation tests the creation of a preview pane model
@@ -394,7 +394,7 @@ Final content.`
 
 	// Get TOC entries directly from the model's fallback generator
 	tocEntries := model.GetTOC()
-	
+
 	// If still empty, try generating directly using exported method
 	if len(tocEntries) == 0 {
 		tocEntries = model.GenerateTOCFallback(tocContent)

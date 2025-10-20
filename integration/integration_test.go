@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Kyanite/noise/internal/app"
 	"github.com/Kyanite/noise/internal/infra/db"
 	"github.com/Kyanite/noise/internal/ui/editor"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 // TestEditorWorkflow verifies basic editor lifecycle and view synchronization.
@@ -19,7 +19,11 @@ func TestEditorWorkflow(t *testing.T) {
 	if err != nil {
 		t.Skipf("skipping DB-backed integration test (db init failed): %v", err)
 	}
-	defer database.Close()
+	defer func() {
+		if err := database.Close(); err != nil {
+			t.Fatalf("database.Close failed: %v", err)
+		}
+	}()
 
 	autoCfg := app.DefaultAutoSaveConfig()
 	autoCfg.IntervalSeconds = 1
@@ -63,7 +67,11 @@ func TestPreviewSync(t *testing.T) {
 	if err != nil {
 		t.Skipf("skipping DB-backed preview sync test (db init failed): %v", err)
 	}
-	defer database.Close()
+	defer func() {
+		if err := database.Close(); err != nil {
+			t.Fatalf("database.Close failed: %v", err)
+		}
+	}()
 
 	sp := editor.NewSplitPaneModel(database)
 	sp.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
@@ -95,7 +103,11 @@ func TestDatabaseAndAutoSave(t *testing.T) {
 	if err != nil {
 		t.Skipf("skipping DB-backed autosave test (db init failed): %v", err)
 	}
-	defer database.Close()
+	defer func() {
+		if err := database.Close(); err != nil {
+			t.Fatalf("database.Close failed: %v", err)
+		}
+	}()
 
 	editorSvc := app.NewEditorService(database, database)
 	song, err := editorSvc.CreateSong("DB Song", "Tester")

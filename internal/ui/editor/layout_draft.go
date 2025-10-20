@@ -1,9 +1,9 @@
 package editor
 
 import (
-	"github.com/charmbracelet/lipgloss"
 	"github.com/Kyanite/noise/internal/ui/dimension"
 	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // DraftLayout represents the layout for draft mode

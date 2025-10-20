@@ -14,10 +14,10 @@ import (
 
 // WordEntry represents a word entry in the dictionary
 type WordEntry struct {
-	Syllables    int      `json:"syllables"`
+	Syllables     int      `json:"syllables"`
 	Pronunciation string   `json:"pronunciation"`
-	Rhymes       []string `json:"rhymes"`
-	POS          []string `json:"pos"` // Parts of speech
+	Rhymes        []string `json:"rhymes"`
+	POS           []string `json:"pos"` // Parts of speech
 }
 
 // Dictionary represents the enhanced dictionary service
@@ -31,13 +31,13 @@ type Dictionary struct {
 
 // DictionaryStats provides statistics about the dictionary
 type DictionaryStats struct {
-	TotalWords    int     `json:"total_words"`
-	TotalRhymes   int     `json:"total_rhymes"`
-	AvgSyllables  float64 `json:"avg_syllables"`
-	LoadTime      string  `json:"load_time"`
-	LastUpdated   string  `json:"last_updated"`
-	CacheHits     int64   `json:"cache_hits"`
-	CacheMisses   int64   `json:"cache_misses"`
+	TotalWords   int     `json:"total_words"`
+	TotalRhymes  int     `json:"total_rhymes"`
+	AvgSyllables float64 `json:"avg_syllables"`
+	LoadTime     string  `json:"load_time"`
+	LastUpdated  string  `json:"last_updated"`
+	CacheHits    int64   `json:"cache_hits"`
+	CacheMisses  int64   `json:"cache_misses"`
 }
 
 // NewDictionary creates a new dictionary service
@@ -63,20 +63,20 @@ func (d *Dictionary) LoadDictionary(filePath string) error {
 	var dictData struct {
 		Words map[string]WordEntry `json:"words"`
 	}
-	
+
 	if err := json.Unmarshal(data, &dictData); err != nil {
 		return errutil.Wrap(err, "parse dictionary JSON")
 	}
 
 	// Load the words
 	d.words = dictData.Words
-	
+
 	// Build reverse rhyme mapping for faster lookups
 	d.buildRhymeMap()
-	
+
 	d.loaded = true
 	d.loadTime = time.Now()
-	
+
 	return nil
 }
 
@@ -115,7 +115,7 @@ func (d *Dictionary) IsLoaded() bool {
 func (d *Dictionary) GetWordEntry(word string) (WordEntry, bool) {
 	d.mutex.RLock()
 	defer d.mutex.RUnlock()
-	
+
 	// Normalize the word
 	normalizedWord := strings.ToLower(strings.TrimSpace(word))
 	entry, exists := d.words[normalizedWord]
@@ -128,7 +128,7 @@ func (d *Dictionary) CountSyllables(word string) (int, error) {
 	if entry, exists := d.GetWordEntry(word); exists {
 		return entry.Syllables, nil
 	}
-	
+
 	// Fallback to heuristic-based counting
 	return d.countSyllablesHeuristic(word), nil
 }
@@ -144,20 +144,20 @@ func (d *Dictionary) countSyllablesHeuristic(word string) int {
 
 	// Handle common exceptions
 	exceptions := map[string]int{
-		"queue": 1,
-		"one":   1,
-		"two":   1,
-		"three": 1,
-		"four":  1,
-		"five":  1,
-		"seven": 2,
-		"eight": 1,
-		"nine":  1,
-		"ten":   1,
-		"hundred": 2,
+		"queue":    1,
+		"one":      1,
+		"two":      1,
+		"three":    1,
+		"four":     1,
+		"five":     1,
+		"seven":    2,
+		"eight":    1,
+		"nine":     1,
+		"ten":      1,
+		"hundred":  2,
 		"thousand": 2,
-		"million": 3,
-		"billion": 3,
+		"million":  3,
+		"billion":  3,
 	}
 
 	if syllables, exists := exceptions[word]; exists {
@@ -196,8 +196,8 @@ func (d *Dictionary) countSyllablesHeuristic(word string) int {
 				if i >= 2 {
 					prevPrevChar := word[i-2]
 					if strings.ContainsRune(vowels, rune(prevPrevChar)) &&
-					   !strings.ContainsRune(vowels, rune(prevChar)) &&
-					   syllables > 1 {
+						!strings.ContainsRune(vowels, rune(prevChar)) &&
+						syllables > 1 {
 						syllables--
 					}
 				}
@@ -255,35 +255,35 @@ func (d *Dictionary) findRhymesPhonetic(word string) []string {
 	if word == "" {
 		return []string{}
 	}
-	
+
 	// Normalize the word
 	word = strings.ToLower(strings.TrimSpace(word))
-	
+
 	// Check reverse rhyme map
 	if rhymes, exists := d.rhymeMap[word]; exists {
 		return rhymes
 	}
-	
+
 	// Simple phonetic matching based on word endings
 	var matches []string
 	wordEnd := d.getPhoneticEnding(word)
-	
+
 	if wordEnd == "" {
 		return []string{}
 	}
-	
+
 	// Find words with similar phonetic endings
 	for dictWord := range d.words {
 		if dictWord == word {
 			continue
 		}
-		
+
 		dictEnd := d.getPhoneticEnding(dictWord)
 		if dictEnd == wordEnd && len(dictWord) > 2 {
 			matches = append(matches, dictWord)
 		}
 	}
-	
+
 	return matches
 }
 
@@ -292,7 +292,7 @@ func (d *Dictionary) getPhoneticEnding(word string) string {
 	if len(word) < 2 {
 		return word
 	}
-	
+
 	// Get the last 2-3 characters for basic matching
 	if len(word) >= 3 {
 		return word[len(word)-3:]
@@ -305,16 +305,16 @@ func (d *Dictionary) CountSyllablesInText(text string) (int, error) {
 	if text == "" {
 		return 0, nil
 	}
-	
+
 	// Split into words
 	words := strings.Fields(text)
 	totalSyllables := 0
-	
+
 	for _, word := range words {
 		// Clean the word of punctuation
 		re := regexp.MustCompile(`[^\w']`)
 		cleanWord := re.ReplaceAllString(word, "")
-		
+
 		if cleanWord != "" {
 			syllables, err := d.CountSyllables(cleanWord)
 			if err != nil {
@@ -323,7 +323,7 @@ func (d *Dictionary) CountSyllablesInText(text string) (int, error) {
 			totalSyllables += syllables
 		}
 	}
-	
+
 	return totalSyllables, nil
 }
 
@@ -331,28 +331,28 @@ func (d *Dictionary) CountSyllablesInText(text string) (int, error) {
 func (d *Dictionary) GetStats() DictionaryStats {
 	d.mutex.RLock()
 	defer d.mutex.RUnlock()
-	
+
 	stats := DictionaryStats{
 		TotalWords:  len(d.words),
 		LoadTime:    d.loadTime.Format(time.RFC3339),
 		LastUpdated: d.loadTime.Format("2006-01-02"),
 	}
-	
+
 	// Calculate total rhymes and average syllables
 	totalRhymes := 0
 	totalSyllables := 0
-	
+
 	for _, entry := range d.words {
 		totalRhymes += len(entry.Rhymes)
 		totalSyllables += entry.Syllables
 	}
-	
+
 	stats.TotalRhymes = totalRhymes
-	
+
 	if stats.TotalWords > 0 {
 		stats.AvgSyllables = float64(totalSyllables) / float64(stats.TotalWords)
 	}
-	
+
 	return stats
 }
 
@@ -423,11 +423,11 @@ func (d *Dictionary) SearchWords(pattern string, limit int) ([]string, error) {
 func (d *Dictionary) GetRandomWord() (string, WordEntry, error) {
 	d.mutex.RLock()
 	defer d.mutex.RUnlock()
-	
+
 	if len(d.words) == 0 {
 		return "", WordEntry{}, fmt.Errorf("dictionary is empty")
 	}
-	
+
 	// Simple random selection (not cryptographically secure)
 	count := 0
 	for word, entry := range d.words {
@@ -436,12 +436,12 @@ func (d *Dictionary) GetRandomWord() (string, WordEntry, error) {
 		}
 		count++
 	}
-	
+
 	// Fallback to first word
 	for word, entry := range d.words {
 		return word, entry, nil
 	}
-	
+
 	return "", WordEntry{}, fmt.Errorf("no words found in dictionary")
 }
 
@@ -455,9 +455,9 @@ func (d *Dictionary) ValidateWord(word string) bool {
 func (d *Dictionary) GetWordsBySyllableCount(syllables int, limit int) ([]string, error) {
 	d.mutex.RLock()
 	defer d.mutex.RUnlock()
-	
+
 	var matches []string
-	
+
 	for word, entry := range d.words {
 		if entry.Syllables == syllables {
 			matches = append(matches, word)
@@ -466,7 +466,7 @@ func (d *Dictionary) GetWordsBySyllableCount(syllables int, limit int) ([]string
 			}
 		}
 	}
-	
+
 	return matches, nil
 }
 
@@ -474,10 +474,10 @@ func (d *Dictionary) GetWordsBySyllableCount(syllables int, limit int) ([]string
 func (d *Dictionary) GetWordsByPartOfSpeech(pos string, limit int) ([]string, error) {
 	d.mutex.RLock()
 	defer d.mutex.RUnlock()
-	
+
 	var matches []string
 	targetPOS := strings.ToLower(pos)
-	
+
 	for word, entry := range d.words {
 		for _, wordPOS := range entry.POS {
 			if strings.ToLower(wordPOS) == targetPOS {
@@ -489,6 +489,6 @@ func (d *Dictionary) GetWordsByPartOfSpeech(pos string, limit int) ([]string, er
 			}
 		}
 	}
-	
+
 	return matches, nil
 }

@@ -5,11 +5,11 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/Kyanite/noise/internal/ui/dimension"
+	"github.com/Kyanite/noise/internal/ui/styles"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/Kyanite/noise/internal/ui/dimension"
-	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // HelpPaneModel displays keyboard shortcuts and help information

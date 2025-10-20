@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/Kyanite/noise/internal/ui/dimension"
 	"github.com/Kyanite/noise/internal/ui/styles"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // ExportFormat represents different export formats
@@ -406,7 +406,7 @@ func (m *ExportModel) exportToMarkdown() (bool, string) {
 func (m *ExportModel) exportToChordPro() (bool, string) {
 	// Convert content to ChordPro format
 	chordProContent := m.convertToChordPro(m.content)
-	
+
 	err := os.WriteFile(m.result.OutputPath, []byte(chordProContent), 0644)
 	if err != nil {
 		return false, fmt.Sprintf("Failed to write ChordPro file: %v", err)
@@ -418,14 +418,14 @@ func (m *ExportModel) exportToChordPro() (bool, string) {
 // convertToChordPro converts content to ChordPro format
 func (m *ExportModel) convertToChordPro(content string) string {
 	var builder strings.Builder
-	
+
 	// Add ChordPro metadata directives
 	if m.metadata.Title != "" {
 		builder.WriteString("{title:")
 		builder.WriteString(m.metadata.Title)
 		builder.WriteString("}\n")
 	}
-	
+
 	// Add tempo if available (we don't have BPM in the UI metadata, so we'll extract it)
 	bpm := m.extractBPM(content)
 	if bpm > 0 {
@@ -433,7 +433,7 @@ func (m *ExportModel) convertToChordPro(content string) string {
 		builder.WriteString(strconv.Itoa(bpm))
 		builder.WriteString("}\n")
 	}
-	
+
 	// Add key if detected
 	key := m.detectKey(content)
 	if key != "" {
@@ -441,21 +441,21 @@ func (m *ExportModel) convertToChordPro(content string) string {
 		builder.WriteString(key)
 		builder.WriteString("}\n")
 	}
-	
+
 	builder.WriteString("\n")
-	
+
 	// Process content line by line
 	lines := strings.Split(content, "\n")
-	
+
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
-		
+
 		// Skip empty lines
 		if trimmed == "" {
 			builder.WriteString("\n")
 			continue
 		}
-		
+
 		// Check for section headers
 		if m.isSectionHeader(trimmed) {
 			// Convert to ChordPro directive
@@ -472,7 +472,7 @@ func (m *ExportModel) convertToChordPro(content string) string {
 				continue
 			}
 		}
-		
+
 		// Check for chord lines and format them inline with lyrics
 		if m.isChordLine(trimmed) {
 			// Look ahead for the corresponding lyric line
@@ -481,12 +481,12 @@ func (m *ExportModel) convertToChordPro(content string) string {
 			builder.WriteString("\n")
 			continue
 		}
-		
+
 		// Regular lyric line
 		builder.WriteString(trimmed)
 		builder.WriteString("\n")
 	}
-	
+
 	return builder.String()
 }
 
@@ -496,14 +496,14 @@ func (m *ExportModel) convertToChordPro(content string) string {
 func (m *ExportModel) extractBPM(content string) int {
 	bpmRegex := regexp.MustCompile(`(?i)(bpm|tempo)[:\s]+(\d+)`)
 	matches := bpmRegex.FindStringSubmatch(content)
-	
+
 	if len(matches) >= 3 {
 		bpm, err := strconv.Atoi(matches[2])
 		if err == nil && bpm > 0 && bpm < 300 {
 			return bpm
 		}
 	}
-	
+
 	return 0
 }
 
@@ -511,11 +511,11 @@ func (m *ExportModel) extractBPM(content string) int {
 func (m *ExportModel) detectKey(content string) string {
 	chordRegex := regexp.MustCompile(`\b([A-G])(#|b)?\b`)
 	matches := chordRegex.FindAllStringSubmatch(content, -1)
-	
+
 	if len(matches) == 0 {
 		return ""
 	}
-	
+
 	// Simple key detection - find the most common root note
 	rootCount := make(map[string]int)
 	for _, match := range matches {
@@ -524,7 +524,7 @@ func (m *ExportModel) detectKey(content string) string {
 			rootCount[root]++
 		}
 	}
-	
+
 	// Find the most common root
 	var mostCommonRoot string
 	maxCount := 0
@@ -534,7 +534,7 @@ func (m *ExportModel) detectKey(content string) string {
 			mostCommonRoot = root
 		}
 	}
-	
+
 	return mostCommonRoot
 }
 
@@ -544,7 +544,7 @@ func (m *ExportModel) isSectionHeader(line string) bool {
 		"verse", "chorus", "bridge", "intro", "outro", "pre-chorus",
 		"[verse]", "[chorus]", "[bridge]", "[intro]", "[outro]", "[pre-chorus]",
 	}
-	
+
 	lowerLine := strings.ToLower(line)
 	for _, header := range sectionHeaders {
 		if strings.Contains(lowerLine, header) {
@@ -557,21 +557,21 @@ func (m *ExportModel) isSectionHeader(line string) bool {
 // extractSectionType extracts the section type from a header line
 func (m *ExportModel) extractSectionType(line string) string {
 	lowerLine := strings.ToLower(line)
-	
+
 	// Remove brackets if present
 	line = strings.ReplaceAll(line, "[", "")
 	line = strings.ReplaceAll(line, "]", "")
-	
+
 	sections := map[string]string{
-		"verse": "verse",
-		"chorus": "chorus",
-		"bridge": "bridge",
-		"intro": "intro",
-		"outro": "outro",
+		"verse":      "verse",
+		"chorus":     "chorus",
+		"bridge":     "bridge",
+		"intro":      "intro",
+		"outro":      "outro",
 		"pre-chorus": "pre-chorus",
 		"pre chorus": "pre-chorus",
 	}
-	
+
 	for key, value := range sections {
 		if strings.Contains(lowerLine, key) {
 			return value
@@ -585,20 +585,20 @@ func (m *ExportModel) isChordLine(line string) bool {
 	// Count chord symbols vs regular text
 	chordRegex := regexp.MustCompile(`\b[A-G](#|b)?(m|maj|min|dim|aug|sus|add)?[0-9]*\b`)
 	chords := chordRegex.FindAllString(line, -1)
-	
+
 	// If we have multiple chords and the line is short, it's likely a chord line
 	if len(chords) >= 2 && len(strings.TrimSpace(line)) < 30 {
 		return true
 	}
-	
+
 	// If we have chords and very few non-chord characters
 	nonChordChars := chordRegex.ReplaceAllString(line, "")
 	nonChordChars = strings.TrimSpace(nonChordChars)
-	
+
 	if len(chords) > 0 && len(nonChordChars) < 5 {
 		return true
 	}
-	
+
 	return false
 }
 

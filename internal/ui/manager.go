@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Kyanite/noise/internal/domain"
+	"github.com/Kyanite/noise/internal/infra/db"
+	"github.com/Kyanite/noise/internal/ui/styles"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/Kyanite/noise/internal/domain"
-	"github.com/Kyanite/noise/internal/infra/db"
-	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // ManagerState represents different states of the project manager
@@ -53,7 +53,7 @@ type ProjectManagerModel struct {
 	searchInput      textinput.Model
 
 	// Navigation and selection
-	focusedComponent     string
+	focusedComponent string
 
 	// Status and feedback
 	statusMessage string

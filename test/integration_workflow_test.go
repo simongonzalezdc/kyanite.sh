@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Kyanite/noise/internal/app"
 	"github.com/Kyanite/noise/internal/infra/db"
 	"github.com/Kyanite/noise/internal/ui/editor"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 // TestEditorWorkflow verifies basic editor lifecycle and view synchronization.

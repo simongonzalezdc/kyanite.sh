@@ -44,13 +44,13 @@ var (
 		Name:        "Midnight Jazz",
 		Description: "Deep navy background with purple and gold accents",
 		Colors: ThemeColors{
-			Primary:   lipgloss.Color("#9D84B7"), // Soft purple
-			Secondary: lipgloss.Color("#5E4B8B"), // Deep purple
-			Accent:    lipgloss.Color("#F4D03F"), // Gold
-			Success:   lipgloss.Color("#52D3AA"), // Mint green
-			Warning:   lipgloss.Color("#FFA500"), // Orange
-			Error:     lipgloss.Color("#FF6347"), // Tomato
-			Info:      lipgloss.Color("#87CEEB"), // Sky blue
+			Primary:       lipgloss.Color("#9D84B7"), // Soft purple
+			Secondary:     lipgloss.Color("#5E4B8B"), // Deep purple
+			Accent:        lipgloss.Color("#F4D03F"), // Gold
+			Success:       lipgloss.Color("#52D3AA"), // Mint green
+			Warning:       lipgloss.Color("#FFA500"), // Orange
+			Error:         lipgloss.Color("#FF6347"), // Tomato
+			Info:          lipgloss.Color("#87CEEB"), // Sky blue
 			Background:    lipgloss.Color("#0A0E27"), // Deep navy
 			TextPrimary:   lipgloss.Color("#E8DFF5"), // Light lavender
 			TextSecondary: lipgloss.Color("#9D84B7"), // Soft purple
@@ -67,13 +67,13 @@ var (
 		Name:        "Neon Dreams",
 		Description: "Dark background with vibrant neon colors",
 		Colors: ThemeColors{
-			Primary:   lipgloss.Color("#FF00FF"), // Magenta
-			Secondary: lipgloss.Color("#00FFFF"), // Cyan
-			Accent:    lipgloss.Color("#FFFF00"), // Yellow
-			Success:   lipgloss.Color("#00FF00"), // Green
-			Warning:   lipgloss.Color("#FFA500"), // Orange
-			Error:     lipgloss.Color("#FF0000"), // Red
-			Info:      lipgloss.Color("#00FFFF"), // Cyan
+			Primary:       lipgloss.Color("#FF00FF"), // Magenta
+			Secondary:     lipgloss.Color("#00FFFF"), // Cyan
+			Accent:        lipgloss.Color("#FFFF00"), // Yellow
+			Success:       lipgloss.Color("#00FF00"), // Green
+			Warning:       lipgloss.Color("#FFA500"), // Orange
+			Error:         lipgloss.Color("#FF0000"), // Red
+			Info:          lipgloss.Color("#00FFFF"), // Cyan
 			Background:    lipgloss.Color("#000000"), // Black
 			TextPrimary:   lipgloss.Color("#FFFFFF"), // White
 			TextSecondary: lipgloss.Color("#CC00CC"), // Light magenta
@@ -90,13 +90,13 @@ var (
 		Name:        "Forest Retreat",
 		Description: "Natural green tones with earthy accents",
 		Colors: ThemeColors{
-			Primary:   lipgloss.Color("#228B22"), // Forest green
-			Secondary: lipgloss.Color("#8B4513"), // Saddle brown
-			Accent:    lipgloss.Color("#FFD700"), // Gold
-			Success:   lipgloss.Color("#32CD32"), // Lime green
-			Warning:   lipgloss.Color("#FF8C00"), // Dark orange
-			Error:     lipgloss.Color("#8B0000"), // Dark red
-			Info:      lipgloss.Color("#4682B4"), // Steel blue
+			Primary:       lipgloss.Color("#228B22"), // Forest green
+			Secondary:     lipgloss.Color("#8B4513"), // Saddle brown
+			Accent:        lipgloss.Color("#FFD700"), // Gold
+			Success:       lipgloss.Color("#32CD32"), // Lime green
+			Warning:       lipgloss.Color("#FF8C00"), // Dark orange
+			Error:         lipgloss.Color("#8B0000"), // Dark red
+			Info:          lipgloss.Color("#4682B4"), // Steel blue
 			Background:    lipgloss.Color("#1A2F1A"), // Dark green
 			TextPrimary:   lipgloss.Color("#F0FFF0"), // Honeydew
 			TextSecondary: lipgloss.Color("#90EE90"), // Light green
@@ -113,13 +113,13 @@ var (
 		Name:        "Ocean Blue",
 		Description: "Calming blue tones inspired by the ocean",
 		Colors: ThemeColors{
-			Primary:   lipgloss.Color("#4682B4"), // Steel blue
-			Secondary: lipgloss.Color("#1E90FF"), // Dodger blue
-			Accent:    lipgloss.Color("#00CED1"), // Dark turquoise
-			Success:   lipgloss.Color("#40E0D0"), // Turquoise
-			Warning:   lipgloss.Color("#FFD700"), // Gold
-			Error:     lipgloss.Color("#DC143C"), // Crimson
-			Info:      lipgloss.Color("#87CEEB"), // Sky blue
+			Primary:       lipgloss.Color("#4682B4"), // Steel blue
+			Secondary:     lipgloss.Color("#1E90FF"), // Dodger blue
+			Accent:        lipgloss.Color("#00CED1"), // Dark turquoise
+			Success:       lipgloss.Color("#40E0D0"), // Turquoise
+			Warning:       lipgloss.Color("#FFD700"), // Gold
+			Error:         lipgloss.Color("#DC143C"), // Crimson
+			Info:          lipgloss.Color("#87CEEB"), // Sky blue
 			Background:    lipgloss.Color("#0F1F2F"), // Dark blue
 			TextPrimary:   lipgloss.Color("#E0F7FA"), // Light cyan
 			TextSecondary: lipgloss.Color("#87CEEB"), // Sky blue
@@ -136,13 +136,13 @@ var (
 		Name:        "Sunset Glow",
 		Description: "Warm oranges and pinks inspired by sunset",
 		Colors: ThemeColors{
-			Primary:   lipgloss.Color("#FF6B6B"), // Light coral
-			Secondary: lipgloss.Color("#FF8E53"), // Sunset orange
-			Accent:    lipgloss.Color("#FEC260"), // Saffron
-			Success:   lipgloss.Color("#06FFA5"), // Spring green
-			Warning:   lipgloss.Color("#FFB700"), // Amber
-			Error:     lipgloss.Color("#C9184A"), // Raspberry
-			Info:      lipgloss.Color("#748FFC"), // Periwinkle
+			Primary:       lipgloss.Color("#FF6B6B"), // Light coral
+			Secondary:     lipgloss.Color("#FF8E53"), // Sunset orange
+			Accent:        lipgloss.Color("#FEC260"), // Saffron
+			Success:       lipgloss.Color("#06FFA5"), // Spring green
+			Warning:       lipgloss.Color("#FFB700"), // Amber
+			Error:         lipgloss.Color("#C9184A"), // Raspberry
+			Info:          lipgloss.Color("#748FFC"), // Periwinkle
 			Background:    lipgloss.Color("#2D1B69"), // Deep indigo
 			TextPrimary:   lipgloss.Color("#FFEDBC"), // Peach puff
 			TextSecondary: lipgloss.Color("#FFB6C1"), // Light pink
@@ -159,13 +159,13 @@ var (
 		Name:        "Arctic Frost",
 		Description: "Cool blues and whites inspired by arctic landscapes",
 		Colors: ThemeColors{
-			Primary:   lipgloss.Color("#5F9EA0"), // Cadet blue
-			Secondary: lipgloss.Color("#B0E0E6"), // Powder blue
-			Accent:    lipgloss.Color("#E0FFFF"), // Light cyan
-			Success:   lipgloss.Color("#98FB98"), // Pale green
-			Warning:   lipgloss.Color("#F0E68C"), // Khaki
-			Error:     lipgloss.Color("#CD5C5C"), // Indian red
-			Info:      lipgloss.Color("#ADD8E6"), // Light blue
+			Primary:       lipgloss.Color("#5F9EA0"), // Cadet blue
+			Secondary:     lipgloss.Color("#B0E0E6"), // Powder blue
+			Accent:        lipgloss.Color("#E0FFFF"), // Light cyan
+			Success:       lipgloss.Color("#98FB98"), // Pale green
+			Warning:       lipgloss.Color("#F0E68C"), // Khaki
+			Error:         lipgloss.Color("#CD5C5C"), // Indian red
+			Info:          lipgloss.Color("#ADD8E6"), // Light blue
 			Background:    lipgloss.Color("#1E2A3A"), // Dark slate blue
 			TextPrimary:   lipgloss.Color("#F8F8FF"), // Ghost white
 			TextSecondary: lipgloss.Color("#B0C4DE"), // Light steel blue
@@ -182,13 +182,13 @@ var (
 		Name:        "Monochrome",
 		Description: "Classic black and white theme",
 		Colors: ThemeColors{
-			Primary:   lipgloss.Color("#FFFFFF"), // White
-			Secondary: lipgloss.Color("#CCCCCC"), // Light gray
-			Accent:    lipgloss.Color("#FFFFFF"), // White
-			Success:   lipgloss.Color("#00FF00"), // Green
-			Warning:   lipgloss.Color("#FFFF00"), // Yellow
-			Error:     lipgloss.Color("#FF0000"), // Red
-			Info:      lipgloss.Color("#00FFFF"), // Cyan
+			Primary:       lipgloss.Color("#FFFFFF"), // White
+			Secondary:     lipgloss.Color("#CCCCCC"), // Light gray
+			Accent:        lipgloss.Color("#FFFFFF"), // White
+			Success:       lipgloss.Color("#00FF00"), // Green
+			Warning:       lipgloss.Color("#FFFF00"), // Yellow
+			Error:         lipgloss.Color("#FF0000"), // Red
+			Info:          lipgloss.Color("#00FFFF"), // Cyan
 			Background:    lipgloss.Color("#000000"), // Black
 			TextPrimary:   lipgloss.Color("#FFFFFF"), // White
 			TextSecondary: lipgloss.Color("#CCCCCC"), // Light gray
@@ -205,13 +205,13 @@ var (
 		Name:        "Royal Purple",
 		Description: "Rich purples and golds inspired by royalty",
 		Colors: ThemeColors{
-			Primary:   lipgloss.Color("#7851A9"), // Medium purple
-			Secondary: lipgloss.Color("#6A0DAD"), // Purple
-			Accent:    lipgloss.Color("#FFD700"), // Gold
-			Success:   lipgloss.Color("#9370DB"), // Medium purple
-			Warning:   lipgloss.Color("#DAA520"), // Goldenrod
-			Error:     lipgloss.Color("#8B008B"), // Dark magenta
-			Info:      lipgloss.Color("#87CEEB"), // Sky blue
+			Primary:       lipgloss.Color("#7851A9"), // Medium purple
+			Secondary:     lipgloss.Color("#6A0DAD"), // Purple
+			Accent:        lipgloss.Color("#FFD700"), // Gold
+			Success:       lipgloss.Color("#9370DB"), // Medium purple
+			Warning:       lipgloss.Color("#DAA520"), // Goldenrod
+			Error:         lipgloss.Color("#8B008B"), // Dark magenta
+			Info:          lipgloss.Color("#87CEEB"), // Sky blue
 			Background:    lipgloss.Color("#2E0854"), // Dark slate magenta
 			TextPrimary:   lipgloss.Color("#F5F5DC"), // Beige
 			TextSecondary: lipgloss.Color("#DDA0DD"), // Plum
@@ -228,13 +228,13 @@ var (
 		Name:        "Cyberpunk",
 		Description: "Futuristic theme with electric colors",
 		Colors: ThemeColors{
-			Primary:   lipgloss.Color("#00FFFF"), // Cyan
-			Secondary: lipgloss.Color("#FF00FF"), // Magenta
-			Accent:    lipgloss.Color("#FFFF00"), // Yellow
-			Success:   lipgloss.Color("#00FF00"), // Green
-			Warning:   lipgloss.Color("#FF4500"), // Orange red
-			Error:     lipgloss.Color("#FF0000"), // Red
-			Info:      lipgloss.Color("#1E90FF"), // Dodger blue
+			Primary:       lipgloss.Color("#00FFFF"), // Cyan
+			Secondary:     lipgloss.Color("#FF00FF"), // Magenta
+			Accent:        lipgloss.Color("#FFFF00"), // Yellow
+			Success:       lipgloss.Color("#00FF00"), // Green
+			Warning:       lipgloss.Color("#FF4500"), // Orange red
+			Error:         lipgloss.Color("#FF0000"), // Red
+			Info:          lipgloss.Color("#1E90FF"), // Dodger blue
 			Background:    lipgloss.Color("#0D0221"), // Navy
 			TextPrimary:   lipgloss.Color("#F0F8FF"), // Alice blue
 			TextSecondary: lipgloss.Color("#00FFFF"), // Cyan
@@ -251,13 +251,13 @@ var (
 		Name:        "Coffee Shop",
 		Description: "Warm browns and creams inspired by coffee",
 		Colors: ThemeColors{
-			Primary:   lipgloss.Color("#6F4E37"), // Coffee
-			Secondary: lipgloss.Color("#8B4513"), // Saddle brown
-			Accent:    lipgloss.Color("#D2691E"), // Chocolate
-			Success:   lipgloss.Color("#A0522D"), // Sienna
-			Warning:   lipgloss.Color("#CD853F"), // Peru
-			Error:     lipgloss.Color("#8B4513"), // Saddle brown
-			Info:      lipgloss.Color("#DEB887"), // Burlywood
+			Primary:       lipgloss.Color("#6F4E37"), // Coffee
+			Secondary:     lipgloss.Color("#8B4513"), // Saddle brown
+			Accent:        lipgloss.Color("#D2691E"), // Chocolate
+			Success:       lipgloss.Color("#A0522D"), // Sienna
+			Warning:       lipgloss.Color("#CD853F"), // Peru
+			Error:         lipgloss.Color("#8B4513"), // Saddle brown
+			Info:          lipgloss.Color("#DEB887"), // Burlywood
 			Background:    lipgloss.Color("#3C2415"), // Dark coffee
 			TextPrimary:   lipgloss.Color("#FFF8DC"), // Cornsilk
 			TextSecondary: lipgloss.Color("#F5DEB3"), // Wheat
@@ -274,13 +274,13 @@ var (
 		Name:        "Desert Sunset",
 		Description: "Warm oranges and reds inspired by desert landscapes",
 		Colors: ThemeColors{
-			Primary:   lipgloss.Color("#FF7F50"), // Coral
-			Secondary: lipgloss.Color("#FF6347"), // Tomato
-			Accent:    lipgloss.Color("#FF4500"), // Orange red
-			Success:   lipgloss.Color("#FFD700"), // Gold
-			Warning:   lipgloss.Color("#FF8C00"), // Dark orange
-			Error:     lipgloss.Color("#B22222"), // Fire brick
-			Info:      lipgloss.Color("#F0E68C"), // Khaki
+			Primary:       lipgloss.Color("#FF7F50"), // Coral
+			Secondary:     lipgloss.Color("#FF6347"), // Tomato
+			Accent:        lipgloss.Color("#FF4500"), // Orange red
+			Success:       lipgloss.Color("#FFD700"), // Gold
+			Warning:       lipgloss.Color("#FF8C00"), // Dark orange
+			Error:         lipgloss.Color("#B22222"), // Fire brick
+			Info:          lipgloss.Color("#F0E68C"), // Khaki
 			Background:    lipgloss.Color("#4A2C2A"), // Dark red
 			TextPrimary:   lipgloss.Color("#FFF5EE"), // Seashell
 			TextSecondary: lipgloss.Color("#FFE4B5"), // Moccasin
@@ -297,13 +297,13 @@ var (
 		Name:        "Zen Garden",
 		Description: "Calming greens and grays inspired by zen gardens",
 		Colors: ThemeColors{
-			Primary:   lipgloss.Color("#808080"), // Gray
-			Secondary: lipgloss.Color("#A9A9A9"), // Dark gray
-			Accent:    lipgloss.Color("#90EE90"), // Light green
-			Success:   lipgloss.Color("#228B22"), // Forest green
-			Warning:   lipgloss.Color("#DAA520"), // Goldenrod
-			Error:     lipgloss.Color("#8B4513"), // Saddle brown
-			Info:      lipgloss.Color("#B0C4DE"), // Light steel blue
+			Primary:       lipgloss.Color("#808080"), // Gray
+			Secondary:     lipgloss.Color("#A9A9A9"), // Dark gray
+			Accent:        lipgloss.Color("#90EE90"), // Light green
+			Success:       lipgloss.Color("#228B22"), // Forest green
+			Warning:       lipgloss.Color("#DAA520"), // Goldenrod
+			Error:         lipgloss.Color("#8B4513"), // Saddle brown
+			Info:          lipgloss.Color("#B0C4DE"), // Light steel blue
 			Background:    lipgloss.Color("#2F4F4F"), // Dark slate gray
 			TextPrimary:   lipgloss.Color("#F5F5F5"), // White smoke
 			TextSecondary: lipgloss.Color("#D3D3D3"), // Light gray

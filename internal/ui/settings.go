@@ -5,12 +5,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Kyanite/noise/internal/config"
+	"github.com/Kyanite/noise/internal/ui/styles"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/Kyanite/noise/internal/config"
-	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // SettingsCategory represents different categories of settings
@@ -35,10 +35,10 @@ type SettingsItem struct {
 	Type        SettingsType
 	Value       interface{}
 	Default     interface{}
-	Options     []string // For select/radio types
-	Min         float64  // For number types
-	Max         float64  // For number types
-	Unit        string   // For number types (e.g., "seconds", "MB")
+	Options     []string          // For select/radio types
+	Min         float64           // For number types
+	Max         float64           // For number types
+	Unit        string            // For number types (e.g., "seconds", "MB")
 	Callback    func(interface{}) // Called when value changes
 }
 
@@ -56,16 +56,16 @@ const (
 
 // SettingsModel handles the comprehensive settings screen
 type SettingsModel struct {
-	width         int
-	height        int
-	activeTab     SettingsCategory
-	categoryList  list.Model
-	settingsList  list.Model
-	config        *config.Config
-	settings      map[string]*SettingsItem
-	focused       FocusArea
-	showSaveMsg   bool
-	saveMsgTimer  *time.Timer
+	width        int
+	height       int
+	activeTab    SettingsCategory
+	categoryList list.Model
+	settingsList list.Model
+	config       *config.Config
+	settings     map[string]*SettingsItem
+	focused      FocusArea
+	showSaveMsg  bool
+	saveMsgTimer *time.Timer
 }
 
 // FocusArea represents which part of the settings UI is focused
@@ -79,16 +79,16 @@ const (
 
 // KeyMap defines key bindings for the settings screen
 type KeyMap struct {
-	Up       key.Binding
-	Down     key.Binding
-	Left     key.Binding
-	Right    key.Binding
-	Enter    key.Binding
-	Tab      key.Binding
-	Back     key.Binding
-	Save     key.Binding
-	Reset    key.Binding
-	Quit     key.Binding
+	Up    key.Binding
+	Down  key.Binding
+	Left  key.Binding
+	Right key.Binding
+	Enter key.Binding
+	Tab   key.Binding
+	Back  key.Binding
+	Save  key.Binding
+	Reset key.Binding
+	Quit  key.Binding
 }
 
 // DefaultKeyMap returns the default key mappings

@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Kyanite/noise/internal/ui/editor"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 // containsString checks if a string contains a substring

@@ -73,11 +73,11 @@ func TestContextAwarePrompts_GetPrompt(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			prompt := prompts.GetPrompt(tt.contentType, tt.mode)
-			
+
 			if tt.expectEmpty && prompt != "" {
 				t.Errorf("Expected empty prompt for %s/%s, got: %s", tt.contentType, tt.mode, prompt)
 			}
-			
+
 			if !tt.expectEmpty && prompt == "" {
 				t.Errorf("Expected non-empty prompt for %s/%s", tt.contentType, tt.mode)
 			}
@@ -134,15 +134,15 @@ func TestContextAwarePrompts_RenderPrompt(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rendered := prompts.RenderPrompt(tt.contentType, tt.mode, tt.context, tt.options)
-			
+
 			if tt.expectEmpty && rendered != "" {
 				t.Errorf("Expected empty rendered prompt for %s/%s, got: %s", tt.contentType, tt.mode, rendered)
 			}
-			
+
 			if !tt.expectEmpty && rendered == "" {
 				t.Errorf("Expected non-empty rendered prompt for %s/%s", tt.contentType, tt.mode)
 			}
-			
+
 			// Check that the rendered prompt contains the expected context or theme
 			if !tt.expectEmpty && rendered != "" {
 				if tt.mode == QuickIdeaModeSpark && tt.options["theme"] != "" {

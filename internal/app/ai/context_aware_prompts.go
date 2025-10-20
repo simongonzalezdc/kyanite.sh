@@ -7,10 +7,10 @@ import (
 
 // ContextAwarePrompts manages prompts that adapt based on content type
 type ContextAwarePrompts struct {
-	lyricPrompts    map[QuickIdeaMode]string
-	patternPrompts  map[QuickIdeaMode]string
-	mixedPrompts    map[QuickIdeaMode]string
-	templates       map[QuickIdeaMode]string
+	lyricPrompts   map[QuickIdeaMode]string
+	patternPrompts map[QuickIdeaMode]string
+	mixedPrompts   map[QuickIdeaMode]string
+	templates      map[QuickIdeaMode]string
 }
 
 // NewContextAwarePrompts creates a new context-aware prompt manager
@@ -307,7 +307,7 @@ Tip (5 words, actionable)
 // RenderPrompt renders the prompt with the provided context and options
 func (cap *ContextAwarePrompts) RenderPrompt(contentType ContentType, mode QuickIdeaMode, context string, options map[string]string) string {
 	prompt := cap.GetPrompt(contentType, mode)
-	
+
 	if prompt == "" {
 		return "Provide three creative suggestions."
 	}

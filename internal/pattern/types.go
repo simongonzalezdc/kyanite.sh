@@ -145,10 +145,10 @@ func (r RestValue) IsPatternValue() {}
 
 // Pattern represents a musical pattern
 type Pattern struct {
-	Values    []PatternValue
-	Duration  time.Duration
-	Events    []PatternEvent
-	Metadata  map[string]interface{}
+	Values   []PatternValue
+	Duration time.Duration
+	Events   []PatternEvent
+	Metadata map[string]interface{}
 }
 
 // PatternEvent represents a single event in a pattern
@@ -353,9 +353,9 @@ type ValidationRule interface {
 
 // PerformanceMetrics tracks parsing performance
 type PerformanceMetrics struct {
-	ParseTime    time.Duration
+	ParseTime      time.Duration
 	ValidationTime time.Duration
-	TotalTime    time.Duration
-	TokenCount   int
-	NodeCount    int
+	TotalTime      time.Duration
+	TokenCount     int
+	NodeCount      int
 }

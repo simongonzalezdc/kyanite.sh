@@ -9,10 +9,10 @@ import (
 
 // Parser implements a recursive descent parser for the pattern language
 type Parser struct {
-	lexer        *Lexer
-	currentToken Token
-	peekToken    Token
-	errors       []PatternError
+	lexer          *Lexer
+	currentToken   Token
+	peekToken      Token
+	errors         []PatternError
 	prefixParseFns map[TokenType]prefixParseFn
 	infixParseFns  map[TokenType]infixParseFn
 }
@@ -148,7 +148,7 @@ type ExpressionStatement struct {
 	Expression Expression
 }
 
-func (es *ExpressionStatement) node()         {}
+func (es *ExpressionStatement) node()          {}
 func (es *ExpressionStatement) statementNode() {}
 func (es *ExpressionStatement) String() string {
 	if es.Expression != nil {
@@ -181,22 +181,22 @@ const (
 
 // precedences maps token types to their precedence levels
 var precedences = map[TokenType]int{
-	TokenOr:      LOGICAL_OR,
-	TokenAnd:     LOGICAL_AND,
-	TokenEquals:  EQUALS,
-	TokenNotEq:   EQUALS,
-	TokenLess:    LESSGREATER,
-	TokenLessEq:  LESSGREATER,
-	TokenGreater: LESSGREATER,
+	TokenOr:        LOGICAL_OR,
+	TokenAnd:       LOGICAL_AND,
+	TokenEquals:    EQUALS,
+	TokenNotEq:     EQUALS,
+	TokenLess:      LESSGREATER,
+	TokenLessEq:    LESSGREATER,
+	TokenGreater:   LESSGREATER,
 	TokenGreaterEq: LESSGREATER,
-	TokenPlus:    SUM,
-	TokenMinus:   SUM,
-	TokenSlash:   PRODUCT,
-	TokenAsterisk: PRODUCT,
-	TokenModulo:  PRODUCT,
-	TokenLParen:  CALL,
-	TokenLBracket: INDEX,
-	TokenDot:     MODIFIER,
+	TokenPlus:      SUM,
+	TokenMinus:     SUM,
+	TokenSlash:     PRODUCT,
+	TokenAsterisk:  PRODUCT,
+	TokenModulo:    PRODUCT,
+	TokenLParen:    CALL,
+	TokenLBracket:  INDEX,
+	TokenDot:       MODIFIER,
 }
 
 // parseExpression parses an expression with the given precedence
@@ -541,8 +541,8 @@ func (p *Parser) parseParameterExpression(left Expression) Expression {
 // parseModifierExpression parses a modifier expression
 func (p *Parser) parseModifierExpression(left Expression) Expression {
 	expr := &ModifierExpression{
-		Base:      left,
-		Position:  p.currentToken.Position,
+		Base:     left,
+		Position: p.currentToken.Position,
 	}
 
 	p.nextToken() // skip '.'
@@ -682,10 +682,10 @@ func ParseWithMetrics(input string) (*Program, []PatternError, PerformanceMetric
 	}
 
 	metrics := PerformanceMetrics{
-		ParseTime:   parserTime,
-		TotalTime:   totalTime,
-		TokenCount:  len(tokens),
-		NodeCount:   countNodes(program),
+		ParseTime:  parserTime,
+		TotalTime:  totalTime,
+		TokenCount: len(tokens),
+		NodeCount:  countNodes(program),
 	}
 
 	// Use lexerTime to avoid unused variable warning
@@ -709,9 +709,9 @@ func countNodes(node Node) int {
 	if node == nil {
 		return 0
 	}
-	
+
 	count := 1
-	
+
 	switch n := node.(type) {
 	case *Program:
 		for _, stmt := range n.Statements {
@@ -763,6 +763,6 @@ func countNodes(node Node) int {
 	case *PropertyExpression:
 		count += countNodes(n.Base)
 	}
-	
+
 	return count
 }

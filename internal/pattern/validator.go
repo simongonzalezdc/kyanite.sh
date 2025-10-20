@@ -97,7 +97,7 @@ func (r *SyntaxValidationRule) Validate(pattern *Pattern) []PatternError {
 	// Check if pattern has at least one value
 	if len(pattern.Values) == 0 {
 		errors = append(errors, PatternError{
-			Message: "pattern must contain at least one value",
+			Message:  "pattern must contain at least one value",
 			Position: Position{},
 		})
 	}
@@ -108,14 +108,14 @@ func (r *SyntaxValidationRule) Validate(pattern *Pattern) []PatternError {
 		case NoteValue:
 			if v.Octave < 0 || v.Octave > 9 {
 				errors = append(errors, PatternError{
-					Message: fmt.Sprintf("octave %d out of range (0-9)", v.Octave),
+					Message:  fmt.Sprintf("octave %d out of range (0-9)", v.Octave),
 					Position: Position{},
 				})
 			}
 		case SampleValue:
 			if v.Name == "" {
 				errors = append(errors, PatternError{
-					Message: "sample name cannot be empty",
+					Message:  "sample name cannot be empty",
 					Position: Position{},
 				})
 			}
@@ -154,7 +154,7 @@ func (r *SemanticValidationRule) Validate(pattern *Pattern) []PatternError {
 	// Warning if mixing samples and notes (not an error, just informational)
 	if sampleCount > 0 && noteCount > 0 {
 		errors = append(errors, PatternError{
-			Message: "mixing samples and notes in the same pattern may have unexpected results",
+			Message:  "mixing samples and notes in the same pattern may have unexpected results",
 			Position: Position{},
 		})
 	}
@@ -162,7 +162,7 @@ func (r *SemanticValidationRule) Validate(pattern *Pattern) []PatternError {
 	// Check if pattern is all rests
 	if restCount == len(pattern.Values) && len(pattern.Values) > 0 {
 		errors = append(errors, PatternError{
-			Message: "pattern consists entirely of rests",
+			Message:  "pattern consists entirely of rests",
 			Position: Position{},
 		})
 	}
@@ -183,7 +183,7 @@ func (r *PerformanceValidationRule) Validate(pattern *Pattern) []PatternError {
 	// Check pattern complexity
 	if len(pattern.Values) > 1000 {
 		errors = append(errors, PatternError{
-			Message: fmt.Sprintf("pattern is too complex (%d values, maximum 1000)", len(pattern.Values)),
+			Message:  fmt.Sprintf("pattern is too complex (%d values, maximum 1000)", len(pattern.Values)),
 			Position: Position{},
 		})
 	}
@@ -191,7 +191,7 @@ func (r *PerformanceValidationRule) Validate(pattern *Pattern) []PatternError {
 	// Check duration
 	if pattern.Duration > 60*time.Second {
 		errors = append(errors, PatternError{
-			Message: "pattern duration exceeds 60 seconds",
+			Message:  "pattern duration exceeds 60 seconds",
 			Position: Position{},
 		})
 	}
@@ -214,12 +214,12 @@ func (r *MusicalValidationRule) Validate(pattern *Pattern) []PatternError {
 		if note, ok := value.(NoteValue); ok {
 			// Validate note name
 			validNotes := map[string]bool{
-				"c": true, "d": true, "e": true, "f": true, 
+				"c": true, "d": true, "e": true, "f": true,
 				"g": true, "a": true, "b": true,
 			}
 			if !validNotes[note.Note] {
 				errors = append(errors, PatternError{
-					Message: fmt.Sprintf("invalid note name: %s", note.Note),
+					Message:  fmt.Sprintf("invalid note name: %s", note.Note),
 					Position: Position{},
 				})
 			}
@@ -227,7 +227,7 @@ func (r *MusicalValidationRule) Validate(pattern *Pattern) []PatternError {
 			// Validate accidental
 			if note.Accident != "" && note.Accident != "#" && note.Accident != "b" {
 				errors = append(errors, PatternError{
-					Message: fmt.Sprintf("invalid accidental: %s", note.Accident),
+					Message:  fmt.Sprintf("invalid accidental: %s", note.Accident),
 					Position: Position{},
 				})
 			}
@@ -368,14 +368,14 @@ func (v *ContextAwareValidator) Validate(pattern *Pattern) []PatternError {
 
 	if len(pattern.Values) > v.context.MaxPatternSize {
 		errors = append(errors, PatternError{
-			Message: fmt.Sprintf("pattern size %d exceeds maximum %d", len(pattern.Values), v.context.MaxPatternSize),
+			Message:  fmt.Sprintf("pattern size %d exceeds maximum %d", len(pattern.Values), v.context.MaxPatternSize),
 			Position: Position{},
 		})
 	}
 
 	if pattern.Duration > v.context.MaxDuration {
 		errors = append(errors, PatternError{
-			Message: fmt.Sprintf("pattern duration %v exceeds maximum %v", pattern.Duration, v.context.MaxDuration),
+			Message:  fmt.Sprintf("pattern duration %v exceeds maximum %v", pattern.Duration, v.context.MaxDuration),
 			Position: Position{},
 		})
 	}
@@ -407,7 +407,7 @@ func (v *ContextAwareValidator) validateMixedTypes(pattern *Pattern) []PatternEr
 
 	if hasSamples && hasNotes {
 		errors = append(errors, PatternError{
-			Message: "pattern cannot mix samples and notes in strict mode",
+			Message:  "pattern cannot mix samples and notes in strict mode",
 			Position: Position{},
 		})
 	}
@@ -432,7 +432,7 @@ func (r *StrictValidationRule) Validate(pattern *Pattern) []PatternError {
 			// Validate sample format
 			if len(v.Name) == 0 {
 				errors = append(errors, PatternError{
-					Message: "sample name cannot be empty",
+					Message:  "sample name cannot be empty",
 					Position: Position{},
 				})
 			}
@@ -440,7 +440,7 @@ func (r *StrictValidationRule) Validate(pattern *Pattern) []PatternError {
 			// Validate note range
 			if v.Octave < 1 || v.Octave > 8 {
 				errors = append(errors, PatternError{
-					Message: fmt.Sprintf("octave %d out of range (1-8) in strict mode", v.Octave),
+					Message:  fmt.Sprintf("octave %d out of range (1-8) in strict mode", v.Octave),
 					Position: Position{},
 				})
 			}

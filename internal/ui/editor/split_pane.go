@@ -4,9 +4,6 @@ import (
 	"context"
 	"sort"
 
-	"github.com/charmbracelet/bubbles/textarea"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/Kyanite/noise/internal/app"
 	"github.com/Kyanite/noise/internal/config"
 	"github.com/Kyanite/noise/internal/domain"
@@ -15,6 +12,9 @@ import (
 	"github.com/Kyanite/noise/internal/logging"
 	"github.com/Kyanite/noise/internal/theme"
 	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/charmbracelet/bubbles/textarea"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // Screen represents different screens in the application (local copy to avoid import cycle)

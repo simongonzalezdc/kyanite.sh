@@ -20,7 +20,7 @@ func NewRapidBrainstormAgent() *RapidBrainstormAgent {
 
 // RapidBrainstormRequest represents a request for rapid brainstorming
 type RapidBrainstormRequest struct {
-	Theme    string `json:"theme"`
+	Theme     string `json:"theme"`
 	MaxAngles int    `json:"max_angles"`
 }
 
@@ -37,24 +37,24 @@ func (a *RapidBrainstormAgent) GenerateBrainstorm(ctx context.Context, req *Rapi
 	// 2. Call Ollama with the prompt
 	// 3. Parse the JSON response
 	// 4. Return the structured response
-	
+
 	// Placeholder implementation - generate 3 angles max
 	maxAngles := req.MaxAngles
 	if maxAngles <= 0 || maxAngles > 3 {
 		maxAngles = 3
 	}
-	
+
 	angles := []string{
 		fmt.Sprintf("Explore %s through personal memories", req.Theme),
 		fmt.Sprintf("Use nature imagery to symbolize %s", req.Theme),
 		fmt.Sprintf("Focus on sensory details related to %s", req.Theme),
 	}
-	
+
 	// Trim to max angles
 	if len(angles) > maxAngles {
 		angles = angles[:maxAngles]
 	}
-	
+
 	return &RapidBrainstormResponse{
 		Angles: angles,
 	}, nil
@@ -67,7 +67,7 @@ func (a *RapidBrainstormAgent) GenerateOpeningLine(ctx context.Context, theme, a
 	// 1. Build a prompt from the theme and angle
 	// 2. Call Ollama with the prompt
 	// 3. Return the generated opening line
-	
+
 	return fmt.Sprintf("Opening line for %s: %s", theme, angle), nil
 }
 

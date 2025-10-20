@@ -28,12 +28,12 @@ type FileRepository interface {
 
 // FileInfo represents metadata about a song file
 type FileInfo struct {
-	Path      string    `json:"path"`
-	Size      int64     `json:"size"`
-	ModTime   time.Time `json:"mod_time"`
-	Hash      string    `json:"hash"`
-	Exists    bool      `json:"exists"`
-	IsValid   bool      `json:"is_valid"`
+	Path    string    `json:"path"`
+	Size    int64     `json:"size"`
+	ModTime time.Time `json:"mod_time"`
+	Hash    string    `json:"hash"`
+	Exists  bool      `json:"exists"`
+	IsValid bool      `json:"is_valid"`
 }
 
 // Ensure Service implements FileRepository by adding the required methods

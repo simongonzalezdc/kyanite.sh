@@ -3,8 +3,8 @@ package noise
 import (
 	"testing"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Kyanite/noise/internal/ui"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 // TestMenuModelCreation tests menu model creation

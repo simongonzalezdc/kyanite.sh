@@ -566,34 +566,34 @@ func TestStatusBarStatisticsCalculation(t *testing.T) {
 	}
 }
 
- // TestStatusBarViewStructure tests the structure of rendered views
- func TestStatusBarViewStructure(t *testing.T) {
- 	model := editor.NewStatusBarModel()
- 
- 	// Test minimal view structure: set model width to the responsive width
- 	model.SetDimensions(50, 1)
- 	model.UpdateResponsiveMode(50) // Force minimal mode
- 	view := model.View()
- 	if len(view) > 50 {
- 		t.Errorf("Expected minimal view length <= 50, got %d", len(view))
- 	}
- 
- 	// Test compact view structure
- 	model.SetDimensions(90, 1)
- 	model.UpdateResponsiveMode(90) // Force compact mode
- 	view = model.View()
- 	if len(view) > 90 {
- 		t.Errorf("Expected compact view length <= 90, got %d", len(view))
- 	}
- 
- 	// Test full view structure
- 	model.SetDimensions(120, 1)
- 	model.UpdateResponsiveMode(120) // Force full mode
- 	view = model.View()
- 	if len(view) > 120 {
- 		t.Errorf("Expected full view length <= 120, got %d", len(view))
- 	}
- }
+// TestStatusBarViewStructure tests the structure of rendered views
+func TestStatusBarViewStructure(t *testing.T) {
+	model := editor.NewStatusBarModel()
+
+	// Test minimal view structure: set model width to the responsive width
+	model.SetDimensions(50, 1)
+	model.UpdateResponsiveMode(50) // Force minimal mode
+	view := model.View()
+	if len(view) > 50 {
+		t.Errorf("Expected minimal view length <= 50, got %d", len(view))
+	}
+
+	// Test compact view structure
+	model.SetDimensions(90, 1)
+	model.UpdateResponsiveMode(90) // Force compact mode
+	view = model.View()
+	if len(view) > 90 {
+		t.Errorf("Expected compact view length <= 90, got %d", len(view))
+	}
+
+	// Test full view structure
+	model.SetDimensions(120, 1)
+	model.UpdateResponsiveMode(120) // Force full mode
+	view = model.View()
+	if len(view) > 120 {
+		t.Errorf("Expected full view length <= 120, got %d", len(view))
+	}
+}
 
 // TestStatusBarStateConsistency tests state consistency across updates
 func TestStatusBarStateConsistency(t *testing.T) {

@@ -166,7 +166,7 @@ func GetDefaultDataPath() string {
 			return path
 		}
 	}
-	
+
 	// Fallback to relative path
 	return "data/chord_progressions.json"
 }

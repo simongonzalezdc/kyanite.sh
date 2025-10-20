@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"os"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Kyanite/noise/internal/config"
 	"github.com/Kyanite/noise/internal/infra/db"
 	"github.com/Kyanite/noise/internal/logging"
 	"github.com/Kyanite/noise/internal/plugins"
 	"github.com/Kyanite/noise/internal/ui"
+	tea "github.com/charmbracelet/bubbletea"
 )
-
 
 var (
 	// Version information (set during build)
@@ -20,44 +19,93 @@ var (
 	date    = "unknown"
 )
 
+const helpMessage = `noise.sh - AI-Powered Songwriting Terminal Interface
+
+USAGE:
+  noise [OPTIONS] [COMMAND] [ARGS]
+
+COMMANDS:
+  quick [theme]            Start rapid prototyping mode
+
+OPTIONS:
+  -v, --version    Show version information
+  -h, --help       Show this help message
+  --debug          Enable debug mode
+
+ARGUMENTS:
+  FILE             Song file to open (optional)
+  theme            Theme for quick start (optional)
+
+EXAMPLES:
+  noise                    Start noise.sh
+  noise --debug            Start with debug logging
+  noise song.md            Open a specific song file
+  noise quick              Start in scratch mode
+  noise quick "lost love"  Start with theme brainstorm
+
+For more information, visit: https://github.com/Kyanite/noise
+`
+
+type cliParseResult struct {
+	QuickConfig *ui.QuickStartConfig
+	PendingFile string
+	ShowHelp    bool
+	ShowVersion bool
+}
+
 // main is the entry point for the noise.sh application
 func main() {
-	// Parse command line arguments
-	quickConfig, err := parseArgs()
+	parsedArgs, err := parseArgs(os.Args[1:])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Load configuration
+	if parsedArgs.ShowVersion {
+		if _, err := fmt.Fprintf(os.Stdout, "noise.sh %s (commit: %s, built: %s)\n", version, commit, date); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Error writing version information: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
+
+	if parsedArgs.ShowHelp {
+		if _, err := fmt.Fprint(os.Stdout, helpMessage); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Error writing help information: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
+
+	if err := run(parsedArgs); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func run(parsed *cliParseResult) error {
 	cfg, err := config.Load()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to load configuration: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("load configuration: %w", err)
 	}
 
-	// Initialize logger
 	logger, err := logging.NewFromConfig(cfg)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to initialize logger: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("initialize logger: %w", err)
 	}
 
 	logging.SetDefaultLogger(logger)
 
-	// Log startup information
 	logger.Infof("Starting noise.sh v%s (commit: %s, built: %s)", version, commit, date)
 	logger.Debug("Configuration loaded successfully")
 
-	// Initialize database
 	var database *db.DB
 	if !cfg.Dev.SkipDatabase {
 		database, err = db.New(db.Config{DataDir: cfg.GetDataDir()})
 		if err != nil {
 			logger.Errorf("Failed to initialize database: %v", err)
 			if !cfg.Dev.Debug {
-				fmt.Fprintf(os.Stderr, "Failed to initialize database. Use --debug for more details.\n")
-				os.Exit(1)
+				return fmt.Errorf("initialize database: %w", err)
 			}
 		} else {
 			logger.Info("Database initialized successfully")
@@ -66,7 +114,6 @@ func main() {
 		logger.Debug("Skipping database initialization (dev mode)")
 	}
 
-	// Initialize plugin system
 	pluginManager := plugins.NewManager(cfg, logger)
 	if err := pluginManager.LoadPlugins(); err != nil {
 		logger.Warnf("Failed to load plugins: %v", err)
@@ -74,22 +121,22 @@ func main() {
 		logger.Infof("Plugin system initialized with %d plugins", len(pluginManager.GetPlugins()))
 	}
 
-	// Create root model with plugin manager
 	rootModel := ui.NewRootModel(pluginManager)
 
-	// If quick start is requested, configure it
-	if quickConfig != nil {
-		rootModel.SetQuickStart(quickConfig)
+	if parsed.QuickConfig != nil {
+		rootModel.SetQuickStart(parsed.QuickConfig)
 	}
 
-	// Set up the Bubble Tea program
+	if parsed.PendingFile != "" {
+		logger.Infof("Opening file: %s", parsed.PendingFile)
+	}
+
 	p := tea.NewProgram(
 		rootModel,
-		tea.WithAltScreen(),       // Use alternate screen buffer
-		tea.WithMouseCellMotion(), // Enable mouse support
+		tea.WithAltScreen(),
+		tea.WithMouseCellMotion(),
 	)
 
-	// Handle shutdown gracefully
 	defer func() {
 		if database != nil {
 			if err := database.Close(); err != nil {
@@ -99,86 +146,54 @@ func main() {
 		logger.Info("noise.sh shutdown complete")
 	}()
 
-	// Run the program
 	logger.Info("Starting TUI...")
 	if _, err := p.Run(); err != nil {
 		logger.Errorf("TUI error: %v", err)
-		os.Exit(1)
+		return fmt.Errorf("run TUI: %w", err)
 	}
+
+	return nil
 }
 
-// parseArgs parses command line arguments
-func parseArgs() (*ui.QuickStartConfig, error) {
-	// Simple argument parsing for foundation phase
-	// In a full implementation, this would use cobra CLI framework
+func parseArgs(args []string) (*cliParseResult, error) {
+	result := &cliParseResult{}
 
-	var quickConfig *ui.QuickStartConfig
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
 
-	for i, arg := range os.Args[1:] {
 		switch arg {
 		case "--version", "-v":
-			fmt.Printf("noise.sh %s (commit: %s, built: %s)\n", version, commit, date)
-			os.Exit(0)
+			result.ShowVersion = true
+			return result, nil
 		case "--help", "-h":
-			printHelp()
-			os.Exit(0)
+			result.ShowHelp = true
+			return result, nil
 		case "--debug":
-			// Enable debug mode via environment variable
-			os.Setenv("NOISE_DEV_DEBUG", "true")
+			if err := os.Setenv("NOISE_DEV_DEBUG", "true"); err != nil {
+				return nil, fmt.Errorf("set debug environment variable: %w", err)
+			}
 		case "quick":
-			// Quick start command - check if theme is provided
-			quickConfig = &ui.QuickStartConfig{
-				ScratchMode:   true,
+			result.QuickConfig = &ui.QuickStartConfig{
+				ScratchMode:    true,
 				AutoBrainstorm: false,
 			}
-			
-			// Check if next argument is a theme (not a flag)
-			if i+1 < len(os.Args[1:]) && !isFlag(os.Args[1:][i+1]) {
-				quickConfig.Theme = os.Args[1:][i+1]
-				quickConfig.AutoBrainstorm = true
+
+			if i+1 < len(args) && !isFlag(args[i+1]) {
+				result.QuickConfig.Theme = args[i+1]
+				result.QuickConfig.AutoBrainstorm = true
+				i++
 			}
-			return quickConfig, nil
 		default:
-			if i == 0 && !isFlag(arg) {
-				// First non-flag argument might be a file to open
-				logging.Infof("Opening file: %s", arg)
+			if !isFlag(arg) && result.PendingFile == "" {
+				result.PendingFile = arg
 			}
 		}
 	}
 
-	return quickConfig, nil
+	return result, nil
 }
 
 // isFlag checks if a string is a command line flag
 func isFlag(s string) bool {
 	return len(s) > 1 && s[0] == '-'
-}
-
-// printHelp prints the help message
-func printHelp() {
-	fmt.Println("noise.sh - AI-Powered Songwriting Terminal Interface")
-	fmt.Println()
-	fmt.Println("USAGE:")
-	fmt.Println("  noise [OPTIONS] [COMMAND] [ARGS]")
-	fmt.Println()
-	fmt.Println("COMMANDS:")
-	fmt.Println("  quick [theme]            Start rapid prototyping mode")
-	fmt.Println()
-	fmt.Println("OPTIONS:")
-	fmt.Println("  -v, --version    Show version information")
-	fmt.Println("  -h, --help       Show this help message")
-	fmt.Println("  --debug          Enable debug mode")
-	fmt.Println()
-	fmt.Println("ARGUMENTS:")
-	fmt.Println("  FILE             Song file to open (optional)")
-	fmt.Println("  theme            Theme for quick start (optional)")
-	fmt.Println()
-	fmt.Println("EXAMPLES:")
-	fmt.Println("  noise                    Start noise.sh")
-	fmt.Println("  noise --debug            Start with debug logging")
-	fmt.Println("  noise song.md            Open a specific song file")
-	fmt.Println("  noise quick              Start in scratch mode")
-	fmt.Println("  noise quick \"lost love\"  Start with theme brainstorm")
-	fmt.Println()
-	fmt.Println("For more information, visit: https://github.com/Kyanite/noise")
 }

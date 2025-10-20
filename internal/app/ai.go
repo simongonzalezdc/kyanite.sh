@@ -112,7 +112,7 @@ func (s *AIService) GetModelStatus() map[string]interface{} {
 // GenerateContinuations generates line continuations for rapid prototyping
 func (s *AIService) GenerateContinuations(ctx context.Context, previousLines []string, sectionType string) ([]string, error) {
 	content := strings.Join(previousLines, "\n")
-	
+
 	// Detect content type for context-aware suggestions
 	if s.quickAgent != nil {
 		resp, err := s.quickAgent.Generate(ctx, ai.QuickRequest{
@@ -127,7 +127,7 @@ func (s *AIService) GenerateContinuations(ctx context.Context, previousLines []s
 		}
 		return resp.Suggestions, nil
 	}
-	
+
 	// Fallback to basic suggestions
 	return []string{
 		content + " and the story continues",
@@ -153,7 +153,7 @@ func (s *AIService) GenerateVariations(ctx context.Context, line, section, const
 		}
 		return resp.Suggestions, nil
 	}
-	
+
 	// Fallback to basic variations
 	return []string{
 		line,
@@ -182,7 +182,7 @@ func (s *AIService) GenerateRapidBrainstorm(ctx context.Context, theme string, m
 		}
 		return resp.Suggestions, nil
 	}
-	
+
 	// Fallback to basic brainstorming
 	suggestions := []string{
 		"Explore " + theme + " through personal memories",
@@ -215,7 +215,7 @@ func (s *AIService) GenerateOpeningLine(ctx context.Context, theme, angle string
 		}
 		return resp.Suggestions[0], nil
 	}
-	
+
 	// Fallback to basic opening line
 	return "In the heart of " + theme + ", a story begins", nil
 }
@@ -233,7 +233,7 @@ func (s *AIService) CheckQualityRedFlags(ctx context.Context, content string) (*
 			},
 		})
 	}
-	
+
 	// Fallback to basic quality check
 	return &ai.QuickResponse{
 		Rating: "OKAY",
@@ -252,7 +252,7 @@ func (s *AIService) CheckQualityBasic(ctx context.Context, content string) (*ai.
 			},
 		})
 	}
-	
+
 	// Fallback to basic quality check
 	return &ai.QuickResponse{
 		Rating: "OKAY",
@@ -271,7 +271,7 @@ func (s *AIService) CheckQualityFull(ctx context.Context, content string) (*ai.Q
 			},
 		})
 	}
-	
+
 	// Fallback to basic quality check
 	return &ai.QuickResponse{
 		Rating: "OKAY",
@@ -290,7 +290,7 @@ func (s *AIService) CheckQualityByMode(ctx context.Context, content string, mode
 			},
 		})
 	}
-	
+
 	// Fallback to basic quality check
 	return &ai.QuickResponse{
 		Rating: "OKAY",

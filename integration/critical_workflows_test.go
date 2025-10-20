@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Kyanite/noise/internal/app"
 	"github.com/Kyanite/noise/internal/infra/db"
 	"github.com/Kyanite/noise/internal/infra/files"
 	"github.com/Kyanite/noise/internal/ui/editor"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 // TestEditorAutosaveEndToEnd covers creating a song, autosaving content, and recovering it.
@@ -20,7 +20,11 @@ func TestEditorAutosaveEndToEnd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("db.New failed: %v", err)
 	}
-	defer database.Close()
+	defer func() {
+		if err := database.Close(); err != nil {
+			t.Fatalf("database.Close failed: %v", err)
+		}
+	}()
 
 	editorSvc := app.NewEditorService(database, database)
 	song, err := editorSvc.CreateSong("Integration Song", "Tester")
@@ -66,7 +70,11 @@ func TestExportAndFileIO(t *testing.T) {
 	if err != nil {
 		t.Fatalf("files.New failed: %v", err)
 	}
-	defer fileSvc.Close()
+	defer func() {
+		if err := fileSvc.Close(); err != nil {
+			t.Fatalf("fileSvc.Close failed: %v", err)
+		}
+	}()
 
 	// Create a minimal song structure by using editor service + DB
 	tmp := t.TempDir()
@@ -74,7 +82,11 @@ func TestExportAndFileIO(t *testing.T) {
 	if err != nil {
 		t.Fatalf("db.New failed: %v", err)
 	}
-	defer database.Close()
+	defer func() {
+		if err := database.Close(); err != nil {
+			t.Fatalf("database.Close failed: %v", err)
+		}
+	}()
 
 	editorSvc := app.NewEditorService(database, database)
 	song, err := editorSvc.CreateSong("Export Song", "Tester")
@@ -143,7 +155,11 @@ func TestAutoSaveCancellation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("db.New failed: %v", err)
 	}
-	defer database.Close()
+	defer func() {
+		if err := database.Close(); err != nil {
+			t.Fatalf("database.Close failed: %v", err)
+		}
+	}()
 
 	autoCfg := app.DefaultAutoSaveConfig()
 	autoCfg.IntervalSeconds = 1

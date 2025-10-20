@@ -40,20 +40,20 @@ func (a *ContinuationAgent) GenerateContinuations(ctx context.Context, req *Cont
 	// 2. Call Ollama with the prompt
 	// 3. Parse the JSON response
 	// 4. Return the structured response
-	
+
 	// Placeholder implementation
 	suggestions := []string{
 		"Continue with this line...",
 		"Or try this alternative...",
 		"Perhaps this direction...",
 	}
-	
+
 	// Adjust suggestions based on context if available
 	if len(req.PreviousLines) > 0 {
 		lastLine := req.PreviousLines[len(req.PreviousLines)-1]
 		suggestions[0] = fmt.Sprintf("Continuing from: %s", lastLine)
 	}
-	
+
 	return &ContinuationResponse{
 		Lines: suggestions,
 	}, nil

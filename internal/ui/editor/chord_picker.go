@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/Kyanite/noise/internal/data"
 	"github.com/Kyanite/noise/internal/ui/styles"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // chordPickerModel handles the chord picker UI component

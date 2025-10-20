@@ -5,12 +5,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/bubbles/textarea"
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Kyanite/noise/internal/app"
 	"github.com/Kyanite/noise/internal/domain"
 	"github.com/Kyanite/noise/internal/export"
 	"github.com/Kyanite/noise/internal/infra/files"
+	"github.com/charmbracelet/bubbles/textarea"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 // EditorState implementation methods

@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/ui/styles"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/Kyanite/noise/internal/app"
-	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // TheoryModel handles the music theory tools screen
@@ -21,8 +21,8 @@ type TheoryModel struct {
 	height int
 
 	// Tabs for different theory tools
-	activeTab  int
-	tabNames   []string
+	activeTab int
+	tabNames  []string
 
 	// Input fields
 	scaleInput       textinput.Model

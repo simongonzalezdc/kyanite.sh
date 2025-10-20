@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // ContentChangeEvent represents a content change event

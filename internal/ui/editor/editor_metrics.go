@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/Kyanite/noise/internal/app"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // EditorMetrics implementation methods

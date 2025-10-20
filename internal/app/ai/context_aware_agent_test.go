@@ -8,7 +8,7 @@ import (
 
 // mockLLMClient implements QuickLLMClient for testing
 type mockLLMClient struct {
-	responses map[string]string
+	responses  map[string]string
 	shouldFail bool
 }
 
@@ -16,7 +16,7 @@ func (m *mockLLMClient) Generate(ctx context.Context, prompt string, options map
 	if m.shouldFail {
 		return "", nil // Simulate failure with empty response
 	}
-	
+
 	// Return different responses based on prompt content
 	if containsString(prompt, "lyric") {
 		return "1. and the stars begin to fall\n2. while the city sleeps below\n3. as the morning light breaks through", nil
@@ -29,7 +29,7 @@ func (m *mockLLMClient) Generate(ctx context.Context, prompt string, options map
 	} else if containsString(prompt, "check") {
 		return "STRONG\nAdd vivid sensory details", nil
 	}
-	
+
 	// Default response
 	return "1. suggestion one\n2. suggestion two\n3. suggestion three", nil
 }
@@ -48,8 +48,8 @@ func TestQuickIdeaAgent_ContextAwareGeneration(t *testing.T) {
 		expectCount int
 	}{
 		{
-			name:   "Generate lyric continuations",
-			mode:   QuickIdeaModeUnstick,
+			name: "Generate lyric continuations",
+			mode: QuickIdeaModeUnstick,
 			context: `[Verse 1]
 I'm walking down the street tonight
 The city lights are shining bright`,
@@ -58,8 +58,8 @@ The city lights are shining bright`,
 			expectCount: 3,
 		},
 		{
-			name:   "Generate pattern continuations",
-			mode:   QuickIdeaModeUnstick,
+			name: "Generate pattern continuations",
+			mode: QuickIdeaModeUnstick,
 			context: `Verse: C - G - Am - F
 Chorus: F - C - G - Am`,
 			options:     map[string]string{},
@@ -67,49 +67,49 @@ Chorus: F - C - G - Am`,
 			expectCount: 3,
 		},
 		{
-			name:    "Generate lyric sparks",
-			mode:    QuickIdeaModeSpark,
-			context: "",
-			options: map[string]string{"theme": "love"},
+			name:        "Generate lyric sparks",
+			mode:        QuickIdeaModeSpark,
+			context:     "",
+			options:     map[string]string{"theme": "love"},
 			expectType:  "lyric",
 			expectCount: 3,
 		},
 		{
-			name:    "Generate pattern sparks",
-			mode:    QuickIdeaModeSpark,
-			context: "",
-			options: map[string]string{"theme": "rhythm"},
+			name:        "Generate pattern sparks",
+			mode:        QuickIdeaModeSpark,
+			context:     "",
+			options:     map[string]string{"theme": "rhythm"},
 			expectType:  "pattern",
 			expectCount: 3,
 		},
 		{
-			name:   "Generate lyric variations",
-			mode:   QuickIdeaModeTweak,
-			context: "Love is in the air tonight",
+			name:        "Generate lyric variations",
+			mode:        QuickIdeaModeTweak,
+			context:     "Love is in the air tonight",
 			options:     map[string]string{},
 			expectType:  "lyric",
 			expectCount: 3,
 		},
 		{
-			name:   "Generate pattern variations",
-			mode:   QuickIdeaModeTweak,
-			context: "C - G - Am - F",
+			name:        "Generate pattern variations",
+			mode:        QuickIdeaModeTweak,
+			context:     "C - G - Am - F",
 			options:     map[string]string{},
 			expectType:  "pattern",
 			expectCount: 3,
 		},
 		{
-			name:   "Generate lyric quality check",
-			mode:   QuickIdeaModeCheck,
-			context: "Love is in the air tonight",
+			name:        "Generate lyric quality check",
+			mode:        QuickIdeaModeCheck,
+			context:     "Love is in the air tonight",
 			options:     map[string]string{},
 			expectType:  "lyric",
 			expectCount: 0, // Quality checks return rating, not suggestions
 		},
 		{
-			name:   "Generate pattern quality check",
-			mode:   QuickIdeaModeCheck,
-			context: "C - G - Am - F",
+			name:        "Generate pattern quality check",
+			mode:        QuickIdeaModeCheck,
+			context:     "C - G - Am - F",
 			options:     map[string]string{},
 			expectType:  "pattern",
 			expectCount: 0, // Quality checks return rating, not suggestions
@@ -173,37 +173,37 @@ func TestQuickIdeaAgent_ContextAwareFallback(t *testing.T) {
 		expectCount int
 	}{
 		{
-			name:   "Fallback lyric continuations",
-			mode:   QuickIdeaModeUnstick,
-			context: "I'm walking down the street",
+			name:        "Fallback lyric continuations",
+			mode:        QuickIdeaModeUnstick,
+			context:     "I'm walking down the street",
 			options:     map[string]string{},
 			expectCount: 3,
 		},
 		{
-			name:   "Fallback pattern continuations",
-			mode:   QuickIdeaModeUnstick,
-			context: "C - G - Am - F",
+			name:        "Fallback pattern continuations",
+			mode:        QuickIdeaModeUnstick,
+			context:     "C - G - Am - F",
 			options:     map[string]string{},
 			expectCount: 3,
 		},
 		{
-			name:    "Fallback sparks",
-			mode:    QuickIdeaModeSpark,
-			context: "",
-			options: map[string]string{"theme": "love"},
+			name:        "Fallback sparks",
+			mode:        QuickIdeaModeSpark,
+			context:     "",
+			options:     map[string]string{"theme": "love"},
 			expectCount: 3,
 		},
 		{
-			name:   "Fallback variations",
-			mode:   QuickIdeaModeTweak,
-			context: "Love is in the air",
+			name:        "Fallback variations",
+			mode:        QuickIdeaModeTweak,
+			context:     "Love is in the air",
 			options:     map[string]string{},
 			expectCount: 3,
 		},
 		{
-			name:   "Fallback quality check",
-			mode:   QuickIdeaModeCheck,
-			context: "Some content",
+			name:        "Fallback quality check",
+			mode:        QuickIdeaModeCheck,
+			context:     "Some content",
 			options:     map[string]string{},
 			expectCount: 0, // Quality checks don't return suggestions
 		},
@@ -323,7 +323,7 @@ func TestQuickIdeaAgent_ErrorHandling(t *testing.T) {
 				if err != nil {
 					t.Errorf("Generate() unexpected error = %v", err)
 				}
-				
+
 				if resp == nil {
 					t.Error("Generate() should return response even on fallback")
 				}
@@ -336,9 +336,9 @@ func TestQuickIdeaAgent_ContextDetection(t *testing.T) {
 	agent := NewQuickIdeaAgent()
 
 	tests := []struct {
-		name            string
-		content         string
-		expectedType    ContentType
+		name         string
+		content      string
+		expectedType ContentType
 	}{
 		{
 			name: "Detect lyric content",
@@ -374,7 +374,7 @@ I'm walking down the street tonight`,
 
 func TestQuickIdeaAgent_TimeoutHandling(t *testing.T) {
 	agent := NewQuickIdeaAgent()
-	
+
 	// Create a slow client that will timeout
 	slowClient := &mockLLMClient{shouldFail: false}
 	agent = agent.WithClient(slowClient, 1*time.Millisecond) // Very short timeout

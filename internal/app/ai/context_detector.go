@@ -33,32 +33,32 @@ type ContextDetector struct {
 func NewContextDetector() *ContextDetector {
 	detector := &ContextDetector{
 		mixedThreshold: 0.45, // Require stronger presence from both types to be considered mixed
-		analysisWindow: 10,  // Analyze last 10 lines for context
+		analysisWindow: 10,   // Analyze last 10 lines for context
 	}
 
 	// Initialize lyric detection patterns
 	detector.lyricPatterns = []*regexp.Regexp{
 		// Common lyrical structures
 		regexp.MustCompile(`(?i)^\s*(verse|chorus|bridge|intro|outro|pre-chorus)\s*[:\-\d]*`),
-		regexp.MustCompile(`(?i)^\s*\[.*\]\s*$`), // Section headers in brackets
-		regexp.MustCompile(`(?m)^\s*[A-Z][^.!?]*[.!?]`), // Sentences starting with capital
-		regexp.MustCompile(`(?i)\b(I'm|you're|we're|they're|can't|won't|don't)\b`), // Contractions
+		regexp.MustCompile(`(?i)^\s*\[.*\]\s*$`),                                     // Section headers in brackets
+		regexp.MustCompile(`(?m)^\s*[A-Z][^.!?]*[.!?]`),                              // Sentences starting with capital
+		regexp.MustCompile(`(?i)\b(I'm|you're|we're|they're|can't|won't|don't)\b`),   // Contractions
 		regexp.MustCompile(`(?i)\b(love|heart|night|day|sky|rain|sun|moon|stars)\b`), // Common lyrical words
-		regexp.MustCompile(`(?m)^\s*[A-Z][a-z]+\s+[a-z]+\s+[a-z]+\s+`), // Rhyming pattern detection
-		regexp.MustCompile(`(?i)\b(baby|honey|darling|sweetheart)\b`), // Terms of endearment
-		regexp.MustCompile(`(?m)^\s*\w+\s+\w+\s+\w+\s+\w+\s*$`), // Short lines typical of lyrics
+		regexp.MustCompile(`(?m)^\s*[A-Z][a-z]+\s+[a-z]+\s+[a-z]+\s+`),               // Rhyming pattern detection
+		regexp.MustCompile(`(?i)\b(baby|honey|darling|sweetheart)\b`),                // Terms of endearment
+		regexp.MustCompile(`(?m)^\s*\w+\s+\w+\s+\w+\s+\w+\s*$`),                      // Short lines typical of lyrics
 	}
 
 	// Initialize pattern detection patterns
 	detector.patternPatterns = []*regexp.Regexp{
 		// Chord progressions
 		regexp.MustCompile(`(?i)^\s*([A-G][#b]?(m|maj|min|dim|aug)?\s*[-|/]\s*)+[A-G][#b]?(m|maj|min|dim|aug)?\s*$`),
-		regexp.MustCompile(`(?i)^\s*(?:[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?)(?:\s+(?:[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?))*\s*$`), // Space-separated chords
+		regexp.MustCompile(`(?i)^\s*(?:[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?)(?:\s+(?:[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?))*\s*$`),                                                                     // Space-separated chords
 		regexp.MustCompile(`(?i)^\s*(?:verse|chorus|bridge|intro|outro|pre-chorus|prechorus)\s*:\s*(?:[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?)(?:\s*[-|/ ]\s*[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?)*\s*$`), // Section-labelled chords
-		regexp.MustCompile(`(?i)^\s*([IVX]+[\/]?\s*)+[IVX]+\s*$`), // Roman numerals
-		regexp.MustCompile(`(?i)^\s*(?:[IVX]+[ivx]?)(?:\s*[-|/ ]\s*(?:[IVX]+[ivx]?))*\s*$`),                          // Roman numeral sequences with separators
+		regexp.MustCompile(`(?i)^\s*([IVX]+[\/]?\s*)+[IVX]+\s*$`),                                                                                          // Roman numerals
+		regexp.MustCompile(`(?i)^\s*(?:[IVX]+[ivx]?)(?:\s*[-|/ ]\s*(?:[IVX]+[ivx]?))*\s*$`),                                                                // Roman numeral sequences with separators
 		regexp.MustCompile(`(?i)^\s*(?:verse|chorus|bridge|intro|outro|pre-chorus|prechorus)\s*:\s*(?:[IVX]+[ivx]?)(?:\s*[-|/ ]\s*(?:[IVX]+[ivx]?))*\s*$`), // Section-labelled roman numerals
-		regexp.MustCompile(`(?i)^\s*\|(?:\s*[IVX]+[ivx]?\s*\|)+\s*$`),                                                 // Roman numeral grids with bars
+		regexp.MustCompile(`(?i)^\s*\|(?:\s*[IVX]+[ivx]?\s*\|)+\s*$`),                                                                                      // Roman numeral grids with bars
 		// Musical notation
 		regexp.MustCompile(`(?i)^\s*(verse|chorus)\s*:\s*[A-G]`),
 		regexp.MustCompile(`(?i)^\s*tempo\s*:\s*\d+\s*bpm`),
@@ -369,9 +369,9 @@ func (cd *ContextDetector) GetContextAnalysis(content string) *ContextAnalysis {
 	// Calculate ratios and confidence
 	lyricRatio := float64(lyricMatches) / float64(totalLines)
 	patternRatio := float64(patternMatches) / float64(totalLines)
-	
+
 	contentType := cd.AnalyzeContent(content)
-	
+
 	// Calculate confidence based on how dominant the detected type is
 	var confidence float64
 	switch contentType {
@@ -391,40 +391,40 @@ func (cd *ContextDetector) GetContextAnalysis(content string) *ContextAnalysis {
 	}
 
 	return &ContextAnalysis{
-		ContentType:           contentType,
-		Confidence:            confidence,
-		TotalLines:            totalLines,
-		LyricMatches:          lyricMatches,
-		PatternMatches:        patternMatches,
-		EmptyLines:            emptyLines,
-		MatchedLyricPatterns:  matchedLyricPatterns,
+		ContentType:            contentType,
+		Confidence:             confidence,
+		TotalLines:             totalLines,
+		LyricMatches:           lyricMatches,
+		PatternMatches:         patternMatches,
+		EmptyLines:             emptyLines,
+		MatchedLyricPatterns:   matchedLyricPatterns,
 		MatchedPatternPatterns: matchedPatternPatterns,
-		Details:               fmt.Sprintf("Analyzed %d lines, found %d lyric matches and %d pattern matches", totalLines, lyricMatches, patternMatches),
+		Details:                fmt.Sprintf("Analyzed %d lines, found %d lyric matches and %d pattern matches", totalLines, lyricMatches, patternMatches),
 	}
 }
 
 // ContextAnalysis provides detailed information about content analysis
 type ContextAnalysis struct {
-	ContentType           ContentType
-	Confidence            float64
-	TotalLines            int
-	LyricMatches          int
-	PatternMatches        int
-	EmptyLines            int
-	MatchedLyricPatterns  []string
+	ContentType            ContentType
+	Confidence             float64
+	TotalLines             int
+	LyricMatches           int
+	PatternMatches         int
+	EmptyLines             int
+	MatchedLyricPatterns   []string
 	MatchedPatternPatterns []string
-	Details               string
+	Details                string
 }
 
 // IsLyricContent returns true if the content is primarily lyrics
 func (ca *ContextAnalysis) IsLyricContent() bool {
-	return ca.ContentType == ContentTypeLyrics || 
+	return ca.ContentType == ContentTypeLyrics ||
 		(ca.ContentType == ContentTypeMixed && ca.LyricMatches >= ca.PatternMatches)
 }
 
 // IsPatternContent returns true if the content is primarily patterns
 func (ca *ContextAnalysis) IsPatternContent() bool {
-	return ca.ContentType == ContentTypePatterns || 
+	return ca.ContentType == ContentTypePatterns ||
 		(ca.ContentType == ContentTypeMixed && ca.PatternMatches > ca.LyricMatches)
 }
 

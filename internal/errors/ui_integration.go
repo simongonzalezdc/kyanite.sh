@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Kyanite/noise/internal/logging"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/Kyanite/noise/internal/logging"
 )
 
 // ErrorRecoveryUI handles the UI integration for error recovery

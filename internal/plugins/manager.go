@@ -257,7 +257,7 @@ func (m *DefaultManager) DisablePlugin(id string) error {
 	defer m.mutex.Unlock()
 
 	p, exists := m.plugins[id]
-	if (!exists) {
+	if !exists {
 		return fmt.Errorf("plugin %s not found", id)
 	}
 

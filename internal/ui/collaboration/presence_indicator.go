@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/Kyanite/noise/internal/collaboration"
 	"github.com/Kyanite/noise/internal/ui/dimension"
 	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // PresenceIndicatorModel handles displaying user presence indicators

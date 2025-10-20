@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/Kyanite/noise/internal/ui/dimension"
 	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // CollaborationStatusBar displays collaboration status in the status bar

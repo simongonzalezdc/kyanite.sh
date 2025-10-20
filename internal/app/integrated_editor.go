@@ -278,12 +278,12 @@ func (s *IntegratedEditorService) GetSongInfo(filePath string) (*SongInfo, error
 
 // SongInfo represents comprehensive information about a song
 type SongInfo struct {
-	FilePath     string                `json:"file_path"`
-	FileInfo     *files.FileInfo       `json:"file_info"`
-	Song         *domain.Song          `json:"song,omitempty"`
-	DatabaseSong *domain.Song          `json:"database_song,omitempty"`
-	HasContent   bool                  `json:"has_content"`
-	InDatabase   bool                  `json:"in_database"`
+	FilePath     string          `json:"file_path"`
+	FileInfo     *files.FileInfo `json:"file_info"`
+	Song         *domain.Song    `json:"song,omitempty"`
+	DatabaseSong *domain.Song    `json:"database_song,omitempty"`
+	HasContent   bool            `json:"has_content"`
+	InDatabase   bool            `json:"in_database"`
 }
 
 // syncSongToDatabase syncs a song to the database

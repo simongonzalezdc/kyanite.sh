@@ -8,7 +8,7 @@ import (
 func TestStubKnowledgeBase_Search(t *testing.T) {
 	kb := NewStubKnowledgeBase()
 	ctx := context.Background()
-	
+
 	tests := []struct {
 		name     string
 		query    string
@@ -52,7 +52,7 @@ func TestStubKnowledgeBase_Search(t *testing.T) {
 			expected: 0,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := kb.Search(ctx, tt.query, tt.options)
@@ -60,15 +60,15 @@ func TestStubKnowledgeBase_Search(t *testing.T) {
 				t.Errorf("Search() error = %v", err)
 				return
 			}
-			
+
 			if len(result.Cards) != tt.expected {
 				t.Errorf("Search() returned %d cards, expected %d", len(result.Cards), tt.expected)
 			}
-			
+
 			if result.Query != tt.query {
 				t.Errorf("Search() query = %s, expected %s", result.Query, tt.query)
 			}
-			
+
 			if result.Duration == 0 {
 				t.Error("Search() duration should be > 0")
 			}
@@ -79,33 +79,33 @@ func TestStubKnowledgeBase_Search(t *testing.T) {
 func TestStubKnowledgeBase_CardManagement(t *testing.T) {
 	kb := NewStubKnowledgeBase()
 	ctx := context.Background()
-	
+
 	// Test adding a card
 	newCard := Card{
-		ID:       "test-card",
-		Title:    "Test Card",
-		Content:  "This is a test card",
-		Category: "test",
-		Tags:     []string{"test", "example"},
+		ID:        "test-card",
+		Title:     "Test Card",
+		Content:   "This is a test card",
+		Category:  "test",
+		Tags:      []string{"test", "example"},
 		Relevance: 0.8,
 	}
-	
+
 	err := kb.AddCard(ctx, newCard)
 	if err != nil {
 		t.Errorf("AddCard() error = %v", err)
 	}
-	
+
 	// Test getting the card
 	retrieved, err := kb.GetCard(ctx, "test-card")
 	if err != nil {
 		t.Errorf("GetCard() error = %v", err)
 		return
 	}
-	
+
 	if retrieved.Title != "Test Card" {
 		t.Errorf("GetCard() title = %s, expected Test Card", retrieved.Title)
 	}
-	
+
 	// Test updating the card
 	updatedCard := newCard
 	updatedCard.Content = "Updated content"
@@ -113,24 +113,24 @@ func TestStubKnowledgeBase_CardManagement(t *testing.T) {
 	if err != nil {
 		t.Errorf("UpdateCard() error = %v", err)
 	}
-	
+
 	// Verify the update
 	retrieved, err = kb.GetCard(ctx, "test-card")
 	if err != nil {
 		t.Errorf("GetCard() after update error = %v", err)
 		return
 	}
-	
+
 	if retrieved.Content != "Updated content" {
 		t.Errorf("GetCard() content = %s, expected Updated content", retrieved.Content)
 	}
-	
+
 	// Test deleting the card
 	err = kb.DeleteCard(ctx, "test-card")
 	if err != nil {
 		t.Errorf("DeleteCard() error = %v", err)
 	}
-	
+
 	// Verify deletion
 	_, err = kb.GetCard(ctx, "test-card")
 	if err == nil {
@@ -141,25 +141,25 @@ func TestStubKnowledgeBase_CardManagement(t *testing.T) {
 func TestStubKnowledgeBase_CategoriesAndTags(t *testing.T) {
 	kb := NewStubKnowledgeBase()
 	ctx := context.Background()
-	
+
 	categories, err := kb.GetCategories(ctx)
 	if err != nil {
 		t.Errorf("GetCategories() error = %v", err)
 		return
 	}
-	
+
 	expectedCategories := []string{
 		"rhyme-schemes",
-		"chord-progressions", 
+		"chord-progressions",
 		"lyrical-techniques",
 		"song-structure",
 		"inspiration",
 	}
-	
+
 	if len(categories) != len(expectedCategories) {
 		t.Errorf("GetCategories() returned %d categories, expected %d", len(categories), len(expectedCategories))
 	}
-	
+
 	for _, expected := range expectedCategories {
 		found := false
 		for _, actual := range categories {
@@ -172,17 +172,17 @@ func TestStubKnowledgeBase_CategoriesAndTags(t *testing.T) {
 			t.Errorf("GetCategories() missing expected category: %s", expected)
 		}
 	}
-	
+
 	tags, err := kb.GetTags(ctx)
 	if err != nil {
 		t.Errorf("GetTags() error = %v", err)
 		return
 	}
-	
+
 	if len(tags) == 0 {
 		t.Error("GetTags() should return tags")
 	}
-	
+
 	// Check for some expected tags
 	expectedTags := []string{"rhyme", "chords", "imagery", "love"}
 	for _, expected := range expectedTags {
@@ -202,25 +202,25 @@ func TestStubKnowledgeBase_CategoriesAndTags(t *testing.T) {
 func TestStubKnowledgeBase_Status(t *testing.T) {
 	kb := NewStubKnowledgeBase()
 	ctx := context.Background()
-	
+
 	status := kb.GetStatus(ctx)
 	if status == nil {
 		t.Error("GetStatus() should not return nil")
 		return
 	}
-	
+
 	if status.Available {
 		t.Error("Stub knowledge base should not be available as real KB")
 	}
-	
+
 	if status.CardCount == 0 {
 		t.Error("Stub knowledge base should have cards")
 	}
-	
+
 	if status.Version != "stub-1.0.0" {
 		t.Errorf("Status version = %s, expected stub-1.0.0", status.Version)
 	}
-	
+
 	if status.Error == "" {
 		t.Error("Stub knowledge base should have error message indicating it's a stub")
 	}
@@ -229,7 +229,7 @@ func TestStubKnowledgeBase_Status(t *testing.T) {
 func TestStubKnowledgeBase_IsAvailable(t *testing.T) {
 	kb := NewStubKnowledgeBase()
 	ctx := context.Background()
-	
+
 	// Stub should always return true for IsAvailable (graceful degradation)
 	if !kb.IsAvailable(ctx) {
 		t.Error("Stub knowledge base should be available for graceful degradation")
@@ -239,7 +239,7 @@ func TestStubKnowledgeBase_IsAvailable(t *testing.T) {
 func TestStubEnhancementProvider_EnhanceLyrics(t *testing.T) {
 	provider := NewStubEnhancementProvider()
 	ctx := context.Background()
-	
+
 	tests := []struct {
 		name     string
 		lyrics   string
@@ -259,7 +259,7 @@ func TestStubEnhancementProvider_EnhanceLyrics(t *testing.T) {
 			expected: "Imagery",
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			suggestion, err := provider.EnhanceLyrics(ctx, tt.lyrics, tt.options)
@@ -267,23 +267,23 @@ func TestStubEnhancementProvider_EnhanceLyrics(t *testing.T) {
 				t.Errorf("EnhanceLyrics() error = %v", err)
 				return
 			}
-			
+
 			if suggestion.Original != tt.lyrics {
 				t.Errorf("EnhanceLyrics() original = %s, expected %s", suggestion.Original, tt.lyrics)
 			}
-			
+
 			if suggestion.Suggestion == "" {
 				t.Error("EnhanceLyrics() suggestion should not be empty")
 			}
-			
+
 			if suggestion.Reason == "" {
 				t.Error("EnhanceLyrics() reason should not be empty")
 			}
-			
+
 			if suggestion.Confidence <= 0 {
 				t.Error("EnhanceLyrics() confidence should be > 0")
 			}
-			
+
 			// Check if expected content is in the suggestion
 			if tt.expected != "" && !containsString(suggestion.Suggestion, tt.expected) {
 				t.Errorf("EnhanceLyrics() suggestion should contain %s", tt.expected)
@@ -295,7 +295,7 @@ func TestStubEnhancementProvider_EnhanceLyrics(t *testing.T) {
 func TestStubEnhancementProvider_EnhancePatterns(t *testing.T) {
 	provider := NewStubEnhancementProvider()
 	ctx := context.Background()
-	
+
 	tests := []struct {
 		name     string
 		pattern  string
@@ -315,7 +315,7 @@ func TestStubEnhancementProvider_EnhancePatterns(t *testing.T) {
 			expected: "C - G - Am - F", // Should return the four-chord progression
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			suggestion, err := provider.EnhancePatterns(ctx, tt.pattern, tt.options)
@@ -323,27 +323,27 @@ func TestStubEnhancementProvider_EnhancePatterns(t *testing.T) {
 				t.Errorf("EnhancePatterns() error = %v", err)
 				return
 			}
-			
+
 			if suggestion.Original != tt.pattern {
 				t.Errorf("EnhancePatterns() original = %s, expected %s", suggestion.Original, tt.pattern)
 			}
-			
+
 			if suggestion.Suggestion == "" {
 				t.Error("EnhancePatterns() suggestion should not be empty")
 			}
-			
+
 			if suggestion.Reason == "" {
 				t.Error("EnhancePatterns() reason should not be empty")
 			}
-			
+
 			if suggestion.Confidence <= 0 {
 				t.Error("EnhancePatterns() confidence should be > 0")
 			}
-			
+
 			if suggestion.PatternType == "" {
 				t.Error("EnhancePatterns() pattern type should not be empty")
 			}
-			
+
 			// Check if expected content is in the suggestion
 			if tt.expected != "" && !containsString(suggestion.Suggestion, tt.expected) {
 				t.Errorf("EnhancePatterns() suggestion should contain %s", tt.expected)
@@ -355,17 +355,17 @@ func TestStubEnhancementProvider_EnhancePatterns(t *testing.T) {
 func TestStubEnhancementProvider_GetInspirationCards(t *testing.T) {
 	provider := NewStubEnhancementProvider()
 	ctx := context.Background()
-	
+
 	result, err := provider.GetInspirationCards(ctx, "love", SearchOptions{Limit: 5})
 	if err != nil {
 		t.Errorf("GetInspirationCards() error = %v", err)
 		return
 	}
-	
+
 	if len(result.Cards) == 0 {
 		t.Error("GetInspirationCards() should return cards")
 	}
-	
+
 	// All cards should be from inspiration category
 	for _, card := range result.Cards {
 		if card.Category != "inspiration" {
@@ -377,13 +377,13 @@ func TestStubEnhancementProvider_GetInspirationCards(t *testing.T) {
 func TestStubKnowledgeBase_InitializeAndClose(t *testing.T) {
 	kb := NewStubKnowledgeBase()
 	ctx := context.Background()
-	
+
 	// Test initialize
 	err := kb.Initialize(ctx)
 	if err != nil {
 		t.Errorf("Initialize() error = %v", err)
 	}
-	
+
 	// Test close
 	err = kb.Close(ctx)
 	if err != nil {
@@ -394,24 +394,24 @@ func TestStubKnowledgeBase_InitializeAndClose(t *testing.T) {
 func TestStubKnowledgeBase_PerformanceTracking(t *testing.T) {
 	kb := NewStubKnowledgeBase()
 	ctx := context.Background()
-	
+
 	// Initial state should have zero searches
 	if kb.searchCount != 0 {
 		t.Errorf("Initial search count = %d, expected 0", kb.searchCount)
 	}
-	
+
 	// Perform a search
 	_, err := kb.Search(ctx, "test", SearchOptions{Limit: 5})
 	if err != nil {
 		t.Errorf("Search() error = %v", err)
 		return
 	}
-	
+
 	// Check that search count increased
 	if kb.searchCount != 1 {
 		t.Errorf("Search count after search = %d, expected 1", kb.searchCount)
 	}
-	
+
 	// Check that last search time was set
 	if kb.lastSearchTime == 0 {
 		t.Error("Last search time should be set after search")
@@ -420,14 +420,14 @@ func TestStubKnowledgeBase_PerformanceTracking(t *testing.T) {
 
 // Helper function to check if a string contains a substring
 func containsString(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(substr) == 0 || 
-		(len(s) > len(substr) && (s[:len(substr)] == substr || s[len(s)-len(substr):] == substr || 
-		func() bool {
-			for i := 0; i <= len(s)-len(substr); i++ {
-				if s[i:i+len(substr)] == substr {
-					return true
+	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
+		(len(s) > len(substr) && (s[:len(substr)] == substr || s[len(s)-len(substr):] == substr ||
+			func() bool {
+				for i := 0; i <= len(s)-len(substr); i++ {
+					if s[i:i+len(substr)] == substr {
+						return true
+					}
 				}
-			}
-			return false
-		}())))
+				return false
+			}())))
 }

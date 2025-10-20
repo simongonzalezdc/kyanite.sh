@@ -26,10 +26,10 @@ func TestFileIO() {
 
 	// Create file service
 	fileService, err := files.New(files.Config{
-		BaseDir:     testDir,
-		AutoSave:    true,
+		BaseDir:          testDir,
+		AutoSave:         true,
 		AutoSaveInterval: time.Minute,
-		BackupCount: 3,
+		BackupCount:      3,
 	})
 	if err != nil {
 		log.Fatalf("Failed to create file service: %v", err)
@@ -40,14 +40,14 @@ func TestFileIO() {
 	fmt.Println("\n1. Creating a new song...")
 	song := &domain.Song{
 		Metadata: domain.SongMetadata{
-			Title:     "Test Song",
-			Artist:    "Test Artist",
-			Key:       "C Major",
-			Tempo:     120,
+			Title:         "Test Song",
+			Artist:        "Test Artist",
+			Key:           "C Major",
+			Tempo:         120,
 			TimeSignature: "4/4",
-			Tags:      []string{"test", "demo"},
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			Tags:          []string{"test", "demo"},
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
 		},
 		Sections: []domain.Section{
 			{

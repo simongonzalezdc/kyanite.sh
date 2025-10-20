@@ -150,19 +150,19 @@ You left me here all alone`,
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			analysis := detector.GetContextAnalysis(tt.content)
-			
+
 			if analysis.ContentType != tt.expectedType {
 				t.Errorf("GetContextAnalysis().ContentType = %v, expected %v", analysis.ContentType, tt.expectedType)
 			}
-			
+
 			if analysis.Confidence < tt.expectedMinConf {
 				t.Errorf("GetContextAnalysis().Confidence = %v, expected >= %v", analysis.Confidence, tt.expectedMinConf)
 			}
-			
+
 			if analysis.TotalLines == 0 {
 				t.Error("GetContextAnalysis().TotalLines should be > 0 for non-empty content")
 			}
-			
+
 			if analysis.Details == "" {
 				t.Error("GetContextAnalysis().Details should not be empty")
 			}
@@ -234,7 +234,7 @@ func TestContextAnalysis_HelperMethods(t *testing.T) {
 			if tt.analysis.IsLyricContent() != tt.isLyric {
 				t.Errorf("IsLyricContent() = %v, expected %v", tt.analysis.IsLyricContent(), tt.isLyric)
 			}
-			
+
 			if tt.analysis.IsPatternContent() != tt.isPattern {
 				t.Errorf("IsPatternContent() = %v, expected %v", tt.analysis.IsPatternContent(), tt.isPattern)
 			}
@@ -261,13 +261,13 @@ func TestContextDetector_EdgeCases(t *testing.T) {
 			expected: ContentTypeUnknown,
 		},
 		{
-			name: "Single lyric line",
-			content: `I love you more than words can say`,
+			name:     "Single lyric line",
+			content:  `I love you more than words can say`,
 			expected: ContentTypeLyrics,
 		},
 		{
-			name: "Single chord line",
-			content: `C - G - Am - F`,
+			name:     "Single chord line",
+			content:  `C - G - Am - F`,
 			expected: ContentTypePatterns,
 		},
 		{
@@ -290,7 +290,7 @@ I love you`,
 
 func TestContextDetector_Performance(t *testing.T) {
 	detector := NewContextDetector()
-	
+
 	// Large content test
 	largeContent := ""
 	for i := 0; i < 100; i++ {
@@ -299,7 +299,7 @@ func TestContextDetector_Performance(t *testing.T) {
 		largeContent += "With some lyrical content and emotion\n"
 		largeContent += "Love and heartbreak and feeling strong\n\n"
 	}
-	
+
 	// This should complete quickly even with large content
 	t.Run("Large content analysis", func(t *testing.T) {
 		result := detector.AnalyzeContent(largeContent)
@@ -311,18 +311,18 @@ func TestContextDetector_Performance(t *testing.T) {
 
 func TestContextDetector_Consistency(t *testing.T) {
 	detector := NewContextDetector()
-	
+
 	content := `[Verse]
 C G Am F
 I'm walking down the street tonight
 The city lights are shining bright`
-	
+
 	// Multiple calls should return the same result
 	t.Run("Consistent results", func(t *testing.T) {
 		result1 := detector.AnalyzeContent(content)
 		result2 := detector.AnalyzeContent(content)
 		result3 := detector.AnalyzeContent(content)
-		
+
 		if result1 != result2 || result2 != result3 {
 			t.Error("AnalyzeContent() should return consistent results for the same input")
 		}

@@ -60,11 +60,11 @@ func (et ExportType) String() string {
 
 // ExportOptions contains options for the export
 type ExportOptions struct {
-	Type        ExportType
-	Title       string
-	BPM         int
+	Type         ExportType
+	Title        string
+	BPM          int
 	IncludeNotes bool
-	OutputPath  string
+	OutputPath   string
 }
 
 // DefaultExportOptions returns default export options

@@ -32,10 +32,10 @@ type Service struct {
 
 // Config holds file service configuration
 type Config struct {
-	BaseDir     string
-	AutoSave    bool
+	BaseDir          string
+	AutoSave         bool
 	AutoSaveInterval time.Duration
-	BackupCount int
+	BackupCount      int
 }
 
 // FileWatcher defines the interface for file change notifications
@@ -48,19 +48,19 @@ type FileWatcher interface {
 type FileEvent string
 
 const (
-	EventCreated FileEvent = "created"
+	EventCreated  FileEvent = "created"
 	EventModified FileEvent = "modified"
-	EventDeleted FileEvent = "deleted"
-	EventRenamed FileEvent = "renamed"
+	EventDeleted  FileEvent = "deleted"
+	EventRenamed  FileEvent = "renamed"
 )
 
 // cachedFile represents a cached file with metadata
 type cachedFile struct {
-	content   string
-	metadata  domain.SongMetadata
-	modTime   time.Time
-	size      int64
-	lastRead  time.Time
+	content  string
+	metadata domain.SongMetadata
+	modTime  time.Time
+	size     int64
+	lastRead time.Time
 }
 
 // New creates a new file service instance
@@ -119,7 +119,7 @@ func (s *Service) ReadSong(filePath string) (*domain.Song, error) {
 	if err != nil {
 		return nil, errors.NewFileError("stat", fullPath, err)
 	}
-	
+
 	if fileInfo.Size() > maxFileSize {
 		return nil, errors.NewFileError("size_limit", fullPath,
 			fmt.Errorf("file size %d exceeds maximum allowed size %d", fileInfo.Size(), maxFileSize))

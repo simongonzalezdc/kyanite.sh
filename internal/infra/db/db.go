@@ -15,8 +15,8 @@ import (
 	"sync"
 	"time"
 
-	errutil "github.com/Kyanite/noise/internal/errutil"
 	"github.com/Kyanite/noise/internal/domain"
+	errutil "github.com/Kyanite/noise/internal/errutil"
 	"github.com/Kyanite/noise/internal/logging"
 )
 

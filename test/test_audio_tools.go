@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Kyanite/noise/internal/ui"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 // TestAudioModelCreation tests that the audio model can be created successfully

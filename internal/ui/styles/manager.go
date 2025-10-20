@@ -86,33 +86,33 @@ func (tm *ThemeManager) GetThemeDescription() string {
 // ApplyTheme applies the current theme to all global style variables
 func (tm *ThemeManager) ApplyTheme() {
 	colors := tm.currentTheme.Colors
-	
+
 	// Primary Colors
 	Primary = colors.Primary
 	Secondary = colors.Secondary
 	Accent = colors.Accent
-	
+
 	// Functional Colors
 	Success = colors.Success
 	Warning = colors.Warning
 	Error = colors.Error
 	Info = colors.Info
-	
+
 	// Background & Text Colors
 	Background = colors.Background
 	TextPrimary = colors.TextPrimary
 	TextSecondary = colors.TextSecondary
 	TextMuted = colors.TextMuted
 	TextAccent = colors.TextAccent
-	
+
 	// Extended Palette
 	Dark1 = colors.Dark1
 	Dark2 = colors.Dark2
 	Dark3 = colors.Dark3
-	
+
 	// Border color
 	BorderColor = colors.Dark3
-	
+
 	// Update all styles that depend on these colors
 	updateStyles()
 }
@@ -122,30 +122,30 @@ func (tm *ThemeManager) saveThemePreference() error {
 	if tm.themeFilePath == "" {
 		return nil // No file path configured, skip saving
 	}
-	
+
 	// Ensure directory exists
 	dir := filepath.Dir(tm.themeFilePath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return errutil.Wrap(err, "create theme directory")
 	}
-	
+
 	// Create theme preference data
 	pref := ThemePreference{
-		ThemeName: tm.currentTheme.Name,
+		ThemeName:  tm.currentTheme.Name,
 		ThemeIndex: tm.themeIndex,
 	}
-	
+
 	// Marshal to JSON
 	data, err := json.MarshalIndent(pref, "", "  ")
 	if err != nil {
 		return errutil.Wrap(err, "marshal theme preference")
 	}
-	
+
 	// Write to file
 	if err := os.WriteFile(tm.themeFilePath, data, 0644); err != nil {
 		return errutil.Wrap(err, "write theme preference")
 	}
-	
+
 	return nil
 }
 
@@ -154,24 +154,24 @@ func (tm *ThemeManager) loadThemePreference() error {
 	if tm.themeFilePath == "" {
 		return nil // No file path configured, skip loading
 	}
-	
+
 	// Check if file exists
 	if _, err := os.Stat(tm.themeFilePath); os.IsNotExist(err) {
 		return nil // File doesn't exist, use default theme
 	}
-	
+
 	// Read file
 	data, err := os.ReadFile(tm.themeFilePath)
 	if err != nil {
 		return errutil.Wrap(err, "read theme preference")
 	}
-	
+
 	// Unmarshal JSON
 	var pref ThemePreference
 	if err := json.Unmarshal(data, &pref); err != nil {
 		return errutil.Wrap(err, "unmarshal theme preference")
 	}
-	
+
 	// Apply theme if found
 	if pref.ThemeName != "" {
 		if err := tm.SetTheme(pref.ThemeName); err != nil {
@@ -181,14 +181,14 @@ func (tm *ThemeManager) loadThemePreference() error {
 			}
 		}
 	}
-	
+
 	return nil
 }
 
 // ThemePreference represents a saved theme preference
 type ThemePreference struct {
-	ThemeName string `json:"theme_name"`
-	ThemeIndex int   `json:"theme_index"`
+	ThemeName  string `json:"theme_name"`
+	ThemeIndex int    `json:"theme_index"`
 }
 
 // updateStyles updates all global styles to use the current theme colors
@@ -199,48 +199,48 @@ func updateStyles() {
 	Text = Text.Foreground(TextPrimary)
 	Muted = Muted.Foreground(TextMuted)
 	Emphasis = Emphasis.Foreground(TextAccent)
-	
+
 	// Border Styles
 	Border = Border.BorderForeground(BorderColor)
 	BorderActive = BorderActive.BorderForeground(Primary)
 	BorderThick = BorderThick.BorderForeground(Accent)
-	
+
 	// Button Styles
 	ButtonPrimary = ButtonPrimary.Background(Primary).Foreground(Background)
 	ButtonSecondary = ButtonSecondary.BorderForeground(Secondary).Foreground(Secondary)
 	ButtonAccent = ButtonAccent.Background(Accent).Foreground(Background)
 	ButtonDisabled = ButtonDisabled.Background(Dark3).Foreground(TextMuted)
-	
+
 	// Status Styles
 	StatusSuccess = StatusSuccess.Foreground(Success)
 	StatusWarning = StatusWarning.Foreground(Warning)
 	StatusError = StatusError.Foreground(Error)
 	StatusInfo = StatusInfo.Foreground(Info)
-	
+
 	// Editor Component Styles
 	EditorPane = EditorPane.BorderForeground(Primary)
 	PreviewPane = PreviewPane.BorderForeground(Secondary)
 	StatusBar = StatusBar.Background(Dark2).Foreground(TextPrimary)
 	Cursor = Cursor.Background(Primary).Foreground(Background)
 	Divider = Divider.Foreground(BorderColor)
-	
+
 	// Typography Styles
 	H1 = H1.Foreground(Primary)
 	H2 = H2.Foreground(Secondary)
 	H3 = H3.Foreground(TextAccent)
 	Code = Code.Foreground(Accent).Background(Dark2)
 	Quote = Quote.Foreground(TextSecondary).BorderLeft(true).BorderForeground(Primary)
-	
+
 	// List & Menu Styles
 	ListItem = ListItem.Foreground(TextPrimary)
 	ListItemSelected = ListItemSelected.Background(Primary).Foreground(Background)
-	
+
 	// Card & Panel Styles
 	Card = Card.BorderForeground(BorderColor)
 	CardHighlight = CardHighlight.BorderForeground(Accent)
 	CardSuccess = CardSuccess.BorderForeground(Success)
 	CardError = CardError.BorderForeground(Error)
-	
+
 	// Badge & Tag Styles
 	Tag = Tag.Background(Secondary).Foreground(TextPrimary)
 	Badge = Badge.Background(Accent).Foreground(Background)
@@ -254,7 +254,7 @@ func (tm *ThemeManager) Init() {
 		tm.currentTheme = &MidnightJazzTheme
 		tm.themeIndex = 0
 	}
-	
+
 	// Apply the current theme
 	tm.ApplyTheme()
 }

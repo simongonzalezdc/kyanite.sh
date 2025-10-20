@@ -376,9 +376,9 @@ func TestAutoSaveDebouncing(t *testing.T) {
 
 	// Capture status transitions to observe asynchronous behavior
 	var (
-		statuses   []app.AutoSaveStatus
-		statusMu   sync.Mutex
-		statusCh   = make(chan app.AutoSaveStatus, 10)
+		statuses []app.AutoSaveStatus
+		statusMu sync.Mutex
+		statusCh = make(chan app.AutoSaveStatus, 10)
 	)
 	service.SetStatusChangeCallback(func(status app.AutoSaveStatus) {
 		statusMu.Lock()
@@ -513,9 +513,9 @@ func TestAutoSavePeriodicSaving(t *testing.T) {
 		t.Fatalf("Failed to start service: %v", err)
 	}
 	defer func() {
-	if err := service.Stop(); err != nil {
-		t.Logf("Warning: Failed to stop auto-save service: %v", err)
-	}
+		if err := service.Stop(); err != nil {
+			t.Logf("Warning: Failed to stop auto-save service: %v", err)
+		}
 		cancel()
 	}()
 
@@ -611,8 +611,8 @@ func TestAutoSaveConcurrency(t *testing.T) {
 	lockErrors := 0
 	for _, err := range errors {
 		if strings.Contains(err.Error(), "database is locked") ||
-		   strings.Contains(err.Error(), "locked") ||
-		   strings.Contains(err.Error(), "busy") {
+			strings.Contains(err.Error(), "locked") ||
+			strings.Contains(err.Error(), "busy") {
 			lockErrors++
 		}
 	}

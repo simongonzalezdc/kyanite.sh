@@ -5,8 +5,8 @@ import (
 	"context"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Kyanite/noise/internal/config"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 // PluginMetadata contains information about a plugin

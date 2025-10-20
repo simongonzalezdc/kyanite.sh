@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Kyanite/noise/internal/ui/styles"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // bpmTapperModel handles the BPM tapper UI component

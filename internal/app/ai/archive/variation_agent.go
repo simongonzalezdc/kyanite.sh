@@ -40,14 +40,14 @@ func (a *VariationAgent) GenerateVariations(ctx context.Context, req *VariationR
 	// 2. Call Ollama with the prompt
 	// 3. Parse the JSON response
 	// 4. Return the structured response
-	
+
 	// Placeholder implementation
 	variations := []string{
 		fmt.Sprintf("Variation 1 of: %s", req.Line),
 		fmt.Sprintf("Variation 2 of: %s", req.Line),
 		fmt.Sprintf("Variation 3 of: %s", req.Line),
 	}
-	
+
 	// Adjust variations based on constraint if provided
 	if req.Constraint != "" {
 		switch req.Constraint {
@@ -59,7 +59,7 @@ func (a *VariationAgent) GenerateVariations(ctx context.Context, req *VariationR
 			variations[2] = fmt.Sprintf("Different POV version of: %s", req.Line)
 		}
 	}
-	
+
 	return &VariationResponse{
 		Variations: variations,
 		Reasoning:  "Generated 3 variations with different approaches",

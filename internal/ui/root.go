@@ -1,9 +1,6 @@
 package ui
 
 import (
-	"github.com/charmbracelet/bubbles/spinner"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/Kyanite/noise/internal/collaboration"
 	"github.com/Kyanite/noise/internal/config"
 	errutil "github.com/Kyanite/noise/internal/errutil"
@@ -13,6 +10,9 @@ import (
 	"github.com/Kyanite/noise/internal/theme"
 	"github.com/Kyanite/noise/internal/ui/editor"
 	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/charmbracelet/bubbles/spinner"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // QuickStartConfig contains configuration for quick start mode

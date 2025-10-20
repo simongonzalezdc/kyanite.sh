@@ -33,9 +33,9 @@ func newTestLogger(t *testing.T) *logging.Logger {
 }
 
 type mockReporter struct {
-	name     string
-	called   bool
-	last     *appErrors.ErrorReport
+	name      string
+	called    bool
+	last      *appErrors.ErrorReport
 	reportErr error
 }
 
@@ -288,7 +288,7 @@ func TestNotificationManagerAndUIIntegration(t *testing.T) {
 	nm2 := appErrors.NewNotificationManager(*logger)
 	_ = nm2.ShowError("Detailed", "with details", appErr)
 	ui := appErrors.NewNotificationUIModel(nm2)
-	
+
 	view := ui.View()
 	if view == "" {
 		t.Fatal("expected UI view to be non-empty")

@@ -10,8 +10,8 @@ type QualityCheckMode int
 
 const (
 	CheckRedFlags QualityCheckMode = iota // Sketch
-	CheckBasic                              // Draft
-	CheckFull                               // Polish
+	CheckBasic                            // Draft
+	CheckFull                             // Polish
 )
 
 // QualityAgent handles AI-powered quality checking
@@ -29,15 +29,15 @@ func NewQualityAgent() *QualityAgent {
 
 // QualityRequest represents a request for quality checking
 type QualityRequest struct {
-	Content string          `json:"content"`
+	Content string           `json:"content"`
 	Mode    QualityCheckMode `json:"mode"`
 }
 
 // QualityReport represents the response from the quality agent
 type QualityReport struct {
-	OverallScore int        `json:"overall_score"`
-	Flags        []Flag     `json:"flags"`
-	Suggestions  []string   `json:"suggestions"`
+	OverallScore int              `json:"overall_score"`
+	Flags        []Flag           `json:"flags"`
+	Suggestions  []string         `json:"suggestions"`
 	Mode         QualityCheckMode `json:"mode"`
 }
 
@@ -71,7 +71,7 @@ func (a *QualityAgent) checkRedFlags(ctx context.Context, content string) (*Qual
 	// 2. Call Ollama with the prompt
 	// 3. Parse the JSON response
 	// 4. Return the structured report
-	
+
 	// Placeholder implementation
 	flags := []Flag{
 		{
@@ -80,7 +80,7 @@ func (a *QualityAgent) checkRedFlags(ctx context.Context, content string) (*Qual
 			Severity:    "high",
 		},
 	}
-	
+
 	// Check for clichés (simple placeholder check)
 	if a.countCliches(content) > 10 {
 		flags = append(flags, Flag{
@@ -89,7 +89,7 @@ func (a *QualityAgent) checkRedFlags(ctx context.Context, content string) (*Qual
 			Severity:    "high",
 		})
 	}
-	
+
 	return &QualityReport{
 		OverallScore: 60, // Placeholder score
 		Flags:        flags,
@@ -113,7 +113,7 @@ func (a *QualityAgent) checkBasic(ctx context.Context, content string) (*Quality
 			Severity:    "medium",
 		},
 	}
-	
+
 	// Check for clichés
 	clicheCount := a.countCliches(content)
 	if clicheCount > 5 {
@@ -123,7 +123,7 @@ func (a *QualityAgent) checkBasic(ctx context.Context, content string) (*Quality
 			Severity:    "medium",
 		})
 	}
-	
+
 	// Check for imagery
 	if a.calculateImageryRatio(content) < 0.5 {
 		flags = append(flags, Flag{
@@ -132,7 +132,7 @@ func (a *QualityAgent) checkBasic(ctx context.Context, content string) (*Quality
 			Severity:    "medium",
 		})
 	}
-	
+
 	return &QualityReport{
 		OverallScore: 75, // Placeholder score
 		Flags:        flags,
@@ -166,7 +166,7 @@ func (a *QualityAgent) checkFull(ctx context.Context, content string) (*QualityR
 			Severity:    "medium",
 		},
 	}
-	
+
 	// Check for clichés
 	clicheCount := a.countCliches(content)
 	if clicheCount > 0 {
@@ -176,7 +176,7 @@ func (a *QualityAgent) checkFull(ctx context.Context, content string) (*QualityR
 			Severity:    "low",
 		})
 	}
-	
+
 	// Check for imagery
 	if a.calculateImageryRatio(content) < 0.7 {
 		flags = append(flags, Flag{
@@ -185,7 +185,7 @@ func (a *QualityAgent) checkFull(ctx context.Context, content string) (*QualityR
 			Severity:    "low",
 		})
 	}
-	
+
 	return &QualityReport{
 		OverallScore: 85, // Placeholder score
 		Flags:        flags,

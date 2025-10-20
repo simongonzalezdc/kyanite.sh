@@ -24,6 +24,11 @@ func newTestDB(t *testing.T) *db.DB {
 	if err != nil {
 		t.Fatalf("failed to create db: %v", err)
 	}
+	t.Cleanup(func() {
+		if err := database.Close(); err != nil {
+			t.Fatalf("failed to close db: %v", err)
+		}
+	})
 	return database
 }
 
@@ -47,7 +52,6 @@ func TestLoadAndSaveConfig(t *testing.T) {
 // the service hasn't been started.
 func TestSaveContentTriggersCallbacksWhenNotStarted(t *testing.T) {
 	database := newTestDB(t)
-	defer database.Close()
 
 	// Use short retry/delay to keep test fast
 	cfg := app.DefaultAutoSaveConfig()
@@ -109,7 +113,6 @@ func drainStatusChannel(ch chan app.AutoSaveStatus) []app.AutoSaveStatus {
 // when there are no versions available for the given song ID.
 func TestRecoverFromLastSaveNoVersions(t *testing.T) {
 	database := newTestDB(t)
-	defer database.Close()
 
 	service := app.NewAutoSaveService(database, nil)
 
@@ -123,7 +126,6 @@ func TestRecoverFromLastSaveNoVersions(t *testing.T) {
 // that GetMilestones filters milestone versions correctly.
 func TestGetMilestonesAndVersioning(t *testing.T) {
 	database := newTestDB(t)
-	defer database.Close()
 
 	service := app.NewAutoSaveService(database, nil)
 
@@ -166,7 +168,6 @@ func TestGetMilestonesAndVersioning(t *testing.T) {
 // when the total exceeds the configured MaxVersions.
 func TestCleanupOldVersions(t *testing.T) {
 	database := newTestDB(t)
-	defer database.Close()
 
 	cfg := app.DefaultAutoSaveConfig()
 	cfg.MaxVersions = 3
@@ -207,7 +208,6 @@ func TestCleanupOldVersions(t *testing.T) {
 // periodic timer goroutine runs and does not leak when stopped.
 func TestPeriodicStartStop(t *testing.T) {
 	database := newTestDB(t)
-	defer database.Close()
 
 	cfg := app.DefaultAutoSaveConfig()
 	cfg.IntervalSeconds = 1
@@ -238,7 +238,6 @@ func TestPeriodicStartStop(t *testing.T) {
 // TestGetSaveStatisticsEmpty ensures statistics handle empty state gracefully.
 func TestGetSaveStatisticsEmpty(t *testing.T) {
 	database := newTestDB(t)
-	defer database.Close()
 
 	service := app.NewAutoSaveService(database, nil)
 	stats, err := service.GetSaveStatistics(9999)

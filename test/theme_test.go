@@ -3,8 +3,8 @@ package noise
 import (
 	"testing"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // TestThemeColors tests theme color constants
@@ -478,12 +478,12 @@ func TestThemeConsistency(t *testing.T) {
 	// The actual implementation might use different colors, so let's be more flexible
 	subtitleColor := styles.Subtitle.GetForeground()
 	h2Color := styles.H2.GetForeground()
-	
+
 	// They should both be defined (non-nil)
 	if subtitleColor == nil || h2Color == nil {
 		t.Error("Expected Subtitle and H2 to have defined colors")
 	}
-	
+
 	// If they're different, that's OK - just log it for debugging
 	if subtitleColor != h2Color {
 		t.Logf("Note: Subtitle and H2 use different colors")

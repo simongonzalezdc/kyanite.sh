@@ -2,9 +2,7 @@ package noise
 
 import (
 	"context"
-	"fmt"
-	"log"
-	"os"
+	"testing"
 	"time"
 
 	"github.com/Kyanite/noise/internal/app"
@@ -13,34 +11,38 @@ import (
 	"github.com/Kyanite/noise/internal/infra/files"
 )
 
-// TestAutoSaveIntegration tests the auto-save integration functionality
-func TestAutoSaveIntegration() {
-	fmt.Println("Testing Auto-Save Content Serialization Integration...")
+// TestAutoSaveIntegration validates the end-to-end auto-save workflow across database,
+// file storage, versioning, and recovery paths. The test is intentionally verbose to
+// ensure comprehensive coverage, mirroring the legacy demonstration while adhering to
+// current linting and resource-handling requirements.
+func TestAutoSaveIntegration(t *testing.T) {
+	dataDir := t.TempDir()
+	songsDir := t.TempDir()
 
-	// Initialize database
-	dbConfig := db.Config{DataDir: "./test_data"}
-	database, err := db.New(dbConfig)
+	database, err := db.New(db.Config{DataDir: dataDir})
 	if err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+		t.Fatalf("Failed to initialize database: %v", err)
 	}
-	defer database.Close()
+	t.Cleanup(func() {
+		if err := database.Close(); err != nil {
+			t.Fatalf("Failed to close database: %v", err)
+		}
+	})
 
-	// Initialize file service
-	fileConfig := files.Config{BaseDir: "./test_songs"}
-	fileService, err := files.New(fileConfig)
+	fileService, err := files.New(files.Config{BaseDir: songsDir})
 	if err != nil {
-		log.Fatalf("Failed to initialize file service: %v", err)
+		t.Fatalf("Failed to initialize file service: %v", err)
 	}
-	defer fileService.Close()
+	t.Cleanup(func() {
+		if err := fileService.Close(); err != nil {
+			t.Fatalf("Failed to close file service: %v", err)
+		}
+	})
 
-	// Initialize auto-save service
 	autoSaveConfig := app.DefaultAutoSaveConfig()
 	autoSaveService := app.NewAutoSaveService(database, autoSaveConfig)
-
-	// Initialize editor service
 	editorService := app.NewEditorService(database, database)
 
-	// Create a test song
 	song := &domain.Song{
 		Metadata: domain.SongMetadata{
 			Title:     "Test Song for Auto-Save",
@@ -75,7 +77,6 @@ key: C
 tempo: 120
 created_at: 2025-01-01T00:00:00Z
 updated_at: 2025-01-01T00:00:00Z
----
 
 ## verse 1
 
@@ -89,105 +90,98 @@ It should be properly serialized and restored
 `,
 	}
 
-	// Save the song to database
 	savedSong, err := editorService.CreateSong(song.Metadata.Title, song.Metadata.Artist)
 	if err != nil {
-		log.Fatalf("Failed to create song: %v", err)
+		t.Fatalf("Failed to create song: %v", err)
 	}
 
-	// Update the song with sections and content
 	savedSong.Sections = song.Sections
 	savedSong.RawContent = song.RawContent
 	savedSong.Metadata.Key = song.Metadata.Key
 	savedSong.Metadata.Tempo = song.Metadata.Tempo
 
-	err = editorService.SaveSong(savedSong)
-	if err != nil {
-		log.Fatalf("Failed to save song: %v", err)
+	if err := editorService.SaveSong(savedSong); err != nil {
+		t.Fatalf("Failed to save song: %v", err)
 	}
 
-	fmt.Printf("Created and saved song with ID: %d\n", savedSong.ID)
+	t.Logf("Created and saved song with ID: %d", savedSong.ID)
 
-	// Test 1: Auto-save with content serialization
-	fmt.Println("\n=== Test 1: Auto-Save Content Serialization ===")
-	err = editorService.AutoSave(savedSong)
-	if err != nil {
-		log.Fatalf("Failed to auto-save song: %v", err)
-	}
-	fmt.Println("âœ“ Auto-save completed successfully")
-
-	// Test 2: Create milestone
-	fmt.Println("\n=== Test 2: Milestone Creation ===")
-	milestoneName := "Test Milestone"
-	err = editorService.CreateMilestone(savedSong, milestoneName)
-	if err != nil {
-		log.Fatalf("Failed to create milestone: %v", err)
-	}
-	fmt.Printf("âœ“ Milestone '%s' created successfully\n", milestoneName)
-
-	// Test 3: Get version history
-	fmt.Println("\n=== Test 3: Version History ===")
-	versions, err := editorService.GetVersions(savedSong.ID, 10)
-	if err != nil {
-		log.Fatalf("Failed to get version history: %v", err)
-	}
-
-	fmt.Printf("Found %d versions:\n", len(versions))
-	for i, version := range versions {
-		fmt.Printf("  %d. %s (Milestone: %t, Created: %s)\n",
-			i+1, version.MilestoneName, version.IsMilestone,
-			version.CreatedAt.Format("2006-01-02 15:04:05"))
-		
-		// Show first 100 characters of content
-		if len(version.Content) > 100 {
-			fmt.Printf("     Content preview: %s...\n", version.Content[:100])
-		} else {
-			fmt.Printf("     Content: %s\n", version.Content)
+	t.Run("AutoSaveContentSerialization", func(t *testing.T) {
+		if err := editorService.AutoSave(savedSong); err != nil {
+			t.Fatalf("Failed to auto-save song: %v", err)
 		}
-	}
+		t.Log("Auto-save content serialization completed successfully")
+	})
 
-	// Test 4: Version restoration
-	fmt.Println("\n=== Test 4: Version Restoration ===")
-	if len(versions) > 0 {
-		// Restore the first version
+	milestoneName := "Test Milestone"
+	t.Run("MilestoneCreation", func(t *testing.T) {
+		if err := editorService.CreateMilestone(savedSong, milestoneName); err != nil {
+			t.Fatalf("Failed to create milestone: %v", err)
+		}
+		t.Logf("Milestone %q created successfully", milestoneName)
+	})
+
+	var versions []*domain.Version
+	t.Run("VersionHistory", func(t *testing.T) {
+		var err error
+		versions, err = editorService.GetVersions(savedSong.ID, 10)
+		if err != nil {
+			t.Fatalf("Failed to get version history: %v", err)
+		}
+
+		t.Logf("Found %d versions:", len(versions))
+		for i, version := range versions {
+			t.Logf("  %d. %s (Milestone: %t, Created: %s)",
+				i+1,
+				version.MilestoneName,
+				version.IsMilestone,
+				version.CreatedAt.Format("2006-01-02 15:04:05"),
+			)
+
+			if len(version.Content) > 100 {
+				t.Logf("     Content preview: %s...", version.Content[:100])
+			} else {
+				t.Logf("     Content: %s", version.Content)
+			}
+		}
+	})
+
+	t.Run("VersionRestoration", func(t *testing.T) {
+		if len(versions) == 0 {
+			t.Skip("No versions available for restoration")
+		}
+
 		versionToRestore := versions[0]
-		fmt.Printf("Restoring version: %s\n", versionToRestore.MilestoneName)
-		
 		restoredSong, err := editorService.RestoreVersion(savedSong.ID, versionToRestore.ID)
 		if err != nil {
-			log.Fatalf("Failed to restore version: %v", err)
+			t.Fatalf("Failed to restore version: %v", err)
 		}
-		
-		fmt.Printf("âœ“ Version restored successfully\n")
-		fmt.Printf("Restored song title: %s\n", restoredSong.Metadata.Title)
-		fmt.Printf("Restored song artist: %s\n", restoredSong.Metadata.Artist)
-		fmt.Printf("Restored content length: %d characters\n", len(restoredSong.RawContent))
-		
-		// Verify content was properly restored
-		if restoredSong.RawContent == versionToRestore.Content {
-			fmt.Println("âœ“ Content restoration verified - content matches exactly")
-		} else {
-			fmt.Println("âš  Content restoration warning - content differs from version")
-			fmt.Printf("Expected length: %d, Got length: %d\n", 
+
+		t.Log("Version restored successfully")
+		t.Logf("Restored song title: %s", restoredSong.Metadata.Title)
+		t.Logf("Restored song artist: %s", restoredSong.Metadata.Artist)
+		t.Logf("Restored content length: %d characters", len(restoredSong.RawContent))
+
+		if restoredSong.RawContent != versionToRestore.Content {
+			t.Fatalf("Restored content differs from version (expected length %d, got %d)",
 				len(versionToRestore.Content), len(restoredSong.RawContent))
 		}
-	}
 
-	// Test 5: Auto-save service integration
-	fmt.Println("\n=== Test 5: Auto-Save Service Integration ===")
-	
-	// Start auto-save service
-	ctx := context.Background()
-	err = autoSaveService.Start(ctx)
-	if err != nil {
-		log.Fatalf("Failed to start auto-save service: %v", err)
-	}
-	if err := autoSaveService.Stop(); err != nil {
-		fmt.Printf("Warning: Failed to stop auto-save service: %v\n", err)
-	}
+		t.Log("Content restoration verified - content matches exactly")
+	})
 
-	// Test direct content saving
-	testContent := `---
+	t.Run("AutoSaveServiceIntegration", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		if err := autoSaveService.Start(ctx); err != nil {
+			t.Fatalf("Failed to start auto-save service: %v", err)
+		}
+		if err := autoSaveService.Stop(); err != nil {
+			t.Fatalf("Failed to stop auto-save service: %v", err)
+		}
+
+		testContent := `---
 title: Direct Auto-Save Test
 artist: Test Artist
 ---
@@ -198,55 +192,40 @@ This content was saved directly through the auto-save service
 It should preserve the full markdown structure
 `
 
-	err = autoSaveService.SaveWithVersioning(savedSong.ID, testContent, false, "Direct Test")
-	if err != nil {
-		log.Fatalf("Failed to save content with versioning: %v", err)
-	}
-	fmt.Println("âœ“ Direct content save with versioning completed")
+		if err := autoSaveService.SaveWithVersioning(savedSong.ID, testContent, false, "Direct Test"); err != nil {
+			t.Fatalf("Failed to save content with versioning: %v", err)
+		}
+		t.Log("Direct content save with versioning completed")
 
-	// Test recovery from last save
-	recoveredContent, err := autoSaveService.RecoverFromLastSave(savedSong.ID)
-	if err != nil {
-		log.Fatalf("Failed to recover from last save: %v", err)
-	}
-	
-	if recoveredContent == testContent {
-		fmt.Println("âœ“ Content recovery verified - recovered content matches saved content")
-	} else {
-		fmt.Println("âš  Content recovery warning - recovered content differs")
-		fmt.Printf("Expected length: %d, Got length: %d\n", 
-			len(testContent), len(recoveredContent))
-	}
+		recoveredContent, err := autoSaveService.RecoverFromLastSave(savedSong.ID)
+		if err != nil {
+			t.Fatalf("Failed to recover from last save: %v", err)
+		}
 
-	// Test 6: File I/O integration
-	fmt.Println("\n=== Test 6: File I/O Integration ===")
-	
-	// Save song to file
-	filename := "test_autosave_song.md"
-	err = fileService.WriteSong(savedSong, filename)
-	if err != nil {
-		log.Fatalf("Failed to write song to file: %v", err)
-	}
-	fmt.Printf("âœ“ Song saved to file: %s\n", filename)
+		if recoveredContent != testContent {
+			t.Fatalf("Recovered content differs (expected length %d, got %d)",
+				len(testContent), len(recoveredContent))
+		}
 
-	// Read song from file
-	readSong, err := fileService.ReadSong(filename)
-	if err != nil {
-		log.Fatalf("Failed to read song from file: %v", err)
-	}
-	fmt.Printf("âœ“ Song read from file: %s\n", filename)
-	fmt.Printf("Read song title: %s\n", readSong.Metadata.Title)
-	fmt.Printf("Read content length: %d characters\n", len(readSong.RawContent))
+		t.Log("Content recovery verified - recovered content matches saved content")
+	})
 
-	// Clean up test files
-	os.Remove(filename)
-	os.RemoveAll("./test_data")
-	os.RemoveAll("./test_songs")
+	t.Run("FileIOIntegration", func(t *testing.T) {
+		filename := "test_autosave_song.md"
 
-	fmt.Println("\n=== All Tests Completed Successfully ===")
-	fmt.Println("âœ“ Auto-save content serialization is working properly")
-	fmt.Println("âœ“ Milestone creation is functional")
-	fmt.Println("âœ“ Version restoration preserves full content")
-	fmt.Println("âœ“ Auto-save service integration is complete")
-	fmt.Println("âœ“ File I/O system integration is working")
+		if err := fileService.WriteSong(savedSong, filename); err != nil {
+			t.Fatalf("Failed to write song to file: %v", err)
+		}
+		t.Logf("Song saved to file: %s", filename)
+
+		readSong, err := fileService.ReadSong(filename)
+		if err != nil {
+			t.Fatalf("Failed to read song from file: %v", err)
+		}
+		t.Logf("Song read from file: %s", filename)
+		t.Logf("Read song title: %s", readSong.Metadata.Title)
+		t.Logf("Read content length: %d characters", len(readSong.RawContent))
+	})
+
+	t.Log("All auto-save integration checks completed successfully")
 }

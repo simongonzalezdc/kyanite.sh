@@ -10,7 +10,7 @@ import (
 
 // SafeParserTest provides crash-safe testing for pattern parsing
 type SafeParserTest struct {
-	timeout time.Duration
+	timeout     time.Duration
 	maxMemoryMB uint64
 }
 
@@ -281,17 +281,17 @@ func TestPerformanceMetrics_Safe(t *testing.T) {
 	defer cancel()
 
 	done := make(chan struct {
-		program  *Program
-		errors   []PatternError
-		metrics  PerformanceMetrics
+		program *Program
+		errors  []PatternError
+		metrics PerformanceMetrics
 	}, 1)
 
 	go func() {
 		program, errors, metrics := ParseWithMetrics(input)
 		done <- struct {
-			program  *Program
-			errors   []PatternError
-			metrics  PerformanceMetrics
+			program *Program
+			errors  []PatternError
+			metrics PerformanceMetrics
 		}{program, errors, metrics}
 	}()
 
@@ -481,13 +481,13 @@ func TestStressTest_Safe(t *testing.T) {
 // TestMalformedInput_Safe tests various malformed inputs with safety
 func TestMalformedInput_Safe(t *testing.T) {
 	malformedInputs := []string{
-		`<kick:1> <snare:2`,           // Missing closing bracket
-		`<unclosed`,                   // Unclosed sample/note
-		`[<kick:1> <snare:2>`,         // Missing closing list bracket
-		`(<kick:1> + <snare:2>)`,      // Missing closing paren
-		`{<kick:1> <snare:2>}`,        // Missing closing brace
-		`<invalid note>`,              // Invalid note format
-		`<kick>`,                      // Missing sample number
+		`<kick:1> <snare:2`,      // Missing closing bracket
+		`<unclosed`,              // Unclosed sample/note
+		`[<kick:1> <snare:2>`,    // Missing closing list bracket
+		`(<kick:1> + <snare:2>)`, // Missing closing paren
+		`{<kick:1> <snare:2>}`,   // Missing closing brace
+		`<invalid note>`,         // Invalid note format
+		`<kick>`,                 // Missing sample number
 		`[<kick:1> <snare:2>] <kick:3> <snare:4>`, // Mixed formats
 	}
 

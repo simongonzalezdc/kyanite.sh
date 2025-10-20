@@ -4,8 +4,8 @@ import (
 	"regexp"
 	"sort"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // MarkdownElement represents a highlighted markdown element.

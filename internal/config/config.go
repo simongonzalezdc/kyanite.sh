@@ -73,29 +73,29 @@ type AIConfig struct {
 	Enabled       bool              `mapstructure:"enabled"`
 	LocalModels   []string          `mapstructure:"local_models"`
 	CustomPrompts map[string]string `mapstructure:"custom_prompts"`
-	
+
 	// Rapid prototyping settings
-	Temperatures map[string]float64 `mapstructure:"temperatures"`
+	Temperatures    map[string]float64    `mapstructure:"temperatures"`
 	RapidBrainstorm RapidBrainstormConfig `mapstructure:"rapid_brainstorm"`
-	Continuation  ContinuationConfig  `mapstructure:"continuation"`
-	Variation     VariationConfig     `mapstructure:"variation"`
+	Continuation    ContinuationConfig    `mapstructure:"continuation"`
+	Variation       VariationConfig       `mapstructure:"variation"`
 }
 
 // RapidBrainstormConfig contains settings for rapid brainstorming
 type RapidBrainstormConfig struct {
-	MaxAngles          int  `mapstructure:"max_angles"`
-	GenerateFirstLine  bool `mapstructure:"generate_first_line"`
+	MaxAngles         int  `mapstructure:"max_angles"`
+	GenerateFirstLine bool `mapstructure:"generate_first_line"`
 }
 
 // ContinuationConfig contains settings for line continuation
 type ContinuationConfig struct {
-	Variations        int `mapstructure:"variations"`
-	MaxContextLines   int `mapstructure:"max_context_lines"`
+	Variations      int `mapstructure:"variations"`
+	MaxContextLines int `mapstructure:"max_context_lines"`
 }
 
 // VariationConfig contains settings for line variation
 type VariationConfig struct {
-	Variations        int `mapstructure:"variations"`
+	Variations        int    `mapstructure:"variations"`
 	DefaultConstraint string `mapstructure:"default_constraint"`
 }
 
@@ -157,7 +157,7 @@ func DefaultConfig() *Config {
 			Enabled:       true,
 			LocalModels:   []string{"qwen2.5:7b-instruct", "llama3.1:8b"},
 			CustomPrompts: make(map[string]string),
-			
+
 			// Rapid prototyping settings
 			Temperatures: map[string]float64{
 				"sketch": 0.9,
@@ -264,17 +264,17 @@ func (c *Config) Save() error {
 	}
 
 	aiConfig := map[string]interface{}{
-		"provider":        c.AI.Provider,
-		"model":           c.AI.Model,
-		"api_key":         c.AI.APIKey,
-		"base_url":        c.AI.BaseURL,
-		"temperature":     c.AI.Temperature,
-		"max_tokens":      c.AI.MaxTokens,
-		"timeout":         c.AI.Timeout.String(),
-		"enabled":         c.AI.Enabled,
-		"local_models":    c.AI.LocalModels,
-		"custom_prompts":  c.AI.CustomPrompts,
-		"temperatures":    c.AI.Temperatures,
+		"provider":       c.AI.Provider,
+		"model":          c.AI.Model,
+		"api_key":        c.AI.APIKey,
+		"base_url":       c.AI.BaseURL,
+		"temperature":    c.AI.Temperature,
+		"max_tokens":     c.AI.MaxTokens,
+		"timeout":        c.AI.Timeout.String(),
+		"enabled":        c.AI.Enabled,
+		"local_models":   c.AI.LocalModels,
+		"custom_prompts": c.AI.CustomPrompts,
+		"temperatures":   c.AI.Temperatures,
 		"rapid_brainstorm": map[string]interface{}{
 			"max_angles":          c.AI.RapidBrainstorm.MaxAngles,
 			"generate_first_line": c.AI.RapidBrainstorm.GenerateFirstLine,
@@ -310,11 +310,11 @@ func (c *Config) Save() error {
 			"ssl_mode": c.Database.SSLMode,
 		},
 		"ui": map[string]interface{}{
-			"theme":            c.UI.Theme,
-			"font_size":        c.UI.FontSize,
+			"theme":             c.UI.Theme,
+			"font_size":         c.UI.FontSize,
 			"show_line_numbers": c.UI.ShowLineNumbers,
-			"word_wrap":        c.UI.WordWrap,
-			"animations":       c.UI.Animations,
+			"word_wrap":         c.UI.WordWrap,
+			"animations":        c.UI.Animations,
 		},
 		"ai":    aiConfig,
 		"audio": audioConfig,

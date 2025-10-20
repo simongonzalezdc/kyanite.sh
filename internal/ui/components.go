@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Kyanite/noise/internal/ui/styles"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // AnimatedLoadingSpinner creates an enhanced loading spinner with animations

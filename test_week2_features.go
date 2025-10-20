@@ -77,7 +77,7 @@ func testInsertChords(chords []string) bool {
 	if len(chords) == 0 {
 		return false
 	}
-	
+
 	// Simulate chord insertion logic
 	chordStr := ""
 	for i, chord := range chords {
@@ -86,7 +86,7 @@ func testInsertChords(chords []string) bool {
 		}
 		chordStr += chord
 	}
-	
+
 	// In a real implementation, this would insert into the editor
 	fmt.Printf("Simulated insertion: %s\n", chordStr)
 	return true
@@ -120,7 +120,7 @@ func testSetBPM(bpm int) bool {
 	if bpm <= 0 || bpm > 300 {
 		return false
 	}
-	
+
 	// In a real implementation, this would update the pattern
 	fmt.Printf("Simulated BPM setting: %d\n", bpm)
 	return true

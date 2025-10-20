@@ -16,25 +16,25 @@ func main() {
 
 	// Test enhanced dictionary functionality
 	testEnhancedDictionary()
-	
+
 	// Test theory service integration
 	testTheoryServiceIntegration()
-	
+
 	// Test fallback handling
 	testFallbackHandling()
-	
+
 	// Test performance optimizations
 	testPerformanceOptimizations()
-	
+
 	fmt.Println("\nâœ… Week 2 CMU Dictionary Enhancements testing completed successfully!")
 }
 
 func testEnhancedDictionary() {
 	fmt.Println("\n1. Testing Enhanced Dictionary Service:")
-	
+
 	// Create dictionary with proper path
 	dict := app.NewDictionary()
-	
+
 	// Try to load the dictionary file
 	dictPath := filepath.Join("data", "dictionary.json")
 	err := dict.LoadDictionary(dictPath)
@@ -42,11 +42,11 @@ func testEnhancedDictionary() {
 		log.Printf("Warning: Could not load dictionary file: %v", err)
 		log.Println("Continuing with fallback functionality...")
 	}
-	
+
 	// Test syllable counting with dictionary
 	fmt.Println("\n   Testing syllable counting:")
 	testWords := []string{"love", "beautiful", "computer", "extraordinary", "rhythm"}
-	
+
 	for _, word := range testWords {
 		syllables, err := dict.CountSyllables(word)
 		if err != nil {
@@ -55,11 +55,11 @@ func testEnhancedDictionary() {
 		}
 		fmt.Printf("   - '%s': %d syllables\n", word, syllables)
 	}
-	
+
 	// Test rhyme finding
 	fmt.Println("\n   Testing rhyme finding:")
 	rhymeWords := []string{"love", "time", "heart", "night"}
-	
+
 	for _, word := range rhymeWords {
 		rhymes, err := dict.FindRhymes(word)
 		if err != nil {
@@ -68,7 +68,7 @@ func testEnhancedDictionary() {
 		}
 		fmt.Printf("   - '%s': %v\n", word, rhymes)
 	}
-	
+
 	// Test text syllable counting
 	fmt.Println("\n   Testing text syllable counting:")
 	testTexts := []string{
@@ -76,7 +76,7 @@ func testEnhancedDictionary() {
 		"The quick brown fox jumps over the lazy dog",
 		"Extraordinary rhythm and rhyme",
 	}
-	
+
 	for _, text := range testTexts {
 		syllables, err := dict.CountSyllablesInText(text)
 		if err != nil {
@@ -85,7 +85,7 @@ func testEnhancedDictionary() {
 		}
 		fmt.Printf("   - '%s': %d syllables\n", text, syllables)
 	}
-	
+
 	// Get dictionary statistics
 	stats := dict.GetStats()
 	fmt.Printf("\n   Dictionary Statistics:\n")
@@ -97,14 +97,14 @@ func testEnhancedDictionary() {
 
 func testTheoryServiceIntegration() {
 	fmt.Println("\n2. Testing Theory Service Integration:")
-	
+
 	// Create theory service (will automatically load dictionary)
 	theoryService := app.NewTheoryService()
-	
+
 	// Test enhanced rhyme finding
 	fmt.Println("\n   Testing enhanced rhyme finding:")
 	rhymeWords := []string{"love", "time", "heart"}
-	
+
 	for _, word := range rhymeWords {
 		rhymes, err := theoryService.FindRhymes(word)
 		if err != nil {
@@ -113,11 +113,11 @@ func testTheoryServiceIntegration() {
 		}
 		fmt.Printf("   - '%s': %v\n", word, rhymes)
 	}
-	
+
 	// Test enhanced syllable counting
 	fmt.Println("\n   Testing enhanced syllable counting:")
 	syllableWords := []string{"beautiful", "computer", "rhythm"}
-	
+
 	for _, word := range syllableWords {
 		syllables, err := theoryService.CountSyllables(word)
 		if err != nil {
@@ -126,7 +126,7 @@ func testTheoryServiceIntegration() {
 		}
 		fmt.Printf("   - '%s': %d syllables\n", word, syllables)
 	}
-	
+
 	// Test enhanced prosody analysis
 	fmt.Println("\n   Testing enhanced prosody analysis:")
 	prosodyTexts := []string{
@@ -134,7 +134,7 @@ func testTheoryServiceIntegration() {
 		"Dancing through the night",
 		"Extraordinary rhythm flows",
 	}
-	
+
 	for _, text := range prosodyTexts {
 		prosody, err := theoryService.AnalyzeProsody(text)
 		if err != nil {
@@ -143,7 +143,7 @@ func testTheoryServiceIntegration() {
 		}
 		fmt.Printf("   - '%s': %d syllables\n", text, prosody)
 	}
-	
+
 	// Test dictionary statistics
 	stats, err := theoryService.GetDictionaryStats()
 	if err != nil {
@@ -158,14 +158,14 @@ func testTheoryServiceIntegration() {
 
 func testFallbackHandling() {
 	fmt.Println("\n3. Testing Fallback Handling:")
-	
+
 	// Create theory service
 	theoryService := app.NewTheoryService()
-	
+
 	// Test words that might not be in dictionary
 	fmt.Println("\n   Testing fallback for uncommon words:")
 	uncommonWords := []string{"supercalifragilisticexpialidocious", "pneumonoultramicroscopicsilicovolcanoconiosis", "antidisestablishmentarianism"}
-	
+
 	for _, word := range uncommonWords {
 		// Test syllable counting fallback
 		syllables, err := theoryService.CountSyllables(word)
@@ -174,7 +174,7 @@ func testFallbackHandling() {
 			continue
 		}
 		fmt.Printf("   - '%s': %d syllables (fallback)\n", word, syllables)
-		
+
 		// Test rhyme finding fallback
 		rhymes, err := theoryService.FindRhymes(word)
 		if err != nil {
@@ -183,11 +183,11 @@ func testFallbackHandling() {
 		}
 		fmt.Printf("   - '%s' rhymes: %v (fallback)\n", word, rhymes)
 	}
-	
+
 	// Test word validation
 	fmt.Println("\n   Testing word validation:")
 	testValidation := []string{"love", "nonexistentword", "", "   "}
-	
+
 	for _, word := range testValidation {
 		isValid := theoryService.ValidateWord(word)
 		fmt.Printf("   - '%s': %v\n", word, isValid)
@@ -196,16 +196,16 @@ func testFallbackHandling() {
 
 func testPerformanceOptimizations() {
 	fmt.Println("\n4. Testing Performance Optimizations:")
-	
+
 	// Create theory service
 	theoryService := app.NewTheoryService()
-	
+
 	// Testæ‰¹é‡æ“ä½œ
 	fmt.Println("\n   Testing batch operations:")
-	
+
 	// Test multiple syllable counts
 	words := []string{"love", "time", "heart", "night", "blue", "day", "world", "eyes", "home", "dream"}
-	
+
 	fmt.Println("   Testing batch syllable counting:")
 	for i, word := range words {
 		syllables, err := theoryService.CountSyllables(word)
@@ -218,11 +218,11 @@ func testPerformanceOptimizations() {
 		}
 	}
 	fmt.Printf("   ... processed %d words\n", len(words))
-	
+
 	// Test word search
 	fmt.Println("\n   Testing word search patterns:")
 	searchPatterns := []string{"*", "love*", "*ing", "beautiful"}
-	
+
 	for _, pattern := range searchPatterns {
 		results, err := theoryService.SearchWords(pattern, 5)
 		if err != nil {
@@ -231,7 +231,7 @@ func testPerformanceOptimizations() {
 		}
 		fmt.Printf("   - Pattern '%s': %v\n", pattern, results)
 	}
-	
+
 	// Test syllable count filtering
 	fmt.Println("\n   Testing syllable count filtering:")
 	for i := 1; i <= 4; i++ {
@@ -242,11 +242,11 @@ func testPerformanceOptimizations() {
 		}
 		fmt.Printf("   - %d syllables: %v\n", i, words)
 	}
-	
+
 	// Test part of speech filtering
 	fmt.Println("\n   Testing part of speech filtering:")
 	posTypes := []string{"noun", "verb", "adjective"}
-	
+
 	for _, pos := range posTypes {
 		words, err := theoryService.SearchWords("*", 10) // Get some words first
 		if err != nil {

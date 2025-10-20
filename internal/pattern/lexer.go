@@ -21,10 +21,10 @@ type Lexer struct {
 // NewLexer creates a new lexer for the given input
 func NewLexer(input string) *Lexer {
 	l := &Lexer{
-		input:    input,
-		line:     1,
-		column:   1,
-		tokens:   make([]Token, 0),
+		input:  input,
+		line:   1,
+		column: 1,
+		tokens: make([]Token, 0),
 	}
 	l.readChar()
 	return l
@@ -163,7 +163,7 @@ func (l *Lexer) NextToken() Token {
 			nextPos := l.readPosition
 			foundClosing := false
 			content := ""
-			
+
 			// Look for a closing > within a reasonable distance
 			for i := 0; i < 20 && nextPos+i < len(l.input); i++ {
 				if l.input[nextPos+i] == '>' {
@@ -172,13 +172,13 @@ func (l *Lexer) NextToken() Token {
 					break
 				}
 			}
-			
+
 			// If we found a closing > and the content looks like a sample or note
 			if foundClosing && (len(content) > 0) {
 				// Check if it looks like a sample (contains colon) or note (starts with a-g)
 				if strings.Contains(content, ":") ||
-				   (len(content) > 0 && content[0] >= 'a' && content[0] <= 'g') ||
-				   (len(content) > 0 && content[0] >= 'A' && content[0] <= 'G') {
+					(len(content) > 0 && content[0] >= 'a' && content[0] <= 'g') ||
+					(len(content) > 0 && content[0] >= 'A' && content[0] <= 'G') {
 					// Try to read as sample or note
 					tok = l.readSampleOrNote()
 					// If it didn't work, treat as less than
@@ -312,18 +312,18 @@ func (l *Lexer) readSampleOrNote() Token {
 	}
 
 	value := l.input[position:l.position]
-	
+
 	// Check if we found a closing '>'
 	if l.ch == '>' {
 		l.readChar() // skip '>'
-		
+
 		// Determine if it's a sample or note based on content
 		if strings.Contains(value, ":") {
 			return Token{Type: TokenSample, Value: value, Position: pos}
 		}
 		return Token{Type: TokenNote, Value: value, Position: pos}
 	}
-	
+
 	// No closing '>', return EOF token to indicate failure
 	return Token{Type: TokenEOF, Value: "", Position: pos}
 }
@@ -357,41 +357,41 @@ func isLetter(ch rune) bool {
 func LookupIdent(ident string) TokenType {
 	// Check for keywords first
 	keywords := map[string]TokenType{
-		"pattern":    TokenPattern,
-		"sample":     TokenSample,
-		"note":       TokenNote,
-		"rest":       TokenRest,
-		"speed":      TokenSpeed,
-		"volume":     TokenVolume,
-		"pan":        TokenPan,
-		"delay":      TokenDelay,
-		"reverb":     TokenReverb,
-		"filter":     TokenFilter,
-		"loop":       TokenLoop,
-		"rand":       TokenRand,
-		"irand":      TokenIrand,
-		"choose":     TokenChoose,
-		"degenerate": TokenDegenerate,
-		"sometimes":  TokenSometimes,
-		"often":      TokenOften,
-		"rarely":     TokenRarely,
-		"never":      TokenNever,
+		"pattern":     TokenPattern,
+		"sample":      TokenSample,
+		"note":        TokenNote,
+		"rest":        TokenRest,
+		"speed":       TokenSpeed,
+		"volume":      TokenVolume,
+		"pan":         TokenPan,
+		"delay":       TokenDelay,
+		"reverb":      TokenReverb,
+		"filter":      TokenFilter,
+		"loop":        TokenLoop,
+		"rand":        TokenRand,
+		"irand":       TokenIrand,
+		"choose":      TokenChoose,
+		"degenerate":  TokenDegenerate,
+		"sometimes":   TokenSometimes,
+		"often":       TokenOften,
+		"rarely":      TokenRarely,
+		"never":       TokenNever,
 		"superimpose": TokenSuperimpose,
-		"chop":       TokenChop,
-		"gap":        TokenGap,
-		"off":        TokenOff,
-		"jux":        TokenJux,
-		"stack":      TokenStack,
-		"or":         TokenOr,
-		"and":        TokenAnd,
-		"seq":        TokenSeq,
-		"fast":       TokenFast,
-		"slow":       TokenSlow,
-		"degradeBy":  TokenDegradeBy,
-		"gain":       TokenGain,
-		"room":       TokenRoom,
-		"size":       TokenSize,
-		"density":    TokenDensity,
+		"chop":        TokenChop,
+		"gap":         TokenGap,
+		"off":         TokenOff,
+		"jux":         TokenJux,
+		"stack":       TokenStack,
+		"or":          TokenOr,
+		"and":         TokenAnd,
+		"seq":         TokenSeq,
+		"fast":        TokenFast,
+		"slow":        TokenSlow,
+		"degradeBy":   TokenDegradeBy,
+		"gain":        TokenGain,
+		"room":        TokenRoom,
+		"size":        TokenSize,
+		"density":     TokenDensity,
 	}
 
 	if tokType, ok := keywords[ident]; ok {
@@ -405,13 +405,13 @@ func LookupIdent(ident string) TokenType {
 var (
 	// Pattern for matching numbers (integers and floats)
 	numberPattern = regexp.MustCompile(`^\d+(\.\d+)?`)
-	
+
 	// Pattern for matching identifiers
 	identifierPattern = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*`)
-	
+
 	// Pattern for matching samples (e.g., "kick:1" or "snare:2")
 	samplePattern = regexp.MustCompile(`^[a-zA-Z0-9_]+:[0-9]+`)
-	
+
 	// Pattern for matching notes (e.g., "c4", "d#5", "eb3")
 	notePattern = regexp.MustCompile(`^[a-gA-G][#b]?\d?`)
 )
@@ -457,7 +457,7 @@ func FastTokenize(input string) []Token {
 				continue
 			}
 		}
-		
+
 		if match := numberPattern.FindString(remaining); match != "" {
 			tokens = append(tokens, Token{Type: TokenNumber, Value: match, Position: pos})
 			offset += len(match)
@@ -470,7 +470,7 @@ func FastTokenize(input string) []Token {
 		} else {
 			// Check for multi-character operators first
 			if offset+1 < len(input) {
-				twoChar := input[offset:offset+2]
+				twoChar := input[offset : offset+2]
 				switch twoChar {
 				case "==":
 					tokens = append(tokens, Token{Type: TokenEquals, Value: "==", Position: pos})
@@ -494,7 +494,7 @@ func FastTokenize(input string) []Token {
 					continue
 				}
 			}
-			
+
 			// Single character tokens
 			ch := input[offset]
 			var tokType TokenType

@@ -2,7 +2,7 @@ package ai
 
 // containsString checks if a string contains a substring
 func containsString(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(substr) == 0 || 
+	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
 		(len(s) > len(substr) && containsSubstring(s, substr)))
 }
 

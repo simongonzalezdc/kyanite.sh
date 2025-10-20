@@ -11,7 +11,7 @@ import (
 )
 
 // TheoryService handles music theory operations
-type TheoryService struct{
+type TheoryService struct {
 	dictionary *Dictionary
 }
 
@@ -57,7 +57,7 @@ func NewTheoryService() *TheoryService {
 		// If loading fails, continue with empty dictionary (will use fallbacks)
 		// In production, you might want to log this error
 	}
-	
+
 	return &TheoryService{
 		dictionary: dict,
 	}
@@ -547,7 +547,7 @@ func (s *TheoryService) FindRhymes(word string) ([]string, error) {
 	if s.dictionary != nil && s.dictionary.IsLoaded() {
 		return s.dictionary.FindRhymes(word)
 	}
-	
+
 	// Fallback to static rhyme dictionary
 	rhymes := map[string][]string{
 		"love":  {"dove", "glove", "above", "shove", "of", "rough", "tough"},
@@ -584,7 +584,7 @@ func (s *TheoryService) CountSyllables(word string) (int, error) {
 	if s.dictionary != nil && s.dictionary.IsLoaded() {
 		return s.dictionary.CountSyllables(word)
 	}
-	
+
 	// Fallback to heuristic-based syllable counting
 	vowels := "aeiouy"
 	syllables := 0
@@ -623,7 +623,7 @@ func (s *TheoryService) AnalyzeProsody(line string) (int, error) {
 	if s.dictionary != nil && s.dictionary.IsLoaded() {
 		return s.dictionary.CountSyllablesInText(line)
 	}
-	
+
 	// Fallback to word-by-word analysis
 	words := strings.Fields(line)
 	syllableCount := 0
@@ -641,7 +641,7 @@ func (s *TheoryService) GetDictionaryStats() (DictionaryStats, error) {
 	if s.dictionary != nil && s.dictionary.IsLoaded() {
 		return s.dictionary.GetStats(), nil
 	}
-	
+
 	return DictionaryStats{}, fmt.Errorf("dictionary not loaded")
 }
 
@@ -650,7 +650,7 @@ func (s *TheoryService) ValidateWord(word string) bool {
 	if s.dictionary != nil && s.dictionary.IsLoaded() {
 		return s.dictionary.ValidateWord(word)
 	}
-	
+
 	// Fallback: check if it's a non-empty string
 	return strings.TrimSpace(word) != ""
 }
@@ -660,7 +660,7 @@ func (s *TheoryService) SearchWords(pattern string, limit int) ([]string, error)
 	if s.dictionary != nil && s.dictionary.IsLoaded() {
 		return s.dictionary.SearchWords(pattern, limit)
 	}
-	
+
 	return []string{}, fmt.Errorf("dictionary not loaded")
 }
 
@@ -669,6 +669,6 @@ func (s *TheoryService) GetWordsBySyllableCount(syllables int, limit int) ([]str
 	if s.dictionary != nil && s.dictionary.IsLoaded() {
 		return s.dictionary.GetWordsBySyllableCount(syllables, limit)
 	}
-	
+
 	return []string{}, fmt.Errorf("dictionary not loaded")
 }

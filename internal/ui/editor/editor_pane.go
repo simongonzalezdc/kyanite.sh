@@ -5,9 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/bubbles/textarea"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/Kyanite/noise/internal/app"
 	"github.com/Kyanite/noise/internal/app/ai"
 	"github.com/Kyanite/noise/internal/data"
@@ -16,6 +13,9 @@ import (
 	"github.com/Kyanite/noise/internal/infra/files"
 	"github.com/Kyanite/noise/internal/ui/dimension"
 	"github.com/Kyanite/noise/internal/ui/styles"
+	"github.com/charmbracelet/bubbles/textarea"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // EditorPaneModel handles the text editing pane with syntax highlighting

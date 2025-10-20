@@ -11,7 +11,7 @@ func TestNewDictionary(t *testing.T) {
 	if dict == nil {
 		t.Fatal("NewDictionary() returned nil")
 	}
-	
+
 	if dict.IsLoaded() {
 		t.Error("NewDictionary() should not be loaded initially")
 	}
@@ -21,7 +21,7 @@ func TestDictionaryLoad(t *testing.T) {
 	// Create a temporary dictionary file for testing
 	tempDir := t.TempDir()
 	dictFile := filepath.Join(tempDir, "test_dict.json")
-	
+
 	testDict := `{
 		"words": {
 			"test": {
@@ -38,18 +38,18 @@ func TestDictionaryLoad(t *testing.T) {
 			}
 		}
 	}`
-	
+
 	err := os.WriteFile(dictFile, []byte(testDict), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
-	
+
 	dict := NewDictionary()
 	err = dict.LoadDictionary(dictFile)
 	if err != nil {
 		t.Fatalf("Failed to load dictionary: %v", err)
 	}
-	
+
 	if !dict.IsLoaded() {
 		t.Error("Dictionary should be loaded after successful LoadDictionary call")
 	}
@@ -67,7 +67,7 @@ func TestGetWordEntry(t *testing.T) {
 	// Create a temporary dictionary file for testing
 	tempDir := t.TempDir()
 	dictFile := filepath.Join(tempDir, "test_dict.json")
-	
+
 	testDict := `{
 		"words": {
 			"test": {
@@ -78,18 +78,18 @@ func TestGetWordEntry(t *testing.T) {
 			}
 		}
 	}`
-	
+
 	err := os.WriteFile(dictFile, []byte(testDict), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
-	
+
 	dict := NewDictionary()
 	err = dict.LoadDictionary(dictFile)
 	if err != nil {
 		t.Fatalf("Failed to load dictionary: %v", err)
 	}
-	
+
 	// Test existing word
 	entry, exists := dict.GetWordEntry("test")
 	if !exists {
@@ -98,13 +98,13 @@ func TestGetWordEntry(t *testing.T) {
 	if entry.Syllables != 1 {
 		t.Errorf("Expected 1 syllable, got %d", entry.Syllables)
 	}
-	
+
 	// Test case insensitive lookup
 	entry, exists = dict.GetWordEntry("TEST")
 	if !exists {
 		t.Error("Expected word 'TEST' to exist (case insensitive)")
 	}
-	
+
 	// Test non-existent word
 	_, exists = dict.GetWordEntry("nonexistent")
 	if exists {
@@ -114,7 +114,7 @@ func TestGetWordEntry(t *testing.T) {
 
 func TestCountSyllables(t *testing.T) {
 	dict := NewDictionary()
-	
+
 	// Test with unloaded dictionary (should use fallback)
 	syllables, err := dict.CountSyllables("beautiful")
 	if err != nil {
@@ -123,11 +123,11 @@ func TestCountSyllables(t *testing.T) {
 	if syllables <= 0 {
 		t.Errorf("Expected positive syllable count for 'beautiful', got %d", syllables)
 	}
-	
+
 	// Test with loaded dictionary
 	tempDir := t.TempDir()
 	dictFile := filepath.Join(tempDir, "test_dict.json")
-	
+
 	testDict := `{
 		"words": {
 			"test": {
@@ -144,17 +144,17 @@ func TestCountSyllables(t *testing.T) {
 			}
 		}
 	}`
-	
+
 	err = os.WriteFile(dictFile, []byte(testDict), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
-	
+
 	err = dict.LoadDictionary(dictFile)
 	if err != nil {
 		t.Fatalf("Failed to load dictionary: %v", err)
 	}
-	
+
 	// Test word from dictionary
 	syllables, err = dict.CountSyllables("beautiful")
 	if err != nil {
@@ -163,7 +163,7 @@ func TestCountSyllables(t *testing.T) {
 	if syllables != 3 {
 		t.Errorf("Expected 3 syllables for 'beautiful', got %d", syllables)
 	}
-	
+
 	// Test word not in dictionary (should use fallback)
 	syllables, err = dict.CountSyllables("computer")
 	if err != nil {
@@ -176,7 +176,7 @@ func TestCountSyllables(t *testing.T) {
 
 func TestCountSyllablesHeuristic(t *testing.T) {
 	dict := NewDictionary()
-	
+
 	testCases := []struct {
 		word      string
 		expected  int
@@ -194,7 +194,7 @@ func TestCountSyllablesHeuristic(t *testing.T) {
 		{"a", 1, 0},
 		{"the", 1, 0},
 	}
-	
+
 	for _, tc := range testCases {
 		result := dict.countSyllablesHeuristic(tc.word)
 		if tc.tolerance == 0 && result != tc.expected {
@@ -215,7 +215,7 @@ func TestFindRhymes(t *testing.T) {
 	// Create a temporary dictionary file for testing
 	tempDir := t.TempDir()
 	dictFile := filepath.Join(tempDir, "test_dict.json")
-	
+
 	testDict := `{
 		"words": {
 			"test": {
@@ -232,18 +232,18 @@ func TestFindRhymes(t *testing.T) {
 			}
 		}
 	}`
-	
+
 	err := os.WriteFile(dictFile, []byte(testDict), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
-	
+
 	dict := NewDictionary()
 	err = dict.LoadDictionary(dictFile)
 	if err != nil {
 		t.Fatalf("Failed to load dictionary: %v", err)
 	}
-	
+
 	// Test word with rhymes in dictionary
 	rhymes, err := dict.FindRhymes("test")
 	if err != nil {
@@ -253,7 +253,7 @@ func TestFindRhymes(t *testing.T) {
 	if len(rhymes) != len(expectedRhymes) {
 		t.Errorf("Expected %d rhymes, got %d", len(expectedRhymes), len(rhymes))
 	}
-	
+
 	// Test word not in dictionary (should use fallback)
 	rhymes, err = dict.FindRhymes("computer")
 	if err != nil {
@@ -267,13 +267,13 @@ func TestFindRhymes(t *testing.T) {
 
 func TestFindRhymesPhonetic(t *testing.T) {
 	dict := NewDictionary()
-	
+
 	// Test with empty string
 	rhymes := dict.findRhymesPhonetic("")
 	if len(rhymes) != 0 {
 		t.Errorf("Expected empty rhymes for empty string, got %v", rhymes)
 	}
-	
+
 	// Test with short word
 	rhymes = dict.findRhymesPhonetic("a")
 	if len(rhymes) != 0 {
@@ -309,17 +309,17 @@ func TestCountSyllablesInText(t *testing.T) {
 
 func TestGetStats(t *testing.T) {
 	dict := NewDictionary()
-	
+
 	// Test with unloaded dictionary
 	stats := dict.GetStats()
 	if stats.TotalWords != 0 {
 		t.Errorf("Expected 0 total words for unloaded dictionary, got %d", stats.TotalWords)
 	}
-	
+
 	// Test with loaded dictionary
 	tempDir := t.TempDir()
 	dictFile := filepath.Join(tempDir, "test_dict.json")
-	
+
 	testDict := `{
 		"words": {
 			"test": {
@@ -336,17 +336,17 @@ func TestGetStats(t *testing.T) {
 			}
 		}
 	}`
-	
+
 	err := os.WriteFile(dictFile, []byte(testDict), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
-	
+
 	err = dict.LoadDictionary(dictFile)
 	if err != nil {
 		t.Fatalf("Failed to load dictionary: %v", err)
 	}
-	
+
 	stats = dict.GetStats()
 	if stats.TotalWords != 2 {
 		t.Errorf("Expected 2 total words, got %d", stats.TotalWords)
@@ -361,19 +361,19 @@ func TestGetStats(t *testing.T) {
 
 func TestAddWord(t *testing.T) {
 	dict := NewDictionary()
-	
+
 	entry := WordEntry{
-		Syllables:    2,
+		Syllables:     2,
 		Pronunciation: "T EH1 S T",
-		Rhymes:       []string{"best", "rest"},
-		POS:          []string{"noun"},
+		Rhymes:        []string{"best", "rest"},
+		POS:           []string{"noun"},
 	}
-	
+
 	err := dict.AddWord("testword", entry)
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
-	
+
 	// Verify word was added
 	retrieved, exists := dict.GetWordEntry("testword")
 	if !exists {
@@ -388,7 +388,7 @@ func TestSearchWords(t *testing.T) {
 	// Create a temporary dictionary file for testing
 	tempDir := t.TempDir()
 	dictFile := filepath.Join(tempDir, "test_dict.json")
-	
+
 	testDict := `{
 		"words": {
 			"test": {
@@ -411,18 +411,18 @@ func TestSearchWords(t *testing.T) {
 			}
 		}
 	}`
-	
+
 	err := os.WriteFile(dictFile, []byte(testDict), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
-	
+
 	dict := NewDictionary()
 	err = dict.LoadDictionary(dictFile)
 	if err != nil {
 		t.Fatalf("Failed to load dictionary: %v", err)
 	}
-	
+
 	// Test exact match
 	words, err := dict.SearchWords("test", 10)
 	if err != nil {
@@ -431,7 +431,7 @@ func TestSearchWords(t *testing.T) {
 	if len(words) != 1 || words[0] != "test" {
 		t.Errorf("Expected ['test'], got %v", words)
 	}
-	
+
 	// Test wildcard
 	words, err = dict.SearchWords("test*", 10)
 	if err != nil {
@@ -440,7 +440,7 @@ func TestSearchWords(t *testing.T) {
 	if len(words) != 2 {
 		t.Errorf("Expected 2 words matching 'test*', got %d", len(words))
 	}
-	
+
 	// Test limit
 	words, err = dict.SearchWords("*", 1)
 	if err != nil {
@@ -455,7 +455,7 @@ func TestGetWordsBySyllableCount(t *testing.T) {
 	// Create a temporary dictionary file for testing
 	tempDir := t.TempDir()
 	dictFile := filepath.Join(tempDir, "test_dict.json")
-	
+
 	testDict := `{
 		"words": {
 			"test": {
@@ -478,18 +478,18 @@ func TestGetWordsBySyllableCount(t *testing.T) {
 			}
 		}
 	}`
-	
+
 	err := os.WriteFile(dictFile, []byte(testDict), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
-	
+
 	dict := NewDictionary()
 	err = dict.LoadDictionary(dictFile)
 	if err != nil {
 		t.Fatalf("Failed to load dictionary: %v", err)
 	}
-	
+
 	// Test 1 syllable
 	words, err := dict.GetWordsBySyllableCount(1, 10)
 	if err != nil {
@@ -498,7 +498,7 @@ func TestGetWordsBySyllableCount(t *testing.T) {
 	if len(words) != 2 {
 		t.Errorf("Expected 2 words with 1 syllable, got %d", len(words))
 	}
-	
+
 	// Test 3 syllables
 	words, err = dict.GetWordsBySyllableCount(3, 10)
 	if err != nil {
@@ -507,7 +507,7 @@ func TestGetWordsBySyllableCount(t *testing.T) {
 	if len(words) != 1 || words[0] != "beautiful" {
 		t.Errorf("Expected ['beautiful'], got %v", words)
 	}
-	
+
 	// Test no matches
 	words, err = dict.GetWordsBySyllableCount(5, 10)
 	if err != nil {
@@ -522,7 +522,7 @@ func TestGetWordsByPartOfSpeech(t *testing.T) {
 	// Create a temporary dictionary file for testing
 	tempDir := t.TempDir()
 	dictFile := filepath.Join(tempDir, "test_dict.json")
-	
+
 	testDict := `{
 		"words": {
 			"test": {
@@ -545,18 +545,18 @@ func TestGetWordsByPartOfSpeech(t *testing.T) {
 			}
 		}
 	}`
-	
+
 	err := os.WriteFile(dictFile, []byte(testDict), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
-	
+
 	dict := NewDictionary()
 	err = dict.LoadDictionary(dictFile)
 	if err != nil {
 		t.Fatalf("Failed to load dictionary: %v", err)
 	}
-	
+
 	// Test nouns
 	words, err := dict.GetWordsByPartOfSpeech("noun", 10)
 	if err != nil {
@@ -565,7 +565,7 @@ func TestGetWordsByPartOfSpeech(t *testing.T) {
 	if len(words) != 2 {
 		t.Errorf("Expected 2 nouns, got %d", len(words))
 	}
-	
+
 	// Test adjectives
 	words, err = dict.GetWordsByPartOfSpeech("adjective", 10)
 	if err != nil {
@@ -574,7 +574,7 @@ func TestGetWordsByPartOfSpeech(t *testing.T) {
 	if len(words) != 2 {
 		t.Errorf("Expected 2 adjectives, got %d", len(words))
 	}
-	
+
 	// Test no matches
 	words, err = dict.GetWordsByPartOfSpeech("adverb", 10)
 	if err != nil {
@@ -589,7 +589,7 @@ func TestValidateWord(t *testing.T) {
 	// Create a temporary dictionary file for testing
 	tempDir := t.TempDir()
 	dictFile := filepath.Join(tempDir, "test_dict.json")
-	
+
 	testDict := `{
 		"words": {
 			"test": {
@@ -600,33 +600,33 @@ func TestValidateWord(t *testing.T) {
 			}
 		}
 	}`
-	
+
 	err := os.WriteFile(dictFile, []byte(testDict), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
-	
+
 	dict := NewDictionary()
 	err = dict.LoadDictionary(dictFile)
 	if err != nil {
 		t.Fatalf("Failed to load dictionary: %v", err)
 	}
-	
+
 	// Test existing word
 	if !dict.ValidateWord("test") {
 		t.Error("Expected 'test' to be valid")
 	}
-	
+
 	// Test non-existing word
 	if dict.ValidateWord("nonexistent") {
 		t.Error("Expected 'nonexistent' to be invalid")
 	}
-	
+
 	// Test case insensitive
 	if !dict.ValidateWord("TEST") {
 		t.Error("Expected 'TEST' to be valid (case insensitive)")
 	}
-	
+
 	// Test empty string
 	if dict.ValidateWord("") {
 		t.Error("Expected empty string to be invalid")
@@ -635,17 +635,17 @@ func TestValidateWord(t *testing.T) {
 
 func TestGetRandomWord(t *testing.T) {
 	dict := NewDictionary()
-	
+
 	// Test with empty dictionary
 	_, _, err := dict.GetRandomWord()
 	if err == nil {
 		t.Error("Expected error for empty dictionary")
 	}
-	
+
 	// Test with loaded dictionary
 	tempDir := t.TempDir()
 	dictFile := filepath.Join(tempDir, "test_dict.json")
-	
+
 	testDict := `{
 		"words": {
 			"test": {
@@ -656,17 +656,17 @@ func TestGetRandomWord(t *testing.T) {
 			}
 		}
 	}`
-	
+
 	err = os.WriteFile(dictFile, []byte(testDict), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
-	
+
 	err = dict.LoadDictionary(dictFile)
 	if err != nil {
 		t.Fatalf("Failed to load dictionary: %v", err)
 	}
-	
+
 	word, entry, err := dict.GetRandomWord()
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
@@ -681,7 +681,7 @@ func TestGetRandomWord(t *testing.T) {
 
 func TestGetPhoneticEnding(t *testing.T) {
 	dict := NewDictionary()
-	
+
 	testCases := []struct {
 		word     string
 		expected string
@@ -692,7 +692,7 @@ func TestGetPhoneticEnding(t *testing.T) {
 		{"ab", "ab"},
 		{"", ""},
 	}
-	
+
 	for _, tc := range testCases {
 		result := dict.getPhoneticEnding(tc.word)
 		if result != tc.expected {
@@ -705,7 +705,7 @@ func TestDictionaryConcurrency(t *testing.T) {
 	// Create a temporary dictionary file for testing
 	tempDir := t.TempDir()
 	dictFile := filepath.Join(tempDir, "test_dict.json")
-	
+
 	testDict := `{
 		"words": {
 			"test": {
@@ -716,18 +716,18 @@ func TestDictionaryConcurrency(t *testing.T) {
 			}
 		}
 	}`
-	
+
 	err := os.WriteFile(dictFile, []byte(testDict), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
-	
+
 	dict := NewDictionary()
 	err = dict.LoadDictionary(dictFile)
 	if err != nil {
 		t.Fatalf("Failed to load dictionary: %v", err)
 	}
-	
+
 	// Test concurrent reads
 	done := make(chan bool, 10)
 	for i := 0; i < 10; i++ {
@@ -739,7 +739,7 @@ func TestDictionaryConcurrency(t *testing.T) {
 			done <- true
 		}()
 	}
-	
+
 	// Wait for all goroutines to complete
 	for i := 0; i < 10; i++ {
 		<-done

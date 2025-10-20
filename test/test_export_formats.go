@@ -63,20 +63,20 @@ Key: C`
 	}
 
 	contentStr := string(data)
-	
+
 	// Check for markdown formatting
 	if !strings.Contains(contentStr, "# Test Song") {
 		t.Error("Markdown title not found")
 	}
-	
+
 	if !strings.Contains(contentStr, "**BPM:** 120") {
 		t.Error("BPM metadata not found")
 	}
-	
+
 	if !strings.Contains(contentStr, "## Verse") {
 		t.Error("Section header not formatted correctly")
 	}
-	
+
 	if !strings.Contains(contentStr, "`C        G        Am        F`") {
 		t.Error("Chord line not formatted with code formatting")
 	}
@@ -136,21 +136,21 @@ Key: C`
 	}
 
 	contentStr := string(data)
-	
+
 	// Check that markdown formatting is removed
 	if strings.Contains(contentStr, "# ") {
 		t.Error("Markdown headers should be removed in plain text")
 	}
-	
+
 	if strings.Contains(contentStr, "**") {
 		t.Error("Markdown bold formatting should be removed in plain text")
 	}
-	
+
 	// Check that chord lines are skipped
 	if strings.Contains(contentStr, "C        G        Am        F") {
 		t.Error("Chord lines should be skipped in plain text export")
 	}
-	
+
 	// Check that lyrics are preserved
 	if !strings.Contains(contentStr, "This is the first line of the verse") {
 		t.Error("Lyrics should be preserved in plain text export")
@@ -211,30 +211,30 @@ Key: C`
 	}
 
 	contentStr := string(data)
-	
+
 	// Check for ChordPro metadata directives
 	if !strings.Contains(contentStr, "{title:Test Song}") {
 		t.Error("ChordPro title directive not found")
 	}
-	
+
 	if !strings.Contains(contentStr, "{tempo:120}") {
 		t.Error("ChordPro tempo directive not found")
 	}
-	
+
 	if !strings.Contains(contentStr, "{key:C}") {
 		t.Error("ChordPro key directive not found")
 	}
-	
+
 	// Check for ChordPro section directives
 	if !strings.Contains(contentStr, "{start_of_verse}") {
 		t.Error("ChordPro section directive not found")
 	}
-	
+
 	// Check that chords are preserved
 	if !strings.Contains(contentStr, "C        G        Am        F") {
 		t.Error("Chord lines should be preserved in ChordPro export")
 	}
-	
+
 	// Check that lyrics are preserved
 	if !strings.Contains(contentStr, "This is the first line of the verse") {
 		t.Error("Lyrics should be preserved in ChordPro export")
@@ -243,10 +243,10 @@ Key: C`
 
 func TestExportFormatDetection(t *testing.T) {
 	// Test the helper methods for format detection
-	
+
 	// Create a formatter to test the helper methods
 	formatter := export.NewExportFormatter()
-	
+
 	// Test section header detection
 	testCases := []struct {
 		line     string
@@ -260,22 +260,22 @@ func TestExportFormatDetection(t *testing.T) {
 		{"This is a lyric line", false},
 		{"C        G        Am        F", false},
 	}
-	
+
 	for _, tc := range testCases {
 		// We can't directly test private methods, but we can test through the export
 		// functionality which uses these methods internally
 		content := tc.line + "\nThis is a test line"
-		
+
 		// Test with Markdown export
 		options := export.DefaultExportOptions()
 		options.Type = export.ExportTypeMarkdown
 		options.Title = "Test"
-		
+
 		result, err := formatter.FormatExport(content, options)
 		if err != nil {
 			t.Fatalf("Failed to format export: %v", err)
 		}
-		
+
 		// Check if section was detected and formatted
 		hasSectionHeader := strings.Contains(result.Lyrics, "## ")
 		if tc.expected && !hasSectionHeader {
@@ -293,20 +293,20 @@ func TestExportKeyDetection(t *testing.T) {
 This is a test line
 G        D        Em        C
 Another test line`
-	
+
 	// Create a formatter to test key detection
 	formatter := export.NewExportFormatter()
-	
+
 	// Test with ChordPro export
 	options := export.DefaultExportOptions()
 	options.Type = export.ExportTypeChordPro
 	options.Title = "Test"
-	
+
 	result, err := formatter.FormatExport(content, options)
 	if err != nil {
 		t.Fatalf("Failed to format export: %v", err)
 	}
-	
+
 	// Check if key was detected (should be C or G based on frequency)
 	if !strings.Contains(result.Lyrics, "{key:") {
 		t.Error("Key detection failed - no key directive found")
@@ -319,25 +319,25 @@ func TestExportBPMDetection(t *testing.T) {
 This is a test line
 tempo: 140
 Another test line`
-	
+
 	// Create a formatter to test BPM detection
 	formatter := export.NewExportFormatter()
-	
+
 	// Test with ChordPro export
 	options := export.DefaultExportOptions()
 	options.Type = export.ExportTypeChordPro
 	options.Title = "Test"
-	
+
 	result, err := formatter.FormatExport(content, options)
 	if err != nil {
 		t.Fatalf("Failed to format export: %v", err)
 	}
-	
+
 	// Check if BPM was detected
 	if !strings.Contains(result.Lyrics, "{tempo:") {
 		t.Error("BPM detection failed - no tempo directive found")
 	}
-	
+
 	// Should detect the first BPM (120)
 	if !strings.Contains(result.Lyrics, "{tempo:120}") {
 		t.Error("Expected BPM 120 not detected correctly")

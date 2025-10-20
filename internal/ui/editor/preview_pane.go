@@ -7,12 +7,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Kyanite/noise/internal/ui/dimension"
+	"github.com/Kyanite/noise/internal/ui/styles"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/harmonica"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/Kyanite/noise/internal/ui/dimension"
-	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // PreviewPaneModel handles the markdown preview pane
@@ -1342,9 +1342,9 @@ func (m *PreviewPaneModel) GetPreviewStats() PreviewStats {
 	if m.content == "Preview will appear here..." {
 		return PreviewStats{}
 	}
- 
+
 	stats := m.previewStats
- 
+
 	// Add performance metrics
 	m.cacheMutex.RLock()
 	stats.UpdateCount = m.renderCount
@@ -1353,24 +1353,24 @@ func (m *PreviewPaneModel) GetPreviewStats() PreviewStats {
 	}
 	stats.LastUpdateTime = m.lastRenderTime
 	m.cacheMutex.RUnlock()
- 
+
 	// If no real-time stats available, calculate basic stats from current content
 	if stats.WordCount == 0 && m.content != "" {
 		// Calculate basic statistics from current content
 		words := len(strings.Fields(m.content))
 		chars := len(m.content)
 		lines := strings.Count(m.content, "\n") + 1
- 
+
 		// Estimate reading time (average 200 words per minute)
 		readingTimeMinutes := float64(words) / 200.0
 		readingTime := time.Duration(readingTimeMinutes * float64(time.Minute))
- 
+
 		stats.WordCount = words
 		stats.CharacterCount = chars
 		stats.LineCount = lines
 		stats.ReadingTime = readingTime
 	}
- 
+
 	return stats
 }
 

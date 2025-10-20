@@ -9,10 +9,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Kyanite/noise/internal/ui/styles"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/harmonica"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/Kyanite/noise/internal/ui/styles"
 )
 
 // AnimationConfig holds configuration for animations

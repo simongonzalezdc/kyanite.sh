@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Kyanite/noise/internal/ui"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 // TestNewMenuModelBasic ensures the menu model constructs and exposes a title when width is unset.
