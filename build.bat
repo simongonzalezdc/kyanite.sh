@@ -1,11 +1,11 @@
 @echo off
 
-REM Build script for NEON CLI on Windows
+REM Build script for focus.sh CLI on Windows
 
 echo Installing dependencies...
 go mod tidy
 
-echo Building NEON CLI application...
-go build -o neon.exe ./cmd/neon
+echo Building focus.sh CLI application...
+go build -o focus.exe ./cmd/focus
 
-echo Build complete! Run neon.exe to start using your AI-powered task manager.
+echo Build complete! Run focus.exe to start using your AI-powered task manager.

@@ -33,7 +33,7 @@ func interactiveHandler(cmd *cobra.Command, args []string) {
 	storage := store.New(utils.GetStoragePath())
 	taskEngine := engine.New(storage)
 
-	fmt.Println("🎯 NEON Interactive Task Creator")
+	fmt.Println("🎯 focus.sh Interactive Task Creator")
 	fmt.Println(strings.Repeat("─", 50))
 
 	// Step 1: Get task description
@@ -139,13 +139,13 @@ func filterHandler(cmd *cobra.Command, args []string) {
 			priority = "🟡"
 		}
 		
-		taskOptions[i] = fmt.Sprintf("%s %s %s | %s | ID: %s", 
+		taskOptions[i] = fmt.Sprintf("%s %s %s | %s | ID: %s",
 			status, priority, task.Description, 
 			strings.Join(task.Categories, ", "), task.ID)
 	}
 
 	// Let user filter tasks
-	fmt.Println("🔍 NEON Task Filter")
+	fmt.Println("🔍 focus.sh Task Filter")
 	fmt.Println(strings.Repeat("─", 50))
 	fmt.Println("Start typing to filter tasks, press Enter to select:")
 
@@ -194,7 +194,7 @@ func filterHandler(cmd *cobra.Command, args []string) {
 		}
 	case "edit notes":
 		// This would integrate with our notes command
-		fmt.Printf("📝 To edit notes, use: neon notes %s\n", task.ID)
+		fmt.Printf("📝 To edit notes, use: focus notes %s\n", task.ID)
 	}
 
 	if err != nil {
@@ -207,7 +207,7 @@ func filterHandler(cmd *cobra.Command, args []string) {
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "⚙️ Interactive configuration with Gum",
-	Long:  "🌸 Configure NEON settings using Gum prompts",
+	Long:  "🌸 Configure focus.sh settings using Gum prompts",
 	Run:   configHandler,
 }
 
@@ -218,7 +218,7 @@ func configHandler(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	fmt.Println("⚙️ NEON Configuration")
+	fmt.Println("⚙️ focus.sh Configuration")
 	fmt.Println(strings.Repeat("─", 50))
 
 	// AI Provider selection

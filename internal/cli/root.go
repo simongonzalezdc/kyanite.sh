@@ -9,13 +9,13 @@ import (
 )
 
 var (
-	neonBlue    = lipgloss.Color("#00FFFF")
-	neonGreen   = lipgloss.Color("#00FF66")
-	neonPurple  = lipgloss.Color("#B967C7")
-	accentColor = lipgloss.Color("#FFC0CB")
+	focusBlue    = lipgloss.Color("#00FFFF")
+	focusGreen   = lipgloss.Color("#00FF66")
+	focusPurple  = lipgloss.Color("#B967C7")
+	accentColor  = lipgloss.Color("#FFC0CB")
 
 	headerStyle = lipgloss.NewStyle().
-		Foreground(neonBlue).
+		Foreground(focusBlue).
 		Bold(true).
 		AlignHorizontal(lipgloss.Center)
 
@@ -26,24 +26,24 @@ var (
 	boxStyle = lipgloss.NewStyle().
 		Foreground(accentColor).
 		Border(lipgloss.DoubleBorder()).
-		BorderForeground(neonBlue).
+		BorderForeground(focusBlue).
 		Padding(1).
 		Width(80)
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "neon",
-	Short: "🌈 NEON Focus - AI-Powered Cyberpunk Task Manager",
+	Use:   "focus",
+	Short: "🌈 focus.sh - AI-Powered Cyberpunk Task Manager",
 	Long: boxStyle.Render(
-		headerStyle.Render("🌌 W E L C O M E   T O   N E O N   F O C U S 🌌") + "\n\n" +
-		lipgloss.NewStyle().Foreground(neonGreen).Render(
+		headerStyle.Render("🌌 W E L C O M E   T O   F O C U S . S H 🌌") + "\n\n" +
+		lipgloss.NewStyle().Foreground(focusGreen).Render(
 			"🚀 Launching immersive TUI dashboard experience\n" +
 			"✨ Cyberpunk aesthetics meet intelligent productivity\n" +
 			"🌈 Synthwave-inspired terminal magic\n\n" +
 			"Controls: A(dd) | C(omplete) | F(ocus) | T(heme) | ?(help)") + "\n" +
-		lipgloss.NewStyle().Foreground(neonBlue).Render(
+		lipgloss.NewStyle().Foreground(focusBlue).Render(
 			"────────────────────────────────────────────────────────────────────────────────") + "\n" +
-		lipgloss.NewStyle().Foreground(neonPurple).Render(
+		lipgloss.NewStyle().Foreground(focusPurple).Render(
 			"💡 Pro Tip: Press '?' for help once inside the dashboard")),
 	Run: func(cmd *cobra.Command, args []string) {
 		// Default to TUI dashboard - TUI-FIRST approach
@@ -60,7 +60,7 @@ var rootCmd = &cobra.Command{
 
 func Execute() error {
 	// Setup initial appearance
-	pterm.Println(pterm.FgGreen.Sprintf("🎮 NEON Focus initialized"))
+	pterm.Println(pterm.FgGreen.Sprintf("🎮 focus.sh initialized"))
 
 	// Execute the root command
 	return rootCmd.Execute()

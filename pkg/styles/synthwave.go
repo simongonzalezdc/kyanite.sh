@@ -22,7 +22,7 @@ var (
 	DeepSpace    = lipgloss.Color("#0A0014")
 	DarkVoid     = lipgloss.Color("#1A0033")
 	CyberGrid    = lipgloss.Color("#2D1B69")
-	NeonGrid     = lipgloss.Color("#3D2B8F")
+	FocusGrid    = lipgloss.Color("#3D2B8F")
 	
 	// Glitch Colors
 	GlitchRed    = lipgloss.Color("#FF0000")
@@ -106,7 +106,7 @@ func GlitchTitle(text string) string {
 	}
 }
 
-func NeonBox(text string, borderColor lipgloss.Color) string {
+func FocusBox(text string, borderColor lipgloss.Color) string {
 	return lipgloss.NewStyle().
 		Foreground(SynthwaveCyan).
 		Background(DarkVoid).
@@ -275,7 +275,7 @@ func EmptyStateMessage() string {
 		Render(`
 🔮 THE MATRIX IS EMPTY 🔮
 🌌 Digital void awaits your missions
-✨ Initialize with 'neon add "mission description"'
+✨ Initialize with 'focus add "mission description"'
 ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰`)
 }
 

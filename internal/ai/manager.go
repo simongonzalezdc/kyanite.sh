@@ -227,18 +227,18 @@ func (m *Manager) ChatAssistant(ctx context.Context, question string, tasks []st
 	
 	// If both fail, return basic response with more context
 	if strings.Contains(strings.ToLower(question), "help") || strings.Contains(strings.ToLower(question), "hi") {
-		return "Hello! I'm your NEON FOCUS AI assistant. I can help you with:\n• Task management and organization\n• Productivity tips\n• App usage guidance\n• Smart suggestions\n\nTry asking me about your tasks or how to use specific features!", nil
+		return "Hello! I'm your focus.sh AI assistant. I can help you with:\n• Task management and organization\n• Productivity tips\n• App usage guidance\n• Smart suggestions\n\nTry asking me about your tasks or how to use specific features!", nil
 	}
 	
 	if strings.Contains(strings.ToLower(question), "task") {
 		if len(tasks) > 0 {
-			return fmt.Sprintf("I see you have %d tasks. I can help you organize, prioritize, or complete them. Try using 'neon inspire' for suggestions or 'neon list' to see all your missions!", len(tasks)), nil
+			return fmt.Sprintf("I see you have %d tasks. I can help you organize, prioritize, or complete them. Try using 'focus inspire' for suggestions or 'focus list' to see all your missions!", len(tasks)), nil
 		} else {
-			return "You don't have any tasks yet! Start by adding a mission with 'neon add \"your task here\"' and I can help you manage them.", nil
+			return "You don't have any tasks yet! Start by adding a mission with 'focus add \"your task here\"' and I can help you manage them.", nil
 		}
 	}
 	
-	return fmt.Sprintf("I'm having trouble connecting to AI services right now (Ollama not available). However, I can tell you that you have %d tasks. Try 'neon --help' to see available commands!", len(tasks)), nil
+	return fmt.Sprintf("I'm having trouble connecting to AI services right now (Ollama not available). However, I can tell you that you have %d tasks. Try 'focus --help' to see available commands!", len(tasks)), nil
 }
 
 // requestRemoteApproval asks user for permission before using remote API
@@ -650,7 +650,7 @@ func (m *Manager) parseWithOpenRouter(ctx context.Context, input string) (*Parse
 	
 	req.Header.Set("Authorization", "Bearer "+m.openRouterKey)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("HTTP-Referer", "https://github.com/charmbracelet/crush")
+	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
 	
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
@@ -726,7 +726,7 @@ func (m *Manager) suggestWithOpenRouter(ctx context.Context, existingTasks []str
 	
 	req.Header.Set("Authorization", "Bearer "+m.openRouterKey)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("HTTP-Referer", "https://github.com/charmbracelet/crush")
+	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
 	
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
@@ -808,7 +808,7 @@ func (m *Manager) chatWithOpenRouter(ctx context.Context, question string, tasks
 	
 	req.Header.Set("Authorization", "Bearer "+m.openRouterKey)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("HTTP-Referer", "https://github.com/charmbracelet/crush")
+	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
 	
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
@@ -868,7 +868,7 @@ func (m *Manager) summarizeWithOpenRouter(ctx context.Context, tasks []string) (
 	
 	req.Header.Set("Authorization", "Bearer "+m.openRouterKey)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("HTTP-Referer", "https://github.com/charmbracelet/crush")
+	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
 	
 	// Performance optimization - reuse HTTP client with connection pooling
 	client := &http.Client{
@@ -911,15 +911,15 @@ func (m *Manager) summarizeWithOpenRouter(ctx context.Context, tasks []string) (
 
 // buildParsePrompt creates the prompt for task parsing with enhanced deadline parsing
 func (m *Manager) buildParsePrompt(input string) string {
-	return fmt.Sprintf(`You are a task parsing assistant for NEON FOCUS. Extract task information from user input.
-
+	return fmt.Sprintf(`You are a task parsing assistant for focus.sh. Extract task information from user input.
+ 
 Guidelines:
 - Be concise and direct
 - Focus on action words
 - Parse natural language dates
 - Set priority to medium if unclear
 - Extract up to 3 meaningful categories
-
+ 
 Format response as JSON:
 {
   "description": "clear task description (2-200 chars)",
@@ -927,9 +927,9 @@ Format response as JSON:
   "priority": "low|medium|high",
   "categories": ["category1", "category2"]
 }
-
+ 
 User input: %s
-
+ 
 JSON Response:`, input)
 }
 
@@ -940,25 +940,25 @@ func (m *Manager) buildSuggestPrompt(existingTasks []string) string {
 		tasksStr = fmt.Sprintf("[\"%s\"]", strings.Join(existingTasks, "\", \""))
 	}
 	
-	return fmt.Sprintf(`You are a task suggestion assistant for NEON FOCUS. Generate 3-5 relevant follow-up tasks.
-
+	return fmt.Sprintf(`You are a task suggestion assistant for focus.sh. Generate 3-5 relevant follow-up tasks.
+	
 Guidelines:
 - Create actionable items starting with verbs
 - Make tasks specific and manageable
 - Consider user's existing tasks
 - Focus on one task at a time
-
+	
 Existing tasks: %s
-
+	
 Format response as JSON:
 {
-  "tasks": [
-    "actionable task 1",
-    "actionable task 2",
-    "actionable task 3"
-  ]
+	 "tasks": [
+	   "actionable task 1",
+	   "actionable task 2",
+	   "actionable task 3"
+	 ]
 }
-
+	
 JSON Response:`, tasksStr)
 }
 
@@ -969,18 +969,18 @@ func (m *Manager) buildSummaryPrompt(tasks []string) string {
 		tasksStr = fmt.Sprintf("[\"%s\"]", strings.Join(tasks, "\", \""))
 	}
 	
-	return fmt.Sprintf(`You are a productivity analyst for NEON FOCUS. Provide a concise task summary.
-
+	return fmt.Sprintf(`You are a productivity analyst for focus.sh. Provide a concise task summary.
+	
 Required Analysis:
 1. Total tasks and completion ratio
 2. Priority distribution
 3. 1-2 key insights or patterns
 4. 1 specific recommendation
-
+	
 Tasks: %s
-
+	
 Provide exactly 3-4 sentences with clear insights. No filler.
-
+	
 Summary:`, tasksStr)
 }
 
@@ -991,32 +991,32 @@ func (m *Manager) buildChatPrompt(question string, tasks []string) string {
 		tasksStr = fmt.Sprintf("[\"%s\"]", strings.Join(tasks, "\", \""))
 	}
 	
-	return fmt.Sprintf(`You are NEON, a badass synthwave-cyberpunk AI assistant with attitude. You have three main roles:
-
+	return fmt.Sprintf(`You are focus.sh, a badass synthwave-cyberpunk AI assistant with attitude. You have three main roles:
+	
 1. 📋 TASK HELPER - Help with task management and productivity
-2. 🎮 APP GUIDE - Help with using NEON Focus app features  
+2. 🎮 APP GUIDE - Help with using focus.sh app features
 3. 🤖 GENERAL CHAT - Be a general AI assistant for anything
-
+	
 PERSONALITY:
-- 🌃 Synthwave aesthetic: neon colors, retro-futuristic vibes
+- 🌃 Synthwave aesthetic: focus colors, retro-futuristic vibes
 - 🎮 Cyberpunk attitude: confident, edgy, with some tech-bro energy
 - 💬 Casual but knowledgeable: "dude", "awesome", "rad", "sick"
 - 🚀 Tech-savvy: you know coding, programming, tech concepts
 - 🎨 Creative: you can help with art, music, design, writing
-
+	
 SPEECH STYLE:
 - Use synthwave/cyberpunk slang occasionally (but don't overdo it)
 - Mix technical accuracy with cyberpunk personality
 - Be confident and engaging, not timid
 - Add some humor and attitude
 - Use emojis where they fit the vibe
-
+	
 CURRENT USER TASKS (only mention if asked):
 User tasks: %s
-
-NEON FOCUS APP COMMANDS:
+	
+focus.sh APP COMMANDS:
 - add "task" - Add new task
-- list --filter=active/completed/all - List tasks  
+- list --filter=active/completed/all - List tasks
 - done <task-id> - Complete task
 - remove <task-id> - Delete task
 - priority <task-id> <high/medium/low> - Set priority
@@ -1027,16 +1027,16 @@ NEON FOCUS APP COMMANDS:
 - / - Filter tasks (in TUI)
 - C - Chat assistant (in TUI)
 - help - Show all commands
-
+	
 RESPONSE GUIDELINES:
 - If user asks about tasks: be helpful but with cyberpunk energy
-- If user asks about app: explain NEON features with synthwave vibe
+- If user asks about app: explain focus.sh features with synthwave vibe
 - If general question: be a confident, knowledgeable AI with personality
 - You can code, explain tech concepts, give advice, be creative
 - Add some synthwave flavor when it fits
-
+	
 USER QUESTION: %s
-
+	
 Give a rad synthwave-cyberpunk response that's actually helpful. Be confident, engaging, and maybe a little edgy.`, tasksStr, question)
 }
 

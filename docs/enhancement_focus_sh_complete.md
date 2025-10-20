@@ -27,13 +27,13 @@ The existing "Neon Focus" codebase (`crush-cli/crush`) has severe **naming/brand
 
 | Component | Current | Target |
 |-----------|---------|--------|
-| **Module Path** | `github.com/crush-cli/crush` | `github.com/kyanite/focus` |
-| **Binary Name** | `neon.exe` / `todo.exe` | `focus` (all platforms) |
+| **Module Path** | `github.com/kyanite/focus` | `github.com/kyanite/focus` |
+| **Binary Name** | `focus` | `focus` (all platforms) |
 | **Storage Dir** | `~/.focus/` + `~/.focus/` | `~/.focus/` |
 | **Config File** | `~/.focus/config.yml` | `~/.focus/config.yml` |
 | **AI Cache** | `~/.focus/ai_cache.json` | `~/.focus/ai_cache.json` |
-| **CLI Brand** | "neon", "crush", "todo" | "focus" |
-| **Package Name** | `crush-cli/crush` | `focus` |
+| **CLI Brand** | "focus" | "focus" |
+| **Package Name** | `focus` | `focus` |
 
 ### Current Features (All ✅ Complete)
 - Tasks (add/list/complete/delete)
@@ -52,20 +52,20 @@ The existing "Neon Focus" codebase (`crush-cli/crush`) has severe **naming/brand
 
 **Go Module Path:**
 ```bash
-# OLD: github.com/crush-cli/crush
+# OLD: github.com/kyanite/focus
 # NEW: github.com/kyanite/focus
 ```
 
 **In go.mod:**
 ```
-OLD: module github.com/crush-cli/crush
+OLD: module github.com/kyanite/focus
 NEW: module github.com/kyanite/focus
 ```
 
 **All imports update:**
 ```go
 // OLD
-import "github.com/crush-cli/crush/internal/tui"
+import "github.com/kyanite/focus/internal/tui"
 
 // NEW
 import "github.com/kyanite/focus/internal/tui"
@@ -79,8 +79,8 @@ import "github.com/kyanite/focus/internal/tui"
 
 **Rename directories:**
 ```
-crush-cli/                    → focus/
-cmd/neon/main.go             → cmd/focus/main.go
+focus/                       → focus/
+cmd/focus/main.go            → cmd/focus/main.go
 cmd/todo/main.go             → DELETE (duplicate, merge into focus)
 cmd/mcp-server/main.go       → cmd/focus-mcp/main.go (rename for clarity)
 cmd/glow_demo/main.go        → DELETE (internal demo only)
@@ -129,9 +129,9 @@ func migrateStorage() error {
 
 | Old Pattern | New Pattern | Files |
 |-------------|-------------|-------|
-| "neon" (brand ref) | "focus" | ~15 files |
-| "crush-cli" | "kyanite" | ~8 files |
-| "todo" (brand ref) | "focus" | ~10 files |
+| "focus" (brand ref) | "focus" | ~15 files |
+| "kyanite" | "kyanite" | ~8 files |
+| "focus" (brand ref) | "focus" | ~10 files |
 | "NEON" (display) | "focus.sh" | ~5 files |
 | `neonBlue` (color var) | `focusBlue` | styles files |
 | `~/.focus` | `~/.focus` | help text, docs |
@@ -152,7 +152,7 @@ func migrateStorage() error {
 **Update build scripts:**
 ```bash
 # build.bat (Windows)
-OLD: go build -o neon.exe ./cmd/neon
+OLD: go build -o focus.exe ./cmd/focus
 NEW: go build -o focus.exe ./cmd/focus
 
 # build.sh (Linux/Mac)
@@ -347,19 +347,19 @@ Output should include:
 - [ ] Verify all imports: `go build ./...` compiles
 
 **Directory Structure:**
-- [ ] Rename `crush-cli/` → `focus/`
-- [ ] Rename `cmd/neon/` → `cmd/focus/`
+- [ ] Rename `focus/` → `focus/`
+- [ ] Rename `cmd/focus/` → `cmd/focus/`
 - [ ] Merge `cmd/todo/main.go` into `cmd/focus/main.go` (delete duplicate)
 - [ ] Rename `cmd/mcp-server/` → `cmd/focus-mcp/`
 - [ ] Delete `cmd/glow_demo/`
 
 **Build Configuration:**
-- [ ] Update `build.bat`: `neon.exe` → `focus.exe`
-- [ ] Update `build.sh`: `todo.exe` → `focus`
+- [ ] Update `build.bat`: `focus.exe` → `focus.exe`
+- [ ] Update `build.sh`: `focus` → `focus`
 - [ ] Test builds on all platforms
 
 **String Updates:**
-- [ ] Replace "neon" brand refs with "focus" (~15 files)
+- [ ] Replace "focus" brand refs with "focus" (~15 files)
 - [ ] Replace "~/.focus" with "~/.focus" (help text, code, docs)
 - [ ] Replace "~/.focus" with "~/.focus" (all references)
 - [ ] Verify no remaining "crush-cli" references in user-facing text
@@ -451,7 +451,7 @@ Output should include:
 - [ ] [ ] Test journal creation/export
 
 **Final Checks:**
-- [ ] [ ] No "neon", "crush", "todo" in user-facing text
+- [ ] [ ] No "focus", "kyanite", "focus" in user-facing text
 - [ ] [ ] All help text updated
 - [ ] [ ] Binary named "focus" on all platforms
 - [ ] [ ] Storage path is ~/.focus/ everywhere
@@ -466,8 +466,8 @@ Output should include:
 
 | File | Change | Priority |
 |------|--------|----------|
-| `cmd/neon/main.go` | Rename to `cmd/focus/main.go` | CRITICAL |
-| `cmd/todo/main.go` | Merge into `cmd/focus/main.go` | CRITICAL |
+| `cmd/focus/main.go` | Keep as `cmd/focus/main.go` | CRITICAL |
+| `cmd/focus/main.go` | Keep as `cmd/focus/main.go` | CRITICAL |
 | `go.mod` | Update module path | CRITICAL |
 | `pkg/utils/storage.go` | Add migration logic + path updates | CRITICAL |
 | `pkg/config/config.go` | Update all paths to ~/.focus/ | CRITICAL |
@@ -480,7 +480,7 @@ Output should include:
 | `internal/theme/registry.go` | Create with all 12 themes | CRITICAL |
 | `README.md` | Complete rewrite for focus.sh | HIGH |
 | `build.bat`, `build.sh` | Update output binary names | CRITICAL |
-| All help text | Replace "neon" → "focus" | HIGH |
+| All help text | Replace "focus" → "focus" | HIGH |
 
 ---
 
@@ -488,8 +488,8 @@ Output should include:
 
 **focus.sh v2.0 ships when:**
 
-✅ Zero "neon", "crush", "todo" references in user-facing text  
-✅ Binary consistently named "focus" across all platforms  
+✅ Zero "focus", "kyanite", "focus" references in user-facing text
+✅ Binary consistently named "focus" across all platforms
 ✅ All storage at `~/.focus/`  
 ✅ Module path: `github.com/kyanite/focus`  
 ✅ Journal feature working (create/view/search/export)  
@@ -690,9 +690,9 @@ func migrateStorage() error {
         os.MkdirAll(focusPath, 0755)
     }
     
-    // Step 3: Migrate from .neon
-    if _, err := os.Stat(neonPath); err == nil {
-        copyDir(neonPath, focusPath)
+    // Step 3: Migrate from .focus
+    if _, err := os.Stat(focusPath); err == nil {
+        copyDir(focusPath, focusPath)
     }
     
     // Step 4: Merge .todo (especially ai_cache.json)
@@ -814,9 +814,9 @@ NEW: "github.com/kyanite/focus"
 COMMAND: find . -name "*.go" -exec sed -i 's|github.com/crush-cli/crush|github.com/kyanite/focus|g' {} \;
 
 # Pattern 2: Binary references in code
-OLD: neon.exe / todo.exe
+OLD: focus.exe / todo.exe
 NEW: focus / focus.exe
-COMMAND: grep -r "neon\.exe\|todo\.exe" --include="*.go" --include="*.sh" --include="*.bat"
+COMMAND: grep -r "focus\.exe\|todo\.exe" --include="*.go" --include="*.sh" --include="*.bat"
 
 # Pattern 3: Path references
 OLD: ~/.focus/
@@ -829,9 +829,9 @@ NEW: "focus"
 MANUAL: Review each match - not all "neon" should be replaced (e.g., neonBlue var)
 
 # Pattern 5: Help text
-OLD: Use: neon add
+OLD: Use: focus add
 NEW: Use: focus add
-COMMAND: grep -r "Use: neon\|neon add\|neon list" --include="*.go"
+COMMAND: grep -r "Use: focus\|focus add\|focus list" --include="*.go"
 ```
 
 ---
@@ -853,7 +853,7 @@ COMMAND: grep -r "Use: neon\|neon add\|neon list" --include="*.go"
 - [ ] `go test ./...` all tests pass
 - [ ] Windows: `focus.exe --version` shows correct output
 - [ ] Mac/Linux: `./focus --version` shows correct output
-- [ ] No "neon", "crush", "todo" in version output
+- [ ] No "focus", "kyanite", "focus" in version output
 
 ### Feature Tests
 - [ ] Tasks: Add, list, complete, delete all work
@@ -880,9 +880,9 @@ COMMAND: grep -r "Use: neon\|neon add\|neon list" --include="*.go"
 - [ ] Invalid theme name falls back to default
 
 ### Naming Tests
-- [ ] Zero instances of "neon" in help text
-- [ ] Zero instances of "crush-cli" in user-facing text
-- [ ] All command examples show "focus" not "neon"
+- [ ] Zero instances of "focus" in help text
+- [ ] Zero instances of "kyanite" in user-facing text
+- [ ] All command examples show "focus" not "focus"
 - [ ] Help text mentions Kyanite Suite
 - [ ] Module imports show "kyanite/focus"
 

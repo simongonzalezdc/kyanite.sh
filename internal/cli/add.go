@@ -20,7 +20,7 @@ var addCmd = &cobra.Command{
 	Use:   "add [task description]",
 	Short: "Add a new mission to the synthwave matrix",
 	Long: `Create a new mission with AI-powered parsing and stunning visual effects.
-Example: neon add "Complete the synthwave project by Friday"`,
+Example: focus add "Complete the synthwave project by Friday"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			showAddError()
@@ -119,7 +119,7 @@ func showAddError() {
 		Padding(1, 2).
 		Border(lipgloss.DoubleBorder()).
 		BorderForeground(styles.SynthwaveRed).
-		Render("❌ MISSION CREATION FAILED\n\nPlease provide a task description:\nneon add \"Your mission here\"")
+		Render("❌ MISSION CREATION FAILED\n\nPlease provide a task description:\nfocus add \"Your mission here\"")
 	fmt.Println(errorBox)
 }
 

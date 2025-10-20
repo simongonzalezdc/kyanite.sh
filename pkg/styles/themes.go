@@ -219,6 +219,6 @@ func GetSynthwaveTitle() lipgloss.Style {
 	return GetTitleStyle()
 }
 
-func GetNeonBox() lipgloss.Style {
+func GetFocusBox() lipgloss.Style {
 	return GetBoxStyle()
 }

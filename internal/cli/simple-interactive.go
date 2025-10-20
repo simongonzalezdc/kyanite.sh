@@ -25,7 +25,7 @@ func simpleInteractiveHandler(cmd *cobra.Command, args []string) {
 	storage := store.New(utils.GetStoragePath())
 	taskEngine := engine.New(storage)
 
-	fmt.Println("🎯 NEON Simple Interactive Task Creator")
+	fmt.Println("🎯 focus.sh Simple Interactive Task Creator")
 	fmt.Println(strings.Repeat("─", 50))
 
 	// Step 1: Get task description (basic implementation)
@@ -109,7 +109,7 @@ func simpleInteractiveHandler(cmd *cobra.Command, args []string) {
 var testGumCmd = &cobra.Command{
 	Use:   "test-gum",
 	Short: "🧪 Test Gum integration",
-	Long:  "🌸 Test if Gum commands work with NEON",
+	Long:  "🌸 Test if Gum commands work with focus.sh",
 	Run:   testGumHandler,
 }
 
@@ -127,7 +127,7 @@ func testGumHandler(cmd *cobra.Command, args []string) {
 		fmt.Println("✅ Gum is available - proceeding with functionality tests")
 		
 		// Test basic gum functionality
-		testResult := gum.Style("NEON Test", "#FF71CE", "", false)
+		testResult := gum.Style("focus.sh Test", "#FF71CE", "", false)
 		fmt.Printf("✅ Gum styling test: %s\n", testResult)
 	} else {
 		fmt.Println("❌ Gum is not available in current PATH")
@@ -139,7 +139,7 @@ func testGumHandler(cmd *cobra.Command, args []string) {
 	fmt.Println("\n🎯 PHASE 3 STATUS:")
 	fmt.Println("✅ Gum wrapper package implemented")
 	fmt.Println("✅ Interactive commands written")
-	fmt.Println("✅ Engine integration completed") 
+	fmt.Println("✅ Engine integration completed")
 	fmt.Println("✅ All Gum functionality coded")
 	fmt.Println("⏳ Waiting for gum binary to be accessible")
 }

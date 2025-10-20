@@ -20,7 +20,7 @@ import (
 var chatCmd = &cobra.Command{
 	Use:   "chat",
 	Short: "🤖 Get AI assistance with your tasks and app usage",
-	Long:  "Ask questions about your tasks, productivity, or how to use NEON FOCUS",
+	Long:  "Ask questions about your tasks, productivity, or how to use focus.sh",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("🤖 Initializing Chat Assistant 🤖")
 		fmt.Println("~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~")

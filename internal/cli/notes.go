@@ -57,7 +57,7 @@ func showAllNotes(engine *engine.Engine) {
 
 	if len(tasksWithNotes) == 0 {
 		fmt.Println("😴 No notes found.")
-		fmt.Println("💡 Add notes with: neon notes <task_id>")
+		fmt.Println("💡 Add notes with: focus notes <task_id>")
 		return
 	}
 
@@ -101,7 +101,7 @@ func showAllNotes(engine *engine.Engine) {
 	}
 
 	// Option to launch editor
-	fmt.Println("💡 Tip: Use 'neon notes <task_id>' to edit specific task notes")
+	fmt.Println("💡 Tip: Use 'focus notes <task_id>' to edit specific task notes")
 }
 
 func editTaskNotes(taskID string, engine *engine.Engine) {
@@ -144,7 +144,7 @@ func editTaskNotes(taskID string, engine *engine.Engine) {
 	)
 
 	// Create temporary file
-	tempFile, err := os.CreateTemp("", fmt.Sprintf("neon-notes-%s-*.md", taskID))
+	tempFile, err := os.CreateTemp("", fmt.Sprintf("focus-notes-%s-*.md", taskID))
 	if err != nil {
 		fmt.Printf("❌ Error creating temp file: %v\n", err)
 		return

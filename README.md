@@ -1,6 +1,6 @@
-# 🌌 NEON Focus - AI-Powered Task Manager
+# 🌌 focus.sh - AI-Powered Task Manager
 
-An intelligent CLI task management application with natural language processing capabilities, built with Charm libraries and cyberpunk aesthetics.
+An intelligent CLI task management application within the Kyanite Suite, delivering natural language productivity with Charm libraries and cyberpunk aesthetics.
 
 ## Features
 
@@ -50,13 +50,13 @@ The application uses extensive configuration for AI providers, themes, and UI se
 
 ```bash
 # View all configuration
-neon config list
+focus config list
 
 # Set theme
-neon config set theme synthwave
+focus config set theme synthwave
 
 # Enhanced configuration wizard
-neon enhanced-config
+focus enhanced-config
 ```
 
 ## AI Configuration
@@ -70,11 +70,11 @@ The application uses Ollama by default for local AI processing with fallback opt
 Configure with:
 ```bash
 # Enhanced configuration wizard
-neon enhanced-config
+focus enhanced-config
 
 # Or manual configuration
-neon config set ai.provider ollama
-neon config set ai.model qwen2.5:1.5b
+focus config set ai.provider ollama
+focus config set ai.model qwen2.5:1.5b
 ```
 
 ## Data Storage
@@ -85,7 +85,7 @@ Tasks are stored in `~/.focus/tasks.json` on Unix systems or `%USERPROFILE%\.foc
 
 To run directly without building:
 ```bash
-go run cmd/neon/main.go [command]
+go run cmd/focus/main.go [command]
 ```
 
 To run tests:
@@ -105,52 +105,52 @@ go test ./...
 ## 🎯 Commands Overview
 
 ### **Core Task Management**
-- `neon add` - Add tasks with AI parsing
-- `neon list` - View tasks with beautiful formatting
-- `neon done` - Mark tasks as complete
-- `neon remove` - Delete tasks
+- `focus add` - Add tasks with AI parsing
+- `focus list` - View tasks with beautiful formatting
+- `focus done` - Mark tasks as complete
+- `focus remove` - Delete tasks
 
 ### **AI-Powered Features**
-- `neon chat` - AI assistance for tasks and usage
-- `neon inspire` - AI-powered task suggestions
-- `neon wizard` - Advanced task creation wizard
+- `focus chat` - AI assistance for tasks and usage
+- `focus inspire` - AI-powered task suggestions
+- `focus wizard` - Advanced task creation wizard
 
 ### **Calendar Features**
-- `neon calendar show [month|week|day]` - Calendar views
-- `neon calendar today` - Today's tasks
-- `neon calendar add [task] [date]` - Add task with date
-- `neon calendar list` - List tasks by date
-- `neon calendar navigate [date]` - Navigate to date
+- `focus calendar show [month|week|day]` - Calendar views
+- `focus calendar today` - Today's tasks
+- `focus calendar add [task] [date]` - Add task with date
+- `focus calendar list` - List tasks by date
+- `focus calendar navigate [date]` - Navigate to date
 
 ### **Interactive Features**
-- `neon unified` - Complete dashboard (recommended)
-- `neon dashboard` - TUI dashboard with AI
-- `neon interactive` - Gum-powered task creation
-- `neon filter` - Interactive task filtering
-- `neon config` - Gum-based configuration
+- `focus unified` - Complete dashboard (recommended)
+- `focus dashboard` - TUI dashboard with AI
+- `focus interactive` - Gum-powered task creation
+- `focus filter` - Interactive task filtering
+- `focus config` - Gum-based configuration
 
 ### **Configuration**
-- `neon enhanced-config` - Advanced configuration wizard
-- `neon config list/get/set/reset/path` - Viper configuration
-- `neon theme` - Visual theme switching
+- `focus enhanced-config` - Advanced configuration wizard
+- `focus config list/get/set/reset/path` - Viper configuration
+- `focus theme` - Visual theme switching
 
 ### **Advanced Wizards**
-- `neon wizard` - Task creation with Huh forms
-- `neon config-wizard` - Configuration with Huh forms
-- `neon edit-wizard` - Edit tasks with advanced wizard
+- `focus wizard` - Task creation with Huh forms
+- `focus config-wizard` - Configuration with Huh forms
+- `focus edit-wizard` - Edit tasks with advanced wizard
 
 ## 🌈 Themes
 
-NEON Focus supports multiple visual themes:
+focus.sh supports multiple visual themes:
 - **synthwave** (default) - Cyberpunk synthwave aesthetics
 - **light** - Clean light theme
 - **plain** - Simple monochrome theme
 
 ```bash
 # Change theme
-neon theme synthwave
-neon theme light
-neon theme plain
+focus theme synthwave
+focus theme light
+focus theme plain
 ```
 
 ## 🚀 Performance

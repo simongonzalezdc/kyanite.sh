@@ -318,7 +318,7 @@ func (m *Model) renderMatrix() string {
 	// Overlay task info
 	if len(m.tasks) > 0 && m.selectedIndex < len(m.tasks) {
 		task := m.tasks[m.selectedIndex]
-		taskInfo := styles.NeonBox(
+		taskInfo := styles.FocusBox(
 			fmt.Sprintf("SELECTED: %s\nSTATUS: %s\nPRIORITY: %s",
 				task.Description,
 				task.Status,

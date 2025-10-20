@@ -1,11 +1,11 @@
 #!/bin/bash
-# NEON AI Todo CLI - Deployment Test
+# focus.sh AI CLI - Deployment Test
 
-echo "🧪 Starting NEON deployment validation..."
+echo "🧪 Starting focus.sh deployment validation..."
 
 # Build the application
-echo "🔨 Building NEON CLI..."
-go build -o neon ./cmd/todo
+echo "🔨 Building focus.sh CLI..."
+go build -o focus ./cmd/focus
 
 if [ $? -ne 0 ]; then
     echo "❌ Build failed"
@@ -19,7 +19,7 @@ echo "🎯 Testing basic functionality..."
 
 # Add a test task
 echo "Adding test mission..."
-./neon add "Test deployment functionality" > /dev/null 2>&1
+./focus add "Test deployment functionality" > /dev/null 2>&1
 
 if [ $? -ne 0 ]; then
     echo "❌ Add command failed"
@@ -29,7 +29,7 @@ echo "✅ Add command works"
 
 # List tasks
 echo "Listing missions..."
-./neon list > /dev/null 2>&1
+./focus list > /dev/null 2>&1
 
 if [ $? -ne 0 ]; then
     echo "❌ List command failed"
@@ -50,8 +50,8 @@ fi
 echo "✅ All unit tests pass"
 
 # Clean up
-rm -f neon test_output.txt
+rm -f focus test_output.txt
 
 echo ""
-echo "🎉 NEON CLI deployment validation complete!"
+echo "🎉 focus.sh CLI deployment validation complete!"
 echo "   All systems operational - ready for production! 🚀"

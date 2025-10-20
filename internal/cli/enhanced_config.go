@@ -14,14 +14,14 @@ import (
 var enhancedConfigCmd = &cobra.Command{
 	Use:   "enhanced-config",
 	Short: "🔧 Enhanced configuration wizard with saving",
-	Long:  "🌸 Configure NEON settings and save to file",
+	Long:  "🌸 Configure focus.sh settings and save to file",
 	Run:   enhancedConfigWizardHandler,
 }
 
 func enhancedConfigWizardHandler(cmd *cobra.Command, args []string) {
-	fmt.Println("🔧 NEON Enhanced Configuration Wizard")
+	fmt.Println("🔧 focus.sh Enhanced Configuration Wizard")
 	fmt.Println(strings.Repeat("─", 50))
-	fmt.Println("⚙️ Let's configure your NEON experience:")
+	fmt.Println("⚙️ Let's configure your focus.sh experience:")
 	fmt.Println()
 
 	var configData struct {

@@ -112,7 +112,7 @@ func renderSynthwaveList(tasks []models.Task, filter string) {
 }
 
 func renderTaskWithEffects(index int, task models.Task) {
-	// Task number with neon effect
+	// Task number with focus effect
 	numberStyle := lipgloss.NewStyle().
 		Foreground(styles.SynthwavePink).
 		Background(styles.DeepSpace).
@@ -150,7 +150,7 @@ func renderTaskWithEffects(index int, task models.Task) {
 		status)
 
 	// Box the entire task
-	taskBox := styles.NeonBox(taskLine, styles.SynthwavePurple)
+	taskBox := styles.FocusBox(taskLine, styles.SynthwavePurple)
 	fmt.Println(taskBox)
 
 	// Add metadata if available

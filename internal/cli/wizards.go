@@ -19,7 +19,7 @@ var wizardCmd = &cobra.Command{
 var configWizardCmd = &cobra.Command{
 	Use:   "config-wizard",
 	Short: "🔧 Interactive configuration setup with Huh forms",
-	Long:  "🌸 Configure NEON settings using advanced forms",
+	Long:  "🌸 Configure focus.sh settings using advanced forms",
 	Run:   configWizardHandler,
 }
 
@@ -32,7 +32,7 @@ var editWizardCmd = &cobra.Command{
 }
 
 func wizardHandler(cmd *cobra.Command, args []string) {
-	fmt.Println("🧙‍♂️ NEON Advanced Task Creation Wizard")
+	fmt.Println("🧙‍♂️ focus.sh Advanced Task Creation Wizard")
 	fmt.Println(strings.Repeat("─", 50))
 	fmt.Println("📋 Please fill out the form to create your task:")
 	fmt.Println()
@@ -58,9 +58,9 @@ func wizardHandler(cmd *cobra.Command, args []string) {
 }
 
 func configWizardHandler(cmd *cobra.Command, args []string) {
-	fmt.Println("🔧 NEON Configuration Wizard")
+	fmt.Println("🔧 focus.sh Configuration Wizard")
 	fmt.Println(strings.Repeat("─", 50))
-	fmt.Println("⚙️ Let's configure your NEON experience:")
+	fmt.Println("⚙️ Let's configure your focus.sh experience:")
 	fmt.Println()
 
 	err := wizards.ConfigurationWizard()
@@ -86,7 +86,7 @@ func configWizardHandler(cmd *cobra.Command, args []string) {
 func editWizardHandler(cmd *cobra.Command, args []string) {
 	taskID := args[0]
 	
-	fmt.Println("✏️ NEON Task Edit Wizard")
+	fmt.Println("✏️ focus.sh Task Edit Wizard")
 	fmt.Println(strings.Repeat("─", 50))
 	fmt.Printf("📝 Editing task: %s\n", taskID)
 	fmt.Println()

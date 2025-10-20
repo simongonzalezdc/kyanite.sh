@@ -14,7 +14,7 @@ var themeCmd = &cobra.Command{
 	Use:   "theme [synthwave|light|plain]",
 	Short: "🎨 Change the visual theme",
 	Long: `Switch between different visual themes:
-  - synthwave: Cyberpunk aesthetic with neon colors (default)
+  - synthwave: Cyberpunk aesthetic with focus colors (default)
   - light: Clean, modern light theme
   - plain: Basic terminal appearance for maximum compatibility`,
 	Args: cobra.ExactArgs(1),
@@ -27,7 +27,7 @@ var themeCmd = &cobra.Command{
 		switch themeName {
 		case "synthwave":
 			theme = styles.ThemeSynthwave
-			description = "🌌 Cyberpunk synthwave with maximum neon impact"
+			description = "🌌 Cyberpunk synthwave with maximum focus impact"
 		case "light":
 			theme = styles.ThemeLight
 			description = "☀️ Clean and modern light theme"

@@ -25,7 +25,7 @@ var summaryCmd = &cobra.Command{
 
 		if len(tasks) == 0 {
 			fmt.Println("😴 No missions found in the grid.")
-			fmt.Println("📝 Upload missions with: neon add \"Your mission here\"")
+			fmt.Println("📝 Upload missions with: focus add \"Your mission here\"")
 			return
 		}
 

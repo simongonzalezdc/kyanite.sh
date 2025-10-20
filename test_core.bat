@@ -1,10 +1,10 @@
 @echo off
 
-echo 🧪 Testing AI Todo Assistant Core Functionality...
+echo 🧪 Testing AI Focus Assistant Core Functionality...
 
 REM Build the application first
 echo Building application...
-go build -o todo.exe cmd/todo/main.go
+go build -o focus.exe cmd/focus/main.go
 if %errorlevel% neq 0 (
     echo ❌ Build failed
     exit /b 1
@@ -14,7 +14,7 @@ echo ✅ Build successful
 
 REM Test 1: Add a simple task
 echo Testing task addition...
-echo y | todo.exe add "Buy milk tomorrow" > test_output.txt 2>&1
+echo y | focus.exe add "Buy milk tomorrow" > test_output.txt 2>&1
 if %errorlevel% equ 0 (
     echo ✅ Task addition test passed
 ) else (
@@ -24,7 +24,7 @@ if %errorlevel% equ 0 (
 
 REM Test 2: List tasks
 echo Testing task listing...
-todo.exe list > test_output.txt 2>&1
+focus.exe list > test_output.txt 2>&1
 if %errorlevel% equ 0 (
     echo ✅ Task listing test passed
 ) else (
@@ -33,7 +33,7 @@ if %errorlevel% equ 0 (
 )
 
 REM Clean up
-del todo.exe >nul 2>&1
+del focus.exe >nul 2>&1
 del test_output.txt >nul 2>&1
 
 echo.

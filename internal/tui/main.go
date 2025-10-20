@@ -2210,7 +2210,7 @@ func (m MainModel) renderDashboard() string {
 		Foreground(synthBlue).
 		Bold(true).
 		Align(lipgloss.Center).
-		Render("NEON FOCUS")
+		Render("focus.sh")
 	b.WriteString(titleLine)
 	
 	// Add spinner if loading

@@ -36,7 +36,7 @@ func main() {
 		fmt.Printf("⚠️  Ollama setup issue: %v\n", err)
 	}
 	showEpicIntro()
-	fmt.Println("🌌 Initializing NEON Focus TUI System...")
+	fmt.Println("🌌 Initializing focus.sh TUI System...")
 	fmt.Println("   💫 AI-powered task management with cyberpunk aesthetics")
 	fmt.Println()
 	fmt.Println("🚀 Direct TUI launch - bypassing CLI layer...")
@@ -96,8 +96,8 @@ func runTUIDirectly() error {
 			Status:      "pending",
 			CreatedAt:   time.Now(),
 			Deadline:    nil,
-			Categories:  []string{"coding", "neon"},
-			Notes:       "Focus on neon UI components and retro-futuristic design",
+			Categories:  []string{"coding", "focus"},
+			Notes:       "Focus on focus.sh UI components and retro-futuristic design",
 		},
 		{
 			ID:          "2",
@@ -107,7 +107,7 @@ func runTUIDirectly() error {
 			CreatedAt:   time.Now(),
 			Deadline:    nil,
 			Categories:  []string{"design", "synthwave"},
-			Notes:       "Incorporate cyberpunk aesthetics with neon color schemes",
+			Notes:       "Incorporate cyberpunk aesthetics with focus color schemes",
 		},
 		{
 			ID:          "3",
@@ -121,10 +121,10 @@ func runTUIDirectly() error {
 		},
 	}
 	
-	fmt.Printf("📋 Loaded %d cyberpunk missions into NEON matrix...\n", len(tasks))
-	
+	fmt.Printf("📋 Loaded %d cyberpunk missions into focus.sh matrix...\n", len(tasks))
+
 	// Launch the REAL TUI
-	fmt.Println("🎮 NEON TUI System Starting...")
+	fmt.Println("🎮 focus.sh TUI System Starting...")
 	fmt.Println("   🌃 Cyberpunk interface loading...")
 	fmt.Println("   💫 Synthwave colors activating...")
 	fmt.Println("   ⚡ Matrix connection established...")
@@ -363,7 +363,7 @@ func showEpicIntro() {
 	// Clear and show ready state
 	fmt.Print("\033[2J\033[H")
 	
-	readyText := styles.SynthwaveTitle("🚀 NEON FOCUS SYSTEMS READY")
+	readyText := styles.SynthwaveTitle("🚀 FOCUS.SH SYSTEMS READY")
 	fmt.Println(readyText)
 	fmt.Println()
 	

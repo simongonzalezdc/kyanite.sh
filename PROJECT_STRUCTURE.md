@@ -1,9 +1,9 @@
-# NEON Focus - Project Structure
+# focus.sh - Project Structure
 
 ```
 .
 ├── cmd/
-│   └── neon/
+│   └── focus/
 │       └── main.go              # Application entry point
 ├── internal/
 │   ├── ai/
@@ -68,8 +68,8 @@
 
 ## Component Overview
 
-### cmd/neon/main.go
-The entry point of the NEON CLI application.
+### cmd/focus/main.go
+The entry point of the focus.sh CLI application.
 
 ### internal/ai/
 Handles all AI interactions:

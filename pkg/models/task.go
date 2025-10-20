@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-// Task represents a single task in the todo list
+// Task represents a single task in the focus list
 type Task struct {
 	ID          string    `json:"id"`
 	Description string    `json:"description"`

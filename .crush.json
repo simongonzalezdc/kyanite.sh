@@ -3,9 +3,9 @@
   "mcp": {
     "crush-golangci-lint": {
       "type": "stdio",
-      "command": "neon",
+      "command": "focus",
       "args": ["mcp-server"],
-      "cwd": "C:\\Users\\Simon\\dev\\crush-cli",
+      "cwd": "C:\\Users\\Simon\\dev\\kyanite",
       "disabled": true
     }
   }

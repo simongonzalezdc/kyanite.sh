@@ -98,7 +98,7 @@ var suggestCmd = &cobra.Command{
 			time.Sleep(200 * time.Millisecond)
 		}
 		
-		fmt.Println("\nTo upload a suggestion, use: neon add \"<suggestion text>\"")
+		fmt.Println("\nTo upload a suggestion, use: focus add \"<suggestion text>\"")
 		fmt.Println("💡 Pro Tip: Suggestions evolve with your mission patterns!")
 	},
 }

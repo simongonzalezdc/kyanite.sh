@@ -111,7 +111,7 @@ func calendarShowHandler(cmd *cobra.Command, args []string) {
 	headerStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#FF71CE")).
 		Bold(true).
-		Render("📅 NEON CALENDAR")
+		Render("📅 focus.sh CALENDAR")
 
 	fmt.Println(headerStyle)
 	fmt.Println(strings.Repeat("─", 40))

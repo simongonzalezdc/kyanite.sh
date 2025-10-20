@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Setup script for AI Todo application
+# Setup script for AI Focus application
 
-echo "🔧 Setting up AI Todo Assistant..."
+echo "🔧 Setting up AI Focus Assistant..."
 
 # Check if Go is installed
 if ! command -v go &> /dev/null
@@ -33,7 +33,7 @@ go mod tidy
 echo "✅ Setup complete!"
 echo ""
 echo "To build the application, run:"
-echo "  go build -o todo cmd/todo/main.go"
+echo "  go build -o focus cmd/focus/main.go"
 echo ""
 echo "To run directly, use:"
-echo "  go run cmd/todo/main.go"
+echo "  go run cmd/focus/main.go"

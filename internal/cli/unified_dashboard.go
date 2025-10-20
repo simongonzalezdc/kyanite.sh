@@ -10,7 +10,7 @@ import (
 var unifiedDashboardCmd = &cobra.Command{
 	Use:   "unified",
 	Short: "🌌 Launch unified dashboard with all features",
-	Long:  "🌸 Comprehensive dashboard integrating all NEON features",
+	Long:  "🌸 Comprehensive dashboard integrating all focus.sh features",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := tui.StartUnifiedDashboard(); err != nil {
 			fmt.Printf("Error starting unified dashboard: %v\n", err)

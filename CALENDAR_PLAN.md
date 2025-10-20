@@ -15,11 +15,11 @@
 - [x] **CLI Integration** - Full calendar command family
 
 ### **Calendar CLI Commands**
-- [x] `neon calendar show [month|week|day]` - Display calendar views
-- [x] `neon calendar today` - Show today's tasks
-- [x] `neon calendar add [task] [date]` - Add task with date
-- [x] `neon calendar list [filter]` - List tasks by date
-- [x] `neon calendar navigate [date]` - Jump to specific date
+- [x] `focus calendar show [month|week|day]` - Display calendar views
+- [x] `focus calendar today` - Show today's tasks
+- [x] `focus calendar add [task] [date]` - Add task with date
+- [x] `focus calendar list [filter]` - List tasks by date
+- [x] `focus calendar navigate [date]` - Jump to specific date
 
 ### **Date Parsing Features**
 - [x] Natural language: today, tomorrow, next monday, etc.
@@ -80,4 +80,4 @@ The calendar feature is now **production-ready** with:
 - See task priorities and deadlines visually
 - Use fully integrated calendar commands
 
-The calendar system is now ready for use and provides significant value to the NEON CLI user experience.
+The calendar system is now ready for use and provides significant value to the focus.sh CLI user experience.

@@ -1,7 +1,7 @@
-# NEON CLI - Implementation Status & Next Steps
+# focus.sh CLI - Implementation Status & Next Steps
 
 ## 🎯 **PROJECT OVERVIEW**
-**Project**: NEON CLI - AI-powered cyberpunk task manager with synthwave aesthetics  
+**Project**: focus.sh CLI - AI-powered cyberpunk task manager with synthwave aesthetics
 **Current State**: Core functionality working, new features partially implemented  
 **Main Issues**: Theme cycling not fully working, AI chatbot needs improvement, calendar system started
 
@@ -20,13 +20,13 @@
 
 ### **2. Working Commands**
 ```bash
-✅ neon add "task description"        # AI-powered task parsing
-✅ neon list                           # Task listing with filters
-✅ neon chat                           # AI chat assistant
-✅ neon inspire                        # AI task suggestions  
-✅ neon theme [synthwave|light|plain]  # Theme switching
-✅ neon dashboard                     # Full-featured TUI dashboard
-✅ neon report                         # AI-generated summaries
+✅ focus add "task description"        # AI-powered task parsing
+✅ focus list                           # Task listing with filters
+✅ focus chat                           # AI chat assistant
+✅ focus inspire                        # AI task suggestions
+✅ focus theme [synthwave|light|plain]  # Theme switching
+✅ focus dashboard                     # Full-featured TUI dashboard
+✅ focus report                         # AI-generated summaries
 ```
 
 ### **3. AI Integration**
@@ -52,7 +52,7 @@
 **Testing Needed**:
 ```bash
 # Test if TUI theme cycling works
-./neon-final.exe dashboard
+./focus-final.exe dashboard
 # Press 't' to cycle themes
 # Verify all UI elements update colors
 ```
@@ -85,19 +85,19 @@
 ### **Phase 1: Test & Verify Core Features** (10 mins)
 ```bash
 1. Build and test theme cycling
-   go build -o neon-test.exe ./cmd/neon
-   ./neon-test.exe dashboard
+   go build -o focus-test.exe ./cmd/focus
+   ./focus-test.exe dashboard
    # Test 't' key cycling - verify all elements update
 
 2. Test AI chatbot improvements  
-   ./neon-test.exe chat
+   ./focus-test.exe chat
    # Ask about: time, stats, theme, tasks
    # Verify contextual responses
 
 3. Test basic CLI commands
-   ./neon-test.exe --help
-   ./neon-test.exe theme light
-   ./neon-test.exe add "test task"
+   ./focus-test.exe --help
+   ./focus-test.exe theme light
+   ./focus-test.exe add "test task"
 ```
 
 ### **Phase 2: Enable Simple Calendar** (20 mins)
@@ -108,9 +108,9 @@
 
 2. **Test calendar CLI**:
    ```bash
-   ./neon-test.exe calendar
-   ./neon-test.exe today
-   ./neon-test.exe schedule "task" "tomorrow"
+   ./focus-test.exe calendar
+   ./focus-test.exe today
+   ./focus-test.exe schedule "task" "tomorrow"
    ```
 
 ### **Phase 3: Enhancements (30 mins)**
@@ -124,7 +124,7 @@
 
 ### **Core CLI Files**
 ```
-cmd/neon/main.go                 # Main entry point
+cmd/focus/main.go                 # Main entry point
 internal/cli/                    # CLI commands
 ├── add.go                      # Task addition with AI
 ├── chat.go                     # AI chat assistant  
@@ -222,29 +222,29 @@ func (m *MainModel) updateTheme() {
 ### **Current Build Command**
 ```bash
 cd "C:\Users\Simon\CRUSH CLI"
-go build -o neon-test.exe ./cmd/neon
+go build -o focus-test.exe ./cmd/focus
 ```
 
 ### **Key Tests to Run**
 ```bash
 # 1. Theme Cycling Test
-./neon-test.exe dashboard
+./focus-test.exe dashboard
 # Press 't' key 3x - verify colors change
 
 # 2. AI Chatbot Test  
-./neon-test.exe chat
+./focus-test.exe chat
 # Type: "time", "stats", "help", "theme"
 
 # 3. CLI Commands Test
-./neon-test.exe --help
-./neon-test.exe theme synthwave
-./neon-test.exe theme light
-./neon-test.exe theme plain
+./focus-test.exe --help
+./focus-test.exe theme synthwave
+./focus-test.exe theme light
+./focus-test.exe theme plain
 
 # 4. Basic Functionality
-./neon-test.exe add "test high priority task"
-./neon-test.exe list
-./neon-test.exe inspire
+./focus-test.exe add "test high priority task"
+./focus-test.exe list
+./focus-test.exe inspire
 ```
 
 ---
@@ -344,7 +344,7 @@ go install golang.org/x/tools/gopls@latest
 ### **Testing Commands**
 ```bash
 # Build with verbose output
-go build -v -x ./cmd/neon
+go build -v -x ./cmd/focus
 
 # Run specific tests
 go test -v ./internal/cli
@@ -381,14 +381,14 @@ go vet ./...
 ### **1. Build & Test (5 mins)**
 ```bash
 cd "C:\Users\Simon\CRUSH CLI"
-go build -o neon-restart.exe ./cmd/neon
-./neon-restart.exe dashboard
+go build -o focus-restart.exe ./cmd/focus
+./focus-restart.exe dashboard
 # Test 't' key theme cycling
 ```
 
 ### **2. Test AI (5 mins)**
 ```bash
-./neon-restart.exe chat
+./focus-restart.exe chat
 # Test: time, stats, help, theme
 ```
 

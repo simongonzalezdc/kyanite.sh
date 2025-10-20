@@ -190,7 +190,7 @@ func configListHandler(cmd *cobra.Command, args []string) {
 		Foreground(lipgloss.Color("#00FFF0")).
 		Bold(true)
 
-	fmt.Println(headerStyle.Render("🔧 NEON Configuration"))
+	fmt.Println(headerStyle.Render("🔧 focus.sh Configuration"))
 	fmt.Println(strings.Repeat("─", 50))
 
 	fmt.Println(sectionStyle.Render("🤖 AI Configuration"))

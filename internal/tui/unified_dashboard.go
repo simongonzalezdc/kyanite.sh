@@ -150,7 +150,7 @@ func NewUnifiedDashboardModel() UnifiedDashboardModel {
 		UnifiedMenuItem{title: "🎨 Theme", description: "Change visual theme", action: ActionTheme},
 		UnifiedMenuItem{title: "📊 Statistics", description: "View productivity stats", action: ActionStats},
 		UnifiedMenuItem{title: "❓ Help", description: "Show help information", action: ActionHelp},
-		UnifiedMenuItem{title: "🚪 Quit", description: "Exit NEON", action: ActionQuit},
+		UnifiedMenuItem{title: "🚪 Quit", description: "Exit focus.sh", action: ActionQuit},
 	}
 
 	delegate := list.NewDefaultDelegate()
@@ -160,7 +160,7 @@ func NewUnifiedDashboardModel() UnifiedDashboardModel {
 	delegate.Styles.NormalDesc = normalItemStyle
 
 	menu := list.New(menuItems, delegate, 0, 0)
-	menu.Title = "🌌 NEON UNIFIED DASHBOARD"
+	menu.Title = "🌌 focus.sh Unified Dashboard"
 	menu.SetShowStatusBar(false)
 	menu.SetFilteringEnabled(false)
 	menu.SetShowPagination(false)
@@ -303,7 +303,7 @@ func (m UnifiedDashboardModel) View() string {
 
 	var content strings.Builder
 
-	header := fmt.Sprintf("%s\n%s", menuTitleStyle.Render("🌌 NEON UNIFIED DASHBOARD"), strings.Repeat("─", m.width))
+	header := fmt.Sprintf("%s\n%s", menuTitleStyle.Render("🌌 focus.sh Unified Dashboard"), strings.Repeat("─", m.width))
 	content.WriteString(header)
 
 	switch m.currentView {
@@ -342,17 +342,17 @@ func (m UnifiedDashboardModel) executeAction(action UnifiedAction) tea.Cmd {
 			}()
 			return StatusMsg{Message: "Launching task wizard..."}
 		case ActionInteractiveTask:
-			return StatusMsg{Message: "🎯 Interactive task creation - Use: neon interactive"}
+			return StatusMsg{Message: "🎯 Interactive task creation - Use: focus interactive"}
 		case ActionFilterTasks:
-			return StatusMsg{Message: "🔍 Task filtering - Use: neon filter"}
+			return StatusMsg{Message: "🔍 Task filtering - Use: focus filter"}
 		case ActionNotes:
-			return StatusMsg{Message: "📝 Notes manager - Use: neon notes [task-id]"}
+			return StatusMsg{Message: "📝 Notes manager - Use: focus notes [task-id]"}
 		case ActionChat:
-			return StatusMsg{Message: "🤖 AI chat - Use: neon chat"}
+			return StatusMsg{Message: "🤖 AI chat - Use: focus chat"}
 		case ActionInspire:
-			return StatusMsg{Message: "🔮 AI inspiration - Use: neon inspire"}
+			return StatusMsg{Message: "🔮 AI inspiration - Use: focus inspire"}
 		case ActionConfig:
-			return StatusMsg{Message: "🔧 Configuration wizard - Use: neon enhanced-config"}
+			return StatusMsg{Message: "🔧 Configuration wizard - Use: focus enhanced-config"}
 		case ActionEnhancedConfig:
 			return StatusMsg{Message: "Enhanced configuration coming soon..."}
 		case ActionTheme:
@@ -400,7 +400,7 @@ func (m *UnifiedDashboardModel) applyTheme(theme styles.ThemeMode) {
 	delegate.Styles.NormalDesc = normalItemStyle
 	selected := m.menu.Index()
 	newMenu := list.New(m.menuItems, delegate, 0, 0)
-	newMenu.Title = "🌌 NEON UNIFIED DASHBOARD"
+	newMenu.Title = "🌌 focus.sh Unified Dashboard"
 	newMenu.SetShowStatusBar(false)
 	newMenu.SetFilteringEnabled(false)
 	newMenu.SetShowPagination(false)
@@ -415,7 +415,7 @@ func (m *UnifiedDashboardModel) applyTheme(theme styles.ThemeMode) {
 
 func (m UnifiedDashboardModel) renderHelp() string {
 	helpText := `
-🌌 NEON UNIFIED DASHBOARD - HELP
+🌌 focus.sh Unified Dashboard - Help
 
 🎯 TASK MANAGEMENT
   Add Task        → Create new tasks with AI parsing

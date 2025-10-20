@@ -1,6 +1,6 @@
 @echo off
 
-echo 🔍 Validating AI Todo Assistant Setup...
+echo 🔍 Validating AI Focus Assistant Setup...
 
 REM Check if Go is installed
 echo Checking Go installation...
@@ -47,4 +47,4 @@ if %errorlevel% equ 0 (
 
 echo.
 echo 🎉 Setup validation complete!
-echo Your environment is ready to develop the AI Todo Assistant.
+echo Your environment is ready to develop the AI Focus Assistant.

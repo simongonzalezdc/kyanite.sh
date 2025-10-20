@@ -1,36 +1,36 @@
 @echo off
-title NEON Focus System
+title focus.sh System
 echo.
-echo 🚀 Starting NEON Focus with AI integration...
+echo 🚀 Starting focus.sh with AI integration...
 echo.
 
 REM Try program files first
-if exist "%PROGRAMFILES%\NEON\neon.exe" (
+if exist "%PROGRAMFILES%\focus\focus.exe" (
     echo ✅ Found installed version, launching...
-    "%PROGRAMFILES%\NEON\neon.exe" %*
+    "%PROGRAMFILES%\focus\focus.exe" %*
     goto :end
 )
 
 echo 📂 Trying project versions...
 
 REM Try local versions
-if exist "neon.exe" (
+if exist "focus.exe" (
     echo ✅ Found local version, launching...
-    neon.exe %*
+    focus.exe %*
     goto :end
 )
 
-if exist "neon-ai-fixed.exe" (
+if exist "focus-ai-fixed.exe" (
     echo ✅ Found AI version, launching...
-    neon-ai-fixed.exe %*
+    focus-ai-fixed.exe %*
     goto :end
 )
 
-echo ❌ NEON not found!
-echo 💡 Run: install-neon.bat for system installation
-echo 💫 Or copy neon.exe to this folder
+echo ❌ focus.sh not found!
+echo 💡 Run: install-focus.bat for system installation
+echo 💫 Or copy focus.exe to this folder
 
 :end
 echo.
-echo 🌌 NEON session ended.
+echo 🌌 focus.sh session ended.
 timeout /t 3 >nul

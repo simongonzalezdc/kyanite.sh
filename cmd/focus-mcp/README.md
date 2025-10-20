@@ -1,4 +1,4 @@
-# MCP Server Configuration for CRUSH CLI
+# MCP Server Configuration for KYANITE Suite
 
 This directory contains the MCP (Model Context Protocol) server implementation for integrating golangci-lint with AI assistants.
 
@@ -7,7 +7,7 @@ This directory contains the MCP (Model Context Protocol) server implementation f
 ### Start the MCP Server
 ```bash
 # Using the built-in command
-neon mcp-server
+focus mcp-server
 
 # Or run directly
 go run ./cmd/mcp-server
@@ -21,9 +21,9 @@ Example configuration for MCP clients (like Claude Desktop, Cursor, etc.):
 {
   "mcpServers": {
     "crush-golangci-lint": {
-      "command": "neon",
+      "command": "focus",
       "args": ["mcp-server"],
-      "cwd": "C:\\Users\\Simon\\dev\\crush-cli"
+      "cwd": "C:\\Users\\Simon\\dev\\kyanite"
     }
   }
 }
@@ -36,7 +36,7 @@ Or using the full path:
     "crush-golangci-lint": {
       "command": "go",
       "args": ["run", "./cmd/mcp-server"],
-      "cwd": "C:\\Users\\Simon\\dev\\crush-cli"
+      "cwd": "C:\\Users\\Simon\\dev\\kyanite"
     }
   }
 }
@@ -77,12 +77,12 @@ Run golangci-lint on the current directory or specific files.
 
 3. **Test MCP server directly:**
    ```bash
-   echo '{"jsonrpc":"2.0","id":1,"method":"initialize"}' | neon mcp-server
+   echo '{"jsonrpc":"2.0","id":1,"method":"initialize"}' | focus mcp-server
    ```
 
 4. **Check for path issues:**
    - Use absolute paths in MCP client configuration
-   - Ensure `neon` command is in your PATH
+   - Ensure `focus` command is in your PATH
 
 ### Common MCP Client Configurations
 

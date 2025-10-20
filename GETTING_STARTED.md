@@ -49,24 +49,24 @@
 
 ### Step 8: Build Application
 1. Run: `build.bat`
-2. This creates `todo.exe`
+2. This creates `focus.exe`
 
 ### Step 9: Test Commands
 ```bash
 # Add a task with natural language
-todo.exe add "Buy milk and bread tomorrow"
+focus.exe add "Buy milk and bread tomorrow"
 
 # List all tasks
-todo.exe list
+focus.exe list
 
 # List only active tasks
-todo.exe list --filter=active
+focus.exe list --filter=active
 
 # Mark a task as complete (use actual task ID from list)
-todo.exe complete <task_id>
+focus.exe complete <task_id>
 
 # Delete a task (use actual task ID from list)
-todo.exe delete <task_id>
+focus.exe delete <task_id>
 ```
 
 ## Troubleshooting

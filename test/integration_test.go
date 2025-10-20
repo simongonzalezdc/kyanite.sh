@@ -21,14 +21,14 @@ func TestCLIIntegration(t *testing.T) {
 	testFile := filepath.Join(tempDir, "tasks.json")
 	
 	// Build the app
-	cmd := exec.Command("go", "build", "-o", filepath.Join(tempDir, "neon.exe"), "./cmd/neon")
+	cmd := exec.Command("go", "build", "-o", filepath.Join(tempDir, "focus.exe"), "./cmd/focus")
 	cmd.Dir = "."
 	if err := cmd.Run(); err != nil {
 		t.Fatalf("Failed to build app: %v", err)
 	}
 	
 	// Get the path to our binary
-	binPath := filepath.Join(tempDir, "neon.exe")
+	binPath := filepath.Join(tempDir, "focus.exe")
 	
 	// Test the help command
 	t.Run("Help Command", func(t *testing.T) {

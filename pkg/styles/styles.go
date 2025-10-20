@@ -5,50 +5,50 @@ import (
 	"github.com/pterm/pterm"
 )
 
-// NEON Color Palette - Synthwave Cyberpunk Theme
+ // Focus Color Palette - Synthwave Cyberpunk Theme
 var (
-	NeonPink    = lipgloss.Color("#FF71CE")
-	NeonBlue    = lipgloss.Color("#00FFFF")
-	NeonGreen   = lipgloss.Color("#00FF66")
-	NeonPurple  = lipgloss.Color("#B967C7")
+	FocusPink   = lipgloss.Color("#FF71CE")
+	FocusBlue   = lipgloss.Color("#00FFFF")
+	FocusGreen  = lipgloss.Color("#00FF66")
+	FocusPurple = lipgloss.Color("#B967C7")
 	DarkBg      = lipgloss.Color("#0F0A19")
 	AccentColor = lipgloss.Color("#FFC0CB")
-	neonRed     = lipgloss.Color("#FF0055")
+	focusRed    = lipgloss.Color("#FF0055")
 
 	// Base Styles
-	neonStyle = lipgloss.NewStyle().
-		Foreground(NeonPink).
+	focusStyle = lipgloss.NewStyle().
+		Foreground(FocusPink).
 		Bold(true)
 
 	greenStyle = lipgloss.NewStyle().
-		Foreground(NeonGreen).
+		Foreground(FocusGreen).
 		Bold(true)
 
 	blueStyle = lipgloss.NewStyle().
-		Foreground(NeonBlue)
+		Foreground(FocusBlue)
 
 	purpleStyle = lipgloss.NewStyle().
-		Foreground(NeonPurple)
+		Foreground(FocusPurple)
 )
 
-func NeonStyle(text string) string {
-	return neonStyle.Render(text)
+func FocusStyle(text string) string {
+	return focusStyle.Render(text)
 }
 
-func NeonPinkColor(text string) string {
-	return lipgloss.NewStyle().Foreground(NeonPink).Render(text)
+func FocusPinkColor(text string) string {
+	return lipgloss.NewStyle().Foreground(FocusPink).Render(text)
 }
 
-func NeonBlueColor(text string) string {
-	return lipgloss.NewStyle().Foreground(NeonBlue).Render(text)
+func FocusBlueColor(text string) string {
+	return lipgloss.NewStyle().Foreground(FocusBlue).Render(text)
 }
 
-func NeonGreenColor(text string) string {
-	return lipgloss.NewStyle().Foreground(NeonGreen).Render(text)
+func FocusGreenColor(text string) string {
+	return lipgloss.NewStyle().Foreground(FocusGreen).Render(text)
 }
 
-func NeonPurpleColor(text string) string {
-	return lipgloss.NewStyle().Foreground(NeonPurple).Render(text)
+func FocusPurpleColor(text string) string {
+	return lipgloss.NewStyle().Foreground(FocusPurple).Render(text)
 }
 
 func PriorityStyle(priority string) string {
@@ -57,16 +57,16 @@ func PriorityStyle(priority string) string {
 
 	switch priority {
 	case "high":
-		color = neonRed
+		color = focusRed
 		symbol = "🔥"
 	case "medium":
-		color = NeonBlue
+		color = FocusBlue
 		symbol = "⚡"
 	case "low":
-		color = NeonGreen
+		color = FocusGreen
 		symbol = "💤"
 	default:
-		color = NeonPurple
+		color = FocusPurple
 		symbol = "⚪"
 	}
 
@@ -78,13 +78,13 @@ func PriorityStyle(priority string) string {
 
 func IDStyle(id string) string {
 	return lipgloss.NewStyle().
-		Foreground(NeonBlue).
+		Foreground(FocusBlue).
 		Render(id)
 }
 
 func HeaderStyle(text string) string {
 	return lipgloss.NewStyle().
-		Foreground(NeonPink).
+		Foreground(FocusPink).
 		Bold(true).
 		AlignHorizontal(lipgloss.Center).
 		Underline(true).
@@ -93,14 +93,14 @@ func HeaderStyle(text string) string {
 
 func FooterStyle(text string) string {
 	return lipgloss.NewStyle().
-		Foreground(NeonPurple).
+		Foreground(FocusPurple).
 		Italic(true).
 		Render(text)
 }
 
 func CategoryStyle(category string) string {
 	return lipgloss.NewStyle().
-		Foreground(NeonBlue).
+		Foreground(FocusBlue).
 		Background(DarkBg).
 		Padding(0, 1).
 		Bold(true).
@@ -109,7 +109,7 @@ func CategoryStyle(category string) string {
 
 func SuggestionStyle(suggestion string) string {
 	return lipgloss.NewStyle().
-		Foreground(NeonGreen).
+		Foreground(FocusGreen).
 		Bold(true).
 		Render("🎯 " + suggestion)
 }
@@ -129,16 +129,16 @@ func GetPriorityColor(priority string) *pterm.Style {
 
 func AIResponseStyle(response string) string {
 	return lipgloss.NewStyle().
-		Foreground(NeonBlue).
+		Foreground(FocusBlue).
 		Italic(true).
 		Render("🤖 " + response)
 }
 
 func ReportStyle(text string) string {
 	return lipgloss.NewStyle().
-		Foreground(NeonPurple).
+		Foreground(FocusPurple).
 		Padding(1).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(NeonBlue).
+		BorderForeground(FocusBlue).
 		Render(text)
 }

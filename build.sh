@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Build script for AI Todo application
+# Build script for AI Focus application
 
 echo "Installing dependencies..."
 go mod tidy
 
 echo "Building application..."
-go build -o todo.exe cmd/todo/main.go
+go build -o focus cmd/focus/main.go
 
-echo "Build complete! Run ./todo.exe to start using your AI-powered todo app."
+echo "Build complete! Run ./focus to start using your AI-powered focus app."
