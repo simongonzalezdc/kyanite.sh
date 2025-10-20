@@ -32,8 +32,8 @@ func focusMain() {
 	}
 }
 
-// Deprecated: todoMain() function kept for compatibility
-func todoMain() {
+// Deprecated: legacyMain() function kept for compatibility
+func legacyMain() {
 	// Run focus via go run to avoid import conflicts
 	cmd := exec.Command("go", "run", "./cmd/focus")
 	cmd.Stdout = os.Stdout

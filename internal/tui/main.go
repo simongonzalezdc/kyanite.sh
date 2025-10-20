@@ -284,8 +284,8 @@ func newKeyMap() keyMap {
 			key.WithHelp("p", "change priority"),
 		),
 		themeCycle: key.NewBinding(
-			key.WithKeys("t"),
-			key.WithHelp("t", "cycle theme"),
+			key.WithKeys("ctrl+t"),
+			key.WithHelp("ctrl+t", "cycle theme"),
 		),
 		notes: key.NewBinding(
 			key.WithKeys("n"),
@@ -1181,14 +1181,15 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case key.Matches(msg, m.keys.themeCycle):
-			// Cycle through themes
-			m.currentThemeIndex = (m.currentThemeIndex + 1) % len(m.themes)
+			// Cycle through Kyanite themes
+			styles.CycleTheme()
+			currentTheme := styles.GetTheme()
 			
 			// Update all colors and styles
 			m.updateTheme()
 			
 			// Add theme change message to chat history
-			themeMsg := fmt.Sprintf("🎨 Theme changed to %s", m.themeNames[m.currentThemeIndex])
+			themeMsg := fmt.Sprintf("🎨 Theme changed to %s", currentTheme.Name)
 			m.chatHistory = append(m.chatHistory, themeMsg)
 			return m, nil
 

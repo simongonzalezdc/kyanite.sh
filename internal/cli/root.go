@@ -33,21 +33,21 @@ var (
 
 var rootCmd = &cobra.Command{
 	Use:   "focus",
-	Short: "🌈 focus.sh - AI-Powered Cyberpunk Task Manager",
+	Short: "🌟 focus.sh - Kyanite Suite Task Manager",
 	Long: boxStyle.Render(
-		headerStyle.Render("🌌 W E L C O M E   T O   F O C U S . S H 🌌") + "\n\n" +
+		headerStyle.Render("🌟 W E L C O M E   T O   F O C U S . S H 🌟") + "\n\n" +
 		lipgloss.NewStyle().Foreground(focusGreen).Render(
-			"🚀 Launching immersive TUI dashboard experience\n" +
-			"✨ Cyberpunk aesthetics meet intelligent productivity\n" +
-			"🌈 Synthwave-inspired terminal magic\n\n" +
-			"Controls: A(dd) | C(omplete) | F(ocus) | T(heme) | ?(help)") + "\n" +
+			"🚀 Part of the Kyanite Creative Suite\n" +
+			"✨ Professional task management with AI assistance\n" +
+			"🌈 Clean, focused productivity experience\n\n" +
+			"Controls: A(dd) | C(omplete) | L(ist) | J(ournal) | T(heme) | ?(help)") + "\n" +
 		lipgloss.NewStyle().Foreground(focusBlue).Render(
 			"────────────────────────────────────────────────────────────────────────────────") + "\n" +
 		lipgloss.NewStyle().Foreground(focusPurple).Render(
-			"💡 Pro Tip: Press '?' for help once inside the dashboard")),
+			"💡 Part of Kyanite Suite: noise.sh (music) | focus.sh (tasks) | syntax.sh (writing) | prism.sh (visual) | wave.sh (audio)")),
 	Run: func(cmd *cobra.Command, args []string) {
 		// Default to TUI dashboard - TUI-FIRST approach
-		fmt.Println("🚀 Initializing Synthwave Mission Matrix...")
+		fmt.Println("🚀 Initializing focus.sh...")
 		fmt.Println("⚡ Loading AI protocols and visual enhancement systems...")
 		
 		// Start the full-featured dashboard

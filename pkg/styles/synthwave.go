@@ -3,8 +3,6 @@ package styles
 import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/pterm/pterm"
-	"math/rand"
-	"time"
 )
 
 // Synthwave Color Palette - Maximum Visual Impact
@@ -35,33 +33,7 @@ var (
 	GoldAccent   = lipgloss.Color("#FFD700")
 )
 
-// Glitch Effect Generator
-var glitchRand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-func GlitchText(text string) string {
-	glitchChars := []string{"@", "#", "$", "%", "&", "*", "■", "▪", "▫", "◆", "◇", "○", "●", "□", "■", "△", "▽"}
-	
-	result := ""
-	for _, char := range text {
-		if glitchRand.Float32() < 0.1 { // 10% chance of glitch
-			result += string(glitchChars[glitchRand.Intn(len(glitchChars))])
-		} else {
-			result += string(char)
-		}
-	}
-	return result
-}
-
-func RGBSplitText(text string) string {
-	colors := []lipgloss.Color{GlitchRed, GlitchGreen, GlitchBlue}
-	result := ""
-	
-	for i, char := range text {
-		color := colors[i%len(colors)]
-		result += lipgloss.NewStyle().Foreground(color).Bold(true).Render(string(char))
-	}
-	return result
-}
 
 // Advanced Styles with Maximum Impact
 func SynthwaveTitle(text string) string {
@@ -78,32 +50,18 @@ func SynthwaveTitle(text string) string {
 		Render(text)
 }
 
-func GlitchTitle(text string) string {
-	normal := lipgloss.NewStyle().
+func Title(text string) string {
+	return lipgloss.NewStyle().
 		Foreground(SynthwavePink).
+		Background(DeepSpace).
 		Bold(true).
+		Italic(true).
+		Underline(true).
+		Padding(1, 3).
+		Border(lipgloss.DoubleBorder()).
+		BorderForeground(SynthwaveCyan).
+		AlignHorizontal(lipgloss.Center).
 		Render(text)
-	
-	glitch1 := lipgloss.NewStyle().
-		Foreground(SynthwaveCyan).
-		Bold(true).
-		Background(lipgloss.Color("#FF00FF")).
-		Render(GlitchText(text))
-	
-	glitch2 := lipgloss.NewStyle().
-		Foreground(SynthwaveYellow).
-		Bold(true).
-		Render(RGBSplitText(text))
-	
-	// Randomly return glitched version
-	switch glitchRand.Intn(4) {
-	case 0:
-		return glitch1
-	case 1:
-		return glitch2
-	default:
-		return normal
-	}
 }
 
 func FocusBox(text string, borderColor lipgloss.Color) string {
@@ -208,17 +166,9 @@ func CyberTag(tag string) string {
 		Render("🏷️ " + tag)
 }
 
-func GlitchFooter(text string) string {
-	artifacts := []string{"▓", "░", "▒", "█", "▄", "▀", "■", "□"}
-	artifact := artifacts[glitchRand.Intn(len(artifacts))]
-	
-	return lipgloss.NewStyle().
-		Foreground(SynthwavePurple).
-		Italic(true).
-		Render(artifact + " " + text + " " + artifact)
-}
 
-func MatrixHeader() string {
+
+func Header() string {
 	return lipgloss.NewStyle().
 		Foreground(SynthwaveGreen).
 		Background(DeepSpace).
@@ -227,11 +177,7 @@ func MatrixHeader() string {
 		Padding(1).
 		Border(lipgloss.DoubleBorder()).
 		BorderForeground(SynthwaveCyan).
-		Render(`
-╔══════════════════════════════════════╗
-║     SYNTHWAVE MISSION MATRIX v2.0     ║
-║  ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰  ║
-╚══════════════════════════════════════╝`)
+		Render("focus.sh Task Management")
 }
 
 func CyberStats(active, completed, total int) string {
@@ -253,14 +199,11 @@ func CyberStats(active, completed, total int) string {
 		)
 }
 
-func LoadingAnimation() string {
-	frames := []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
-	frame := frames[glitchRand.Intn(len(frames))]
-	
+func LoadingMessage() string {
 	return lipgloss.NewStyle().
 		Foreground(SynthwaveCyan).
 		Bold(true).
-		Render(frame + " LOADING SYNTHWAVE INTERFACE " + frame)
+		Render("⠋ Loading...")
 }
 
 func EmptyStateMessage() string {
@@ -272,11 +215,7 @@ func EmptyStateMessage() string {
 		Padding(2).
 		Border(lipgloss.DoubleBorder()).
 		BorderForeground(SynthwavePink).
-		Render(`
-🔮 THE MATRIX IS EMPTY 🔮
-🌌 Digital void awaits your missions
-✨ Initialize with 'focus add "mission description"'
-▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰`)
+		Render("No tasks found.\n\nCreate your first task:\nfocus add \"task description\"")
 }
 
 // Pterm Integration for Maximum Charm Library Showcase
@@ -332,16 +271,4 @@ func SynthwaveReportStyle(text string) string {
 		Render("📋 ANALYSIS REPORT:\n\n" + text)
 }
 
-// Utility Functions for Visual Effects
-func RandomGlitchChar() string {
-	chars := []string{"@", "#", "$", "%", "&", "*", "■", "▪", "▫", "◆", "◇"}
-	return chars[glitchRand.Intn(len(chars))]
-}
 
-func CreateDigitalArtifact() string {
-	artifacts := []string{
-		"▓▒░", "░▒▓", "█▀▄", "▄▀█", "◆◇◆", "◇◆◇", 
-		"▰▱▰", "▱▰▱", "⚡⚡⚡", "✨✨✨", "🔥🔥🔥", "💫💫💫",
-	}
-	return artifacts[glitchRand.Intn(len(artifacts))]
-}

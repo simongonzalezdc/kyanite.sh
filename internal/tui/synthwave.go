@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"math/rand"
 
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/store"
@@ -16,38 +15,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// symbolGlitchText replaces letters with pure symbols (no "tetter" effect)
-func symbolGlitchText(text string) string {
-	symbolPatterns := []string{
-		"⚡⚡⚡ ◈◈◈ ◆◆◆ ◊◊◊ ⚡⚡⚡",
-		"◆◆◆ ◊◊◊ ⚡⚡⚡ ◈◈◈ ◆◆◆",
-		"◈◈◈ ◆◆◆ ◊◊◊ ⚡⚡⚡ ◈◈◈",
-		"◊◊◊ ⚡⚡⚡ ◈◈◈ ◆◆◆ ◊◊◊",
-		"⚡◆◈◊ ◈⚡◆◈ ◊◈◆⚡ ◊⚡◆◈",
-		"◆◈⚡◊ ◆◈◊⚡ ◈⚡◆◊ ◈◆⚡◊",
-		"◈◊⚡◆ ◊◈⚡◆ ◊⚡◆◈ ⚡◈◊◆",
-	}
-	
-	// Return a random symbol pattern instead of corrupting text
-	if rand.Float32() < 0.3 { // 30% chance to replace with symbols
-		return symbolPatterns[rand.Intn(len(symbolPatterns))]
-	}
-	
-	// Otherwise return original text with minimal character replacement
-	result := ""
-	symbols := []string{"⚡", "◈", "◆", "◊", "◇", "○", "●", "□", "■", "△", "▽"}
-	
-	for _, char := range text {
-		if rand.Float32() < 0.05 { // 5% chance to replace individual chars
-			result += symbols[rand.Intn(len(symbols))]
-		} else {
-			result += string(char)
-		}
-	}
-	return result
-}
 
-// Synthwave TUI Model - Maximum Visual Impact
+
+// Clean TUI Model
 type Model struct {
 	store         *store.Store
 	engine        *engine.Engine
@@ -56,13 +26,9 @@ type Model struct {
 	selectedIndex int
 	width         int
 	height        int
-	glitchActive  bool
-	animationTick int
-	digitalNoise  []string
 }
 
-// Initialize random for effects
-var glitchRand = rand.New(rand.NewSource(time.Now().UnixNano()))
+
 
 func NewModel() *Model {
 	store := store.New(utils.GetStoragePath())
@@ -83,20 +49,12 @@ func NewModel() *Model {
 		}
 	}
 	
-	// Generate digital noise artifacts
-	noise := make([]string, 20)
-	for i := range noise {
-		noise[i] = styles.CreateDigitalArtifact()
-	}
-	
 	return &Model{
 		store:         store,
 		engine:        engine,
 		tasks:         modelTasks,
 		currentView:   "dashboard",
 		selectedIndex: 0,
-		glitchActive:  false,
-		digitalNoise:  noise,
 	}
 }
 
@@ -127,9 +85,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selectedIndex++
 			}
 			
-		case " ":
-			m.glitchActive = !m.glitchActive
-			
 		case "r":
 			m.refreshTasks()
 			
@@ -138,21 +93,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "2":
 			m.currentView = "matrix"
 		case "3":
-			m.currentView = "stats"
-		case "4":
-			m.currentView = "glitch"
+			m.currentView = "about"
 		}
 		
 	case TickMsg:
-		m.animationTick++
-		// Random glitch activation
-		if glitchRand.Float32() < 0.05 { // 5% chance per tick
-			m.glitchActive = true
-		}
-		if m.glitchActive && glitchRand.Float32() < 0.3 { // 30% chance to deactivate
-			m.glitchActive = false
-		}
-		
 		return m, tea.Tick(time.Millisecond*100, func(t time.Time) tea.Msg {
 			return TickMsg(t)
 		})
@@ -168,7 +112,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // Main view rendering
 func (m *Model) View() string {
 	if m.width == 0 || m.height == 0 {
-		return styles.LoadingAnimation()
+		return styles.LoadingMessage()
 	}
 	
 	switch m.currentView {
@@ -176,9 +120,7 @@ func (m *Model) View() string {
 		return m.renderDashboard()
 	case "matrix":
 		return m.renderMatrix()
-	case "stats":
-		return m.renderStats()
-	case "glitch":
+	case "about":
 		return m.renderGlitchRoom()
 	default:
 		return m.renderDashboard()
@@ -203,15 +145,12 @@ func (m *Model) refreshTasks() {
 	m.tasks = modelTasks
 }
 
-// Dashboard View with Maximum Impact
+// Dashboard View
 func (m *Model) renderDashboard() string {
 	var content strings.Builder
 	
-	// Header with glitch effects
-	header := styles.MatrixHeader()
-	if m.glitchActive {
-		header = styles.GlitchTitle("SYNTHWAVE MISSION MATRIX")
-	}
+	// Clean header
+	header := styles.Header()
 	content.WriteString(header)
 	content.WriteString("\n\n")
 	
@@ -219,7 +158,7 @@ func (m *Model) renderDashboard() string {
 	if len(m.tasks) == 0 {
 		content.WriteString(styles.EmptyStateMessage())
 	} else {
-		// Render tasks with cyber styling
+		// Render tasks with clean styling
 		for i, task := range m.tasks {
 			taskStyle := m.getTaskStyle(i, task)
 			content.WriteString(taskStyle)
@@ -235,11 +174,11 @@ func (m *Model) renderDashboard() string {
 				content.WriteString("\n")
 			}
 			
-			// Task ID with digital effect
+			// Task ID
 			idStyle := lipgloss.NewStyle().
 				Foreground(styles.SynthwaveCyan).
 				Background(styles.DeepSpace).
-				Render("🔑 ID: " + task.ID)
+				Render("ID: " + task.ID)
 			content.WriteString("   " + idStyle)
 			content.WriteString("\n\n")
 		}
@@ -264,19 +203,10 @@ func (m *Model) renderDashboard() string {
 	controls := m.renderControls()
 	content.WriteString(controls)
 	
-	// Add digital noise overlay if glitching
-	if m.glitchActive {
-		overlay := m.renderDigitalNoise()
-		content = strings.Builder{}
-		content.WriteString(overlay)
-		content.WriteString("\n")
-		content.WriteString(content.String())
-	}
-	
 	return content.String()
 }
 
-// Matrix View - Pure Cyberpunk Aesthetic
+// Clean Matrix View
 func (m *Model) renderMatrix() string {
 	var content strings.Builder
 	
@@ -285,34 +215,24 @@ func (m *Model) renderMatrix() string {
 		Background(styles.DeepSpace).
 		Bold(true).
 		AlignHorizontal(lipgloss.Center).
-		Render("🌐 DIGITAL MATRIX INTERFACE 🌐")
+		Render("Task Matrix")
 	
 	content.WriteString(title)
 	content.WriteString("\n\n")
 	
-	// Create matrix grid effect
-	gridWidth := 60
-	gridHeight := 15
-	
-	for y := 0; y < gridHeight; y++ {
-		line := ""
-		for x := 0; x < gridWidth; x++ {
-			if glitchRand.Float32() < 0.1 {
-				line += styles.RandomGlitchChar()
-			} else if glitchRand.Float32() < 0.05 {
-				line += string(rune('0' + glitchRand.Intn(10)))
-			} else {
-				line += " "
-			}
+	// Display tasks in grid format
+	if len(m.tasks) == 0 {
+		content.WriteString(styles.EmptyStateMessage())
+	} else {
+		for i, task := range m.tasks {
+			taskLine := fmt.Sprintf("%02d: %s", i+1, task.Description)
+			taskStyle := lipgloss.NewStyle().
+				Foreground(styles.SynthwaveCyan).
+				Background(styles.DeepSpace).
+				Render(taskLine)
+			content.WriteString(taskStyle)
+			content.WriteString("\n")
 		}
-		
-		lineStyle := lipgloss.NewStyle().
-			Foreground(styles.SynthwaveGreen).
-			Background(styles.DeepSpace).
-			Render(line)
-		
-		content.WriteString(lineStyle)
-		content.WriteString("\n")
 	}
 	
 	// Overlay task info
@@ -409,72 +329,36 @@ func (m *Model) renderStats() string {
 	return content.String()
 }
 
-// Glitch Room - Maximum Visual Chaos
+// Clean About View
 func (m *Model) renderGlitchRoom() string {
 	var content strings.Builder
 	
-	title := styles.GlitchTitle("⚡ GLITCH DIMENSION ⚡")
+	title := styles.Title("About focus.sh")
 	content.WriteString(title)
 	content.WriteString("\n\n")
 	
-	// Pure visual chaos
-	glitchLines := []string{
-		"SYSTEM MALFUNCTION DETECTED",
-		"REALITY COMPROMISED",
-		"DIGITAL ARTIFACTS ACTIVE",
-		"NEURAL INTERFACE UNSTABLE",
-		"SYNTHWAVE PROTOCOLS CORRUPTED",
-	}
+	about := `A clean, professional task management tool
+that follows the Kyanite Suite design principles.
+
+Features:
+• Clean, distraction-free interface
+• Consistent theming
+• Purposeful animations
+• Professional appearance`
 	
-	for i, line := range glitchLines {
-		var glitchedLine string
-		
-		switch i % 4 {
-		case 0:
-			glitchedLine = symbolGlitchText(line)
-		case 1:
-			glitchedLine = styles.RGBSplitText(line)
-		case 2:
-			glitchedLine = styles.HolographicText(line)
-		default:
-			glitchedLine = styles.DigitalRain(line)
-		}
-		
-		lineStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color(fmt.Sprintf("#%02X%02X%02X", 
-				glitchRand.Intn(255), 
-				glitchRand.Intn(255), 
-				glitchRand.Intn(255)))).
-			Bold(glitchRand.Intn(2) == 0).
-			Italic(glitchRand.Intn(2) == 0).
-			Render(glitchedLine)
-		
-		content.WriteString(lineStyle)
-		content.WriteString("\n")
-	}
+	aboutStyle := lipgloss.NewStyle().
+		Foreground(styles.SynthwaveCyan).
+		Background(styles.DeepSpace).
+		Padding(1, 2).
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(styles.SynthwavePink).
+		Render(about)
 	
-	// Add random artifacts
-	for i := 0; i < 10; i++ {
-		artifact := styles.CreateDigitalArtifact()
-		artifactStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color(fmt.Sprintf("#%02X%02X%02X", 
-				glitchRand.Intn(255), 
-				glitchRand.Intn(255), 
-				glitchRand.Intn(255)))).
-			Render(artifact)
-		content.WriteString(artifactStyle + " ")
-	}
-	
-	content.WriteString("\n\n")
-	
-	// Interactive element
-	interactive := styles.CyberGridBox("PRESS SPACE TO STABILIZE REALITY")
-	content.WriteString(interactive)
-	
+	content.WriteString(aboutStyle)
 	return content.String()
 }
 
-// Helper Functions
+// Clean Task Styling
 func (m *Model) getTaskStyle(index int, task models.Task) string {
 	var prefix string
 	var style lipgloss.Style
@@ -495,13 +379,9 @@ func (m *Model) getTaskStyle(index int, task models.Task) string {
 			Background(styles.DeepSpace)
 	}
 	
-	if m.glitchActive {
-		style = style.Background(lipgloss.Color("#FF00FF"))
-	}
-	
 	taskText := fmt.Sprintf("%s%s", prefix, task.Description)
 	if task.Status == "completed" {
-		taskText += " ✅"
+		taskText += " ✓"
 	}
 	
 	priorityText := styles.PriorityExplosion(task.Priority)
@@ -530,29 +410,4 @@ func (m *Model) renderControls() string {
 	return controlStyle
 }
 
-func (m *Model) renderDigitalNoise() string {
-	var noise strings.Builder
-	
-	for i := 0; i < 5; i++ {
-		line := ""
-		for j := 0; j < m.width; j++ {
-			if glitchRand.Float32() < 0.3 {
-				line += styles.RandomGlitchChar()
-			} else {
-				line += " "
-			}
-		}
-		
-		lineStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color(fmt.Sprintf("#%02X%02X%02X", 
-				glitchRand.Intn(255), 
-				glitchRand.Intn(255), 
-				glitchRand.Intn(255)))).
-			Render(line)
-		
-		noise.WriteString(lineStyle)
-		noise.WriteString("\n")
-	}
-	
-	return noise.String()
-}
+

@@ -4,11 +4,11 @@
 This directory is a coding lab for experimenting with AI-powered CLI tools using Charm libraries. Focus on learning development patterns with local LLMs (Ollama) and OpenRouter fallback.
 
 ## Essential Commands
-- Build: `go build ./...`
-- Lint: `golangci-lint run`
-- Test: `go test ./...`
-- Single test: `go test -run TestName ./path/to/package`
-- Run CLI: `go run cmd/crush/main.go`
+- Build: `go build ./...` or `go build -o focus ./cmd/focus`
+- Lint: `golangci-lint run` (config in .golangci.yml)
+- Test all: `go test ./...` or `go test ./internal/... ./pkg/... -v`
+- Single test: `go test -run TestAIManager_ParseTask ./internal/ai`
+- Run CLI: `go run cmd/focus/main.go` (module: github.com/kyanite/focus)
 
 ## AI Integration Requirements
 - Primary: Local LLMs via Ollama
@@ -61,22 +61,22 @@ This directory is a coding lab for experimenting with AI-powered CLI tools using
 - Always test both local and fallback AI modes
 
 ## Code Style
-- Follow idiomatic Go conventions
-- Use descriptive names for all identifiers
-- Handle errors explicitly
-- Write concise comments for exported functions/types
-- Format code with `go fmt`
-- Import grouping: stdlib, third-party, internal
-- Prefer early returns to reduce nesting
-- Separate CLI logic from core business logic
-- Isolate AI integration points for easy testing
+- Follow idiomatic Go conventions, module: github.com/kyanite/focus
+- Use descriptive names for all identifiers, PascalCase for exported types
+- Handle errors explicitly, prefer early returns to reduce nesting
+- Write concise comments for exported functions/types only
+- Format code with `go fmt`, lint with `golangci-lint run`
+- Import grouping: stdlib → third-party → internal (github.com/kyanite/focus/internal/...)
+- Test naming: Test{TypeName}_{MethodName}, use table-driven tests with struct slices
+- Separate CLI logic (cmd/) from core business logic (internal/)
+- Use `t.TempDir()` for test files, `if testing.Short() { t.Skip() }` for integration tests
 
 ## Project Structure
-- cmd/: CLI entry points
-- internal/: Private application logic
-- pkg/ai/: AI integration utilities
-- pkg/cli/: Charm-based components
-- test/: Integration and utility tests
+- cmd/: CLI entry points (focus, focus-mcp, cli-main)
+- internal/: Private application logic (cli, ai, engine, store, tui, wizards)
+- pkg/: Public utilities (audio, styles, gum, glow, utils, calendar, validation, config, models)
+- test/: Integration tests and manual test files
+- assets/: Themes and static resources
 
 ## Experimental Development
 - Try new patterns freely

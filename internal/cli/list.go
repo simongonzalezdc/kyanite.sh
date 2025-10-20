@@ -54,7 +54,7 @@ Filters: all, active, completed (default: all)`,
 
 func renderSynthwaveList(tasks []models.Task, filter string) {
 	// Epic header with glitch effects
-	header := styles.MatrixHeader()
+	header := styles.Header()
 	fmt.Println(header)
 	fmt.Println()
 
@@ -106,8 +106,8 @@ func renderSynthwaveList(tasks []models.Task, filter string) {
 	fmt.Println(stats)
 	fmt.Println()
 
-	// Glitch footer
-	footer := styles.GlitchFooter("SYNTHWAVE MISSION MATRIX v2.0")
+	// Clean footer
+	footer := styles.Title("focus.sh Task Management")
 	fmt.Println(footer)
 }
 

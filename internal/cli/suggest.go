@@ -3,7 +3,6 @@ package cli
 import (
 	"context"
 	"fmt"
-	"time"
 	"github.com/kyanite/focus/internal/ai"
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/store"
@@ -55,9 +54,8 @@ var suggestCmd = &cobra.Command{
 		ctx := context.Background()
 		
 		// Show streaming AI thinking
-		thinkingText := "🤖 Processing neural pathways..."
+		thinkingText := "Processing..."
 		utils.StreamWithTypingEffect(thinkingText, styles.GetAccent())
-		time.Sleep(500 * time.Millisecond)
 		
 		suggestions, err := aiManager.SuggestTasks(ctx, taskDescriptions)
 		if err != nil {
@@ -66,36 +64,25 @@ var suggestCmd = &cobra.Command{
 		}
 
 		if len(suggestions) == 0 {
-			emptyText := "😴 No new missions received from the digital realm."
+			emptyText := "No suggestions available."
 			utils.StreamWithTypingEffect(emptyText, styles.GetWarning())
 			
-			hintText := "💡 Try adding more missions to unlock suggestions!"
+			hintText := "Try adding more tasks to unlock suggestions!"
 			utils.StreamWithTypingEffect(hintText, styles.GetAccent())
 			return
 		}
 
-		// Stream suggestions with colors
+		// Stream suggestions with consistent styling
 		titleStyle := lipgloss.NewStyle().
 			Foreground(styles.GetSuccess()).
 			Bold(true).
-			Render("✨ Mission Suggestions from the Grid:")
+			Render("Task Suggestions:")
 		fmt.Println(titleStyle)
 		fmt.Println()
 		
 		for i, suggestion := range suggestions {
-			// Cycle through synthwave colors for each suggestion
-			colors := []lipgloss.Color{
-				styles.SynthwavePink,
-				styles.SynthwaveCyan,
-				styles.SynthwaveGreen,
-				styles.SynthwaveYellow,
-				styles.SynthwavePurple,
-			}
-			color := colors[i%len(colors)]
-			
-			suggestionText := fmt.Sprintf("%d. 🌟 %s", i+1, suggestion)
-			utils.StreamWithTypingEffect(suggestionText, color)
-			time.Sleep(200 * time.Millisecond)
+			suggestionText := fmt.Sprintf("%d. %s", i+1, suggestion)
+			utils.StreamWithTypingEffect(suggestionText, styles.SynthwaveCyan)
 		}
 		
 		fmt.Println("\nTo upload a suggestion, use: focus add \"<suggestion text>\"")

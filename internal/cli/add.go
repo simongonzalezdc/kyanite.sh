@@ -77,26 +77,8 @@ Example: focus add "Complete the synthwave project by Friday"`,
 }
 
 func showProcessingAnimation(_ string) {
-	// Loading animation with synthwave styling
-	loadingFrames := []string{
-		"⚡ INITIALIZING SYNTHWAVE PROTOCOLS",
-		"🔮 ANALYZING MISSION PARAMETERS", 
-		"💫 CALIBRATING NEURAL INTERFACES",
-		"✨ ACTIVATING DIGITAL ENHANCEMENTS",
-		"🌌 INTEGRATING WITH THE MATRIX",
-	}
-
-	fmt.Println(styles.LoadingAnimation())
-	
-	for _, frame := range loadingFrames {
-		frameStyle := lipgloss.NewStyle().
-			Foreground(styles.SynthwaveCyan).
-			Background(styles.DeepSpace).
-			Bold(true).
-			Render("▶ " + frame)
-		fmt.Println(frameStyle)
-		fmt.Println()
-	}
+	fmt.Println(styles.LoadingMessage())
+	fmt.Println("Processing task...")
 }
 
 func showValidationError(message string) {
@@ -153,27 +135,9 @@ func showAddSuccess(task models.Task) {
 
 	fmt.Println()
 
-	// Confirmation with holographic effect
-	confirmMsg := styles.HolographicText("✨ Mission successfully integrated into the matrix!")
+	// Clean confirmation message
+	confirmMsg := styles.Title("Task added successfully")
 	fmt.Println(confirmMsg)
-
-	// Digital artifact celebration
-	artifacts := []string{
-		"⚡⚡⚡", "✨✨✨", "🔥🔥🔥", "💫💫💫", "🌟🌟🌟",
-	}
-	
-	artifactLine := ""
-	for _, artifact := range artifacts {
-		artifactLine += artifact + " "
-	}
-	
-	artifactStyle := lipgloss.NewStyle().
-		Foreground(styles.SynthwavePink).
-		Background(styles.DeepSpace).
-		Bold(true).
-		AlignHorizontal(lipgloss.Center).
-		Render(artifactLine)
-	fmt.Println(artifactStyle)
 }
 
 func init() {

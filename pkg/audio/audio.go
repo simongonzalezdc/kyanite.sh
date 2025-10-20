@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os/exec"
 	"runtime"
-	"time"
 )
 
 type SoundEffect int
@@ -59,7 +58,8 @@ func (a *AudioPlayer) PlaySound(effect SoundEffect) {
 		case SoundNavigate:
 			a.playBeep(700, 50) // Quick navigation sound
 		case SoundGlitch:
-			a.playGlitchEffect() // Special glitch sound
+			// Removed decorative glitch effect
+			a.playBeep(400, 100) // Simple notification sound
 		}
 	}()
 }
@@ -93,15 +93,7 @@ func (a *AudioPlayer) playBeep(frequency, duration int) {
 	_ = cmd.Run() // Ignore errors to not break the UI
 }
 
-func (a *AudioPlayer) playGlitchEffect() {
-	// Rapid fire beeps for glitch effect
-	go func() {
-		for i := 0; i < 5; i++ {
-			a.playBeep(200+i*100, 30)
-			time.Sleep(50 * time.Millisecond)
-		}
-	}()
-}
+
 
 func (a *AudioPlayer) Enable() {
 	a.enabled = true

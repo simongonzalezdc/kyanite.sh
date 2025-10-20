@@ -2,9 +2,10 @@ package styles
 
 import (
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/focus/internal/theme"
 )
 
-// Theme modes for the app
+// Theme modes for the app (backward compatibility)
 type ThemeMode string
 
 const (
@@ -13,8 +14,8 @@ const (
 	ThemePlain     ThemeMode = "plain"
 )
 
-// Current theme (can be changed at runtime)
-var currentTheme ThemeMode = ThemeSynthwave
+// Current theme registry (Kyanite themes)
+var currentTheme = theme.DefaultTheme
 
 // Light theme colors - research-based best practices for light themes
 var (
@@ -41,176 +42,140 @@ var (
 	PlainError     = lipgloss.Color("")
 )
 
-// SetTheme changes the current theme
-func SetTheme(theme ThemeMode) {
-	currentTheme = theme
+// SetThemeByName changes the current theme by name
+func SetThemeByName(name string) {
+	currentTheme = theme.GetThemeByName(name)
+}
+
+// SetTheme changes the current theme (backward compatibility)
+func SetTheme(t ThemeMode) {
+	switch t {
+	case ThemeLight:
+		currentTheme = theme.Theme{
+			Name:       "Light",
+			Background: LightBg,
+			Text:       LightFg,
+			Accent:     LightAccent,
+			Border:     LightBorder,
+			Success:    LightSuccess,
+			Warning:    LightWarning,
+			Error:      LightError,
+			Panel:      LightPanel,
+		}
+	case ThemePlain:
+		currentTheme = theme.Theme{
+			Name:       "Plain",
+			Background: PlainBg,
+			Text:       PlainFg,
+			Accent:     PlainAccent,
+			Border:     PlainBorder,
+			Success:    PlainSuccess,
+			Warning:    PlainWarning,
+			Error:      PlainError,
+			Panel:      PlainBg,
+		}
+	default:
+		currentTheme = theme.DefaultTheme
+	}
 }
 
 // GetTheme returns the current theme
-func GetTheme() ThemeMode {
+func GetTheme() theme.Theme {
 	return currentTheme
+}
+
+// CycleTheme cycles through all Kyanite themes
+func CycleTheme() {
+	themes := theme.AllThemes
+	for i, t := range themes {
+		if t.Name == currentTheme.Name {
+			// Move to next theme, wrap around
+			nextIndex := (i + 1) % len(themes)
+			currentTheme = themes[nextIndex]
+			return
+		}
+	}
+	// If current theme not found, set to default
+	currentTheme = theme.DefaultTheme
 }
 
 // Theme-aware color getters
 func GetBackground() lipgloss.Color {
-	switch currentTheme {
-	case ThemeLight:
-		return LightBg
-	case ThemePlain:
-		return PlainBg
-	default:
-		return DeepSpace
-	}
+	return currentTheme.Background
 }
 
 func GetForeground() lipgloss.Color {
-	switch currentTheme {
-	case ThemeLight:
-		return LightFg
-	case ThemePlain:
-		return PlainFg
-	default:
-		return SynthwavePink
-	}
+	return currentTheme.Text
 }
 
 func GetAccent() lipgloss.Color {
-	switch currentTheme {
-	case ThemeLight:
-		return LightAccent
-	case ThemePlain:
-		return PlainAccent
-	default:
-		return SynthwaveCyan
-	}
+	return currentTheme.Accent
 }
 
 func GetBorder() lipgloss.Color {
-	switch currentTheme {
-	case ThemeLight:
-		return LightBorder
-	case ThemePlain:
-		return PlainBorder
-	default:
-		return SynthwaveCyan
-	}
+	return currentTheme.Border
 }
 
 func GetSuccess() lipgloss.Color {
-	switch currentTheme {
-	case ThemeLight:
-		return LightSuccess
-	case ThemePlain:
-		return PlainSuccess
-	default:
-		return SynthwaveGreen
-	}
+	return currentTheme.Success
 }
 
 func GetWarning() lipgloss.Color {
-	switch currentTheme {
-	case ThemeLight:
-		return LightWarning
-	case ThemePlain:
-		return PlainWarning
-	default:
-		return SynthwaveYellow
-	}
+	return currentTheme.Warning
 }
 
 func GetError() lipgloss.Color {
-	switch currentTheme {
-	case ThemeLight:
-		return LightError
-	case ThemePlain:
-		return PlainError
-	default:
-		return SynthwaveRed
-	}
+	return currentTheme.Error
+}
+
+func GetPanel() lipgloss.Color {
+	return currentTheme.Panel
 }
 
 // Theme-aware style getters
 func GetTitleStyle() lipgloss.Style {
-	switch currentTheme {
-	case ThemeLight:
-		return lipgloss.NewStyle().
-			Foreground(LightFg).
-			Background(LightBg).
-			Bold(true).
-			Padding(1, 2).
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(LightAccent)
-	case ThemePlain:
-		return lipgloss.NewStyle().
-			Bold(true)
-	default:
-		return lipgloss.NewStyle().
-			Foreground(SynthwavePink).
-			Background(DeepSpace).
-			Bold(true).
-			Padding(1, 2).
-			Border(lipgloss.DoubleBorder()).
-			BorderForeground(SynthwaveCyan)
-	}
+	return lipgloss.NewStyle().
+		Foreground(currentTheme.Primary).
+		Background(currentTheme.Background).
+		Bold(true).
+		Padding(1, 2).
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(currentTheme.Accent)
 }
 
 func GetBoxStyle() lipgloss.Style {
-	switch currentTheme {
-	case ThemeLight:
-		return lipgloss.NewStyle().
-			Foreground(LightFg).
-			Background(LightPanel).
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(LightBorder).
-			Padding(1)
-	case ThemePlain:
-		return lipgloss.NewStyle()
-	default:
-		return lipgloss.NewStyle().
-			Foreground(SynthwaveCyan).
-			Background(DarkVoid).
-			Border(lipgloss.DoubleBorder()).
-			BorderForeground(SynthwaveCyan).
-			Padding(1)
-	}
+	return lipgloss.NewStyle().
+		Foreground(currentTheme.Text).
+		Background(currentTheme.Panel).
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(currentTheme.Border).
+		Padding(1)
 }
 
 func GetPanelStyle() lipgloss.Style {
-	switch currentTheme {
-	case ThemeLight:
-		return lipgloss.NewStyle().
-			Foreground(LightFg).
-			Background(LightPanel).
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(LightBorder).
-			Padding(1)
-	case ThemePlain:
-		return lipgloss.NewStyle()
-	default:
-		return lipgloss.NewStyle().
-			Foreground(SynthwaveCyan).
-			Background(DarkVoid).
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(SynthwaveCyan).
-			Padding(1)
-	}
+	return lipgloss.NewStyle().
+		Foreground(currentTheme.Text).
+		Background(currentTheme.Panel).
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(currentTheme.Border).
+		Padding(1)
 }
 
 func GetSuccessStyle() lipgloss.Style {
 	return lipgloss.NewStyle().
-		Foreground(GetSuccess()).
+		Foreground(currentTheme.Success).
 		Bold(true)
 }
 
 func GetErrorStyle() lipgloss.Style {
 	return lipgloss.NewStyle().
-		Foreground(GetError()).
+		Foreground(currentTheme.Error).
 		Bold(true)
 }
 
 func GetWarningStyle() lipgloss.Style {
 	return lipgloss.NewStyle().
-		Foreground(GetWarning()).
+		Foreground(currentTheme.Warning).
 		Bold(true)
 }
 
@@ -221,4 +186,14 @@ func GetSynthwaveTitle() lipgloss.Style {
 
 func GetFocusBox() lipgloss.Style {
 	return GetBoxStyle()
+}
+
+// GetThemeList returns all available theme names for CLI commands
+func GetThemeList() []string {
+	return theme.GetThemeNames()
+}
+
+// GetCurrentThemeName returns the name of the current theme
+func GetCurrentThemeName() string {
+	return currentTheme.Name
 }

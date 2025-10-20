@@ -233,32 +233,20 @@ func (m UnifiedDashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.executeAction(msg.Action)
 
 	case ThemeCycleMsg:
-		current := styles.GetTheme()
-		if m.config != nil {
-			switch m.config.Theme {
-			case string(styles.ThemeLight):
-				current = styles.ThemeLight
-			case string(styles.ThemePlain):
-				current = styles.ThemePlain
-			default:
-				current = styles.ThemeSynthwave
-			}
+		if m.config != nil && m.config.Theme != "" {
+			styles.SetThemeByName(m.config.Theme)
 		}
-		var next styles.ThemeMode
-		switch current {
-		case styles.ThemeSynthwave:
-			next = styles.ThemeLight
-		case styles.ThemeLight:
-			next = styles.ThemePlain
-		default:
-			next = styles.ThemeSynthwave
-		}
-		m.applyTheme(next)
+		
+		// Cycle to next theme
+		styles.CycleTheme()
+		next := styles.GetTheme()
+		
+		m.applyThemeString(next.Name)
 		if m.config != nil {
-			m.config.Theme = string(next)
+			m.config.Theme = next.Name
 			_ = config.SaveConfig(m.config)
 		}
-		m.statusMessage = fmt.Sprintf("Theme changed to %s", string(next))
+		m.statusMessage = fmt.Sprintf("Theme changed to %s", next.Name)
 
 	case StatusMsg:
 		m.statusMessage = msg.Message
@@ -393,6 +381,49 @@ func applyThemeStyles(theme styles.ThemeMode) {
 
 func (m *UnifiedDashboardModel) applyTheme(theme styles.ThemeMode) {
 	applyThemeStyles(theme)
+	delegate := list.NewDefaultDelegate()
+	delegate.Styles.SelectedTitle = selectedItemStyle
+	delegate.Styles.SelectedDesc = selectedItemStyle
+	delegate.Styles.NormalTitle = normalItemStyle
+	delegate.Styles.NormalDesc = normalItemStyle
+	selected := m.menu.Index()
+	newMenu := list.New(m.menuItems, delegate, 0, 0)
+	newMenu.Title = "🌌 focus.sh Unified Dashboard"
+	newMenu.SetShowStatusBar(false)
+	newMenu.SetFilteringEnabled(false)
+	newMenu.SetShowPagination(false)
+	newMenu.SetShowHelp(false)
+	newMenu.SetWidth(m.width - 4)
+	newMenu.SetHeight(m.height - 10)
+	if selected >= 0 {
+		newMenu.Select(selected)
+	}
+	m.menu = newMenu
+}
+
+func applyThemeStylesByName(themeName string) {
+	styles.SetThemeByName(themeName)
+	menuTitleStyle = lipgloss.NewStyle().
+		Foreground(styles.GetAccent()).
+		Background(styles.GetBackground()).
+		Padding(0, 2).
+		Bold(true)
+	selectedItemStyle = lipgloss.NewStyle().
+		Foreground(styles.GetBackground()).
+		Background(styles.GetAccent()).
+		Bold(true)
+	normalItemStyle = lipgloss.NewStyle().
+		Foreground(styles.GetAccent())
+	statusStyle = lipgloss.NewStyle().
+		Foreground(styles.GetSuccess()).
+		Bold(true)
+	errorStyle = lipgloss.NewStyle().
+		Foreground(styles.GetError()).
+		Bold(true)
+}
+
+func (m *UnifiedDashboardModel) applyThemeString(themeName string) {
+	applyThemeStylesByName(themeName)
 	delegate := list.NewDefaultDelegate()
 	delegate.Styles.SelectedTitle = selectedItemStyle
 	delegate.Styles.SelectedDesc = selectedItemStyle
