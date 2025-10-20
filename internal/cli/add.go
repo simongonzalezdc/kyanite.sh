@@ -3,17 +3,17 @@ package cli
 import (
 	"context"
 	"fmt"
-	"strings"
-	"github.com/kyanite/focus/internal/store"
-	"github.com/kyanite/focus/internal/engine"
-	"github.com/kyanite/focus/pkg/utils"
-	"github.com/kyanite/focus/pkg/styles"
-	"github.com/kyanite/focus/pkg/models"
-	"github.com/kyanite/focus/pkg/validation"
 	"github.com/kyanite/focus/internal/ai"
+	"github.com/kyanite/focus/internal/engine"
+	"github.com/kyanite/focus/internal/store"
+	"github.com/kyanite/focus/pkg/models"
+	"github.com/kyanite/focus/pkg/styles"
+	"github.com/kyanite/focus/pkg/utils"
+	"github.com/kyanite/focus/pkg/validation"
+	"strings"
 
-	"github.com/spf13/cobra"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/spf13/cobra"
 )
 
 var addCmd = &cobra.Command{
@@ -28,19 +28,19 @@ Example: focus add "Complete the project by Friday"`,
 		}
 
 		description := strings.Join(args, " ")
-		
+
 		// Validate input
 		if err := validation.ValidateTaskDescription(description); err != nil {
 			showValidationError(err.Error())
 			return
 		}
-		
+
 		// Sanitize input
 		description = validation.SanitizeInput(description)
-		
+
 		// Show processing animation
 		showProcessingAnimation(description)
-		
+
 		// Initialize components
 		store := store.New(utils.GetStoragePath())
 		engine := engine.New(store)

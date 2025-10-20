@@ -4,8 +4,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/spf13/cobra"
 	pterm "github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 var mcpServerCmd = &cobra.Command{
@@ -20,7 +20,7 @@ through the standardized MCP protocol.`,
 		serverCmd.Stdin = os.Stdin
 		serverCmd.Stdout = os.Stdout
 		serverCmd.Stderr = os.Stderr
-		
+
 		if err := serverCmd.Run(); err != nil {
 			pterm.Error.Printf("Failed to start MCP server: %v\n", err)
 			os.Exit(1)

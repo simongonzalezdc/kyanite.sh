@@ -161,22 +161,30 @@ func Default() Theme { return AmberNight }
 
 func GetTheme(id string) Theme {
 	id = migrateThemeID(id)
-	if t, ok := Registry[id]; ok { return t }
+	if t, ok := Registry[id]; ok {
+		return t
+	}
 	return Default()
 }
 
 func ListThemes() []string {
-	return []string{ "monochrome","amber-night","twilight-mist","indigo-depths","forest-path","clay-earth","iron-forge","sunlight","cyan-wave","electric-rose" }
+	return []string{"monochrome", "amber-night", "twilight-mist", "indigo-depths", "forest-path", "clay-earth", "iron-forge", "sunlight", "cyan-wave", "electric-rose"}
 }
 
 func GetThemeByName(name string) Theme {
-	for _, t := range Registry { if t.Name == name { return t } }
+	for _, t := range Registry {
+		if t.Name == name {
+			return t
+		}
+	}
 	return Default()
 }
 
 func GetThemeNames() []string {
 	names := make([]string, 0, len(Registry))
-	for _, id := range ListThemes() { names = append(names, Registry[id].Name) }
+	for _, id := range ListThemes() {
+		names = append(names, Registry[id].Name)
+	}
 	return names
 }
 
@@ -197,6 +205,8 @@ func migrateThemeID(oldID string) string {
 		"light":          "monochrome",
 		"plain":          "amber-night",
 	}
-	if nid, ok := m[oldID]; ok { return nid }
+	if nid, ok := m[oldID]; ok {
+		return nid
+	}
 	return oldID
 }

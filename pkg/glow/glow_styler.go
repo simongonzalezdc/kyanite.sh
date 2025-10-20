@@ -173,7 +173,7 @@ func (gs *GlowStyler) RenderProgressBarWithGlow(current, total int, label string
 	progressBar.WriteString("]")
 
 	// Progress text
-	progressText := fmt.Sprintf("%s %d/%d (%.1f%%)", 
+	progressText := fmt.Sprintf("%s %d/%d (%.1f%%)",
 		lipgloss.NewStyle().Foreground(lipgloss.Color("#FF71CE")).Render(label),
 		current, total, percentage*100)
 

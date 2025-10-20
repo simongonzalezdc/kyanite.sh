@@ -24,7 +24,7 @@ func NewExporter() *Exporter {
 		return &Exporter{syntaxDir: syntaxDir}
 	}
 	syntaxDir := filepath.Join(homeDir, "syntax", "imports")
-	
+
 	return &Exporter{
 		syntaxDir: syntaxDir,
 	}
@@ -39,7 +39,7 @@ func (e *Exporter) ExportToSyntax(entry *models.JournalEntry, exportType models.
 
 	// Generate content based on export type
 	content := e.formatForExport(entry, exportType)
-	
+
 	// Generate filename
 	filename := entry.GetExportFilename(exportType)
 	filePath := filepath.Join(e.syntaxDir, filename)
@@ -68,7 +68,7 @@ func (e *Exporter) formatForExport(entry *models.JournalEntry, exportType models
 	if entry.Title != "" {
 		header.WriteString(fmt.Sprintf("**Title:** %s\n", entry.Title))
 	}
-	
+
 	// Content section
 	content.WriteString("\n---\n\n")
 	content.WriteString("## Original Journal Entry\n\n")

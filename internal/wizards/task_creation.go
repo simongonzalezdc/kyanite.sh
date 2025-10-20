@@ -5,22 +5,22 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/huh"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/store"
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/pkg/utils"
-	"github.com/charmbracelet/huh"
-	"github.com/charmbracelet/lipgloss"
 )
 
 var (
 	accentStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FF71CE")).
-		Bold(true)
+			Foreground(lipgloss.Color("#FF71CE")).
+			Bold(true)
 
 	successStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00FF66")).
-		Bold(true)
+			Foreground(lipgloss.Color("#00FF66")).
+			Bold(true)
 )
 
 // TaskCreationWizard creates a comprehensive task creation form
@@ -45,7 +45,7 @@ func TaskCreationWizard() error {
 					}
 					return nil
 				}),
-			
+
 			huh.NewSelect[string]().
 				Title("Priority Level").
 				Description("Select the urgency of this task").
@@ -143,12 +143,12 @@ func TaskCreationWizard() error {
 // ConfigurationWizard creates an interactive configuration setup
 func ConfigurationWizard() error {
 	var config struct {
-		AIProvider     string
-		Model          string
-		DefaultTheme   string
-		AutoSave       string
-		Notifications  bool
-		TimeFormat     string
+		AIProvider    string
+		Model         string
+		DefaultTheme  string
+		AutoSave      string
+		Notifications bool
+		TimeFormat    string
 	}
 
 	form := huh.NewForm(
@@ -305,7 +305,7 @@ func TaskEditWizard(task models.Task) error {
 func parseDueDate(dateStr string) (*time.Time, error) {
 	// Handle common natural language expressions
 	lower := strings.ToLower(strings.TrimSpace(dateStr))
-	
+
 	switch lower {
 	case "today":
 		today := time.Now()

@@ -4,17 +4,17 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"os"
-	"strings"
-	"time"
 	"github.com/kyanite/focus/internal/ai"
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/store"
-	"github.com/kyanite/focus/pkg/utils"
 	"github.com/kyanite/focus/pkg/styles"
+	"github.com/kyanite/focus/pkg/utils"
+	"os"
+	"strings"
+	"time"
 
-	"github.com/spf13/cobra"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/spf13/cobra"
 )
 
 var chatCmd = &cobra.Command{
@@ -82,15 +82,15 @@ var chatCmd = &cobra.Command{
 				Bold(true).
 				Render("AI: ")
 			fmt.Print(aiLabel)
-			
+
 			// Show thinking indicator
 			thinkingText := "🤔 Processing your query..."
 			utils.StreamText(thinkingText, styles.GetWarning(), 30*time.Millisecond)
-			fmt.Print("\r") // Clear line
+			fmt.Print("\r")                                      // Clear line
 			fmt.Print(strings.Repeat(" ", len(thinkingText)+10)) // Clear with spaces
-			fmt.Print("\r") // Return to start
+			fmt.Print("\r")                                      // Return to start
 			fmt.Print(aiLabel)
-			
+
 			ctx := context.Background()
 			response, err := aiManager.ChatAssistant(ctx, question, taskDescriptions)
 			if err != nil {
@@ -99,7 +99,7 @@ var chatCmd = &cobra.Command{
 				fmt.Println()
 				continue
 			}
-			
+
 			// Stream the AI response with colors
 			utils.StreamWithTypingEffect(response, styles.GetForeground())
 			fmt.Println()

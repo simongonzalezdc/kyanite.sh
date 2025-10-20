@@ -11,16 +11,16 @@ func Choose(options []string, prompt string) string {
 	if prompt == "" {
 		prompt = "Choose an option:"
 	}
-	
+
 	args := []string{"choose", prompt}
 	args = append(args, options...)
-	
+
 	cmd := exec.Command("gum", args...)
 	output, err := cmd.Output()
 	if err != nil {
 		return ""
 	}
-	
+
 	return strings.TrimSpace(string(output))
 }
 
@@ -29,7 +29,7 @@ func Confirm(prompt string) bool {
 	if prompt == "" {
 		prompt = "Confirm?"
 	}
-	
+
 	cmd := exec.Command("gum", "confirm", prompt)
 	err := cmd.Run()
 	return err == nil
@@ -40,13 +40,13 @@ func Input(prompt string) string {
 	if prompt == "" {
 		prompt = "Enter text:"
 	}
-	
+
 	cmd := exec.Command("gum", "input", "--placeholder", prompt)
 	output, err := cmd.Output()
 	if err != nil {
 		return ""
 	}
-	
+
 	return strings.TrimSpace(string(output))
 }
 
@@ -55,25 +55,25 @@ func Filter(options []string, prompt string) string {
 	if prompt == "" {
 		prompt = "Filter options:"
 	}
-	
+
 	cmd := exec.Command("gum", "filter", "--placeholder", prompt)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return ""
 	}
-	
+
 	go func() {
 		defer func() { _ = stdin.Close() }()
 		for _, option := range options {
 			_, _ = stdin.Write([]byte(option + "\n"))
 		}
 	}()
-	
+
 	output, err := cmd.Output()
 	if err != nil {
 		return ""
 	}
-	
+
 	return strings.TrimSpace(string(output))
 }
 
@@ -82,30 +82,30 @@ func MultiSelect(options []string, prompt string, limit int) []string {
 	if prompt == "" {
 		prompt = "Select options:"
 	}
-	
+
 	args := []string{"filter", "--placeholder", prompt, "--no-limit"}
 	if limit > 0 {
 		args = []string{"filter", "--placeholder", prompt, "--limit", fmt.Sprintf("%d", limit)}
 	}
-	
+
 	cmd := exec.Command("gum", args...)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return nil
 	}
-	
+
 	go func() {
 		defer func() { _ = stdin.Close() }()
 		for _, option := range options {
 			_, _ = stdin.Write([]byte(option + "\n"))
 		}
 	}()
-	
+
 	output, err := cmd.Output()
 	if err != nil {
 		return nil
 	}
-	
+
 	selected := strings.Split(strings.TrimSpace(string(output)), "\n")
 	result := make([]string, 0, len(selected))
 	for _, item := range selected {
@@ -113,7 +113,7 @@ func MultiSelect(options []string, prompt string, limit int) []string {
 			result = append(result, strings.TrimSpace(item))
 		}
 	}
-	
+
 	return result
 }
 
@@ -127,7 +127,7 @@ func Spin(title string, command string, args ...string) error {
 // Style applies styling to text
 func Style(text string, foreground string, background string, bold bool) string {
 	args := []string{"style"}
-	
+
 	if foreground != "" {
 		args = append(args, "--foreground", foreground)
 	}
@@ -137,15 +137,15 @@ func Style(text string, foreground string, background string, bold bool) string 
 	if bold {
 		args = append(args, "--bold")
 	}
-	
+
 	args = append(args, text)
-	
+
 	cmd := exec.Command("gum", args...)
 	output, err := cmd.Output()
 	if err != nil {
 		return text
 	}
-	
+
 	return strings.TrimSpace(string(output))
 }
 
@@ -165,7 +165,7 @@ func IsAvailable() bool {
 		"C:\\Program Files (x86)\\gum\\gum.exe",
 		"C:\\Users\\Simon\\AppData\\Local\\Microsoft\\WinGet\\Packages\\charmbracelet.gum\\gum.exe",
 	}
-	
+
 	for _, path := range paths {
 		if _, err := exec.LookPath(path); err == nil {
 			return true

@@ -17,4 +17,3 @@ var unifiedDashboardCmd = &cobra.Command{
 		}
 	},
 }
-

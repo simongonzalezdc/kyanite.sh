@@ -2,16 +2,16 @@ package cli
 
 import (
 	"fmt"
-	"time"
 	"strings"
+	"time"
 
-	"github.com/kyanite/focus/internal/store"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/internal/engine"
+	"github.com/kyanite/focus/internal/store"
 	"github.com/kyanite/focus/pkg/calendar"
-	"github.com/kyanite/focus/pkg/utils"
 	"github.com/kyanite/focus/pkg/config"
 	"github.com/kyanite/focus/pkg/models"
-	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/focus/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -74,9 +74,12 @@ func calendarShowHandler(cmd *cobra.Command, args []string) {
 	// Initialize components
 	storage := store.New(utils.GetStoragePath())
 	taskEngine := engine.New(storage)
-	
+
 	// Load configuration
-	cfg, _ := config.LoadConfig()
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		cfg = &config.Config{Theme: "synthwave"}
+	}
 	theme := cfg.Theme
 	if theme == "" {
 		theme = "synthwave"
@@ -89,7 +92,7 @@ func calendarShowHandler(cmd *cobra.Command, args []string) {
 			Foreground(lipgloss.Color("#FF0040")).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error loading tasks: %v", err))
-		
+
 		fmt.Println(errorStyle)
 		return
 	}
@@ -132,9 +135,12 @@ func calendarTodayHandler(cmd *cobra.Command, args []string) {
 	// Initialize components
 	storage := store.New(utils.GetStoragePath())
 	taskEngine := engine.New(storage)
-	
+
 	// Load configuration
-	cfg, _ := config.LoadConfig()
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		cfg = &config.Config{Theme: "synthwave"}
+	}
 	theme := cfg.Theme
 	if theme == "" {
 		theme = "synthwave"
@@ -147,7 +153,7 @@ func calendarTodayHandler(cmd *cobra.Command, args []string) {
 			Foreground(lipgloss.Color("#FF0040")).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error loading tasks: %v", err))
-		
+
 		fmt.Println(errorStyle)
 		return
 	}
@@ -172,7 +178,7 @@ func calendarTodayHandler(cmd *cobra.Command, args []string) {
 
 func calendarAddHandler(cmd *cobra.Command, args []string) {
 	description := args[0]
-	
+
 	// Parse date (default to today)
 	targetDate := time.Now()
 	if len(args) > 1 {
@@ -182,7 +188,7 @@ func calendarAddHandler(cmd *cobra.Command, args []string) {
 				Foreground(lipgloss.Color("#FF0040")).
 				Bold(true).
 				Render(fmt.Sprintf("❌ Invalid date format: %v", err))
-			
+
 			fmt.Println(errorStyle)
 			fmt.Println("📅 Try formats: YYYY-MM-DD, today, tomorrow, next monday, etc.")
 			return
@@ -223,7 +229,7 @@ func calendarAddHandler(cmd *cobra.Command, args []string) {
 			Foreground(lipgloss.Color("#FF0040")).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error adding task: %v", err))
-		
+
 		fmt.Println(errorStyle)
 		return
 	}
@@ -251,7 +257,7 @@ func calendarListHandler(cmd *cobra.Command, args []string) {
 			Foreground(lipgloss.Color("#FF0040")).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error loading tasks: %v", err))
-		
+
 		fmt.Println(errorStyle)
 		return
 	}
@@ -278,7 +284,7 @@ func calendarListHandler(cmd *cobra.Command, args []string) {
 	for date := range taskMap {
 		dates = append(dates, date)
 	}
-	
+
 	// Simple bubble sort for dates
 	for i := 0; i < len(dates); i++ {
 		for j := i + 1; j < len(dates); j++ {
@@ -292,13 +298,13 @@ func calendarListHandler(cmd *cobra.Command, args []string) {
 	for _, date := range dates {
 		fmt.Printf("\n📅 %s (%d tasks)\n", date, len(taskMap[date]))
 		fmt.Println(strings.Repeat("-", 20))
-		
+
 		for _, task := range taskMap[date] {
 			status := "⏳"
 			if task.Status == "completed" {
 				status = "✅"
 			}
-			
+
 			priority := "⚪"
 			switch task.Priority {
 			case "high":
@@ -308,7 +314,7 @@ func calendarListHandler(cmd *cobra.Command, args []string) {
 			case "low":
 				priority = "🟢"
 			}
-			
+
 			fmt.Printf("  %s %s %s\n", status, priority, task.Description)
 			if len(task.Categories) > 0 {
 				fmt.Printf("     🏷️  %s\n", strings.Join(task.Categories, ", "))
@@ -321,9 +327,12 @@ func calendarNavigateHandler(cmd *cobra.Command, args []string) {
 	// Initialize components
 	storage := store.New(utils.GetStoragePath())
 	taskEngine := engine.New(storage)
-	
+
 	// Load configuration
-	cfg, _ := config.LoadConfig()
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		cfg = &config.Config{Theme: "synthwave"}
+	}
 	theme := cfg.Theme
 	if theme == "" {
 		theme = "synthwave"
@@ -336,7 +345,7 @@ func calendarNavigateHandler(cmd *cobra.Command, args []string) {
 			Foreground(lipgloss.Color("#FF0040")).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error loading tasks: %v", err))
-		
+
 		fmt.Println(errorStyle)
 		return
 	}
@@ -350,7 +359,7 @@ func calendarNavigateHandler(cmd *cobra.Command, args []string) {
 				Foreground(lipgloss.Color("#FF0040")).
 				Bold(true).
 				Render(fmt.Sprintf("❌ Invalid date format: %v", err))
-			
+
 			fmt.Println(errorStyle)
 			fmt.Println("📅 Try formats: YYYY-MM-DD, today, tomorrow, next monday, etc.")
 			return
@@ -379,9 +388,9 @@ func calendarNavigateHandler(cmd *cobra.Command, args []string) {
 // Helper function to parse date strings
 func parseDate(dateStr string) (time.Time, error) {
 	dateStr = strings.TrimSpace(strings.ToLower(dateStr))
-	
+
 	now := time.Now()
-	
+
 	// Handle natural language dates
 	switch dateStr {
 	case "today":
@@ -398,17 +407,17 @@ func parseDate(dateStr string) (time.Time, error) {
 		days := map[string]int{"next monday": 1, "next tuesday": 2, "next wednesday": 3, "next thursday": 4, "next friday": 5, "next saturday": 6, "next sunday": 7}
 		return now.AddDate(0, 0, days[dateStr]), nil
 	}
-	
+
 	// Try ISO date format
 	if parsed, err := time.Parse("2006-01-02", dateStr); err == nil {
 		return parsed, nil
 	}
-	
+
 	// Try MM/DD format
 	if parsed, err := time.Parse("01-02-2006", dateStr); err == nil {
 		return parsed, nil
 	}
-	
+
 	// Try other formats
 	formats := []string{
 		"2006/01/02",
@@ -416,12 +425,12 @@ func parseDate(dateStr string) (time.Time, error) {
 		"Jan 2, 2006",
 		"January 2, 2006",
 	}
-	
+
 	for _, format := range formats {
 		if parsed, err := time.Parse(format, dateStr); err == nil {
 			return parsed, nil
 		}
 	}
-	
+
 	return time.Time{}, fmt.Errorf("unable to parse date: %s", dateStr)
 }

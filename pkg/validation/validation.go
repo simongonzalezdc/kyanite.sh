@@ -111,7 +111,7 @@ func ValidateEmail(email string) error {
 	return nil
 }
 
-func ValidateUrl(raw string) error {
+func ValidateURL(raw string) error {
 	if strings.TrimSpace(raw) == "" {
 		return fmt.Errorf("url cannot be empty")
 	}
@@ -221,18 +221,27 @@ func ValidateTask(task map[string]interface{}) error {
 	if !ok {
 		return fmt.Errorf("missing description")
 	}
-	desc, _ := descVal.(string)
+	desc, ok := descVal.(string)
+	if !ok {
+		return fmt.Errorf("description must be a string")
+	}
 	if err := ValidateTaskDescription(desc); err != nil {
 		return err
 	}
 	if pr, ok := task["priority"].(string); ok && pr != "" {
-		if err := ValidateTaskPriority(pr); err != nil { return err }
+		if err := ValidateTaskPriority(pr); err != nil {
+			return err
+		}
 	}
 	if dl, ok := task["deadline"].(string); ok && dl != "" {
-		if err := ValidateTaskDeadline(dl); err != nil { return err }
+		if err := ValidateTaskDeadline(dl); err != nil {
+			return err
+		}
 	}
 	if cats, ok := task["categories"].([]string); ok {
-		if err := ValidateTaskCategories(cats); err != nil { return err }
+		if err := ValidateTaskCategories(cats); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -245,8 +254,13 @@ func containsSQLInjection(input string) bool {
 		`(?i)(['\"]\s*;\s*(drop|delete|union|select))`,
 	}
 	for _, pattern := range sqlPatterns {
-		matched, _ := regexp.MatchString(pattern, input)
-		if matched { return true }
+		matched, err := regexp.MatchString(pattern, input)
+		if err != nil {
+			continue // Skip invalid patterns
+		}
+		if matched {
+			return true
+		}
 	}
 	return false
 }
@@ -255,6 +269,8 @@ func SanitizeInput(input string) string {
 	sanitized := strings.ReplaceAll(input, "\x00", "")
 	sanitized = strings.ReplaceAll(sanitized, "\r\n", " ")
 	sanitized = strings.ReplaceAll(sanitized, "\n", " ")
-	if len(sanitized) > 1000 { sanitized = sanitized[:1000] }
+	if len(sanitized) > 1000 {
+		sanitized = sanitized[:1000]
+	}
 	return strings.TrimSpace(sanitized)
 }

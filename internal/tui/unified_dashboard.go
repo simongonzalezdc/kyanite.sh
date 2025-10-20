@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/store"
 	"github.com/kyanite/focus/internal/wizards"
@@ -11,10 +15,6 @@ import (
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/pkg/styles"
 	"github.com/kyanite/focus/pkg/utils"
-	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 type UnifiedAction int
@@ -236,11 +236,11 @@ func (m UnifiedDashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.config != nil && m.config.Theme != "" {
 			styles.SetThemeByName(m.config.Theme)
 		}
-		
+
 		// Cycle to next theme
 		styles.CycleTheme()
 		next := styles.GetTheme()
-		
+
 		m.applyThemeString(next.Name)
 		if m.config != nil {
 			m.config.Theme = next.Name

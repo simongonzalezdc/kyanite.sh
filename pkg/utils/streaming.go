@@ -2,10 +2,10 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
-	"os"
-	
+
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -15,20 +15,20 @@ func StreamText(text string, color lipgloss.Color, speed time.Duration) {
 	streamStyle := lipgloss.NewStyle().
 		Foreground(color).
 		Bold(true)
-	
+
 	// Stream character by character for words, or word by word for sentences
 	words := strings.Fields(text)
-	
+
 	for i, word := range words {
 		// Add spacing except for first word
 		if i > 0 {
 			fmt.Print(" ")
 		}
-		
+
 		// Stream each character of the word
 		for _, char := range word {
 			fmt.Print(streamStyle.Render(string(char)))
-			os.Stdout.Sync() // Force immediate output
+			_ = os.Stdout.Sync() // Force immediate output
 			time.Sleep(speed)
 		}
 	}
@@ -38,16 +38,16 @@ func StreamText(text string, color lipgloss.Color, speed time.Duration) {
 // StreamSentence displays text with clean streaming effect
 func StreamSentence(text string, baseColor lipgloss.Color, speed time.Duration) {
 	words := strings.Fields(text)
-	
+
 	for i, word := range words {
 		if i > 0 {
 			fmt.Print(" ")
 		}
-		
+
 		streamStyle := lipgloss.NewStyle().
 			Foreground(baseColor).
 			Bold(true)
-		
+
 		// Stream the word
 		for _, char := range word {
 			fmt.Print(streamStyle.Render(string(char)))
@@ -61,12 +61,12 @@ func StreamSentence(text string, baseColor lipgloss.Color, speed time.Duration) 
 // StreamWithTypingEffect simulates clean typing
 func StreamWithTypingEffect(text string, color lipgloss.Color) {
 	words := strings.Fields(text)
-	
+
 	for i, word := range words {
 		if i > 0 {
 			fmt.Print(" ")
 		}
-		
+
 		// Consistent typing speed
 		for _, char := range word {
 			fmt.Print(lipgloss.NewStyle().Foreground(color).Render(string(char)))
@@ -76,4 +76,3 @@ func StreamWithTypingEffect(text string, color lipgloss.Color) {
 	}
 	fmt.Println()
 }
-

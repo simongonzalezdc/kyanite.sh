@@ -2,33 +2,33 @@ package ai
 
 import (
 	"bufio"
+	"bytes"
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"os/exec"
-	"strings"
-	"time"
-	"bytes"
-	"crypto/md5"
-	"encoding/hex"
 	"path/filepath"
+	"strings"
 	"sync"
+	"time"
 )
 
 // Manager handles AI interactions with local and remote models
 type Manager struct {
-	ollamaURL    string
-	openRouterKey string
-	model        string
+	ollamaURL       string
+	openRouterKey   string
+	model           string
 	availableModels []string
-	
+
 	// Cache for AI responses
 	cache      map[string]cacheEntry
 	cacheMutex sync.RWMutex
 	cachePath  string
-	
+
 	// Model management
 	modelAvailable map[string]bool
 	modelMutex     sync.RWMutex
@@ -36,9 +36,9 @@ type Manager struct {
 
 // cacheEntry represents a cached AI response
 type cacheEntry struct {
-	Response    any `json:"response"`
-	Timestamp   time.Time   `json:"timestamp"`
-	ExpiresAt   time.Time   `json:"expires_at"`
+	Response  any       `json:"response"`
+	Timestamp time.Time `json:"timestamp"`
+	ExpiresAt time.Time `json:"expires_at"`
 }
 
 // ParsedTask represents the structured output from AI
@@ -54,14 +54,14 @@ func New() *Manager {
 	manager := &Manager{
 		ollamaURL:     "http://localhost:11434/api/generate",
 		openRouterKey: os.Getenv("OPENROUTER_API_KEY"),
-		model:         "qwen2.5:1.5b",  // Use Qwen 2.5 1.5B for everything
+		model:         "qwen2.5:1.5b", // Use Qwen 2.5 1.5B for everything
 		availableModels: []string{
-			"qwen2.5:1.5b",        // Primary - fast and efficient
+			"qwen2.5:1.5b", // Primary - fast and efficient
 		},
 		cache:          make(map[string]cacheEntry),
 		modelAvailable: make(map[string]bool),
 	}
-	
+
 	// Set cache path
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -69,10 +69,10 @@ func New() *Manager {
 	} else {
 		manager.cachePath = filepath.Join(home, ".focus", "ai_cache.json")
 	}
-	
+
 	// Load cache if it exists
 	manager.loadCache()
-	
+
 	return manager
 }
 
@@ -89,7 +89,7 @@ func (m *Manager) ParseTask(ctx context.Context, input string) (*ParsedTask, err
 		// (removeFromCache method will be added later with logging framework)
 		// For now, just continue with normal processing
 	}
-	
+
 	// Use only qwen2.5:1.5b model
 	m.model = "qwen2.5:1.5b"
 	if result, err := m.parseWithOllama(ctx, input); err == nil {
@@ -99,7 +99,7 @@ func (m *Manager) ParseTask(ctx context.Context, input string) (*ParsedTask, err
 			return validated, nil
 		}
 	}
-	
+
 	// Fallback to OpenRouter with user approval
 	if m.openRouterKey != "" {
 		if m.requestRemoteApproval("task parsing") {
@@ -112,7 +112,7 @@ func (m *Manager) ParseTask(ctx context.Context, input string) (*ParsedTask, err
 			}
 		}
 	}
-	
+
 	// If both fail, return basic parsing
 	basicResult := m.basicParse(input)
 	m.saveToCache(cacheKey, basicResult)
@@ -124,14 +124,14 @@ func (m *Manager) SuggestTasks(ctx context.Context, existingTasks []string) ([]s
 	// Create cache key from tasks
 	taskStr := strings.Join(existingTasks, "|")
 	cacheKey := m.generateCacheKey("suggest", taskStr)
-	
+
 	// Check cache first
 	if cached, found := m.getFromCache(cacheKey); found {
 		if suggestions, ok := cached.([]string); ok {
 			return suggestions, nil
 		}
 	}
-	
+
 	// Use only qwen2.5:1.5b model
 	m.model = "qwen2.5:1.5b"
 	if result, err := m.suggestWithOllama(ctx, existingTasks); err == nil {
@@ -139,7 +139,7 @@ func (m *Manager) SuggestTasks(ctx context.Context, existingTasks []string) ([]s
 		m.saveToCache(cacheKey, result)
 		return result, nil
 	}
-	
+
 	// Fallback to OpenRouter with user approval
 	if m.openRouterKey != "" {
 		if m.requestRemoteApproval("task suggestions") {
@@ -150,7 +150,7 @@ func (m *Manager) SuggestTasks(ctx context.Context, existingTasks []string) ([]s
 			}
 		}
 	}
-	
+
 	// If both fail, return empty suggestions
 	return []string{}, nil
 }
@@ -160,14 +160,14 @@ func (m *Manager) SummarizeTasks(ctx context.Context, tasks []string) (string, e
 	// Create cache key from tasks
 	taskStr := strings.Join(tasks, "|")
 	cacheKey := m.generateCacheKey("summary", taskStr)
-	
+
 	// Check cache first
 	if cached, found := m.getFromCache(cacheKey); found {
 		if summary, ok := cached.(string); ok {
 			return summary, nil
 		}
 	}
-	
+
 	// Use only qwen2.5:1.5b model
 	m.model = "qwen2.5:1.5b"
 	if result, err := m.summarizeWithOllama(ctx, tasks); err == nil {
@@ -175,7 +175,7 @@ func (m *Manager) SummarizeTasks(ctx context.Context, tasks []string) (string, e
 		m.saveToCache(cacheKey, result)
 		return result, nil
 	}
-	
+
 	// Fallback to OpenRouter with user approval
 	if m.openRouterKey != "" {
 		if m.requestRemoteApproval("task summary") {
@@ -186,7 +186,7 @@ func (m *Manager) SummarizeTasks(ctx context.Context, tasks []string) (string, e
 			}
 		}
 	}
-	
+
 	// If both fail, return basic summary
 	summary := m.basicSummary(tasks)
 	m.saveToCache(cacheKey, summary)
@@ -198,14 +198,14 @@ func (m *Manager) ChatAssistant(ctx context.Context, question string, tasks []st
 	// Create cache key from question and tasks
 	taskStr := strings.Join(tasks, "|")
 	cacheKey := m.generateCacheKey("chat", question+taskStr)
-	
+
 	// Check cache first
 	if cached, found := m.getFromCache(cacheKey); found {
 		if response, ok := cached.(string); ok {
 			return response, nil
 		}
 	}
-	
+
 	// Use only qwen2.5:1.5b model
 	m.model = "qwen2.5:1.5b"
 	if result, err := m.chatWithOllama(ctx, question, tasks); err == nil {
@@ -213,7 +213,7 @@ func (m *Manager) ChatAssistant(ctx context.Context, question string, tasks []st
 		m.saveToCache(cacheKey, result)
 		return result, nil
 	}
-	
+
 	// Fallback to OpenRouter with user approval
 	if m.openRouterKey != "" {
 		if m.requestRemoteApproval("chat assistant") {
@@ -224,12 +224,12 @@ func (m *Manager) ChatAssistant(ctx context.Context, question string, tasks []st
 			}
 		}
 	}
-	
+
 	// If both fail, return basic response with more context
 	if strings.Contains(strings.ToLower(question), "help") || strings.Contains(strings.ToLower(question), "hi") {
 		return "Hello! I'm your focus.sh AI assistant. I can help you with:\n• Task management and organization\n• Productivity tips\n• App usage guidance\n• Smart suggestions\n\nTry asking me about your tasks or how to use specific features!", nil
 	}
-	
+
 	if strings.Contains(strings.ToLower(question), "task") {
 		if len(tasks) > 0 {
 			return fmt.Sprintf("I see you have %d tasks. I can help you organize, prioritize, or complete them. Try using 'focus inspire' for suggestions or 'focus list' to see all your tasks!", len(tasks)), nil
@@ -237,7 +237,7 @@ func (m *Manager) ChatAssistant(ctx context.Context, question string, tasks []st
 			return "You don't have any tasks yet! Start by adding a mission with 'focus add \"your task here\"' and I can help you manage them.", nil
 		}
 	}
-	
+
 	return fmt.Sprintf("I'm having trouble connecting to AI services right now (Ollama not available). However, I can tell you that you have %d tasks. Try 'focus --help' to see available commands!", len(tasks)), nil
 }
 
@@ -246,13 +246,13 @@ func (m *Manager) requestRemoteApproval(feature string) bool {
 	fmt.Printf("\n⚠️  Remote AI required for %s\n", feature)
 	fmt.Printf("   This will use OpenRouter API (costs may apply)\n")
 	fmt.Print("   Continue? (y/N): ")
-	
+
 	reader := bufio.NewReader(os.Stdin)
 	response, err := reader.ReadString('\n')
 	if err != nil {
 		return false
 	}
-	
+
 	response = strings.TrimSpace(strings.ToLower(response))
 	return response == "y" || response == "yes"
 }
@@ -260,7 +260,7 @@ func (m *Manager) requestRemoteApproval(feature string) bool {
 // parseWithOllama uses local Ollama for task parsing
 func (m *Manager) parseWithOllama(ctx context.Context, input string) (*ParsedTask, error) {
 	prompt := m.buildParsePrompt(input)
-	
+
 	// Check if model is available
 	if !m.isModelAvailable(m.model) {
 		// Try to pull model automatically
@@ -268,45 +268,45 @@ func (m *Manager) parseWithOllama(ctx context.Context, input string) (*ParsedTas
 			return nil, fmt.Errorf("model %s not available and could not be pulled: %w", m.model, err)
 		}
 	}
-	
+
 	payload := map[string]any{
 		"model":  m.model,
 		"prompt": prompt,
 		"stream": false,
 		"format": "json",
 	}
-	
+
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, "POST", m.ollamaURL, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer func() { _ = resp.Body.Close() }()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("ollama request failed with status %d", resp.StatusCode)
 	}
-	
+
 	var result struct {
 		Response string `json:"response"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
-	
+
 	var parsedTask ParsedTask
 	if err := json.Unmarshal([]byte(result.Response), &parsedTask); err != nil {
 		// Try to extract JSON from the response if it's wrapped
@@ -315,7 +315,7 @@ func (m *Manager) parseWithOllama(ctx context.Context, input string) (*ParsedTas
 			return nil, err
 		}
 	}
-	
+
 	return &parsedTask, nil
 }
 
@@ -336,18 +336,18 @@ func (m *Manager) LaunchOllama() error {
 	if m.IsOllamaAvailable() {
 		return nil // Already running
 	}
-	
+
 	// Try to launch Ollama using common commands
 	commands := [][]string{
 		{"ollama", "serve"},
 		{"cmd", "/c", "start", "ollama"},
 		{"powershell", "-Command", "Start-Process", "ollama"},
 	}
-	
+
 	for _, cmdArgs := range commands {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		
+
 		if err := m.runCommand(ctx, cmdArgs...); err == nil {
 			// Give Ollama a moment to start
 			time.Sleep(2 * time.Second)
@@ -356,7 +356,7 @@ func (m *Manager) LaunchOllama() error {
 			}
 		}
 	}
-	
+
 	return fmt.Errorf("failed to launch Ollama")
 }
 
@@ -365,7 +365,7 @@ func (m *Manager) runCommand(ctx context.Context, cmdArgs ...string) error {
 	if len(cmdArgs) == 0 {
 		return fmt.Errorf("no command provided")
 	}
-	
+
 	cmd := exec.CommandContext(ctx, cmdArgs[0], cmdArgs[1:]...)
 	return cmd.Start()
 }
@@ -378,7 +378,7 @@ func (m *Manager) isModelAvailable(modelName string) bool {
 		return available
 	}
 	m.modelMutex.RUnlock()
-	
+
 	// Check Ollama API
 	url := "http://localhost:11434/api/tags"
 	resp, err := http.Get(url)
@@ -389,27 +389,27 @@ func (m *Manager) isModelAvailable(modelName string) bool {
 		return false
 	}
 	defer func() { _ = resp.Body.Close() }()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		m.modelMutex.Lock()
 		m.modelAvailable[modelName] = false
 		m.modelMutex.Unlock()
 		return false
 	}
-	
+
 	var tags struct {
 		Models []struct {
 			Name string `json:"name"`
 		} `json:"models"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&tags); err != nil {
 		m.modelMutex.Lock()
 		m.modelAvailable[modelName] = false
 		m.modelMutex.Unlock()
 		return false
 	}
-	
+
 	for _, model := range tags.Models {
 		if strings.Contains(model.Name, modelName) {
 			m.modelMutex.Lock()
@@ -418,7 +418,7 @@ func (m *Manager) isModelAvailable(modelName string) bool {
 			return true
 		}
 	}
-	
+
 	m.modelMutex.Lock()
 	m.modelAvailable[modelName] = false
 	m.modelMutex.Unlock()
@@ -428,89 +428,89 @@ func (m *Manager) isModelAvailable(modelName string) bool {
 // pullModel automatically pulls a model through Ollama
 func (m *Manager) pullModel(modelName string) error {
 	fmt.Printf("🤖 Pulling model %s automatically...\n", modelName)
-	
+
 	url := "http://localhost:11434/api/pull"
 	payload := map[string]any{
 		"name": modelName,
 	}
-	
+
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
-	
+
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	client := &http.Client{Timeout: 5 * time.Minute}
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = resp.Body.Close() }()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("ollama pull failed with status %d", resp.StatusCode)
 	}
-	
+
 	// Mark model as available
 	m.modelMutex.Lock()
 	m.modelAvailable[modelName] = true
 	m.modelMutex.Unlock()
-	
+
 	return nil
 }
 
 // suggestWithOllama uses local Ollama for task suggestions
 func (m *Manager) suggestWithOllama(ctx context.Context, existingTasks []string) ([]string, error) {
 	prompt := m.buildSuggestPrompt(existingTasks)
-	
+
 	payload := map[string]any{
 		"model":  m.model,
 		"prompt": prompt,
 		"stream": false,
 		"format": "json",
 	}
-	
+
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, "POST", m.ollamaURL, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer func() { _ = resp.Body.Close() }()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("ollama request failed with status %d", resp.StatusCode)
 	}
-	
+
 	var result struct {
 		Response string `json:"response"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
-	
+
 	var suggestions struct {
 		Tasks []string `json:"tasks"`
 	}
-	
+
 	if err := json.Unmarshal([]byte(result.Response), &suggestions); err != nil {
 		// Try to extract JSON from the response if it's wrapped
 		content := m.extractJSON(result.Response)
@@ -518,79 +518,79 @@ func (m *Manager) suggestWithOllama(ctx context.Context, existingTasks []string)
 			return nil, err
 		}
 	}
-	
+
 	// Filter out low quality suggestions
 	filtered := m.filterLowQualitySuggestions(suggestions.Tasks)
-	
+
 	return filtered, nil
 }
 
 // chatWithOllama uses local Ollama for chat assistance
 func (m *Manager) chatWithOllama(ctx context.Context, question string, tasks []string) (string, error) {
 	prompt := m.buildChatPrompt(question, tasks)
-	
+
 	payload := map[string]any{
 		"model":  m.model,
 		"prompt": prompt,
 		"stream": false,
 	}
-	
+
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return "", err
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, "POST", m.ollamaURL, bytes.NewBuffer(body))
 	if err != nil {
 		return "", err
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
 	defer func() { _ = resp.Body.Close() }()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("ollama request failed with status %d", resp.StatusCode)
 	}
-	
+
 	var result struct {
 		Response string `json:"response"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return "", err
 	}
-	
+
 	return strings.TrimSpace(result.Response), nil
 }
 
 // summarizeWithOllama uses local Ollama for task summary
 func (m *Manager) summarizeWithOllama(ctx context.Context, tasks []string) (string, error) {
 	prompt := m.buildSummaryPrompt(tasks)
-	
+
 	payload := map[string]any{
 		"model":  m.model,
 		"prompt": prompt,
 		"stream": false,
 	}
-	
+
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return "", err
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, "POST", m.ollamaURL, bytes.NewBuffer(body))
 	if err != nil {
 		return "", err
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	// Performance optimization - reuse HTTP client with connection pooling
 	client := &http.Client{
 		Timeout: 30 * time.Second,
@@ -600,69 +600,69 @@ func (m *Manager) summarizeWithOllama(ctx context.Context, tasks []string) (stri
 			MaxIdleConnsPerHost: 2,
 		},
 	}
-	
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
 	defer func() { _ = resp.Body.Close() }()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("ollama request failed with status %d", resp.StatusCode)
 	}
-	
+
 	var result struct {
 		Response string `json:"response"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return "", err
 	}
-	
+
 	return result.Response, nil
 }
 
 // parseWithOpenRouter uses OpenRouter as fallback
 func (m *Manager) parseWithOpenRouter(ctx context.Context, input string) (*ParsedTask, error) {
 	prompt := m.buildParsePrompt(input)
-	
+
 	messages := []map[string]string{
 		{
 			"role":    "user",
 			"content": prompt,
 		},
 	}
-	
+
 	payload := map[string]any{
 		"model":    "openai/gpt-3.5-turbo",
 		"messages": messages,
 	}
-	
+
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, "POST", "https://openrouter.ai/api/v1/chat/completions", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
-	
+
 	req.Header.Set("Authorization", "Bearer "+m.openRouterKey)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
-	
+
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer func() { _ = resp.Body.Close() }()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("openrouter request failed with status %d", resp.StatusCode)
 	}
-	
+
 	var result struct {
 		Choices []struct {
 			Message struct {
@@ -670,18 +670,18 @@ func (m *Manager) parseWithOpenRouter(ctx context.Context, input string) (*Parse
 			} `json:"message"`
 		} `json:"choices"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
-	
+
 	if len(result.Choices) == 0 {
 		return nil, fmt.Errorf("no response from openrouter")
 	}
-	
+
 	// Extract JSON from the response
 	content := result.Choices[0].Message.Content
-	
+
 	// Handle markdown code blocks if present
 	if len(content) > 6 && content[:3] == "```" {
 		lines := strings.Split(content, "\n")
@@ -689,56 +689,56 @@ func (m *Manager) parseWithOpenRouter(ctx context.Context, input string) (*Parse
 			content = strings.Join(lines[1:len(lines)-1], "\n")
 		}
 	}
-	
+
 	var parsedTask ParsedTask
 	if err := json.Unmarshal([]byte(content), &parsedTask); err != nil {
 		return nil, err
 	}
-	
+
 	return &parsedTask, nil
 }
 
 // suggestWithOpenRouter uses OpenRouter for task suggestions
 func (m *Manager) suggestWithOpenRouter(ctx context.Context, existingTasks []string) ([]string, error) {
 	prompt := m.buildSuggestPrompt(existingTasks)
-	
+
 	messages := []map[string]string{
 		{
 			"role":    "user",
 			"content": prompt,
 		},
 	}
-	
+
 	payload := map[string]any{
 		"model":    "openai/gpt-3.5-turbo",
 		"messages": messages,
 	}
-	
+
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, "POST", "https://openrouter.ai/api/v1/chat/completions", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
-	
+
 	req.Header.Set("Authorization", "Bearer "+m.openRouterKey)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
-	
+
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer func() { _ = resp.Body.Close() }()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("openrouter request failed with status %d", resp.StatusCode)
 	}
-	
+
 	var result struct {
 		Choices []struct {
 			Message struct {
@@ -746,18 +746,18 @@ func (m *Manager) suggestWithOpenRouter(ctx context.Context, existingTasks []str
 			} `json:"message"`
 		} `json:"choices"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
-	
+
 	if len(result.Choices) == 0 {
 		return nil, fmt.Errorf("no response from openrouter")
 	}
-	
+
 	// Extract JSON from the response
 	content := result.Choices[0].Message.Content
-	
+
 	// Handle markdown code blocks if present
 	if len(content) > 6 && content[:3] == "```" {
 		lines := strings.Split(content, "\n")
@@ -765,62 +765,62 @@ func (m *Manager) suggestWithOpenRouter(ctx context.Context, existingTasks []str
 			content = strings.Join(lines[1:len(lines)-1], "\n")
 		}
 	}
-	
+
 	var suggestions struct {
 		Tasks []string `json:"tasks"`
 	}
-	
+
 	if err := json.Unmarshal([]byte(content), &suggestions); err != nil {
 		return nil, err
 	}
-	
+
 	// Filter out low quality suggestions
 	filtered := m.filterLowQualitySuggestions(suggestions.Tasks)
-	
+
 	return filtered, nil
 }
 
 // chatWithOpenRouter uses OpenRouter for chat assistance
 func (m *Manager) chatWithOpenRouter(ctx context.Context, question string, tasks []string) (string, error) {
 	prompt := m.buildChatPrompt(question, tasks)
-	
+
 	messages := []map[string]string{
 		{
 			"role":    "user",
 			"content": prompt,
 		},
 	}
-	
+
 	payload := map[string]any{
 		"model":    "openai/gpt-3.5-turbo",
 		"messages": messages,
 	}
-	
+
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return "", err
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, "POST", "https://openrouter.ai/api/v1/chat/completions", bytes.NewBuffer(body))
 	if err != nil {
 		return "", err
 	}
-	
+
 	req.Header.Set("Authorization", "Bearer "+m.openRouterKey)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
-	
+
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
 	defer func() { _ = resp.Body.Close() }()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("openrouter request failed with status %d", resp.StatusCode)
 	}
-	
+
 	var result struct {
 		Choices []struct {
 			Message struct {
@@ -828,48 +828,48 @@ func (m *Manager) chatWithOpenRouter(ctx context.Context, question string, tasks
 			} `json:"message"`
 		} `json:"choices"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return "", err
 	}
-	
+
 	if len(result.Choices) == 0 {
 		return "", fmt.Errorf("no response from openrouter")
 	}
-	
+
 	return strings.TrimSpace(result.Choices[0].Message.Content), nil
 }
 
 // summarizeWithOpenRouter uses OpenRouter for task summary
 func (m *Manager) summarizeWithOpenRouter(ctx context.Context, tasks []string) (string, error) {
 	prompt := m.buildSummaryPrompt(tasks)
-	
+
 	messages := []map[string]string{
 		{
 			"role":    "user",
 			"content": prompt,
 		},
 	}
-	
+
 	payload := map[string]any{
 		"model":    "openai/gpt-3.5-turbo",
 		"messages": messages,
 	}
-	
+
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return "", err
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, "POST", "https://openrouter.ai/api/v1/chat/completions", bytes.NewBuffer(body))
 	if err != nil {
 		return "", err
 	}
-	
+
 	req.Header.Set("Authorization", "Bearer "+m.openRouterKey)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
-	
+
 	// Performance optimization - reuse HTTP client with connection pooling
 	client := &http.Client{
 		Timeout: 30 * time.Second,
@@ -879,17 +879,17 @@ func (m *Manager) summarizeWithOpenRouter(ctx context.Context, tasks []string) (
 			MaxIdleConnsPerHost: 2,
 		},
 	}
-	
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
 	defer func() { _ = resp.Body.Close() }()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("openrouter request failed with status %d", resp.StatusCode)
 	}
-	
+
 	var result struct {
 		Choices []struct {
 			Message struct {
@@ -897,15 +897,15 @@ func (m *Manager) summarizeWithOpenRouter(ctx context.Context, tasks []string) (
 			} `json:"message"`
 		} `json:"choices"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return "", err
 	}
-	
+
 	if len(result.Choices) == 0 {
 		return "", fmt.Errorf("no response from openrouter")
 	}
-	
+
 	return result.Choices[0].Message.Content, nil
 }
 
@@ -939,7 +939,7 @@ func (m *Manager) buildSuggestPrompt(existingTasks []string) string {
 	if len(existingTasks) > 0 {
 		tasksStr = fmt.Sprintf("[\"%s\"]", strings.Join(existingTasks, "\", \""))
 	}
-	
+
 	return fmt.Sprintf(`You are a task suggestion assistant for focus.sh. Generate 3-5 relevant follow-up tasks.
 	
 Guidelines:
@@ -968,7 +968,7 @@ func (m *Manager) buildSummaryPrompt(tasks []string) string {
 	if len(tasks) > 0 {
 		tasksStr = fmt.Sprintf("[\"%s\"]", strings.Join(tasks, "\", \""))
 	}
-	
+
 	return fmt.Sprintf(`You are a productivity analyst for focus.sh. Provide a concise task summary.
 	
 Required Analysis:
@@ -990,7 +990,7 @@ func (m *Manager) buildChatPrompt(question string, tasks []string) string {
 	if len(tasks) > 0 {
 		tasksStr = fmt.Sprintf("[\"%s\"]", strings.Join(tasks, "\", \""))
 	}
-	
+
 	return fmt.Sprintf(`You are Focus, a helpful AI assistant for task management and productivity. You have three main roles:
 
 1. 📋 TASK HELPER - Help with task management, planning, and productivity
@@ -1044,35 +1044,35 @@ func (m *Manager) validateResponse(task *ParsedTask) (*ParsedTask, bool) {
 	if task == nil {
 		return nil, false
 	}
-	
+
 	// Check description is not empty
 	if task.Description == "" {
 		return nil, false
 	}
-	
+
 	// Check description is reasonable (not too short or too long)
 	if len(task.Description) < 2 || len(task.Description) > 200 {
 		return nil, false
 	}
-	
+
 	// Enhanced description quality check
 	if m.isLowQualityDescription(task.Description) {
 		return nil, false
 	}
-	
+
 	// Check priority is valid
 	validPriorities := map[string]bool{
 		"low":    true,
 		"medium": true,
 		"high":   true,
 	}
-	
+
 	if task.Priority == "" {
 		task.Priority = "medium" // Default priority
 	} else if !validPriorities[task.Priority] {
 		task.Priority = "medium" // Normalize invalid priority
 	}
-	
+
 	// Basic category validation
 	validCategories := []string{}
 	for _, category := range task.Categories {
@@ -1081,7 +1081,7 @@ func (m *Manager) validateResponse(task *ParsedTask) (*ParsedTask, bool) {
 		}
 	}
 	task.Categories = validCategories
-	
+
 	// Validate deadline if present
 	if !task.Deadline.IsZero() {
 		now := time.Now()
@@ -1094,7 +1094,7 @@ func (m *Manager) validateResponse(task *ParsedTask) (*ParsedTask, bool) {
 			task.Deadline = time.Time{} // Clear unreasonable deadline
 		}
 	}
-	
+
 	return task, true
 }
 
@@ -1104,7 +1104,7 @@ func (m *Manager) isLowQualityDescription(description string) bool {
 	if strings.Contains(description, "aaaa") || strings.Contains(description, "bbbb") {
 		return true
 	}
-	
+
 	// Check for placeholder text
 	lowerDesc := strings.ToLower(description)
 	placeholderIndicators := []string{"task description", "placeholder", "example task"}
@@ -1113,13 +1113,13 @@ func (m *Manager) isLowQualityDescription(description string) bool {
 			return true
 		}
 	}
-	
+
 	// Check for meaningless text (all same words, etc.)
 	words := strings.Fields(description)
 	if len(words) == 0 {
 		return true
 	}
-	
+
 	// If all words are the same (likely hallucination)
 	firstWord := strings.ToLower(words[0])
 	allSame := true
@@ -1132,7 +1132,7 @@ func (m *Manager) isLowQualityDescription(description string) bool {
 	if allSame && len(words) > 3 {
 		return true
 	}
-	
+
 	return false
 }
 
@@ -1144,17 +1144,17 @@ func (m *Manager) filterLowQualitySuggestions(suggestions []string) []string {
 		if suggestion == "" {
 			continue
 		}
-		
+
 		// Skip very short suggestions
 		if len(suggestion) < 5 {
 			continue
 		}
-		
+
 		// Skip very long suggestions
 		if len(suggestion) > 100 {
 			continue
 		}
-		
+
 		// Skip suggestions with placeholder text
 		lowerSuggestion := strings.ToLower(suggestion)
 		placeholderIndicators := []string{"example", "placeholder", "suggested task"}
@@ -1165,17 +1165,17 @@ func (m *Manager) filterLowQualitySuggestions(suggestions []string) []string {
 				break
 			}
 		}
-		
+
 		if !isPlaceholder {
 			filtered = append(filtered, suggestion)
 		}
 	}
-	
+
 	// Return at least empty slice if all suggestions were filtered out
 	if len(filtered) == 0 {
 		return []string{}
 	}
-	
+
 	return filtered
 }
 
@@ -1186,7 +1186,7 @@ func (m *Manager) basicParse(input string) *ParsedTask {
 	if len(words) > 10 {
 		input = strings.Join(words[:10], " ") + "..."
 	}
-	
+
 	return &ParsedTask{
 		Description: input,
 		Priority:    "medium",
@@ -1197,7 +1197,7 @@ func (m *Manager) basicParse(input string) *ParsedTask {
 func (m *Manager) basicSummary(tasks []string) string {
 	completed := 0
 	pending := 0
-	
+
 	for _, task := range tasks {
 		if strings.Contains(task, "completed") {
 			completed++
@@ -1205,8 +1205,8 @@ func (m *Manager) basicSummary(tasks []string) string {
 			pending++
 		}
 	}
-	
-	return fmt.Sprintf("You have %d tasks (%d completed, %d pending). Keep up the good work!", 
+
+	return fmt.Sprintf("You have %d tasks (%d completed, %d pending). Keep up the good work!",
 		len(tasks), completed, pending)
 }
 
@@ -1215,11 +1215,11 @@ func (m *Manager) extractJSON(response string) string {
 	// Look for JSON-like content in the response
 	start := strings.Index(response, "{")
 	end := strings.LastIndex(response, "}")
-	
+
 	if start != -1 && end != -1 && end > start {
 		return response[start : end+1]
 	}
-	
+
 	return response
 }
 
@@ -1234,17 +1234,17 @@ func (m *Manager) generateCacheKey(operation, input string) string {
 func (m *Manager) getFromCache(key string) (interface{}, bool) {
 	m.cacheMutex.RLock()
 	defer m.cacheMutex.RUnlock()
-	
+
 	entry, exists := m.cache[key]
 	if !exists {
 		return nil, false
 	}
-	
+
 	// Check if entry is expired
 	if time.Now().After(entry.ExpiresAt) {
 		return nil, false
 	}
-	
+
 	return entry.Response, true
 }
 
@@ -1252,14 +1252,14 @@ func (m *Manager) getFromCache(key string) (interface{}, bool) {
 func (m *Manager) saveToCache(key string, response interface{}) {
 	m.cacheMutex.Lock()
 	defer m.cacheMutex.Unlock()
-	
+
 	now := time.Now()
 	m.cache[key] = cacheEntry{
 		Response:  response,
 		Timestamp: now,
 		ExpiresAt: now.Add(24 * time.Hour), // Cache for 24 hours
 	}
-	
+
 	// Save cache to file
 	m.saveCache()
 }
@@ -1268,17 +1268,17 @@ func (m *Manager) saveToCache(key string, response interface{}) {
 func (m *Manager) loadCache() {
 	m.cacheMutex.Lock()
 	defer m.cacheMutex.Unlock()
-	
+
 	data, err := os.ReadFile(m.cachePath)
 	if err != nil {
 		return
 	}
-	
+
 	var cache map[string]cacheEntry
 	if err := json.Unmarshal(data, &cache); err != nil {
 		return
 	}
-	
+
 	// Filter out expired entries
 	now := time.Now()
 	for key, entry := range cache {
@@ -1286,7 +1286,7 @@ func (m *Manager) loadCache() {
 			delete(cache, key)
 		}
 	}
-	
+
 	m.cache = cache
 }
 
@@ -1297,11 +1297,11 @@ func (m *Manager) saveCache() {
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return
 	}
-	
+
 	data, err := json.Marshal(m.cache)
 	if err != nil {
 		return
 	}
-	
+
 	os.WriteFile(m.cachePath, data, 0644)
 }

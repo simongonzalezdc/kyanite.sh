@@ -7,10 +7,10 @@ import (
 
 func TestTask_Validation(t *testing.T) {
 	now := time.Now()
-	
+
 	tests := []struct {
-		name string
-		task Task
+		name      string
+		task      Task
 		wantValid bool
 	}{
 		{
@@ -89,10 +89,10 @@ func TestTask_Validation(t *testing.T) {
 
 func TestParsedTask_Validation(t *testing.T) {
 	now := time.Now()
-	
+
 	tests := []struct {
-		name string
-		task ParsedTask
+		name      string
+		task      ParsedTask
 		wantValid bool
 	}{
 		{

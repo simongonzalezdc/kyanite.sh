@@ -82,11 +82,11 @@ func NewJournalEntry(date, title, content, mood, template string, tags []string)
 		IsPrivate:    false,
 		TemplateUsed: template,
 	}
-	
+
 	if entry.Date == "" {
 		entry.Date = now.Format("2006-01-02")
 	}
-	
+
 	return entry
 }
 

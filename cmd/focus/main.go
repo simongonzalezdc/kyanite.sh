@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
@@ -11,12 +12,11 @@ import (
 	"runtime"
 	"strings"
 	"time"
-	"math/rand"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/kyanite/focus/pkg/styles"
-	"github.com/kyanite/focus/internal/tui"
 	"github.com/kyanite/focus/internal/cli"
+	"github.com/kyanite/focus/internal/tui"
+	"github.com/kyanite/focus/pkg/styles"
 )
 
 func main() {
@@ -118,7 +118,7 @@ func runTUIDirectly() error {
 			Notes:       "Professional and helpful AI assistant",
 		},
 	}
-	
+
 	fmt.Printf("📋 Loaded %d tasks into focus.sh system...\n", len(tasks))
 
 	// Launch the TUI
@@ -127,7 +127,7 @@ func runTUIDirectly() error {
 	fmt.Println("   ✨ Kyanite theme system activating...")
 	fmt.Println("   ⚡ System ready...")
 	fmt.Println()
-	
+
 	// Launch actual TUI dashboard
 	return tui.StartMainDashboard(tasks)
 }
@@ -140,7 +140,7 @@ func setupOllama() error {
 			return fmt.Errorf("could not install ollama: %w", err)
 		}
 	}
-	
+
 	// Check if ollama is running
 	if !isOllamaRunning() {
 		fmt.Println("🚀 Starting Ollama service...")
@@ -151,7 +151,7 @@ func setupOllama() error {
 			fmt.Println("✅ Ollama started successfully!")
 		}
 	}
-	
+
 	// Ensure required model is available
 	if !isModelAvailable("qwen2.5:1.5b") {
 		fmt.Println("📥 Downloading qwen2.5:1.5b model (this may take a moment)...")
@@ -163,24 +163,25 @@ func setupOllama() error {
 	} else {
 		fmt.Println("✅ AI model already available")
 	}
-	
+
 	return nil
 }
 
 func installOllama() error {
 	fmt.Println("💡 Installing Ollama automatically...")
-	
+
 	// Detect OS and install accordingly
-	if runtime.GOOS == "windows" {
+	switch runtime.GOOS {
+	case "windows":
 		// Download Windows installer
 		return downloadFile("https://ollama.com/download/OllamaSetup.exe", "OllamaSetup.exe", func() error {
 			cmd := exec.Command("OllamaSetup.exe", "/S")
 			return cmd.Run()
 		})
-	} else if runtime.GOOS == "darwin" {
+	case "darwin":
 		// Use Homebrew or download macOS installer
 		return exec.Command("brew", "install", "ollama").Run()
-	} else {
+	default:
 		// Linux download
 		return downloadFile("https://ollama.com/download/ollama-linux-amd64.tgz", "ollama.tgz", func() error {
 			return exec.Command("tar", "xzf", "ollama.tgz").Run()
@@ -208,17 +209,17 @@ func isModelAvailable(model string) bool {
 		return false
 	}
 	defer resp.Body.Close()
-	
+
 	var tags struct {
 		Models []struct {
 			Name string `json:"name"`
 		} `json:"models"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&tags); err != nil {
 		return false
 	}
-	
+
 	for _, m := range tags.Models {
 		if strings.Contains(m.Name, model) {
 			return true
@@ -236,41 +237,42 @@ func pullModel(model string) error {
 
 func downloadFile(url, filename string, postInstall func() error) error {
 	fmt.Printf("📥 Downloading from %s...\n", url)
-	
+
 	// Use curl or http client for download
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-	
+
 	out, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
 	defer out.Close()
-	
+
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
 		return err
 	}
-	
+
 	// Run post-install step
 	if postInstall != nil {
 		return postInstall()
 	}
-	
+
 	return nil
 }
 
+// showEpicIntro shows an epic intro (currently unused - may be used in future for branding)
 func showEpicIntro() {
 	// Clear screen and start the show
 	fmt.Print("\033[2J\033[H")
-	
+
 	introFrames := []struct {
-		art     string
-		color   lipgloss.Color
-		delay   time.Duration
+		art   string
+		color lipgloss.Color
+		delay time.Duration
 	}{
 		{
 			`
@@ -318,7 +320,7 @@ func showEpicIntro() {
 	for _, frame := range introFrames {
 		// Clear screen
 		fmt.Print("\033[2J\033[H")
-		
+
 		// Render frame with epic styling
 		styled := lipgloss.NewStyle().
 			Foreground(frame.color).
@@ -326,7 +328,7 @@ func showEpicIntro() {
 			Bold(true).
 			AlignHorizontal(lipgloss.Center).
 			Render(frame.art)
-		
+
 		fmt.Println(styled)
 		time.Sleep(frame.delay)
 	}
@@ -341,44 +343,43 @@ func showEpicIntro() {
 		"◆◈⚡◊ ◆◈◊⚡ ◈⚡◆◊ ◈◆⚡◊",
 		"◈◊⚡◆ ◊◈⚡◆ ◊⚡◆◈ ⚡◈◊◆",
 	}
-	
+
 	for range 10 {
 		fmt.Print("\033[2J\033[H")
-		
+
 		glitchText := glitchSymbols[rand.Intn(len(glitchSymbols))]
 		glitchStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color(fmt.Sprintf("#%02X%02X%02X", 
+			Foreground(lipgloss.Color(fmt.Sprintf("#%02X%02X%02X",
 				rand.Intn(255), rand.Intn(255), rand.Intn(255)))).
 			Background(styles.DeepSpace).
 			Bold(true).
 			AlignHorizontal(lipgloss.Center).
 			Render(glitchText)
-		
+
 		fmt.Println(glitchStyle)
 		time.Sleep(time.Millisecond * 100)
 	}
 
 	// Clear and show ready state
 	fmt.Print("\033[2J\033[H")
-	
+
 	readyText := styles.SynthwaveTitle("🚀 FOCUS.SH SYSTEMS READY")
 	fmt.Println(readyText)
 	fmt.Println()
-	
+
 	readyMsg := styles.HolographicText("AI-powered task management with maximum visual impact achieved.")
 	fmt.Println(readyMsg)
 	fmt.Println()
-	
+
 	controlHint := lipgloss.NewStyle().
 		Foreground(styles.SynthwaveCyan).
 		Background(styles.DarkVoid).
 		Italic(true).
 		Render("💫 Type 'focus --help' to begin your productivity mission")
 	fmt.Println(controlHint)
-	
+
 	time.Sleep(time.Second * 2)
-	
+
 	// Clear for main interface
 	fmt.Print("\033[2J\033[H")
 }
-

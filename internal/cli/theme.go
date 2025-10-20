@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 	"strings"
-	
+
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/internal/theme"
 	"github.com/kyanite/focus/pkg/config"
@@ -29,7 +29,7 @@ Available Kyanite Themes:
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		themeName := strings.ToLower(args[0])
-		
+
 		// Validate theme exists
 		availableThemes := theme.ListThemes()
 		validTheme := false
@@ -39,24 +39,27 @@ Available Kyanite Themes:
 				break
 			}
 		}
-		
+
 		if !validTheme {
 			fmt.Printf("❌ Unknown theme: %s\n", themeName)
 			fmt.Printf("Available themes: %v\n", availableThemes)
 			return
 		}
-		
+
 		// Set theme globally
 		theme.GetManager().SetTheme(themeName)
-		
+
 		// Refresh styles to use new theme colors
 		styles.RefreshColors()
-		
+
 		// Update config
-		cfg, _ := config.LoadConfig()
+		cfg, err := config.LoadConfig()
+		if err != nil {
+			cfg = &config.Config{}
+		}
 		cfg.Theme = themeName
-		config.SaveConfig(cfg)
-		
+		_ = config.SaveConfig(cfg) // Ignore error for UI command
+
 		fmt.Printf("✨ Theme changed to: %s\n", lipgloss.NewStyle().
 			Foreground(lipgloss.Color(theme.GetManager().Current().Primary)).
 			Bold(true).

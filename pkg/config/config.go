@@ -9,28 +9,28 @@ import (
 
 // Config represents the application configuration
 type Config struct {
-	AI        AIConfig   `yaml:"ai" mapstructure:"ai"`
-	Theme     string     `yaml:"theme" mapstructure:"theme"`
-	Dashboard Dashboard  `yaml:"dashboard" mapstructure:"dashboard"`
-	Notes     Notes      `yaml:"notes" mapstructure:"notes"`
-	UI        UI         `yaml:"ui" mapstructure:"ui"`
+	AI        AIConfig  `yaml:"ai" mapstructure:"ai"`
+	Theme     string    `yaml:"theme" mapstructure:"theme"`
+	Dashboard Dashboard `yaml:"dashboard" mapstructure:"dashboard"`
+	Notes     Notes     `yaml:"notes" mapstructure:"notes"`
+	UI        UI        `yaml:"ui" mapstructure:"ui"`
 }
 
 // AIConfig contains AI-related settings
 type AIConfig struct {
-	Provider     string  `yaml:"provider" mapstructure:"provider"`
-	Model        string  `yaml:"model" mapstructure:"model"`
-	Temperature  float64 `yaml:"temperature" mapstructure:"temperature"`
-	MaxTokens    int     `yaml:"max_tokens" mapstructure:"max_tokens"`
-	Timeout      int     `yaml:"timeout" mapstructure:"timeout"` // in seconds
+	Provider    string  `yaml:"provider" mapstructure:"provider"`
+	Model       string  `yaml:"model" mapstructure:"model"`
+	Temperature float64 `yaml:"temperature" mapstructure:"temperature"`
+	MaxTokens   int     `yaml:"max_tokens" mapstructure:"max_tokens"`
+	Timeout     int     `yaml:"timeout" mapstructure:"timeout"` // in seconds
 }
 
 // Dashboard contains dashboard-specific settings
 type Dashboard struct {
-	AutoRefresh    bool `yaml:"auto_refresh" mapstructure:"auto_refresh"`
+	AutoRefresh     bool `yaml:"auto_refresh" mapstructure:"auto_refresh"`
 	RefreshInterval int  `yaml:"refresh_interval" mapstructure:"refresh_interval"` // in seconds
-	ShowAnimation  bool `yaml:"show_animation" mapstructure:"show_animation"`
-	CompactMode    bool `yaml:"compact_mode" mapstructure:"compact_mode"`
+	ShowAnimation   bool `yaml:"show_animation" mapstructure:"show_animation"`
+	CompactMode     bool `yaml:"compact_mode" mapstructure:"compact_mode"`
 }
 
 // Notes contains notes-related settings
@@ -43,11 +43,11 @@ type Notes struct {
 
 // UI contains user interface settings
 type UI struct {
-	TimeFormat      string `yaml:"time_format" mapstructure:"time_format"`       // 12h or 24h
-	DateFormat     string `yaml:"date_format" mapstructure:"date_format"`
-	ShowHelpTips   bool   `yaml:"show_help_tips" mapstructure:"show_help_tips"`
-	Notifications  bool   `yaml:"notifications" mapstructure:"notifications"`
-	SoundEffects   bool   `yaml:"sound_effects" mapstructure:"sound_effects"`
+	TimeFormat    string `yaml:"time_format" mapstructure:"time_format"` // 12h or 24h
+	DateFormat    string `yaml:"date_format" mapstructure:"date_format"`
+	ShowHelpTips  bool   `yaml:"show_help_tips" mapstructure:"show_help_tips"`
+	Notifications bool   `yaml:"notifications" mapstructure:"notifications"`
+	SoundEffects  bool   `yaml:"sound_effects" mapstructure:"sound_effects"`
 }
 
 var globalConfig *Config
@@ -68,7 +68,7 @@ func LoadConfig() (*Config, error) {
 	if err == nil {
 		viper.AddConfigPath(filepath.Join(homeDir, ".focus"))
 	}
-	
+
 	// Fallback to current directory
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("./config")
@@ -84,7 +84,10 @@ func LoadConfig() (*Config, error) {
 				return nil, err
 			}
 			// Point viper to the created file and read again
-			homeDir2, _ := os.UserHomeDir()
+			homeDir2, err := os.UserHomeDir()
+			if err != nil {
+				homeDir2 = "."
+			}
 			cfgPath := filepath.Join(homeDir2, ".focus", "config.yaml")
 			viper.SetConfigFile(cfgPath)
 			if err := viper.ReadInConfig(); err != nil {
@@ -145,7 +148,7 @@ func SaveConfig(config *Config) error {
 // GetConfig returns the global configuration
 func GetConfig() *Config {
 	if !configLoaded {
-		LoadConfig()
+		_, _ = LoadConfig() // Ignore error for global config retrieval
 	}
 	return globalConfig
 }
@@ -153,7 +156,7 @@ func GetConfig() *Config {
 // UpdateConfig updates specific configuration values
 func UpdateConfig(updates map[string]any) error {
 	config := GetConfig()
-	
+
 	// Apply updates
 	for key, value := range updates {
 		viper.Set(key, value)
@@ -218,7 +221,10 @@ func createDefaultConfig() error {
 
 // GetConfigPath returns the path to the config file
 func GetConfigPath() string {
-	homeDir, _ := os.UserHomeDir()
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		homeDir = "."
+	}
 	return filepath.Join(homeDir, ".focus", "config.yaml")
 }
 

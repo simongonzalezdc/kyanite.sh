@@ -15,7 +15,7 @@ var dashboardCmd = &cobra.Command{
 		// Launch the full-featured Main TUI with synthwave styling
 		fmt.Println("🚀 Initializing Synthwave Mission Matrix...")
 		fmt.Println("⚡ Loading AI protocols and visual enhancement systems...")
-		
+
 		// Start the full-featured dashboard
 		err := tui.StartMainDashboard([]tui.DashboardTask{})
 		if err != nil {

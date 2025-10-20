@@ -1,10 +1,10 @@
 package tui
 
 import (
-	"strings"
 	"fmt"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/pkg/styles"
+	"strings"
 )
 
 func (m MainModel) renderChatView() string {
@@ -17,8 +17,8 @@ func (m MainModel) renderChatView() string {
 		Bold(true).
 		Italic(true).
 		Align(lipgloss.Center).
-		Padding(1, 3).           // CONSISTENT: 1 vertical, 3 horizontal
-		BorderStyle(lipgloss.RoundedBorder()).  // CONSISTENT: RoundedBorder
+		Padding(1, 3).                         // CONSISTENT: 1 vertical, 3 horizontal
+		BorderStyle(lipgloss.RoundedBorder()). // CONSISTENT: RoundedBorder
 		BorderForeground(styles.GetBorder()).
 		Underline(true).
 		Render("💬 CHAT ASSISTANT 🤖")
@@ -29,9 +29,9 @@ func (m MainModel) renderChatView() string {
 	inputBox := lipgloss.NewStyle().
 		Foreground(styles.GetForeground()).
 		Background(styles.GetPanel()).
-		Padding(1, 2).           // CONSISTENT: 1 vertical, 2 horizontal
-		Margin(1, 0, 1, 0).      // CONSISTENT: 1 top/bottom
-		Border(lipgloss.RoundedBorder()).  // CONSISTENT: RoundedBorder
+		Padding(1, 2).                    // CONSISTENT: 1 vertical, 2 horizontal
+		Margin(1, 0, 1, 0).               // CONSISTENT: 1 top/bottom
+		Border(lipgloss.RoundedBorder()). // CONSISTENT: RoundedBorder
 		BorderForeground(styles.GetBorder()).
 		Width(m.width - 4).
 		Height(3)
@@ -56,9 +56,9 @@ func (m MainModel) renderChatView() string {
 	historyBox := lipgloss.NewStyle().
 		Foreground(styles.GetForeground()).
 		Background(styles.GetPanel()).
-		Padding(1, 2).           // CONSISTENT: 1 vertical, 2 horizontal
-		Margin(1, 0, 1, 0).      // CONSISTENT: 1 top/bottom
-		Border(lipgloss.RoundedBorder()).  // CONSISTENT: RoundedBorder
+		Padding(1, 2).                    // CONSISTENT: 1 vertical, 2 horizontal
+		Margin(1, 0, 1, 0).               // CONSISTENT: 1 top/bottom
+		Border(lipgloss.RoundedBorder()). // CONSISTENT: RoundedBorder
 		BorderForeground(styles.GetBorder()).
 		Width(m.width - 4).
 		Height(m.height - 15)

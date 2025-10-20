@@ -10,13 +10,13 @@ func TestAIManager_ParseTask(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping integration test")
 	}
-	
+
 	manager := New()
-	
+
 	tests := []struct {
-		name     string
-		input    string
-		wantErr  bool
+		name    string
+		input   string
+		wantErr bool
 	}{
 		{
 			name:    "simple task",
@@ -39,7 +39,7 @@ func TestAIManager_ParseTask(t *testing.T) {
 			wantErr: false,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := manager.ParseTask(context.Background(), tt.input)
@@ -47,7 +47,7 @@ func TestAIManager_ParseTask(t *testing.T) {
 				t.Errorf("ParseTask() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			
+
 			if err == nil && result.Description == "" {
 				t.Errorf("ParseTask() returned empty description")
 			}
@@ -60,13 +60,13 @@ func TestAIManager_SuggestTasks(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping integration test")
 	}
-	
+
 	manager := New()
-	
+
 	tests := []struct {
-		name     string
-		tasks    []string
-		wantErr  bool
+		name    string
+		tasks   []string
+		wantErr bool
 	}{
 		{
 			name:    "no existing tasks",
@@ -84,7 +84,7 @@ func TestAIManager_SuggestTasks(t *testing.T) {
 			wantErr: false,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := manager.SuggestTasks(context.Background(), tt.tasks)
@@ -92,7 +92,7 @@ func TestAIManager_SuggestTasks(t *testing.T) {
 				t.Errorf("SuggestTasks() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			
+
 			// It's okay to return empty suggestions, but if we do, it should be a slice
 			if result == nil {
 				t.Errorf("SuggestTasks() returned nil instead of slice")
@@ -103,10 +103,10 @@ func TestAIManager_SuggestTasks(t *testing.T) {
 
 func TestAIManager_ValidateResponse(t *testing.T) {
 	manager := New()
-	
+
 	tests := []struct {
-		name     string
-		task     *ParsedTask
+		name      string
+		task      *ParsedTask
 		wantValid bool
 	}{
 		{
@@ -160,14 +160,14 @@ func TestAIManager_ValidateResponse(t *testing.T) {
 			wantValid: true, // Invalid categories should be filtered out
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, gotValid := manager.validateResponse(tt.task)
 			if gotValid != tt.wantValid {
 				t.Errorf("validateResponse() = %v, want %v", gotValid, tt.wantValid)
 			}
-			
+
 			// Check that invalid categories are filtered out
 			if result != nil && tt.name == "invalid categories" {
 				if len(result.Categories) != 0 {
@@ -180,7 +180,7 @@ func TestAIManager_ValidateResponse(t *testing.T) {
 
 func TestAIManager_BasicParse(t *testing.T) {
 	manager := New()
-	
+
 	tests := []struct {
 		name  string
 		input string
@@ -194,7 +194,7 @@ func TestAIManager_BasicParse(t *testing.T) {
 			input: "This is a very long task description that exceeds the normal limits and should be truncated appropriately by the basic parser",
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := manager.basicParse(tt.input)
@@ -202,11 +202,11 @@ func TestAIManager_BasicParse(t *testing.T) {
 				t.Errorf("basicParse() returned nil")
 				return
 			}
-			
+
 			if result.Description == "" {
 				t.Errorf("basicParse() returned empty description")
 			}
-			
+
 			if result.Priority != "medium" {
 				t.Errorf("basicParse() should set default priority to medium")
 			}

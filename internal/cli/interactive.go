@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/store"
+	"github.com/kyanite/focus/pkg/gum"
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/pkg/utils"
-	"github.com/kyanite/focus/pkg/gum"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
@@ -49,15 +49,15 @@ func interactiveHandler(cmd *cobra.Command, args []string) {
 
 	// Step 3: Choose categories (multi-select)
 	categoryOptions := []string{
-		"work", "personal", "urgent", "learning", 
+		"work", "personal", "urgent", "learning",
 		"health", "finance", "creative", "shopping",
 	}
 	categories := gum.MultiSelect(categoryOptions, "Select categories:", 5)
 
 	// Step 4: Confirm before creating
-	confirmMsg := fmt.Sprintf("Create task: %s\nPriority: %s\nCategories: %s", 
+	confirmMsg := fmt.Sprintf("Create task: %s\nPriority: %s\nCategories: %s",
 		description, priority, strings.Join(categories, ", "))
-	
+
 	if !gum.Confirm(confirmMsg) {
 		fmt.Println("❌ Task creation cancelled.")
 		return
@@ -81,7 +81,7 @@ func interactiveHandler(cmd *cobra.Command, args []string) {
 		Foreground(lipgloss.Color("#00FF66")).
 		Bold(true).
 		Render("✅ Task created successfully!")
-	
+
 	fmt.Println()
 	fmt.Println(successStyle)
 	fmt.Printf("📝 Task: %s\n", task.Description)
@@ -130,7 +130,7 @@ func filterHandler(cmd *cobra.Command, args []string) {
 		if task.Status == "completed" {
 			status = "✅"
 		}
-		
+
 		priority := "🟢"
 		switch task.Priority {
 		case "high":
@@ -138,9 +138,9 @@ func filterHandler(cmd *cobra.Command, args []string) {
 		case "medium":
 			priority = "🟡"
 		}
-		
+
 		taskOptions[i] = fmt.Sprintf("%s %s %s | %s | ID: %s",
-			status, priority, task.Description, 
+			status, priority, task.Description,
 			strings.Join(task.Categories, ", "), task.ID)
 	}
 
@@ -175,7 +175,7 @@ func filterHandler(cmd *cobra.Command, args []string) {
 
 	// Ask what action to take
 	actionOptions := []string{"complete", "delete", "edit notes", "back"}
-	action := gum.Choose(actionOptions, fmt.Sprintf("What would you like to do with this task?"))
+	action := gum.Choose(actionOptions, "What would you like to do with this task?")
 
 	switch action {
 	case "complete":
@@ -252,7 +252,7 @@ func displayTaskDetails(task models.Task) {
 	if task.Status == "completed" {
 		status = "✅ Completed"
 	}
-	
+
 	priority := "🟢 Low"
 	switch task.Priority {
 	case "high":
@@ -265,7 +265,7 @@ func displayTaskDetails(task models.Task) {
 		Foreground(lipgloss.Color("#FF71CE")).
 		Bold(true).
 		Render(fmt.Sprintf("%s - %s", task.Description, status))
-	
+
 	fmt.Println()
 	fmt.Println(headerStyle)
 	fmt.Println(strings.Repeat("─", len(task.Description)+len(status)+3))

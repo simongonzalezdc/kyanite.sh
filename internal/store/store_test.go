@@ -2,24 +2,24 @@ package store
 
 import (
 	"encoding/json"
+	"github.com/kyanite/focus/pkg/models"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
-	"github.com/kyanite/focus/pkg/models"
 )
 
 func TestStore_New(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	tests := []struct {
-		name string
-		filePath string
+		name         string
+		filePath     string
 		expectedPath string
 	}{
 		{
-			name:        "valid file path",
-			filePath:    filepath.Join(tempDir, "test.json"),
+			name:         "valid file path",
+			filePath:     filepath.Join(tempDir, "test.json"),
 			expectedPath: filepath.Join(tempDir, "test.json"),
 		},
 	}
@@ -37,9 +37,9 @@ func TestStore_New(t *testing.T) {
 func TestStore_Load(t *testing.T) {
 	tempDir := t.TempDir()
 	testFile := filepath.Join(tempDir, "test.json")
-	
+
 	tests := []struct {
-		name string
+		name      string
 		setupFile func() error
 		wantTasks []models.Task
 		wantError bool
@@ -126,15 +126,15 @@ func TestStore_Load(t *testing.T) {
 					t.Fatalf("Failed to setup test file: %v", err)
 				}
 			}
-			
+
 			store := New(testFile)
 			tasks, err := store.Load()
-			
+
 			if (err != nil) != tt.wantError {
 				t.Errorf("Store.Load() error = %v, wantError %v", err, tt.wantError)
 				return
 			}
-			
+
 			if !tt.wantError {
 				if len(tasks) != len(tt.wantTasks) {
 					t.Errorf("Store.Load() = %v, want %v", tasks, tt.wantTasks)
@@ -148,17 +148,17 @@ func TestStore_Load(t *testing.T) {
 func TestStore_Save(t *testing.T) {
 	tempDir := t.TempDir()
 	testFile := filepath.Join(tempDir, "test.json")
-	
+
 	store := New(testFile)
-	
+
 	tests := []struct {
-		name string
-		tasks []models.Task
+		name      string
+		tasks     []models.Task
 		wantError bool
 	}{
 		{
-			name: "empty tasks",
-			tasks: []models.Task{},
+			name:      "empty tasks",
+			tasks:     []models.Task{},
 			wantError: false,
 		},
 		{
@@ -202,12 +202,12 @@ func TestStore_Save(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := store.Save(tt.tasks)
-			
+
 			if (err != nil) != tt.wantError {
 				t.Errorf("Store.Save() error = %v, wantError %v", err, tt.wantError)
 				return
 			}
-			
+
 			if !tt.wantError {
 				// Verify the file was created and contains the correct data
 				data, err := os.ReadFile(testFile)
@@ -215,14 +215,14 @@ func TestStore_Save(t *testing.T) {
 					t.Errorf("Failed to read saved file: %v", err)
 					return
 				}
-				
+
 				var savedTasks []models.Task
 				err = json.Unmarshal(data, &savedTasks)
 				if err != nil {
 					t.Errorf("Failed to unmarshal saved tasks: %v", err)
 					return
 				}
-				
+
 				if len(savedTasks) != len(tt.tasks) {
 					t.Errorf("Saved %d tasks, expected %d", len(savedTasks), len(tt.tasks))
 					return

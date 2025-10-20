@@ -12,7 +12,7 @@ func main() {
 	if len(os.Args) > 1 {
 		app = os.Args[1]
 	}
-	
+
 	switch app {
 	case "focus":
 		focusMain()
@@ -31,4 +31,3 @@ func focusMain() {
 		log.Fatalf("failed to run focus: %v", err)
 	}
 }
-

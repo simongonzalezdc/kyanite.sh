@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kyanite/focus/pkg/config"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/focus/pkg/config"
 	"github.com/spf13/cobra"
 )
 
@@ -25,14 +25,14 @@ func enhancedConfigWizardHandler(cmd *cobra.Command, args []string) {
 	fmt.Println()
 
 	var configData struct {
-		AIProvider     string
-		Model          string
-		DefaultTheme   string
-		TimeFormat     string
-		AutoSave       string
-		Notifications  bool
-		Dashboard      string
-		Editor         string
+		AIProvider    string
+		Model         string
+		DefaultTheme  string
+		TimeFormat    string
+		AutoSave      string
+		Notifications bool
+		Dashboard     string
+		Editor        string
 	}
 
 	form := huh.NewForm(
@@ -99,7 +99,7 @@ func enhancedConfigWizardHandler(cmd *cobra.Command, args []string) {
 			Foreground(lipgloss.Color("#FF0040")).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error: %v", err))
-		
+
 		fmt.Println(errorStyle)
 		return
 	}
@@ -110,7 +110,7 @@ func enhancedConfigWizardHandler(cmd *cobra.Command, args []string) {
 			Foreground(lipgloss.Color("#FF0040")).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Failed to save configuration: %v", err))
-		
+
 		fmt.Println(errorStyle)
 		return
 	}
@@ -120,20 +120,20 @@ func enhancedConfigWizardHandler(cmd *cobra.Command, args []string) {
 		Foreground(lipgloss.Color("#00FF66")).
 		Bold(true).
 		Render("⚙️ Configuration completed and saved successfully!")
-	
+
 	fmt.Println(successStyle)
 	fmt.Printf("📁 Configuration saved to: %s\n", config.GetConfigPath())
 }
 
 func saveEnhancedConfig(configData *struct {
-	AIProvider     string
-	Model          string
-	DefaultTheme   string
-	TimeFormat     string
-	AutoSave       string
-	Notifications  bool
-	Dashboard      string
-	Editor         string
+	AIProvider    string
+	Model         string
+	DefaultTheme  string
+	TimeFormat    string
+	AutoSave      string
+	Notifications bool
+	Dashboard     string
+	Editor        string
 }) error {
 	// Load existing config
 	cfg, err := config.LoadConfig()
@@ -163,13 +163,14 @@ func saveEnhancedConfig(configData *struct {
 	cfg.UI.Notifications = configData.Notifications
 
 	// Update dashboard settings
-	if configData.Dashboard == "compact" {
+	switch configData.Dashboard {
+	case "compact":
 		cfg.Dashboard.CompactMode = true
 		cfg.Dashboard.ShowAnimation = false
-	} else if configData.Dashboard == "animated" {
+	case "animated":
 		cfg.Dashboard.ShowAnimation = true
 		cfg.Dashboard.CompactMode = false
-	} else {
+	default:
 		cfg.Dashboard.ShowAnimation = false
 		cfg.Dashboard.CompactMode = false
 	}

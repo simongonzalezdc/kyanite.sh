@@ -1,9 +1,9 @@
 package tui
 
 import (
-	"strings"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/pkg/styles"
+	"strings"
 )
 
 func (m MainModel) renderHelpBar() string {
@@ -11,23 +11,23 @@ func (m MainModel) renderHelpBar() string {
 	helpStyle := lipgloss.NewStyle().
 		Foreground(styles.GetForeground()).
 		Background(styles.GetPanel()).
-		Padding(1, 2).           // CONSISTENT: 1 vertical, 2 horizontal
-		BorderStyle(lipgloss.RoundedBorder()).  // CONSISTENT: RoundedBorder
+		Padding(1, 2).                         // CONSISTENT: 1 vertical, 2 horizontal
+		BorderStyle(lipgloss.RoundedBorder()). // CONSISTENT: RoundedBorder
 		BorderForeground(styles.GetBorder()).
 		Width(m.width - 4)
 
 	// Get shortcuts for current view
 	var shortcuts []string
-	
+
 	switch m.currentView {
 	case dashboardView:
 		shortcuts = []string{
 			"[↑/↓] Navigate",
 			"[A] Add Task",
-			"[D] Complete", 
+			"[D] Complete",
 			"[N] Notes",
 			"[G] Journal",
-			"[K] Calendar", 
+			"[K] Calendar",
 			"[C] Chat",
 			"[T] Theme",
 			"[S] Settings",
@@ -55,7 +55,7 @@ func (m MainModel) renderHelpBar() string {
 			"[←/→] Previous/Next Month",
 			"[↑/↓] Navigate Days",
 			"[Enter] Select Date",
-			"[ESC] Return", 
+			"[ESC] Return",
 			"[Tab] Next View",
 			"[Ctrl+Q] Quit",
 		}
@@ -72,7 +72,7 @@ func (m MainModel) renderHelpBar() string {
 			"[↑/↓] Navigate Commands",
 			"[Enter] Select Command",
 			"[Escape] Return",
-			"[Tab] Next View", 
+			"[Tab] Next View",
 			"[Ctrl+Q] Quit",
 		}
 	case settingsView:
@@ -93,7 +93,7 @@ func (m MainModel) renderHelpBar() string {
 	// Format shortcuts with proper spacing
 	var shortcutStrings []string
 	for _, shortcut := range shortcuts {
-		shortcutStrings = append(shortcutStrings, 
+		shortcutStrings = append(shortcutStrings,
 			lipgloss.NewStyle().
 				Foreground(styles.GetForeground()).
 				Render(shortcut))

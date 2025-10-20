@@ -8,32 +8,30 @@ import (
 // Synthwave Color Palette - Maximum Visual Impact
 var (
 	// Core Synthwave Colors
-	SynthwavePink    = lipgloss.Color("#FF10F0")
-	SynthwaveCyan    = lipgloss.Color("#00FFF0")
-	SynthwavePurple  = lipgloss.Color("#BD10E0")
-	SynthwaveYellow  = lipgloss.Color("#FFF01F")
-	SynthwaveGreen   = lipgloss.Color("#39FF14")
-	SynthwaveOrange  = lipgloss.Color("#FF6B35")
-	SynthwaveRed     = lipgloss.Color("#FF0040")
-	
+	SynthwavePink   = lipgloss.Color("#FF10F0")
+	SynthwaveCyan   = lipgloss.Color("#00FFF0")
+	SynthwavePurple = lipgloss.Color("#BD10E0")
+	SynthwaveYellow = lipgloss.Color("#FFF01F")
+	SynthwaveGreen  = lipgloss.Color("#39FF14")
+	SynthwaveOrange = lipgloss.Color("#FF6B35")
+	SynthwaveRed    = lipgloss.Color("#FF0040")
+
 	// Dark Gradient Colors
-	DeepSpace    = lipgloss.Color("#0A0014")
-	DarkVoid     = lipgloss.Color("#1A0033")
-	CyberGrid    = lipgloss.Color("#2D1B69")
-	FocusGrid    = lipgloss.Color("#3D2B8F")
-	
+	DeepSpace = lipgloss.Color("#0A0014")
+	DarkVoid  = lipgloss.Color("#1A0033")
+	CyberGrid = lipgloss.Color("#2D1B69")
+	FocusGrid = lipgloss.Color("#3D2B8F")
+
 	// Glitch Colors
-	GlitchRed    = lipgloss.Color("#FF0000")
-	GlitchGreen  = lipgloss.Color("#00FF00")
-	GlitchBlue   = lipgloss.Color("#0000FF")
-	
+	GlitchRed   = lipgloss.Color("#FF0000")
+	GlitchGreen = lipgloss.Color("#00FF00")
+	GlitchBlue  = lipgloss.Color("#0000FF")
+
 	// Metallic Finishes
 	ChromeSilver = lipgloss.Color("#C0C0C0")
 	Platinum     = lipgloss.Color("#E5E4E2")
 	GoldAccent   = lipgloss.Color("#FFD700")
 )
-
-
 
 // Advanced Styles with Maximum Impact
 func SynthwaveTitle(text string) string {
@@ -87,10 +85,10 @@ func CyberGridBox(text string) string {
 
 func HolographicText(text string) string {
 	hologramColors := []lipgloss.Color{
-		SynthwavePink, SynthwaveCyan, SynthwavePurple, 
+		SynthwavePink, SynthwaveCyan, SynthwavePurple,
 		SynthwaveYellow, SynthwaveGreen, SynthwaveOrange,
 	}
-	
+
 	result := ""
 	for i, char := range text {
 		color := hologramColors[i%len(hologramColors)]
@@ -166,8 +164,6 @@ func CyberTag(tag string) string {
 		Render("🏷️ " + tag)
 }
 
-
-
 func Header() string {
 	return lipgloss.NewStyle().
 		Foreground(SynthwaveGreen).
@@ -190,12 +186,12 @@ func CyberStats(active, completed, total int) string {
 		BorderForeground(SynthwavePink).
 		Render(
 			"📊 GRID STATUS: " +
-			lipgloss.NewStyle().Foreground(SynthwaveYellow).Render("⚡ "+string(rune(active))) +
-			" ACTIVE | " +
-			lipgloss.NewStyle().Foreground(SynthwaveGreen).Render("✅ "+string(rune(completed))) +
-			" COMPLETED | " +
-			lipgloss.NewStyle().Foreground(SynthwavePurple).Render("🌟 "+string(rune(total))) +
-			" TOTAL",
+				lipgloss.NewStyle().Foreground(SynthwaveYellow).Render("⚡ "+string(rune(active))) +
+				" ACTIVE | " +
+				lipgloss.NewStyle().Foreground(SynthwaveGreen).Render("✅ "+string(rune(completed))) +
+				" COMPLETED | " +
+				lipgloss.NewStyle().Foreground(SynthwavePurple).Render("🌟 "+string(rune(total))) +
+				" TOTAL",
 		)
 }
 
@@ -270,5 +266,3 @@ func SynthwaveReportStyle(text string) string {
 		Bold(true).
 		Render("📋 ANALYSIS REPORT:\n\n" + text)
 }
-
-

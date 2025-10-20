@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kyanite/focus/pkg/config"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/focus/pkg/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -51,7 +51,7 @@ var configPathCmd = &cobra.Command{
 
 func configGetHandler(cmd *cobra.Command, args []string) {
 	key := args[0]
-	
+
 	cfg := config.GetConfig()
 	if cfg == nil {
 		fmt.Println("❌ Configuration not loaded")
@@ -111,8 +111,8 @@ func configGetHandler(cmd *cobra.Command, args []string) {
 		Foreground(lipgloss.Color("#00FF66")).
 		Bold(true)
 
-	fmt.Printf("%s %s\n", 
-		successStyle.Render(fmt.Sprintf("%s:", key)), 
+	fmt.Printf("%s %s\n",
+		successStyle.Render(fmt.Sprintf("%s:", key)),
 		value)
 }
 
@@ -151,7 +151,7 @@ func configSetHandler(cmd *cobra.Command, args []string) {
 			return
 		}
 	case "dashboard.auto_refresh", "dashboard.show_animation", "dashboard.compact_mode",
-		 "notes.auto_save", "ui.show_help_tips", "ui.notifications", "ui.sound_effects":
+		"notes.auto_save", "ui.show_help_tips", "ui.notifications", "ui.sound_effects":
 		if boolVal, err := strconv.ParseBool(value); err == nil {
 			finalValue = boolVal
 		} else {
@@ -171,7 +171,7 @@ func configSetHandler(cmd *cobra.Command, args []string) {
 		Foreground(lipgloss.Color("#00FF66")).
 		Bold(true)
 
-	fmt.Printf("%s Configuration updated: %s = %v\n", 
+	fmt.Printf("%s Configuration updated: %s = %v\n",
 		successStyle.Render("✅"), key, finalValue)
 }
 
@@ -236,7 +236,7 @@ func configResetHandler(cmd *cobra.Command, args []string) {
 	fmt.Print(" Are you sure? (y/N): ")
 
 	var response string
-	fmt.Scanln(&response)
+	_, _ = fmt.Scanln(&response) // Ignore error for user input
 
 	if strings.ToLower(response) != "y" && strings.ToLower(response) != "yes" {
 		fmt.Println("❌ Configuration reset cancelled.")
@@ -265,7 +265,7 @@ func configResetHandler(cmd *cobra.Command, args []string) {
 
 func configPathHandler(cmd *cobra.Command, args []string) {
 	configPath := config.GetConfigPath()
-	
+
 	// Check if file exists
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		fmt.Printf("📁 Configuration file will be created at:\n  %s\n", configPath)

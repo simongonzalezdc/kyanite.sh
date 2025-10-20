@@ -2,15 +2,15 @@ package cli
 
 import (
 	"fmt"
-	"strings"
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/store"
-	"github.com/kyanite/focus/pkg/utils"
-	"github.com/kyanite/focus/pkg/styles"
 	"github.com/kyanite/focus/pkg/models"
+	"github.com/kyanite/focus/pkg/styles"
+	"github.com/kyanite/focus/pkg/utils"
+	"strings"
 
-	"github.com/spf13/cobra"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/spf13/cobra"
 )
 
 var listCmd = &cobra.Command{
@@ -143,10 +143,10 @@ func renderTaskWithEffects(index int, task models.Task) {
 	status := styles.TaskStatus(task.Status)
 
 	// Combine all elements
-	taskLine := fmt.Sprintf("%s %s %s %s", 
-		numberStyle, 
-		description, 
-		priority, 
+	taskLine := fmt.Sprintf("%s %s %s %s",
+		numberStyle,
+		description,
+		priority,
 		status)
 
 	// Box the entire task

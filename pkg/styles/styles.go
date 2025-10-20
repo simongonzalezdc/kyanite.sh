@@ -2,8 +2,8 @@ package styles
 
 import (
 	"github.com/charmbracelet/lipgloss"
-	"github.com/pterm/pterm"
 	"github.com/kyanite/focus/internal/theme"
+	"github.com/pterm/pterm"
 )
 
 // Focus Color Palette - Dynamic Theme System
@@ -42,16 +42,6 @@ func RefreshColors() {
 var focusStyle = lipgloss.NewStyle().
 	Foreground(FocusPink).
 	Bold(true)
-
-var greenStyle = lipgloss.NewStyle().
-	Foreground(FocusGreen).
-	Bold(true)
-
-var blueStyle = lipgloss.NewStyle().
-	Foreground(FocusBlue)
-
-var purpleStyle = lipgloss.NewStyle().
-	Foreground(FocusPurple)
 
 func FocusStyle(text string) string {
 	return focusStyle.Render(text)

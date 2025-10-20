@@ -66,10 +66,10 @@ func (a *AudioPlayer) PlaySound(effect SoundEffect) {
 
 func (a *AudioPlayer) playBeep(frequency, duration int) {
 	var cmd *exec.Cmd
-	
+
 	switch runtime.GOOS {
 	case "windows":
-		cmd = exec.Command("powershell", "-c", 
+		cmd = exec.Command("powershell", "-c",
 			fmt.Sprintf("[console]::beep(%d,%d)", frequency, duration))
 	case "darwin":
 		cmd = exec.Command("afplay", "/System/Library/Sounds/Ping.aiff")
@@ -89,11 +89,9 @@ func (a *AudioPlayer) playBeep(frequency, duration int) {
 		fmt.Print("\a")
 		return
 	}
-	
+
 	_ = cmd.Run() // intentionally ignore error to avoid breaking UI on missing player
 }
-
-
 
 func (a *AudioPlayer) Enable() {
 	a.enabled = true

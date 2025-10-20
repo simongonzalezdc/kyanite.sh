@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/spf13/cobra"
 	"github.com/kyanite/focus/internal/journal"
 	"github.com/kyanite/focus/pkg/models"
-	"github.com/kyanite/focus/pkg/utils"
 	"github.com/kyanite/focus/pkg/styles"
+	"github.com/kyanite/focus/pkg/utils"
+	"github.com/spf13/cobra"
 )
 
 var journalCmd = &cobra.Command{
@@ -151,7 +151,7 @@ var journalViewCmd = &cobra.Command{
 	Use:   "view [date]",
 	Short: "View a specific journal entry",
 	Long:  "View a journal entry by date. If no date is provided, shows today's entry.",
-	Args: cobra.MaximumNArgs(1),
+	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		date := journalDate
 		if date == "" {
@@ -175,7 +175,7 @@ var journalSearchCmd = &cobra.Command{
 	Use:   "search [keyword]",
 	Short: "Search journal entries",
 	Long:  "Search journal entries by keyword in content, title, or tags.",
-	Args: cobra.ExactArgs(1),
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		keyword := strings.Join(args, " ")
 		storage := utils.NewJournalStorage()
@@ -223,15 +223,21 @@ var journalExportCmd = &cobra.Command{
 	Use:   "export [date] --to-syntax --type [type]",
 	Short: "Export journal entry to syntax.sh",
 	Long:  "Export a journal entry to syntax.sh format for story development.",
-	Args: cobra.MaximumNArgs(1),
+	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		date := journalDate
 		if date == "" {
 			date = time.Now().Format("2006-01-02")
 		}
 
-		exportTypeStr, _ := cmd.Flags().GetString("type")
-		toSyntax, _ := cmd.Flags().GetBool("to-syntax")
+		exportTypeStr, err := cmd.Flags().GetString("type")
+		if err != nil {
+			exportTypeStr = "dialogue" // default
+		}
+		toSyntax, err := cmd.Flags().GetBool("to-syntax")
+		if err != nil {
+			toSyntax = false
+		}
 
 		if !toSyntax {
 			fmt.Println("❌ Error: --to-syntax flag is required")
@@ -333,12 +339,12 @@ func createJournalEntry() *models.JournalEntry {
 	// Get content
 	fmt.Printf("📝 %s - %s\n", strings.ToUpper(template), selectedTemplate.Description)
 	fmt.Println("Enter your journal entry (press Enter on an empty line to finish):")
-	
+
 	var content strings.Builder
 	for {
 		var line string
 		fmt.Print("> ")
-		fmt.Scanln(&line)
+		_, _ = fmt.Scanln(&line) // Ignore error for user input
 		if line == "" {
 			break
 		}

@@ -17,9 +17,12 @@ type JournalStorage struct {
 
 // NewJournalStorage creates a new journal storage instance
 func NewJournalStorage() *JournalStorage {
-	homeDir, _ := os.UserHomeDir()
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		homeDir = "."
+	}
 	storageDir := filepath.Join(homeDir, ".focus")
-	
+
 	return &JournalStorage{
 		filePath: filepath.Join(storageDir, "journal.json"),
 	}

@@ -164,7 +164,7 @@ func TestConfigurationCommands(t *testing.T) {
 // BenchmarkValidation benchmarks validation performance
 func BenchmarkValidation(b *testing.B) {
 	description := "This is a test task description for benchmarking validation performance"
-	
+
 	b.Run("ValidateDescription", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			validation.ValidateTaskDescription(description)

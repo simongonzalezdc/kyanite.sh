@@ -2,6 +2,7 @@ package theme
 
 import "github.com/charmbracelet/lipgloss"
 
+// Theme represents a color theme for the focus.sh application
 type Theme struct {
 	Name       string
 	Primary    lipgloss.Color

@@ -19,15 +19,15 @@ var currentTheme = theme.Default()
 
 // Light theme colors - research-based best practices for light themes
 var (
-	LightBg        = lipgloss.Color("#FAFAFA")      // Warm white, not harsh
-	LightFg        = lipgloss.Color("#2D3748")      // Dark blue-gray for readability
-	LightAccent    = lipgloss.Color("#4299E1")      // Blue accent
-	LightSecondary = lipgloss.Color("#805AD5")      // Purple accent
-	LightBorder    = lipgloss.Color("#CBD5E0")      // Light gray border
-	LightSuccess   = lipgloss.Color("#38A169")      // Muted green
-	LightWarning   = lipgloss.Color("#ED8936")      // Warm orange
-	LightError     = lipgloss.Color("#E53E3E")      // Soft red
-	LightPanel     = lipgloss.Color("#F7FAFC")      // Very light gray for panels
+	LightBg        = lipgloss.Color("#FAFAFA") // Warm white, not harsh
+	LightFg        = lipgloss.Color("#2D3748") // Dark blue-gray for readability
+	LightAccent    = lipgloss.Color("#4299E1") // Blue accent
+	LightSecondary = lipgloss.Color("#805AD5") // Purple accent
+	LightBorder    = lipgloss.Color("#CBD5E0") // Light gray border
+	LightSuccess   = lipgloss.Color("#38A169") // Muted green
+	LightWarning   = lipgloss.Color("#ED8936") // Warm orange
+	LightError     = lipgloss.Color("#E53E3E") // Soft red
+	LightPanel     = lipgloss.Color("#F7FAFC") // Very light gray for panels
 )
 
 // Plain theme colors (terminal default)

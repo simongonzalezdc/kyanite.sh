@@ -6,11 +6,11 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/store"
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/pkg/utils"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
@@ -67,7 +67,7 @@ func showAllNotes(engine *engine.Engine) {
 		if task.Status == "completed" {
 			statusIcon = "✅"
 		}
-		
+
 		priorityIcon := "🟢"
 		switch task.Priority {
 		case "high":
@@ -80,20 +80,20 @@ func showAllNotes(engine *engine.Engine) {
 		headerStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FF71CE")).
 			Bold(true)
-		
+
 		fmt.Println(headerStyle.Render(fmt.Sprintf("%s %s", statusIcon, task.Description)))
-		fmt.Printf("ID: %s | Priority: %s | Status: %s\n", 
+		fmt.Printf("ID: %s | Priority: %s | Status: %s\n",
 			task.ID, priorityIcon, task.Status)
 		if len(task.Categories) > 0 {
 			fmt.Printf("Categories: %s\n", strings.Join(task.Categories, ", "))
 		}
 		fmt.Println(strings.Repeat("─", 40))
-		
+
 		// Notes content
 		notesStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#00FFFF")).
 			PaddingLeft(2)
-		
+
 		fmt.Println(notesStyle.Render(task.Notes))
 		fmt.Println()
 		fmt.Println(strings.Repeat("═", 50))
@@ -150,14 +150,14 @@ func editTaskNotes(taskID string, engine *engine.Engine) {
 		return
 	}
 	tempFileName := tempFile.Name()
-	defer os.Remove(tempFileName)
+	defer func() { _ = os.Remove(tempFileName) }()
 
 	// Write initial content to temp file
 	if _, err := tempFile.WriteString(initialContent); err != nil {
 		fmt.Printf("❌ Error writing to temp file: %v\n", err)
 		return
 	}
-	tempFile.Close()
+	_ = tempFile.Close()
 
 	// Try to find an editor
 	editor := os.Getenv("EDITOR")
@@ -205,12 +205,12 @@ func editTaskNotes(taskID string, engine *engine.Engine) {
 	notesStart := strings.Index(content, "## 📝 Notes")
 	if notesStart != -1 {
 		notesStart += len("## 📝 Notes\n")
-		
+
 		// Find the start of actual notes content
 		lines := strings.Split(content[notesStart:], "\n")
 		var notesLines []string
 		foundContent := false
-		
+
 		for i, line := range lines {
 			// Skip empty lines and the line that says "---"
 			if line == "" || (i == 0 && strings.TrimSpace(line) == "") {
@@ -228,7 +228,7 @@ func editTaskNotes(taskID string, engine *engine.Engine) {
 			foundContent = true
 			notesLines = append(notesLines, line)
 		}
-		
+
 		task.Notes = strings.Join(notesLines, "\n")
 	}
 
@@ -243,7 +243,7 @@ func editTaskNotes(taskID string, engine *engine.Engine) {
 		Foreground(lipgloss.Color("#00FF66")).
 		Bold(true).
 		Render("✅ Notes updated successfully!")
-	
+
 	fmt.Println()
 	fmt.Println(successStyle)
 	fmt.Printf("📝 Task: %s\n", task.Description)

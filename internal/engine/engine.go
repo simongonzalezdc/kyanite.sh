@@ -2,9 +2,9 @@ package engine
 
 import (
 	"fmt"
-	"time"
 	"github.com/kyanite/focus/internal/store"
 	"github.com/kyanite/focus/pkg/models"
+	"time"
 )
 
 // Engine handles task management operations
@@ -25,12 +25,12 @@ func (e *Engine) AddTask(parsedTask models.ParsedTask) (models.Task, error) {
 	if parsedTask.Description == "" {
 		return models.Task{}, fmt.Errorf("task description cannot be empty")
 	}
-	
+
 	tasks, err := e.store.Load()
 	if err != nil {
 		return models.Task{}, fmt.Errorf("failed to load tasks: %w", err)
 	}
-	
+
 	now := time.Now()
 	task := models.Task{
 		ID:          generateID(),
@@ -42,28 +42,28 @@ func (e *Engine) AddTask(parsedTask models.ParsedTask) (models.Task, error) {
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
-	
+
 	// Validate priority
 	if task.Priority == "" {
 		task.Priority = "medium"
 	}
-	
+
 	validPriorities := map[string]bool{
 		"low":    true,
 		"medium": true,
 		"high":   true,
 	}
-	
+
 	if !validPriorities[task.Priority] {
 		task.Priority = "medium" // Normalize invalid priority
 	}
-	
+
 	tasks = append(tasks, task)
 	err = e.store.Save(tasks)
 	if err != nil {
 		return models.Task{}, fmt.Errorf("failed to save task: %w", err)
 	}
-	
+
 	return task, nil
 }
 
@@ -73,11 +73,11 @@ func (e *Engine) ListTasks(filter string) ([]models.Task, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to load tasks: %w", err)
 	}
-	
+
 	if filter == "" || filter == "all" {
 		return tasks, nil
 	}
-	
+
 	var filtered []models.Task
 	for _, task := range tasks {
 		if filter == "active" && task.Status == "pending" {
@@ -86,7 +86,7 @@ func (e *Engine) ListTasks(filter string) ([]models.Task, error) {
 			filtered = append(filtered, task)
 		}
 	}
-	
+
 	return filtered, nil
 }
 
@@ -101,14 +101,14 @@ func (e *Engine) DeleteTask(id string) error {
 	if err != nil {
 		return fmt.Errorf("failed to load tasks: %w", err)
 	}
-	
+
 	for i, task := range tasks {
 		if task.ID == id {
 			tasks = append(tasks[:i], tasks[i+1:]...)
 			return e.store.Save(tasks)
 		}
 	}
-	
+
 	return fmt.Errorf("task with ID %s not found", id)
 }
 
@@ -118,13 +118,13 @@ func (e *Engine) GetTask(id string) (models.Task, error) {
 	if err != nil {
 		return models.Task{}, fmt.Errorf("failed to load tasks: %w", err)
 	}
-	
+
 	for _, task := range tasks {
 		if task.ID == id {
 			return task, nil
 		}
 	}
-	
+
 	return models.Task{}, fmt.Errorf("task with ID %s not found", id)
 }
 
@@ -134,7 +134,7 @@ func (e *Engine) updateTaskStatus(id, status string) error {
 	if err != nil {
 		return fmt.Errorf("failed to load tasks: %w", err)
 	}
-	
+
 	for i, task := range tasks {
 		if task.ID == id {
 			tasks[i].Status = status
@@ -142,7 +142,7 @@ func (e *Engine) updateTaskStatus(id, status string) error {
 			return e.store.Save(tasks)
 		}
 	}
-	
+
 	return fmt.Errorf("task with ID %s not found", id)
 }
 
@@ -152,7 +152,7 @@ func (e *Engine) UpdateTask(updatedTask models.Task) error {
 	if err != nil {
 		return fmt.Errorf("failed to load tasks: %w", err)
 	}
-	
+
 	for i, task := range tasks {
 		if task.ID == updatedTask.ID {
 			// Preserve original creation time
@@ -162,7 +162,7 @@ func (e *Engine) UpdateTask(updatedTask models.Task) error {
 			return e.store.Save(tasks)
 		}
 	}
-	
+
 	return fmt.Errorf("task with ID %s not found", updatedTask.ID)
 }
 
@@ -172,7 +172,7 @@ func (e *Engine) UpdateTaskStatus(id, status string) error {
 	if err != nil {
 		return fmt.Errorf("failed to load tasks: %w", err)
 	}
-	
+
 	for i, task := range tasks {
 		if task.ID == id {
 			tasks[i].Status = status
@@ -180,7 +180,7 @@ func (e *Engine) UpdateTaskStatus(id, status string) error {
 			return e.store.Save(tasks)
 		}
 	}
-	
+
 	return fmt.Errorf("task with ID %s not found", id)
 }
 

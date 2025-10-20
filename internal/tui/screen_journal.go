@@ -1,9 +1,9 @@
 package tui
 
 import (
-	"strings"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/pkg/styles"
+	"strings"
 )
 
 func (m MainModel) renderJournalView() string {
@@ -15,8 +15,8 @@ func (m MainModel) renderJournalView() string {
 		Background(styles.GetPanel()).
 		Bold(true).
 		Align(lipgloss.Center).
-		Padding(1, 3).           // CONSISTENT: 1 vertical, 3 horizontal
-		BorderStyle(lipgloss.RoundedBorder()).  // CONSISTENT: RoundedBorder
+		Padding(1, 3).                         // CONSISTENT: 1 vertical, 3 horizontal
+		BorderStyle(lipgloss.RoundedBorder()). // CONSISTENT: RoundedBorder
 		BorderForeground(styles.GetBorder()).
 		Render("📝 Journal")
 	b.WriteString(header)
@@ -26,9 +26,9 @@ func (m MainModel) renderJournalView() string {
 	journalBox := lipgloss.NewStyle().
 		Foreground(styles.GetForeground()).
 		Background(styles.GetPanel()).
-		Padding(1, 2).           // CONSISTENT: 1 vertical, 2 horizontal
-		Margin(1, 0, 1, 0).      // CONSISTENT: 1 top/bottom
-		Border(lipgloss.RoundedBorder()).  // CONSISTENT: RoundedBorder
+		Padding(1, 2).                    // CONSISTENT: 1 vertical, 2 horizontal
+		Margin(1, 0, 1, 0).               // CONSISTENT: 1 top/bottom
+		Border(lipgloss.RoundedBorder()). // CONSISTENT: RoundedBorder
 		BorderForeground(styles.GetBorder()).
 		Width(m.width - 6).
 		Height(m.height - 10)
