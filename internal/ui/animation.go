@@ -143,54 +143,55 @@ func (am *AnimationManager) StopAnimation(id string) {
 
 // Update updates all active animations and returns a command for Bubble Tea
 func (am *AnimationManager) Update() tea.Cmd {
-	return func() tea.Msg {
-		am.mutex.Lock()
-		defer am.mutex.Unlock()
+	am.mutex.Lock()
+	defer am.mutex.Unlock()
 
-		if !am.config.Enabled {
-			return nil
+	if !am.config.Enabled {
+		return nil
+	}
+
+	hasActiveAnimations := false
+
+	for id, state := range am.animations {
+		// Update spring animation
+		state.CurrentPos, state.CurrentVel = state.Spring.Update(
+			state.CurrentPos,
+			state.CurrentVel,
+			state.TargetPos,
+		)
+
+		// Check if animation is complete (close to target with low velocity)
+		posDiff := state.TargetPos - state.CurrentPos
+		if abs(posDiff) < 0.01 && abs(state.CurrentVel) < 0.01 {
+			state.CurrentPos = state.TargetPos
+			state.Finished = true
+		} else {
+			hasActiveAnimations = true
 		}
 
+		// Remove finished animations
+		if state.Finished {
+			delete(am.animations, id)
+		}
+	}
+
+	// CRITICAL: Always return a message if animations are active
+	if hasActiveAnimations {
 		// Ensure valid frame rate for sleeping between frames
 		frameRate := am.config.FrameRate
 		if frameRate <= 0 {
 			frameRate = DefaultAnimationConfig().FrameRate
 		}
-
-		hasActiveAnimations := false
-
-		for id, state := range am.animations {
-			// Update spring animation
-			state.CurrentPos, state.CurrentVel = state.Spring.Update(
-				state.CurrentPos,
-				state.CurrentVel,
-				state.TargetPos,
-			)
-
-			// Check if animation is complete (close to target with low velocity)
-			posDiff := state.TargetPos - state.CurrentPos
-			if abs(posDiff) < 0.01 && abs(state.CurrentVel) < 0.01 {
-				state.CurrentPos = state.TargetPos
-				state.Finished = true
-			} else {
-				hasActiveAnimations = true
-			}
-
-			// Remove finished animations
-			if state.Finished {
-				delete(am.animations, id)
-			}
-		}
-
-		// Continue animation loop if there are active animations
-		if hasActiveAnimations {
-			// Sleep based on validated frame rate to avoid division by zero
+		
+		// Use a goroutine to avoid blocking the main thread
+		return func() tea.Msg {
 			time.Sleep(time.Second / time.Duration(frameRate))
 			return AnimationTickMsg{}
 		}
-
-		return nil
 	}
+
+	// CRITICAL: Return nil command when no animations are active
+	return nil
 }
 
 // GetAnimationProgress returns the current progress of an animation (0.0 to 1.0)
@@ -379,4 +380,14 @@ func abs(x float64) float64 {
 		return -x
 	}
 	return x
+}
+
+// StaggeredEntrance creates a staggered entrance animation for dashboard panels
+func (am *AnimationManager) StaggeredEntrance(panelIDs []string) {
+	for i, id := range panelIDs {
+		go func(panelID string, delay int) {
+			time.Sleep(time.Duration(delay) * 100 * time.Millisecond)
+			am.SlideTransition(panelID+"_entrance", 1.0)
+		}(id, i)
+	}
 }

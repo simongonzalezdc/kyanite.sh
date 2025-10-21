@@ -30,9 +30,21 @@ go build -o noise.exe ./cmd/noise
 ```
 
 #### Option 3: Using the Helper Script (Windows)
-```bash
+```cmd
 # Run the build and launch script
 .\scripts\build_and_launch.bat
+```
+
+#### Option 4: Quick Launch Scripts (Windows)
+```cmd
+# Simple batch script launcher
+.\launch_noise.bat
+
+# PowerShell launcher (more verbose)
+powershell -ExecutionPolicy Bypass -File .\launch_noise.ps1
+
+# PowerShell launcher with parameters
+powershell -ExecutionPolicy Bypass -File .\launch_noise.ps1 --debug
 ```
 
 ## Launch Options
@@ -173,7 +185,11 @@ make build
 ## Helper Scripts
 
 ### Windows Batch Script
-Run `.\scripts\build_and_launch.bat` for automated building and launching.
+Run `.\scripts\build_and_launch.bat` for automated building and launching with interactive options.
+
+### Alternative Windows Launchers
+- **`launch_noise.bat`** - Simple batch script that automatically builds if needed
+- **`launch_noise.ps1`** - PowerShell script with colored output and better error handling
 
 ### Test Script
 Run `.\scripts\test_themes.go` for automated theme testing.
@@ -181,6 +197,17 @@ Run `.\scripts\test_themes.go` for automated theme testing.
 ## Troubleshooting
 
 ### Common Issues
+
+#### Script Not Found Error
+If you get "command not recognized" when running `.\scripts\build_and_launch.bat`:
+
+1. **Check file exists**: Verify the script is in the scripts directory
+2. **Use full path**: Try the full path: `c:\path\to\noise.sh\scripts\build_and_launch.bat`
+3. **Use alternative launcher**: Try `.\launch_noise.bat` instead
+4. **PowerShell execution policy**: For PowerShell scripts, run:
+   ```powershell
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
 
 #### Build Errors
 ```bash
@@ -190,6 +217,9 @@ go version
 # Clean and rebuild
 make clean
 make build
+
+# Or use the batch script
+.\scripts\build_and_launch.bat
 ```
 
 #### Theme Not Applying
@@ -240,12 +270,59 @@ If you encounter issues with the theme system:
 3. Include your terminal type and OS
 4. Report issues on the GitHub repository
 
+## Windows Launch Methods Summary
+
+### Recommended Methods (in order of preference):
+
+1. **Interactive Launcher** (Recommended for testing):
+   ```cmd
+   .\scripts\build_and_launch.bat
+   ```
+   - Provides interactive menu with theme testing options
+   - Automatically builds if needed
+   - Best for first-time users and theme testing
+
+2. **Simple Batch Launcher** (Quick launch):
+   ```cmd
+   .launch_noise.bat
+   ```
+   - Minimal, fast launcher
+   - Automatically builds if needed
+   - Good for daily use
+
+3. **PowerShell Launcher** (Verbose output):
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\launch_noise.ps1
+   ```
+   - Colored output and detailed error messages
+   - Automatically builds if needed
+   - Good for troubleshooting
+
+4. **Direct Go Commands** (For developers):
+   ```cmd
+   go build -o noise.exe ./cmd/noise
+   .\noise.exe
+   ```
+   - Full control over build process
+   - Requires manual building
+   - Best for development
+
+5. **Make Commands** (If Make is installed):
+   ```cmd
+   make build
+   make run
+   ```
+   - Standard build system
+   - Requires Make on Windows
+   - Good for cross-platform development
+
 ## Summary
 
 The Kyanite theme system provides 10 carefully crafted themes for noise.sh. Use this guide to:
-- Build and launch the application
+- Build and launch the application using multiple methods
 - Test all theme functionality
 - Verify theme persistence and performance
 - Ensure proper integration with all features
+- Troubleshoot common Windows launch issues
 
 All themes should provide excellent readability and a consistent user experience across the entire application.

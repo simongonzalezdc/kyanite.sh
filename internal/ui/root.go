@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"time"
+
 	"github.com/Kyanite/noise/internal/collaboration"
 	"github.com/Kyanite/noise/internal/config"
 	errutil "github.com/Kyanite/noise/internal/errutil"
@@ -8,6 +10,7 @@ import (
 	"github.com/Kyanite/noise/internal/logging"
 	"github.com/Kyanite/noise/internal/plugins"
 	"github.com/Kyanite/noise/internal/theme"
+	"github.com/Kyanite/noise/internal/ui/dashboard"
 	"github.com/Kyanite/noise/internal/ui/editor"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -27,6 +30,7 @@ type screen int
 const (
 	screenSplash screen = iota
 	screenMenu
+	screenDashboard
 	screenEditor
 	screenExport
 	screenTheory
@@ -35,6 +39,12 @@ const (
 	screenSettings
 	screenLoading
 )
+
+// ForceRefreshMsg triggers a complete re-render
+type ForceRefreshMsg struct{}
+
+// RefreshTimerMsg triggers periodic refresh
+type RefreshTimerMsg struct{}
 
 // RootModel is the main application model that handles routing between screens
 type RootModel struct {
@@ -50,14 +60,15 @@ type RootModel struct {
 	config *config.Config
 
 	// Child models
-	splash   *SplashModel
-	menu     *MenuModel
-	editor   *EditorModel
-	export   *ExportModel
-	theory   *TheoryModel
-	audio    *AudioModel
-	manager  *ManagerModel
-	settings *SettingsModel
+	splash    *SplashModel
+	menu      *MenuModel
+	dashboard interface{ Init() tea.Cmd; Update(tea.Msg) tea.Cmd; View() string }
+	editor    *EditorModel
+	export    *ExportModel
+	theory    *TheoryModel
+	audio     *AudioModel
+	manager   *ManagerModel
+	settings  *SettingsModel
 
 	// Help system
 	helpMode bool
@@ -115,6 +126,10 @@ func (m *RootModel) Init() tea.Cmd {
 		tea.EnterAltScreen,
 		m.initializeApp(),
 		m.spinner.Tick,
+		// Add periodic refresh timer
+		func() tea.Msg {
+			return RefreshTimerMsg{}
+		},
 	)
 }
 
@@ -146,6 +161,17 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, sizeCmd)
 		}
 
+	case ForceRefreshMsg:
+		// Force a complete re-render
+		return m, nil
+
+	case RefreshTimerMsg:
+		// Trigger periodic refresh every 100ms
+		cmds = append(cmds, func() tea.Msg {
+			time.Sleep(100 * time.Millisecond)
+			return RefreshTimerMsg{}
+		})
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
@@ -173,6 +199,9 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Toggle help mode
 			m.helpMode = !m.helpMode
 			return m, nil
+		default:
+			// After any key press, ensure we refresh
+			cmds = append(cmds, func() tea.Msg { return ForceRefreshMsg{} })
 		}
 
 	case initSuccessMsg:
@@ -180,10 +209,11 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.loading = false
 
 		// If quick start is configured, go directly to editor
+		// Otherwise, start with the dashboard as the primary interface
 		if m.quickStartConfig != nil {
 			m.currentScreen = screenEditor
 		} else {
-			m.currentScreen = screenMenu
+			m.currentScreen = screenDashboard
 		}
 
 		// Initialize collaboration system
@@ -260,10 +290,14 @@ func (m *RootModel) initializeChildModels() {
 	m.audio = NewAudioModel()
 	m.manager = NewManagerModel(m.database)
 	m.settings = NewSettingsModel(m.config)
-
+	
+	// Initialize dashboard
+	m.dashboard = dashboard.NewDashboardModel()
+	
 	// Initialize help system
-	m.helpPane = editor.NewHelpPaneModel(nil) // Shortcut manager will be set when needed
+	m.helpPane = editor.NewHelpPaneModel(nil)
 }
+
 
 // initializeCollaborationSystem initializes the collaboration system
 func (m *RootModel) initializeCollaborationSystem() {
@@ -331,6 +365,8 @@ func (m *RootModel) updateCurrentScreen(msg tea.Msg) tea.Cmd {
 			}
 		}
 		return m.updateManager(msg)
+	case screenDashboard:
+		return m.updateDashboard(msg)
 	case screenSettings:
 		return m.updateSettings(msg)
 	}
@@ -365,6 +401,8 @@ func (m *RootModel) View() string {
 		content = m.renderExport()
 	case screenLoading:
 		content = m.renderLoading()
+	case screenDashboard:
+		content = m.renderDashboard()
 	default:
 		content = "Unknown screen"
 	}
@@ -436,6 +474,13 @@ func (m *RootModel) renderLoading() string {
 	}
 
 	return loadingStyle.Render(loadingText)
+}
+
+func (m *RootModel) renderDashboard() string {
+	if m.dashboard != nil {
+		return m.dashboard.View()
+	}
+	return "Dashboard loading..."
 }
 
 // renderHelp renders the help screen
@@ -522,6 +567,14 @@ func (m *RootModel) updateManager(msg tea.Msg) tea.Cmd {
 func (m *RootModel) updateSettings(msg tea.Msg) tea.Cmd {
 	if m.settings != nil {
 		_, cmd := m.settings.Update(msg)
+		return cmd
+	}
+	return nil
+}
+
+func (m *RootModel) updateDashboard(msg tea.Msg) tea.Cmd {
+	if m.dashboard != nil {
+		cmd := m.dashboard.Update(msg)
 		return cmd
 	}
 	return nil

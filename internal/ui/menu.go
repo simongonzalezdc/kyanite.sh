@@ -25,6 +25,7 @@ type MenuModel struct {
 // NewMenuModel creates a new menu model
 func NewMenuModel() *MenuModel {
 	items := []list.Item{
+		item{title: "Dashboard", desc: "Main dashboard with quick access", screen: screenDashboard},
 		item{title: "New Song", desc: "Create a new song", screen: screenEditor},
 		item{title: "Open Song", desc: "Open an existing song", screen: screenEditor},
 		item{title: "Export", desc: "Export current song to various formats", screen: screenExport},
@@ -128,6 +129,7 @@ func (m *MenuModel) Update(msg tea.Msg) (*MenuModel, tea.Cmd) {
 	m.list, cmd = m.list.Update(msg)
 	cmds = append(cmds, cmd)
 
+	// CRITICAL: Always return commands to ensure proper updates
 	return m, tea.Batch(cmds...)
 }
 
