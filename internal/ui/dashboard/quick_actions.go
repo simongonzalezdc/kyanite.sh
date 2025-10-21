@@ -107,15 +107,15 @@ func (m *QuickActionsModel) View() string {
 	if m.width == 0 {
 		return "Quick Actions"
 	}
-	
+
 	t := theme.GetManager().Current()
-	
+
 	// Calculate grid layout
 	cols := 2
 	if m.width > 100 {
 		cols = 3
 	}
-	
+
 	var rows []string
 	for i := 0; i < len(m.actions); i += cols {
 		var row []string
@@ -126,12 +126,12 @@ func (m *QuickActionsModel) View() string {
 		}
 		rows = append(rows, lipgloss.JoinHorizontal(lipgloss.Left, row...))
 	}
-	
+
 	title := lipgloss.NewStyle().
 		Foreground(t.Primary).
 		Bold(true).
 		Render("Quick Actions")
-	
+
 	return lipgloss.JoinVertical(lipgloss.Left,
 		title,
 		"",

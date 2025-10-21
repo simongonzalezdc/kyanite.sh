@@ -126,7 +126,7 @@ func TestCollaborationManager_JoinSession(t *testing.T) {
 			username:    "User One",
 			role:        RoleEditor,
 			expectError: true,
-			errorMsg:    "user not in session",
+			errorMsg:    "user already in session",
 		},
 		{
 			name:        "Session full",
@@ -387,7 +387,7 @@ func TestCollaborationManager_UpdateCursor(t *testing.T) {
 			userID:      "user1",
 			position:    CursorPosition{Line: 1, Column: 1},
 			expectError: true,
-			errorMsg:    "user not in session",
+			errorMsg:    "session not found",
 		},
 		{
 			name:        "Cursor update for non-participant",

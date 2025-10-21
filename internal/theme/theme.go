@@ -15,6 +15,11 @@ type Theme struct {
 	Error      lipgloss.Color // Error states
 }
 
+// ThemeChangeMsg represents a message for theme changes
+type ThemeChangeMsg struct {
+	Theme Theme
+}
+
 // GetStyle returns a lipgloss style using given foreground and background.
 func (t Theme) GetStyle(fg, bg lipgloss.Color) lipgloss.Style {
 	return lipgloss.NewStyle().

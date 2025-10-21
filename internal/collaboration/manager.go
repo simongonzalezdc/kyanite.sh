@@ -277,6 +277,11 @@ func (cm *CollaborationManager) JoinSession(sessionID, userID, username string, 
 		return nil, fmt.Errorf("session is not active")
 	}
 
+	// Check if user is already in session
+	if _, participantExists := cm.participants[sessionID][userID]; participantExists {
+		return nil, fmt.Errorf("user already in session: %s", userID)
+	}
+
 	// Check participant limit
 	if len(cm.participants[sessionID]) >= session.Settings.MaxParticipants {
 		return nil, fmt.Errorf("session is full")
@@ -444,11 +449,18 @@ func (cm *CollaborationManager) ApplyOperation(sessionID, userID string, operati
 
 // UpdateCursor updates a user's cursor position
 func (cm *CollaborationManager) UpdateCursor(sessionID, userID string, position CursorPosition) error {
-	cm.mu.RLock()
-	defer cm.mu.RUnlock()
+	cm.mu.Lock()
+	defer cm.mu.Unlock()
 
-	participant, exists := cm.participants[sessionID][userID]
-	if !exists {
+	// Check if session exists
+	_, sessionExists := cm.sessions[sessionID]
+	if !sessionExists {
+		return fmt.Errorf("session not found: %s", sessionID)
+	}
+
+	// Check if user is in session
+	participant, participantExists := cm.participants[sessionID][userID]
+	if !participantExists {
 		return fmt.Errorf("user not in session")
 	}
 
@@ -572,6 +584,9 @@ func (cm *CollaborationManager) processEvents() {
 			return
 		case event := <-cm.events:
 			cm.handleEvent(event)
+		case <-time.After(100 * time.Millisecond):
+			// Timeout to prevent blocking
+			continue
 		}
 	}
 }
@@ -583,6 +598,9 @@ func (cm *CollaborationManager) processBroadcasts() {
 			return
 		case msg := <-cm.broadcast:
 			cm.handleBroadcast(msg)
+		case <-time.After(100 * time.Millisecond):
+			// Timeout to prevent blocking
+			continue
 		}
 	}
 }

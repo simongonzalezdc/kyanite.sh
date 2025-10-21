@@ -60,7 +60,7 @@ func NewContextDetector() *ContextDetector {
 		regexp.MustCompile(`(?i)^\s*(?:verse|chorus|bridge|intro|outro|pre-chorus|prechorus)\s*:\s*(?:[IVX]+[ivx]?)(?:\s*[-|/ ]\s*(?:[IVX]+[ivx]?))*\s*$`), // Section-labelled roman numerals
 		regexp.MustCompile(`(?i)^\s*\|(?:\s*[IVX]+[ivx]?\s*\|)+\s*$`),                                                                                      // Roman numeral grids with bars
 		// Musical notation
-		regexp.MustCompile(`(?i)^\s*(verse|chorus)\s*:\s*[A-G]`),
+		regexp.MustCompile(`(?i)^\s*(verse|chorus)\s*:\s*[A-G][#b]?`),
 		regexp.MustCompile(`(?i)^\s*tempo\s*:\s*\d+\s*bpm`),
 		regexp.MustCompile(`(?i)^\s*key\s*:\s*[A-G][#b]?\s*(major|minor)?`),
 		regexp.MustCompile(`(?i)^\s*time\s*signature\s*:\s*\d+\/\d+`),
@@ -73,6 +73,15 @@ func NewContextDetector() *ContextDetector {
 		regexp.MustCompile(`(?i)^\s*loop\s*\d*\s*[:\-=]`),
 		regexp.MustCompile(`(?i)^\s*beat\s*\d*\s*[:\-=]`),
 		regexp.MustCompile(`(?i)^\s*rhythm\s*\d*\s*[:\-=]`),
+		// Additional musical notation patterns
+		regexp.MustCompile(`(?i)^\s*[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?\s*(?:[-|/]\s*[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?)*\s*$`), // Chord sequences
+		regexp.MustCompile(`(?i)^\s*\d+\/\d+\s*$`),                                                                                                                                             // Time signatures standalone
+		regexp.MustCompile(`(?i)^\s*[A-G][#b]?\s*(?:major|minor)\s*$`),                                                                                                                         // Key signatures standalone
+		// Enhanced patterns for better musical notation detection
+		regexp.MustCompile(`(?i)^\s*\d+\s*bpm\s*$`),                                                                                                                                            // Simple BPM notation
+		regexp.MustCompile(`(?i)^\s*\d+\/\d+\s*(?:time|time\s*sig|signature)?\s*$`),                                                                                                            // Time signatures with optional text
+		regexp.MustCompile(`(?i)^\s*[A-G][#b]?\s*(?:major|minor)?\s*(?:key|scale)?\s*$`),                                                                                                       // Key signatures with optional text
+		regexp.MustCompile(`(?i)^\s*(?:intro|verse|chorus|bridge|outro|pre-chorus|prechorus)\s*[:\-\=]\s*[A-G][#b]?(?:maj|min|m|dim|aug)?`),                                                   // Section with chord
 	}
 
 	detector.lyricStructuralPatterns = map[*regexp.Regexp]bool{
@@ -104,6 +113,13 @@ func NewContextDetector() *ContextDetector {
 		detector.patternPatterns[6]:  true,
 		detector.patternPatterns[12]: true,
 		detector.patternPatterns[13]: true,
+		detector.patternPatterns[14]: true,
+		detector.patternPatterns[15]: true,
+		detector.patternPatterns[16]: true,
+		detector.patternPatterns[17]: true,
+		detector.patternPatterns[18]: true,
+		detector.patternPatterns[19]: true,
+		detector.patternPatterns[20]: true,
 	}
 
 	return detector
@@ -231,17 +247,21 @@ func (cd *ContextDetector) AnalyzeContent(content string) ContentType {
 		if patternRatio == 0 && lyricLexicalHits == 0 {
 			return ContentTypeUnknown
 		}
+		// For very short content, be more lenient with pattern detection
+		if totalLines == 1 && rawPatternRatio > 0.5 {
+			return ContentTypePatterns
+		}
 	}
 
 	if lyricScore > 0 && lyricLexicalHits == 0 && strongLyricLines == 0 && patternScore == 0 {
 		return ContentTypeUnknown
 	}
 
-	if strongLyricLines == 0 && patternScore == 0 && rawLyricRatio < 0.7 {
+	if strongLyricLines == 0 && patternScore == 0 && rawLyricRatio < 0.5 {
 		return ContentTypeUnknown
 	}
 
-	if strongPatternLines == 0 && lyricScore == 0 && rawPatternRatio < 0.7 {
+	if strongPatternLines == 0 && lyricScore == 0 && rawPatternRatio < 0.5 {
 		return ContentTypeUnknown
 	}
 

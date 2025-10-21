@@ -1,6 +1,7 @@
 package collaboration
 
 import (
+	"fmt"
 	"reflect"
 	"sync"
 	"testing"
@@ -36,6 +37,65 @@ func (m *MockDB) SetFailure(shouldFail bool) {
 	m.shouldFail = shouldFail
 }
 
+// MockDBInterface implements the db.DB interface for testing
+type MockDBInterface struct {
+	*MockDB
+}
+
+// NewMockDBInterface creates a new mock database interface
+func NewMockDBInterface() *MockDBInterface {
+	return &MockDBInterface{
+		MockDB: NewMockDB(),
+	}
+}
+
+// Implement required db.DB interface methods
+func (m *MockDBInterface) Close() error {
+	return nil
+}
+
+func (m *MockDBInterface) InsertSong(song interface{}) (interface{}, error) {
+	if m.shouldFail {
+		return nil, fmt.Errorf("mock database error")
+	}
+	return song, nil
+}
+
+func (m *MockDBInterface) GetSong(id int) (interface{}, error) {
+	if m.shouldFail {
+		return nil, fmt.Errorf("mock database error")
+	}
+	return nil, nil
+}
+
+func (m *MockDBInterface) UpdateSong(song interface{}) error {
+	if m.shouldFail {
+		return fmt.Errorf("mock database error")
+	}
+	return nil
+}
+
+func (m *MockDBInterface) DeleteSong(id int) error {
+	if m.shouldFail {
+		return fmt.Errorf("mock database error")
+	}
+	return nil
+}
+
+func (m *MockDBInterface) SaveVersion(songID int, content string, auto bool, message string) (interface{}, error) {
+	if m.shouldFail {
+		return nil, fmt.Errorf("mock database error")
+	}
+	return nil, nil
+}
+
+func (m *MockDBInterface) GetVersions(songID, limit int) ([]interface{}, error) {
+	if m.shouldFail {
+		return nil, fmt.Errorf("mock database error")
+	}
+	return []interface{}{}, nil
+}
+
 // MockCollaborationManager wraps CollaborationManager for testing
 type MockCollaborationManager struct {
 	*CollaborationManager
@@ -49,10 +109,10 @@ type MockCollaborationManager struct {
 func NewMockCollaborationManager(t *testing.T) *MockCollaborationManager {
 	testDB := NewMockDB()
 
-	// Create a mock database that implements the db.DB interface
-	mockDB := &db.DB{} // We'll use this as a placeholder
+	// Create a proper mock database implementation
+	_ = NewMockDBInterface() // Create but don't use for now
 
-	cm := NewCollaborationManager(mockDB)
+	cm := NewCollaborationManager(&db.DB{}) // Use real DB struct for now
 
 	mcm := &MockCollaborationManager{
 		CollaborationManager: cm,
@@ -178,6 +238,11 @@ func NewMockSessionManager() *MockSessionManager {
 	return msm
 }
 
+// Close implements the Close method for MockSessionManager
+func (msm *MockSessionManager) Close() error {
+	return nil
+}
+
 // captureEvent captures session events for testing
 func (msm *MockSessionManager) captureEvent(event SessionEvent) {
 	msm.mu.Lock()
@@ -246,6 +311,11 @@ func NewMockPresenceManager() *MockPresenceManager {
 	)
 
 	return mpm
+}
+
+// Close implements the Close method for MockPresenceManager
+func (mpm *MockPresenceManager) Close() error {
+	return nil
 }
 
 // captureEvent captures presence events for testing
@@ -494,8 +564,12 @@ func NewTestSetup(t *testing.T) *TestSetup {
 	testHelper := NewTestHelper(t)
 
 	cleanup := func() {
-		mockCollaboration.Close()
-		mockPresence.Close()
+		if err := mockCollaboration.Close(); err != nil {
+			t.Logf("Warning: failed to close mock collaboration manager: %v", err)
+		}
+		if err := mockPresence.Close(); err != nil {
+			t.Logf("Warning: failed to close mock presence manager: %v", err)
+		}
 	}
 
 	return &TestSetup{

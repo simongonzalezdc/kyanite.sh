@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-
 	"github.com/Kyanite/noise/internal/config"
 )
 
@@ -18,6 +17,8 @@ var (
 type Manager struct {
 	mu      sync.RWMutex
 	current Theme
+	// Add a channel for theme change notifications
+	themeChangeChan chan Theme
 }
 
 // GetManager returns the global theme manager (singleton)
@@ -25,6 +26,7 @@ func GetManager() *Manager {
 	once.Do(func() {
 		globalManager = &Manager{
 			current: Default(),
+			themeChangeChan: make(chan Theme, 10), // Buffered channel for theme changes
 		}
 		// Load saved theme preference
 		if err := globalManager.LoadThemePreference(); err != nil {
@@ -39,6 +41,13 @@ func (m *Manager) SetTheme(id string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.current = GetTheme(id)
+
+	// Notify listeners of theme change
+	select {
+	case m.themeChangeChan <- m.current:
+	default:
+		// Channel is full, drop the notification
+	}
 
 	// Save preference asynchronously
 	go func() {
@@ -81,6 +90,13 @@ func (m *Manager) Next() Theme {
 		}
 	}
 
+	// Notify listeners of theme change
+	select {
+	case m.themeChangeChan <- m.current:
+	default:
+		// Channel is full, drop the notification
+	}
+
 	// Save preference asynchronously
 	go func() {
 		if err := m.SaveThemePreference(); err != nil {
@@ -114,6 +130,13 @@ func (m *Manager) Previous() Theme {
 			m.current = Registry[themes[prevIndex]]
 			break
 		}
+	}
+
+	// Notify listeners of theme change
+	select {
+	case m.themeChangeChan <- m.current:
+	default:
+		// Channel is full, drop the notification
 	}
 
 	// Save preference asynchronously
@@ -211,4 +234,9 @@ func (m *Manager) LoadThemePreference() error {
 	}
 
 	return nil
+}
+
+// GetThemeChangeChannel returns a channel for listening to theme changes
+func (m *Manager) GetThemeChangeChannel() <-chan Theme {
+	return m.themeChangeChan
 }

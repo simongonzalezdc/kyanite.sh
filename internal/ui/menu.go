@@ -20,6 +20,9 @@ type MenuModel struct {
 	compactMode     bool
 	showShortTitles bool
 	showMinimalMenu bool
+	
+	// Navigation simplification
+	showHelpHint bool // New field for contextual help
 }
 
 // NewMenuModel creates a new menu model
@@ -33,6 +36,7 @@ func NewMenuModel() *MenuModel {
 		item{title: "Audio Tools", desc: "Metronome and chord playback", screen: screenAudio},
 		item{title: "Project Manager", desc: "Manage songs and projects", screen: screenManager},
 		item{title: "Settings", desc: "Application settings", screen: screenSettings},
+		item{title: "Help", desc: "Show help and keyboard shortcuts", screen: screenMenu}, // Updated item
 		item{title: "Exit", desc: "Exit noise.sh", screen: screenSplash},
 	}
 
@@ -73,6 +77,7 @@ func NewMenuModel() *MenuModel {
 		compactMode:     false,
 		showShortTitles: false,
 		showMinimalMenu: false,
+		showHelpHint:    true, // Show help hint by default
 	}
 }
 
@@ -98,7 +103,14 @@ func (m *MenuModel) Update(msg tea.Msg) (*MenuModel, tea.Cmd) {
 			if ok {
 				// Start selection animation
 				m.animation.PulseAnimation("menu_selection", 1.0)
-				// Return screen change command
+				// Special handling for Help item
+				if selectedItem.title == "Help" {
+					// Toggle help mode instead of changing screen
+					return m, func() tea.Msg {
+						return ToggleHelpMsg{} // New message type for help toggle
+					}
+				}
+				// Return screen change command for other items
 				return m, func() tea.Msg {
 					return ScreenChangeMsg{Screen: selectedItem.screen}
 				}
@@ -115,6 +127,11 @@ func (m *MenuModel) Update(msg tea.Msg) (*MenuModel, tea.Cmd) {
 				m.animation.SlideTransition("menu_selection_change", 1.0)
 			}
 			return m, tea.Batch(cmds...)
+		case "h", "H", "?": // New key bindings for help
+			// Toggle help mode
+			return m, func() tea.Msg {
+				return ToggleHelpMsg{}
+			}
 		}
 
 	case AnimationTickMsg:
@@ -242,6 +259,9 @@ func titleGradient(text string, t theme.Theme) string {
 
 	return result
 }
+
+// ToggleHelpMsg represents a message to toggle help mode
+type ToggleHelpMsg struct{}
 
 // item represents a menu item
 type item struct {

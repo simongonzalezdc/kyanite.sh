@@ -13,6 +13,8 @@ type ThemePreviewModel struct {
 	currentIdx  int
 	themes      []theme.Theme
 	showDetails bool
+	// Add field for theme change notifications
+	themeChangeChan chan theme.Theme
 }
 
 // NewThemePreviewModel creates a new theme preview
@@ -27,23 +29,33 @@ func NewThemePreviewModel() *ThemePreviewModel {
 		currentIdx: 0,
 		themes:     themes,
 		showDetails: false,
+		themeChangeChan: make(chan theme.Theme, 10), // Buffered channel for theme changes
 	}
 }
 
 // Update handles messages for the theme preview
 func (m *ThemePreviewModel) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
-	
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
 		// CRITICAL: Return a command to trigger re-render
 		return nil
-		
-	// ... other cases ...
+
+	// Handle theme change notifications
+	case theme.ThemeChangeMsg:
+		// Find the index of the new theme
+		for i, t := range m.themes {
+			if t.Name == msg.Theme.Name {
+				m.currentIdx = i
+				break
+			}
+		}
+		return nil
 	}
-	
+
 	// CRITICAL: Always return commands
 	return tea.Batch(cmds...)
 }
@@ -162,4 +174,19 @@ func (m *ThemePreviewModel) PreviousTheme() {
 	m.currentIdx = (m.currentIdx - 1 + len(m.themes)) % len(m.themes)
 	// Update the global theme manager
 	theme.GetManager().SetTheme(theme.ListThemes()[m.currentIdx])
+}
+
+// SetThemeChangeChannel sets up a channel to listen for theme changes
+func (m *ThemePreviewModel) SetThemeChangeChannel(ch <-chan theme.Theme) {
+	go func() {
+		for newTheme := range ch {
+			// Find the index of the new theme
+			for i, t := range m.themes {
+				if t.Name == newTheme.Name {
+					m.currentIdx = i
+					break
+				}
+			}
+		}
+	}()
 }

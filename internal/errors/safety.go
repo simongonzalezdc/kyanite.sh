@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -68,9 +69,9 @@ func (bm *BackupManager) CreateBackup(song *domain.Song, backupType string) (*Ba
 		return nil, NewParsingError("serialize_song", err).WithOperation("CreateBackup").WithComponent("backup_manager")
 	}
 
-	// Create backup file
+	// Create backup file with secure permissions
 	backupPath := bm.getBackupPath(backupInfo.ID)
-	if err := os.WriteFile(backupPath, content, 0644); err != nil {
+	if err := os.WriteFile(backupPath, content, 0600); err != nil {
 		return nil, NewFileError("write_backup", backupPath, err).WithOperation("CreateBackup").WithComponent("backup_manager")
 	}
 
@@ -99,6 +100,11 @@ func (bm *BackupManager) RestoreBackup(backupID string) (*domain.Song, error) {
 	defer bm.mu.RUnlock()
 
 	backupPath := bm.getBackupPath(backupID)
+
+	// Validate backup path for security
+	if err := bm.validateBackupPath(backupPath); err != nil {
+		return nil, NewValidationError("invalid backup path", err).WithOperation("RestoreBackup").WithComponent("backup_manager")
+	}
 
 	// Check if backup exists
 	if _, err := os.Stat(backupPath); os.IsNotExist(err) {
@@ -171,6 +177,11 @@ func (bm *BackupManager) DeleteBackup(backupID string) error {
 
 	backupPath := bm.getBackupPath(backupID)
 
+	// Validate backup path for security
+	if err := bm.validateBackupPath(backupPath); err != nil {
+		return NewValidationError("invalid backup path", err).WithOperation("DeleteBackup").WithComponent("backup_manager")
+	}
+
 	if err := os.Remove(backupPath); err != nil {
 		return NewFileError("delete_backup", backupPath, err).WithOperation("DeleteBackup").WithComponent("backup_manager")
 	}
@@ -194,7 +205,9 @@ func (bm *BackupManager) deserializeSong(content []byte) (*domain.Song, error) {
 }
 
 func (bm *BackupManager) getBackupPath(backupID string) string {
-	return filepath.Join(bm.backupDir, fmt.Sprintf("backup_%s.json", backupID))
+	// Validate and sanitize backup ID to prevent directory traversal
+	sanitizedID := bm.sanitizeBackupID(backupID)
+	return filepath.Join(bm.backupDir, fmt.Sprintf("backup_%s.json", sanitizedID))
 }
 
 func (bm *BackupManager) parseBackupFilename(filename string) (*BackupInfo, error) {
@@ -275,6 +288,64 @@ func (bm *BackupManager) cleanupOldBackups() error {
 
 func generateBackupID() string {
 	return fmt.Sprintf("%d_%d", time.Now().Unix(), time.Now().UnixNano()%1000000)
+}
+
+// sanitizeBackupID validates and sanitizes backup ID to prevent directory traversal
+func (bm *BackupManager) sanitizeBackupID(backupID string) string {
+	// Remove any path traversal attempts
+	if strings.Contains(backupID, "..") {
+		bm.logger.Warn("Backup ID contains directory traversal attempt", "backup_id", backupID)
+		// Generate a safe backup ID instead
+		backupID = generateBackupID()
+	}
+
+	// Remove any path separators
+	backupID = strings.ReplaceAll(backupID, "/", "_")
+	backupID = strings.ReplaceAll(backupID, "\\", "_")
+
+	// Remove any other dangerous characters
+	dangerousChars := []string{"<", ">", ":", "*", "?", "\"", "|", "\x00"}
+	for _, char := range dangerousChars {
+		backupID = strings.ReplaceAll(backupID, char, "_")
+	}
+
+	// Ensure ID is not empty and not too long
+	if backupID == "" {
+		backupID = generateBackupID()
+	}
+	if len(backupID) > 255 {
+		backupID = backupID[:255]
+	}
+
+	return backupID
+}
+
+// validateBackupPath ensures the backup path is within the allowed directory
+func (bm *BackupManager) validateBackupPath(backupPath string) error {
+	// Get absolute path of backup directory
+	absBackupDir, err := filepath.Abs(bm.backupDir)
+	if err != nil {
+		return fmt.Errorf("invalid backup directory: %w", err)
+	}
+
+	// Get absolute path of the requested backup file
+	absBackupPath, err := filepath.Abs(backupPath)
+	if err != nil {
+		return fmt.Errorf("invalid backup path: %w", err)
+	}
+
+	// Ensure the backup path is within the backup directory
+	relPath, err := filepath.Rel(absBackupDir, absBackupPath)
+	if err != nil {
+		return fmt.Errorf("backup path outside allowed directory: %w", err)
+	}
+
+	// Check for directory traversal attempts
+	if strings.HasPrefix(relPath, "..") || strings.Contains(relPath, ".."+string(filepath.Separator)) {
+		return fmt.Errorf("directory traversal attempt detected in backup path: %s", relPath)
+	}
+
+	return nil
 }
 
 // RecoveryManager handles recovery from various failure scenarios

@@ -37,6 +37,7 @@ type DashboardModel struct {
 
 	// UI state
 	focusedPanel string
+	showAllPanels bool // New field for progressive disclosure
 
 	// Header and footer
 	header *HeaderModel
@@ -54,6 +55,7 @@ func NewDashboardModel() *DashboardModel {
 		aiAssistant:  NewAIAssistantModel(),
 		systemInfo:   NewSystemInfoModel(),
 		focusedPanel: "quickactions",
+		showAllPanels: false, // Start with simplified view
 		header:       NewHeaderModel(),
 		footer:       NewFooterModel(),
 	}
@@ -143,6 +145,9 @@ func (dm *DashboardModel) Update(msg tea.Msg) tea.Cmd {
 		case "tab":
 			// Navigate between panels
 			dm.focusNextPanel()
+		case "d", "D": // New key binding for toggling panel visibility
+			// Toggle between simplified and full dashboard views
+			dm.showAllPanels = !dm.showAllPanels
 		case "esc":
 			// Return to menu
 			return func() tea.Msg {
@@ -166,46 +171,52 @@ func (dm *DashboardModel) View() string {
 	// Header
 	header := dm.header.View()
 
-	// Main content based on layout
+	// Main content based on layout and progressive disclosure
 	var content string
-	switch config.GridCols {
-	case 3:
-		// Full 3x3 grid
-		topRow := lipgloss.JoinHorizontal(lipgloss.Top,
-			dm.themeManager.View(),
-			dm.quickActions.View(),
-			dm.recentWork.View(),
-		)
-		middleRow := lipgloss.JoinHorizontal(lipgloss.Top,
-			dm.musicTools.View(),
-			dm.aiAssistant.View(),
-			dm.systemInfo.View(),
-		)
-		content = lipgloss.JoinVertical(lipgloss.Left, topRow, middleRow)
+	if dm.showAllPanels {
+		// Full dashboard view
+		switch config.GridCols {
+		case 3:
+			// Full 3x3 grid
+			topRow := lipgloss.JoinHorizontal(lipgloss.Top,
+				dm.themeManager.View(),
+				dm.quickActions.View(),
+				dm.recentWork.View(),
+			)
+			middleRow := lipgloss.JoinHorizontal(lipgloss.Top,
+				dm.musicTools.View(),
+				dm.aiAssistant.View(),
+				dm.systemInfo.View(),
+			)
+			content = lipgloss.JoinVertical(lipgloss.Left, topRow, middleRow)
 
-	case 2:
-		// 2x3 grid
-		topRow := lipgloss.JoinHorizontal(lipgloss.Top,
-			dm.themeManager.View(),
-			dm.quickActions.View(),
-		)
-		middleRow := lipgloss.JoinHorizontal(lipgloss.Top,
-			dm.recentWork.View(),
-			dm.musicTools.View(),
-		)
-		bottomRow := lipgloss.JoinHorizontal(lipgloss.Top,
-			dm.aiAssistant.View(),
-			dm.systemInfo.View(),
-		)
-		content = lipgloss.JoinVertical(lipgloss.Left, topRow, middleRow, bottomRow)
+		case 2:
+			// 2x3 grid
+			topRow := lipgloss.JoinHorizontal(lipgloss.Top,
+				dm.themeManager.View(),
+				dm.quickActions.View(),
+			)
+			middleRow := lipgloss.JoinHorizontal(lipgloss.Top,
+				dm.recentWork.View(),
+				dm.musicTools.View(),
+			)
+			bottomRow := lipgloss.JoinHorizontal(lipgloss.Top,
+				dm.aiAssistant.View(),
+				dm.systemInfo.View(),
+			)
+			content = lipgloss.JoinVertical(lipgloss.Left, topRow, middleRow, bottomRow)
 
-	case 1:
-		// Single column with active panel
-		content = dm.renderActivePanel()
+		case 1:
+			// Single column with active panel
+			content = dm.renderActivePanel()
 
-	default:
-		// Minimal menu
-		content = dm.renderMinimalMenu()
+		default:
+			// Minimal menu
+			content = dm.renderMinimalMenu()
+		}
+	} else {
+		// Simplified dashboard view with only essential panels
+		content = dm.renderSimplifiedView()
 	}
 
 	// Footer
@@ -246,6 +257,45 @@ func (dm *DashboardModel) renderActivePanel() string {
 		return dm.quickActions.View()
 	}
 }
+
+// renderSimplifiedView renders a simplified dashboard view
+func (dm *DashboardModel) renderSimplifiedView() string {
+	t := theme.GetManager().Current()
+
+	// Show only quick actions and theme preview in simplified view
+	topRow := lipgloss.JoinHorizontal(lipgloss.Top,
+		dm.themeManager.View(),
+		dm.quickActions.View(),
+	)
+
+	// Add hint for expanding the view
+	expandHint := lipgloss.NewStyle().
+		Foreground(t.Secondary).
+		Align(lipgloss.Center).
+		Render("Press [D] to expand dashboard panels")
+
+	return lipgloss.JoinVertical(lipgloss.Left, topRow, "", expandHint)
+}
+
+// GetOnboardingHints returns contextual hints for new users
+func (dm *DashboardModel) GetOnboardingHints() []string {
+	hints := []string{
+		"🎯 Quick tip: Use number keys (1-6) to quickly access actions",
+		"🎨 Press 'T' to cycle through beautiful themes",
+		"📚 Press 'H' or '?' for help and keyboard shortcuts",
+		"🔍 Press 'D' to toggle between simple and detailed views",
+	}
+
+	// Show different hints based on current state
+	if !dm.showAllPanels {
+		hints = append(hints, "💡 Press 'D' to see all dashboard panels")
+	} else {
+		hints = append(hints, "💡 Press 'D' to simplify the dashboard")
+	}
+
+	return hints
+}
+
 
 // renderMinimalMenu renders a minimal menu for very small terminals
 func (dm *DashboardModel) renderMinimalMenu() string {

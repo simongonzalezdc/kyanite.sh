@@ -179,6 +179,17 @@ func (asb *AnimatedStatusBar) SetStatus(status StatusType, message string) {
 	}
 }
 
+// Update handles messages for the animated status bar
+func (asb *AnimatedStatusBar) Update(msg tea.Msg) tea.Cmd {
+	switch msg.(type) {
+	case AnimationTickMsg:
+		cmd := asb.animation.Update()
+		return cmd
+	}
+
+	return nil
+}
+
 // View renders the animated status bar
 func (asb *AnimatedStatusBar) View() string {
 	// Base style
@@ -244,6 +255,9 @@ type AnimatedNotification struct {
 	duration  time.Duration
 	startTime time.Time
 	active    bool
+	// Add categorization for better notification management
+	category string
+	priority int
 }
 
 // NewAnimatedNotification creates a new animated notification
@@ -254,6 +268,21 @@ func NewAnimatedNotification(message, notifType string, duration time.Duration) 
 		animation: NewAnimationManager(),
 		duration:  duration,
 		active:    true,
+		category:  "general", // Default category
+		priority:  0,         // Default priority
+	}
+}
+
+// NewCategorizedNotification creates a notification with category and priority
+func NewCategorizedNotification(message, notifType, category string, priority int, duration time.Duration) *AnimatedNotification {
+	return &AnimatedNotification{
+		message:   message,
+		notifType: notifType,
+		animation: NewAnimationManager(),
+		duration:  duration,
+		active:    true,
+		category:  category,
+		priority:  priority,
 	}
 }
 
@@ -321,4 +350,24 @@ func (an *AnimatedNotification) View() string {
 // IsActive returns whether the notification is still active
 func (an *AnimatedNotification) IsActive() bool {
 	return an.active && an.animation.GetAnimationProgress("notification_fade_out") < 1.0
+}
+
+// GetCategory returns the notification category
+func (an *AnimatedNotification) GetCategory() string {
+	return an.category
+}
+
+// GetPriority returns the notification priority
+func (an *AnimatedNotification) GetPriority() int {
+	return an.priority
+}
+
+// SetCategory sets the notification category
+func (an *AnimatedNotification) SetCategory(category string) {
+	an.category = category
+}
+
+// SetPriority sets the notification priority
+func (an *AnimatedNotification) SetPriority(priority int) {
+	an.priority = priority
 }

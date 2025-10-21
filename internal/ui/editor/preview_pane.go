@@ -302,7 +302,6 @@ func createMidnightJazzStyle() string {
 		t.Secondary,
 		t.Secondary,
 		t.Secondary,
-		t.Secondary,
 		t.Primary,
 	)
 }

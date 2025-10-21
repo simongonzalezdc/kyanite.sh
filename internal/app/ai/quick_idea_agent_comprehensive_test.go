@@ -523,7 +523,7 @@ func TestQuickIdeaAgent_MusicalStyles(t *testing.T) {
 			name:        "Jazz progression",
 			context:     "Verse: Cmaj7 - Am7 - Dm7 - G7",
 			style:       "jazz",
-			expectedKey: "Am", // Fallback might use simpler chords
+			expectedKey: "C", // Use chord root instead of roman numeral
 		},
 		{
 			name:        "Blues progression",
@@ -549,7 +549,7 @@ func TestQuickIdeaAgent_MusicalStyles(t *testing.T) {
 		t.Run(style.name, func(t *testing.T) {
 			// Setup
 			mockClient := NewMockLLMClient()
-			mockClient.SetResponse(style.style, "1. "+style.expectedKey+" variation 1\n2. "+style.expectedKey+" variation 2\n3. "+style.expectedKey+" variation 3")
+			mockClient.SetResponse(style.style, "1. "+style.expectedKey+" - "+style.expectedKey+" - "+style.expectedKey+"\n2. "+style.expectedKey+" variation\n3. "+style.expectedKey+" progression")
 
 			agent := NewQuickIdeaAgent()
 			agent = agent.WithClient(mockClient, 5*time.Second)

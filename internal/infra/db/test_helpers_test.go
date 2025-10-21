@@ -22,7 +22,9 @@ func newTestDB(t testing.TB) *DB {
 		t.Fatalf("failed to create test database: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = database.Close()
+		if err := database.Close(); err != nil {
+			t.Logf("Warning: failed to close test database: %v", err)
+		}
 	})
 	return database
 }

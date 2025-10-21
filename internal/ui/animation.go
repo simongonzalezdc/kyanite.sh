@@ -28,10 +28,10 @@ type AnimationConfig struct {
 func DefaultAnimationConfig() AnimationConfig {
 	return AnimationConfig{
 		Enabled:          true,
-		AngularFrequency: 6.0, // Natural frequency for smooth animations
-		DampingRatio:     0.5, // Balanced damping for smooth motion
+		AngularFrequency: 4.0, // Reduced for smoother, less jarring animations
+		DampingRatio:     0.7, // Increased for more natural motion
 		ReducedMotion:    false,
-		FrameRate:        60,
+		FrameRate:        30, // Reduced frame rate for better performance
 	}
 }
 
@@ -386,8 +386,25 @@ func abs(x float64) float64 {
 func (am *AnimationManager) StaggeredEntrance(panelIDs []string) {
 	for i, id := range panelIDs {
 		go func(panelID string, delay int) {
-			time.Sleep(time.Duration(delay) * 100 * time.Millisecond)
+			time.Sleep(time.Duration(delay) * 150 * time.Millisecond) // Increased delay for smoother effect
 			am.SlideTransition(panelID+"_entrance", 1.0)
 		}(id, i)
 	}
+}
+
+// SetReducedMotion configures animations for users who prefer reduced motion
+func (am *AnimationManager) SetReducedMotion(reduced bool) {
+	am.mutex.Lock()
+	defer am.mutex.Unlock()
+
+	config := am.config
+	config.ReducedMotion = reduced
+	if reduced {
+		// Disable animations for reduced motion preference
+		config.Enabled = false
+	} else {
+		// Re-enable animations
+		config.Enabled = true
+	}
+	am.config = config
 }

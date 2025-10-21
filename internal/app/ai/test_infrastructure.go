@@ -536,6 +536,14 @@ func (h *TestHelper) AssertLength(slice interface{}, expected int) {
 		if len(v) != expected {
 			h.t.Fatalf("Expected length %d, got %d", expected, len(v))
 		}
+	case []knowledge.LyricSuggestion:
+		if len(v) != expected {
+			h.t.Fatalf("Expected length %d, got %d", expected, len(v))
+		}
+	case []knowledge.PatternSuggestion:
+		if len(v) != expected {
+			h.t.Fatalf("Expected length %d, got %d", expected, len(v))
+		}
 	default:
 		h.t.Fatalf("Unsupported slice type for AssertLength")
 	}

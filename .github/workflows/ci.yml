@@ -92,12 +92,66 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          # Start timing for performance monitoring
+          start_time=$(date +%s)
+
           mkdir -p build/bin
           ext=""
           if [[ "${{ runner.os }}" == "Windows" ]]; then
             ext=".exe"
           fi
+
+          echo "Building for ${{ runner.os }}..."
+
+          # Build with performance monitoring
           go build -trimpath -ldflags="-s -w" -o "build/bin/noise${ext}" ./cmd/noise
+
+          # Verify binary was created and get size
+          if [[ ! -f "build/bin/noise${ext}" ]]; then
+            echo "ERROR: Binary was not created at build/bin/noise${ext}"
+            exit 1
+          fi
+
+          binary_size=$(stat -c%s "build/bin/noise${ext}" 2>/dev/null || stat -f%z "build/bin/noise${ext}" 2>/dev/null || echo "0")
+          echo "Binary size: ${binary_size} bytes"
+
+          # Calculate total build time
+          end_time=$(date +%s)
+          build_duration=$((end_time - start_time))
+
+          echo "Build completed in ${build_duration} seconds"
+          echo "build_time_seconds=${build_duration}" >> $GITHUB_ENV
+          echo "binary_size_bytes=${binary_size}" >> $GITHUB_ENV
+          echo "platform=${{ runner.os }}" >> $GITHUB_ENV
+
+      - name: Upload build metrics
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Create build metrics file
+          cat > build_metrics.json << EOF
+          {
+            "platform": "${{ runner.os }}",
+            "build_time_seconds": ${build_time_seconds:-0},
+            "binary_size_bytes": ${binary_size_bytes:-0},
+            "go_version": "$(go version | cut -d' ' -f3)",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "github_run_id": "${GITHUB_RUN_ID}",
+            "github_run_number": "${GITHUB_RUN_NUMBER}"
+          }
+          EOF
+
+          echo "Build metrics:"
+          cat build_metrics.json
+
+      - name: Upload build metrics artifact
+        uses: actions/upload-artifact@v4
+        with:
+         name: build-metrics-${{ runner.os }}
+         path: build_metrics.json
+         if-no-files-found: error
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -124,6 +178,14 @@ jobs:
             goarch: arm64
             archive: tar.gz
             ext: ""
+          - goos: linux
+            goarch: arm
+            archive: tar.gz
+            ext: ""
+          - goos: linux
+            goarch: 386
+            archive: tar.gz
+            ext: ""
           - goos: darwin
             goarch: amd64
             archive: tar.gz
@@ -138,6 +200,10 @@ jobs:
             ext: .exe
           - goos: windows
             goarch: arm64
+            archive: zip
+            ext: .exe
+          - goos: windows
+            goarch: 386
             archive: zip
             ext: .exe
     steps:
@@ -154,19 +220,83 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          # Start timing for performance monitoring
+          start_time=$(date +%s)
+
           output="noise-${{ matrix.goos }}-${{ matrix.goarch }}"
           binary_name="noise${{ matrix.ext }}"
           build_dir="dist/${output}"
           mkdir -p "${build_dir}"
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o "${build_dir}/${binary_name}" ./cmd/noise
+
+          echo "Building for ${{ matrix.goos }}/${{ matrix.goarch }}..."
+
+          # Build with performance monitoring
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} CGO_ENABLED=0 go build \
+            -trimpath \
+            -ldflags="-s -w" \
+            -o "${build_dir}/${binary_name}" \
+            ./cmd/noise
+
+          # Verify binary was created and get size
+          if [[ ! -f "${build_dir}/${binary_name}" ]]; then
+            echo "ERROR: Binary was not created at ${build_dir}/${binary_name}"
+            exit 1
+          fi
+
+          binary_size=$(stat -c%s "${build_dir}/${binary_name}" 2>/dev/null || stat -f%z "${build_dir}/${binary_name}" 2>/dev/null || echo "0")
+          echo "Binary size: ${binary_size} bytes"
+
+          # Package with timing
           pushd dist >/dev/null
           if [[ "${{ matrix.archive }}" == "zip" ]]; then
-            zip -r "${output}.zip" "${output}"
+            echo "Creating ZIP archive..."
+            time zip -r "${output}.zip" "${output}"
           else
-            tar -czf "${output}.tar.gz" "${output}"
+            echo "Creating TAR.GZ archive..."
+            time tar -czf "${output}.tar.gz" "${output}"
           fi
           popd >/dev/null
+
+          # Clean up build directory
           rm -rf "${build_dir}"
+
+          # Calculate total build time
+          end_time=$(date +%s)
+          build_duration=$((end_time - start_time))
+
+          echo "Build completed in ${build_duration} seconds"
+          echo "build_time_seconds=${build_duration}" >> $GITHUB_ENV
+          echo "binary_size_bytes=${binary_size}" >> $GITHUB_ENV
+          echo "platform=${{ matrix.goos }}_${{ matrix.goarch }}" >> $GITHUB_ENV
+
+      - name: Upload build metrics
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Create build metrics file
+          cat > build_metrics.json << EOF
+          {
+            "platform": "${{ matrix.goos }}_${{ matrix.goarch }}",
+            "build_time_seconds": ${build_time_seconds:-0},
+            "binary_size_bytes": ${binary_size_bytes:-0},
+            "go_version": "$(go version | cut -d' ' -f3)",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "github_run_id": "${GITHUB_RUN_ID}",
+            "github_run_number": "${GITHUB_RUN_NUMBER}"
+          }
+          EOF
+
+          echo "Build metrics:"
+          cat build_metrics.json
+
+      - name: Upload build metrics artifact
+        uses: actions/upload-artifact@v4
+        with:
+         name: build-metrics-${{ matrix.goos }}-${{ matrix.goarch }}
+         path: build_metrics.json
+         if-no-files-found: error
 
       - name: Upload cross-compiled artifact
         uses: actions/upload-artifact@v4

@@ -1,7 +1,7 @@
 package plugins
 
 import (
-	"crypto/md5"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -75,7 +75,7 @@ func CreateTestPluginManifest(t *testing.T, dir string, metadata *PluginMetadata
 	}
 
 	manifestPath := filepath.Join(dir, metadata.ID+".json")
-	if err := os.WriteFile(manifestPath, data, 0644); err != nil {
+	if err := os.WriteFile(manifestPath, data, 0600); err != nil {
 		t.Fatalf("Failed to write plugin manifest: %v", err)
 	}
 
@@ -150,7 +150,7 @@ func CreateMaliciousPluginManifest(t *testing.T, dir string, maliciousType strin
 // CreateTestPluginFile creates a test plugin file with specified content
 func CreateTestPluginFile(t *testing.T, dir, filename, content string) string {
 	filePath := filepath.Join(dir, filename)
-	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(content), 0600); err != nil {
 		t.Fatalf("Failed to write test plugin file: %v", err)
 	}
 	return filePath
@@ -204,7 +204,7 @@ func CreateSuspiciousFiles(t *testing.T, dir string) []string {
 
 	for _, name := range suspiciousNames {
 		filePath := filepath.Join(dir, name)
-		if err := os.WriteFile(filePath, []byte("suspicious content"), 0644); err != nil {
+		if err := os.WriteFile(filePath, []byte("suspicious content"), 0600); err != nil {
 			t.Fatalf("Failed to create suspicious file %s: %v", name, err)
 		}
 		files = append(files, filePath)
@@ -212,8 +212,12 @@ func CreateSuspiciousFiles(t *testing.T, dir string) []string {
 
 	// Create world-writable files
 	worldWritablePath := filepath.Join(dir, "world_writable.json")
-	if err := os.WriteFile(worldWritablePath, []byte("{}"), 0666); err != nil {
+	if err := os.WriteFile(worldWritablePath, []byte("{}"), 0600); err != nil {
 		t.Fatalf("Failed to create world-writable file: %v", err)
+	}
+	// Make it world-writable using chmod
+	if err := os.Chmod(worldWritablePath, 0666); err != nil {
+		t.Fatalf("Failed to make file world-writable: %v", err)
 	}
 	files = append(files, worldWritablePath)
 
@@ -221,7 +225,7 @@ func CreateSuspiciousFiles(t *testing.T, dir string) []string {
 	scriptFiles := []string{"malicious.sh", "hack.py", "exploit.js"}
 	for _, name := range scriptFiles {
 		filePath := filepath.Join(dir, name)
-		if err := os.WriteFile(filePath, []byte("#!/bin/bash\necho 'malicious'"), 0755); err != nil {
+		if err := os.WriteFile(filePath, []byte("#!/bin/bash\necho 'malicious'"), 0600); err != nil {
 			t.Fatalf("Failed to create script file %s: %v", name, err)
 		}
 		files = append(files, filePath)
@@ -230,7 +234,7 @@ func CreateSuspiciousFiles(t *testing.T, dir string) []string {
 	return files
 }
 
-// CalculateFileHash calculates MD5 hash of a file
+// CalculateFileHash calculates SHA-256 hash of a file
 func CalculateFileHash(t *testing.T, filePath string) string {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -238,7 +242,7 @@ func CalculateFileHash(t *testing.T, filePath string) string {
 	}
 	defer file.Close()
 
-	hash := md5.New()
+	hash := sha256.New()
 	if _, err := io.Copy(hash, file); err != nil {
 		t.Fatalf("Failed to calculate hash for file %s: %v", filePath, err)
 	}

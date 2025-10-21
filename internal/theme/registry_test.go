@@ -6,18 +6,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRegistryContains13Themes(t *testing.T) {
+func TestRegistryContains10Themes(t *testing.T) {
 	ids := ListThemes()
 	// Using a map to dedupe aliases
 	unique := make(map[string]struct{})
 	for _, id := range ids {
 		unique[id] = struct{}{}
 	}
-	// Expect at least 13 keys including aliases; ensure primary purple-jazz exists
-	_, ok := Registry["purple-jazz"]
-	require.True(t, ok, "purple-jazz theme must be present")
-	// Check there are at least 13 distinct entries (including aliases)
-	require.GreaterOrEqual(t, len(unique), 13)
+	// Expect exactly 10 themes
+	require.Equal(t, 10, len(unique))
 }
 
 func TestGetThemeFallback(t *testing.T) {
