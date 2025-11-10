@@ -13,13 +13,13 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tone": "^15.1.22",
-    "pitchfinder": "^3.0.0",
+    "pitchfinder": "^2.3.2",
     "realtime-bpm-analyzer": "^4.0.2",
-    "tonal": "^6.0.0",
+    "tonal": "^6.4.2",
     "@tonejs/midi": "^2.0.28",
-    "wavesurfer.js": "^7.0.0",
-    "lucide-react": "^0.445.0",
-    "openai": "^4.67.0"
+    "wavesurfer.js": "^7.11.1",
+    "lucide-react": "^0.553.0",
+    "openai": "^6.8.1"
   },
   "devDependencies": {
     "typescript": "^5.6.0",
