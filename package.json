@@ -1,0 +1,36 @@
+{
+  "name": "voxforge",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tone": "^15.1.22",
+    "pitchfinder": "^3.0.0",
+    "realtime-bpm-analyzer": "^4.0.2",
+    "tonal": "^6.0.0",
+    "@tonejs/midi": "^2.0.28",
+    "wavesurfer.js": "^7.0.0",
+    "lucide-react": "^0.445.0",
+    "openai": "^4.67.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.0",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.0.0"
+  }
+}
+
