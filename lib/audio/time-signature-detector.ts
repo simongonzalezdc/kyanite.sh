@@ -106,6 +106,17 @@ export class TimeSignatureDetector {
       denominator = 4;
     }
 
+    // Debug logging (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Time signature detection:', {
+        numerator,
+        denominator,
+        noteOnsets: noteOnsets.length,
+        measures: measures.length,
+        measureCounts: Object.fromEntries(measureCounts)
+      });
+    }
+
     return {
       numerator,
       denominator,
