@@ -37,6 +37,7 @@ export default function AnalysisDisplay({
   const synthRef = useRef<Tone.Synth | null>(null);
   const sequenceRef = useRef<Tone.Sequence | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isPlayingRef = useRef<boolean>(false);
 
   useEffect(() => {
     // Initialize synth
@@ -73,6 +74,7 @@ export default function AnalysisDisplay({
 
     await Tone.start();
     setIsPlaying(true);
+    isPlayingRef.current = true;
     setCurrentNoteIndex(0);
 
     // Convert ALL MIDI notes to note names (not just first 20)
@@ -119,9 +121,10 @@ export default function AnalysisDisplay({
     // Create sequence to play notes
     let noteIndex = 0;
     const playNextNote = () => {
-      // Check if playback was stopped
-      if (!isPlaying || noteIndex >= allNotes.length) {
+      // Check if playback was stopped (use ref to avoid stale closure)
+      if (!isPlayingRef.current || noteIndex >= allNotes.length) {
         setIsPlaying(false);
+        isPlayingRef.current = false;
         setCurrentNoteIndex(null);
         timeoutRef.current = null;
         return;
@@ -144,6 +147,9 @@ export default function AnalysisDisplay({
   };
 
   const stopPlayback = () => {
+    // Set flag to stop playback (checked in playNextNote closure)
+    isPlayingRef.current = false;
+    
     // Clear any pending timeout to prevent stale callbacks
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
