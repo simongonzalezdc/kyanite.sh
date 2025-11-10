@@ -22,31 +22,112 @@ export class PitchDetector {
     const windowSize = 2048;
     const hopSize = 512; // ~11.6ms at 44.1kHz
     
+    // Calculate RMS for silence detection
+    const calculateRMS = (data: Float32Array): number => {
+      let sum = 0;
+      for (let i = 0; i < data.length; i++) {
+        sum += data[i] * data[i];
+      }
+      return Math.sqrt(sum / data.length);
+    };
+    
+    // Find overall RMS to set threshold
+    const overallRMS = calculateRMS(channelData);
+    const silenceThreshold = overallRMS * 0.1; // 10% of average RMS
+    
     console.log('Starting pitch analysis...');
     console.log('Audio duration:', audioBuffer.duration, 'seconds');
     console.log('Sample rate:', this.sampleRate);
     console.log('Total samples:', channelData.length);
+    console.log('RMS threshold:', silenceThreshold);
 
     for (let i = 0; i < channelData.length - windowSize; i += hopSize) {
       const window = channelData.slice(i, i + windowSize);
+      
+      // Skip silent sections
+      const rms = calculateRMS(window);
+      if (rms < silenceThreshold) {
+        continue;
+      }
+      
       const frequency = this.detectPitch(window);
 
-      if (frequency && frequency > 0 && frequency < 2000) {
-        // Valid human voice range: ~80Hz - 2000Hz
+      // More strict frequency range for voice (80Hz - 1000Hz for typical voice)
+      // Allow up to 2000Hz for higher voices
+      if (frequency && frequency >= 80 && frequency <= 2000) {
         const time = i / this.sampleRate;
         const midi = this.frequencyToMidi(frequency);
+        
+        // Clamp MIDI to valid range
+        const clampedMidi = Math.max(0, Math.min(127, midi));
 
         pitches.push({
           frequency,
           time,
-          midi,
-          confidence: 1.0 // YIN doesn't provide confidence
+          midi: clampedMidi,
+          confidence: rms / overallRMS // Use RMS as confidence indicator
         });
       }
     }
 
     console.log('Pitch analysis complete. Detected', pitches.length, 'pitch points');
+    
+    // Filter out outliers (notes that appear very briefly)
+    if (pitches.length > 0) {
+      const filtered = this.filterOutliers(pitches);
+      console.log('After filtering outliers:', filtered.length, 'pitch points');
+      return filtered;
+    }
+    
     return pitches;
+  }
+  
+  private filterOutliers(pitches: PitchPoint[]): PitchPoint[] {
+    if (pitches.length < 3) return pitches;
+    
+    // Group consecutive similar notes
+    const filtered: PitchPoint[] = [];
+    const minDuration = 0.05; // Minimum note duration in seconds
+    
+    let currentNote = pitches[0];
+    let noteStart = pitches[0].time;
+    let noteCount = 1;
+    
+    for (let i = 1; i < pitches.length; i++) {
+      const pitch = pitches[i];
+      const midiDiff = Math.abs(pitch.midi - currentNote.midi);
+      
+      // If same note (within 1 semitone) or very close in time
+      if (midiDiff < 1 && (pitch.time - currentNote.time) < 0.1) {
+        noteCount++;
+        currentNote = pitch;
+      } else {
+        // Check if previous note was long enough
+        const noteDuration = currentNote.time - noteStart;
+        if (noteDuration >= minDuration || noteCount >= 3) {
+          filtered.push({
+            ...currentNote,
+            time: noteStart
+          });
+        }
+        
+        // Start new note
+        currentNote = pitch;
+        noteStart = pitch.time;
+        noteCount = 1;
+      }
+    }
+    
+    // Add last note
+    const noteDuration = currentNote.time - noteStart;
+    if (noteDuration >= minDuration || noteCount >= 3) {
+      filtered.push({
+        ...currentNote,
+        time: noteStart
+      });
+    }
+    
+    return filtered;
   }
 
   private frequencyToMidi(frequency: number): number {

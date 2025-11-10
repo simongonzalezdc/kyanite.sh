@@ -44,6 +44,12 @@ export default function Home() {
   }, []);
 
   const handleRecordingComplete = async (buffer: AudioBuffer) => {
+    // Clear previous analysis state
+    setPitches([]);
+    setBpm(null);
+    setKey(null);
+    setTimeSignature(null);
+    
     setAudioBuffer(buffer);
     setIsAnalyzing(true);
 
