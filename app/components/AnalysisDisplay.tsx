@@ -36,6 +36,7 @@ export default function AnalysisDisplay({
   const [tempTimeSig, setTempTimeSig] = useState(timeSignature?.display || '4/4');
   const synthRef = useRef<Tone.Synth | null>(null);
   const sequenceRef = useRef<Tone.Sequence | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Initialize synth
@@ -45,6 +46,10 @@ export default function AnalysisDisplay({
     }).toDestination();
 
     return () => {
+      // Clean up on unmount
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       synthRef.current?.dispose();
       sequenceRef.current?.dispose();
     };
@@ -74,21 +79,35 @@ export default function AnalysisDisplay({
     const allNotes = simplified.map(midi => detector.midiToNoteName(midi));
     
     // Calculate note durations based on pitch points timing
+    // Track sequential pitch point indices to handle repeated MIDI values correctly
     const noteDurations: number[] = [];
+    let currentPitchIndex = 0;
+    
     for (let i = 0; i < simplified.length; i++) {
       const currentMidi = simplified[i];
       let duration = 0.5; // Default duration
       
       if (i < simplified.length - 1) {
-        // Find the time span for this note
+        // Find the next occurrence of the next MIDI value starting from current position
         const nextMidi = simplified[i + 1];
-        // Find first occurrence of each note in pitches array
-        const currentPitchIndex = pitches.findIndex(p => Math.round(p.midi) === currentMidi);
-        const nextPitchIndex = pitches.findIndex(p => Math.round(p.midi) === nextMidi);
+        let nextPitchIndex = -1;
         
-        if (currentPitchIndex >= 0 && nextPitchIndex >= 0) {
+        // Search forward from current position to find next note transition
+        for (let j = currentPitchIndex; j < pitches.length; j++) {
+          if (Math.round(pitches[j].midi) === nextMidi) {
+            nextPitchIndex = j;
+            break;
+          }
+        }
+        
+        // If next note found, calculate time difference
+        if (nextPitchIndex > currentPitchIndex) {
           const timeDiff = pitches[nextPitchIndex].time - pitches[currentPitchIndex].time;
           duration = Math.max(0.2, Math.min(1.0, timeDiff));
+          currentPitchIndex = nextPitchIndex; // Update position for next iteration
+        } else {
+          // If next note not found, advance to next pitch point
+          currentPitchIndex = Math.min(currentPitchIndex + 1, pitches.length - 1);
         }
       } else {
         // Last note - use default duration
@@ -100,9 +119,11 @@ export default function AnalysisDisplay({
     // Create sequence to play notes
     let noteIndex = 0;
     const playNextNote = () => {
-      if (noteIndex >= allNotes.length) {
+      // Check if playback was stopped
+      if (!isPlaying || noteIndex >= allNotes.length) {
         setIsPlaying(false);
         setCurrentNoteIndex(null);
+        timeoutRef.current = null;
         return;
       }
 
@@ -115,13 +136,20 @@ export default function AnalysisDisplay({
       }
 
       noteIndex++;
-      setTimeout(playNextNote, duration * 1000);
+      // Store timeout ID so it can be cleared
+      timeoutRef.current = setTimeout(playNextNote, duration * 1000);
     };
 
     playNextNote();
   };
 
   const stopPlayback = () => {
+    // Clear any pending timeout to prevent stale callbacks
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    
     if (synthRef.current) {
       synthRef.current.triggerRelease();
     }
