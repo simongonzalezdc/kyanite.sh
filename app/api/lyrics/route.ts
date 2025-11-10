@@ -15,9 +15,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: 'API key not configured',
-          suggestions: ['No suggestions available - please configure OPENAI_API_KEY in .env.local']
+          suggestions: []
         },
-        { status: 200 } // Return 200 with error message instead of 500
+        { status: 400 } // Return 400 Bad Request for missing configuration
       );
     }
 
