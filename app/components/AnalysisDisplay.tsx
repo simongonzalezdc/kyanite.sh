@@ -202,9 +202,9 @@ export default function AnalysisDisplay({ pitches, bpm, musicalKey }: AnalysisDi
         {isPlaying && (
           <p className="text-sm text-gray-400 mt-2">
             Playing detected notes... ({currentNoteIndex !== null ? currentNoteIndex + 1 : 0} / {simplified.length})
-            {currentNoteIndex !== null && currentNoteIndex < noteNames.length && (
-              <span className="ml-2 text-primary-400">
-                Now: {noteNames[currentNoteIndex]}
+            {currentNoteIndex !== null && (
+              <span className="ml-2 text-primary-400 font-mono">
+                Now: {detector.midiToNoteName(simplified[currentNoteIndex])}
               </span>
             )}
           </p>
