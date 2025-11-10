@@ -40,26 +40,28 @@ export class KeyDetector {
     const maxCount = Math.max(...counts);
     const tonicIndex = counts.indexOf(maxCount);
     const tonicNote = Note.fromMidiSharps(60 + tonicIndex); // C4 + offset
-    const tonic = Note.pc(tonicNote) || 'C';
+    const tonic = Note.get(tonicNote).pc || 'C';
 
     // Try major and minor keys
     const majorKey = Key.majorKey(tonic);
     const minorKey = Key.minorKey(tonic);
 
     // Count matching notes
-    const majorMatches = this.countMatchingNotes(noteNames, majorKey.scale);
-    const minorMatches = this.countMatchingNotes(noteNames, minorKey.scale);
+    const majorScale = Scale.get(`${tonic} major`).notes;
+    const minorScale = Scale.get(`${tonic} minor`).notes;
+    const majorMatches = this.countMatchingNotes(noteNames, majorScale);
+    const minorMatches = this.countMatchingNotes(noteNames, minorScale);
 
     const detectedKey = majorMatches > minorMatches 
       ? `${tonic} Major`
       : `${tonic} Minor`;
 
-    const keyInfo = majorMatches > minorMatches ? majorKey : minorKey;
+    const scale = majorMatches > minorMatches ? majorScale : minorScale;
 
     return {
       key: detectedKey,
       tonic: tonic,
-      scale: keyInfo.scale,
+      scale: scale,
       chordProgression: ['I', 'V', 'vi', 'IV']
     };
   }

@@ -26,7 +26,10 @@ export class MidiExporter {
     
     // Convert to binary
     const midiArray = midi.toArray();
-    return new Blob([midiArray], { type: 'audio/midi' });
+    const buffer = midiArray.buffer instanceof ArrayBuffer 
+      ? midiArray.buffer 
+      : new Uint8Array(midiArray).buffer;
+    return new Blob([buffer], { type: 'audio/midi' });
   }
 }
 

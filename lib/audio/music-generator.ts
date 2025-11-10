@@ -9,9 +9,9 @@ export class MusicGenerator {
   private chords: Tone.PolySynth | null = null;
   private initialized = false;
   private selectedInstruments: InstrumentType[] = ['drums', 'bass', 'chords'];
-  private drumPattern: Tone.Pattern | null = null;
-  private bassPattern: Tone.Sequence | null = null;
-  private chordPattern: Tone.Part | null = null;
+  private drumPattern: Tone.Pattern<string> | null = null;
+  private bassPattern: Tone.Sequence<string> | null = null;
+  private chordPattern: Tone.Part<[string, string[]]> | null = null;
 
   async initialize(): Promise<void> {
     if (this.initialized) return;
@@ -32,7 +32,6 @@ export class MusicGenerator {
     }).toDestination();
 
     this.hihat = new Tone.MetalSynth({
-      frequency: 200,
       envelope: { attack: 0.001, decay: 0.1, release: 0.01 },
       harmonicity: 5.1,
       modulationIndex: 32,
@@ -71,7 +70,7 @@ export class MusicGenerator {
     this.selectedInstruments = instruments;
   }
 
-  generateDrums(pattern: 'simple' | 'moderate' | 'busy' = 'moderate'): void {
+  generateDrums(patternType: 'simple' | 'moderate' | 'busy' = 'moderate'): void {
     if (!this.initialized || !this.kick || !this.snare || !this.hihat) return;
 
     // Stop existing pattern
@@ -80,20 +79,20 @@ export class MusicGenerator {
       this.drumPattern.dispose();
     }
 
-    let pattern: string[];
+    let patternArray: string[];
     
-    switch (pattern) {
+    switch (patternType) {
       case 'simple':
         // Kick on 1 & 3, Snare on 2 & 4, Hi-hat on 8ths
-        pattern = ['kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat'];
+        patternArray = ['kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat'];
         break;
       case 'moderate':
         // More variation
-        pattern = ['kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat'];
+        patternArray = ['kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat'];
         break;
       case 'busy':
         // Complex pattern with fills
-        pattern = ['kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat'];
+        patternArray = ['kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat'];
         break;
     }
 
@@ -107,7 +106,7 @@ export class MusicGenerator {
       if (note === 'hihat' && this.hihat) {
         this.hihat.triggerAttack(time);
       }
-    }, pattern);
+    }, patternArray);
 
     this.drumPattern.interval = '8n';
   }
@@ -144,9 +143,7 @@ export class MusicGenerator {
       if (this.bass) {
         this.bass.triggerAttackRelease(note, '4n', time);
       }
-    }, roots);
-
-    this.bassPattern.interval = '4n';
+    }, roots, '4n');
   }
 
   generateChords(key: string): void {
@@ -174,7 +171,7 @@ export class MusicGenerator {
     ];
 
     const events: [string, string[]][] = chordNotes.map((notes, i) => [
-      i * 2, // Time in measures
+      `${i * 2}m`, // Time in measures
       notes
     ]);
 
