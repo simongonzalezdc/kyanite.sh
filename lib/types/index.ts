@@ -18,6 +18,12 @@ export interface KeyAnalysis {
   chordProgression?: string[];
 }
 
+export interface TimeSignature {
+  numerator: number;    // 4, 3, 2, 6, etc.
+  denominator: number;  // 4, 8, etc.
+  display: string;      // "4/4", "3/4", "2/4", "6/8", etc.
+}
+
 export type InstrumentType = 'drums' | 'bass' | 'chords';
 
 export interface Section {

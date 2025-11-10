@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Sparkles, Copy, Check } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Sparkles, Wand2, Lightbulb, Copy, Check, ArrowRight } from 'lucide-react';
 import { PitchPoint } from '@/lib/types';
 
 interface LyricsAssistantProps {
@@ -9,179 +9,353 @@ interface LyricsAssistantProps {
   musicalKey: string | null;
 }
 
-interface LyricsVariation {
-  lines: string[];
-  syllableCounts: number[];
+interface Suggestion {
+  text: string;
+  type: 'completion' | 'improvement' | 'alternative';
 }
 
 export default function LyricsAssistant({ pitches, musicalKey }: LyricsAssistantProps) {
-  const [theme, setTheme] = useState('');
-  const [mood, setMood] = useState('neutral');
+  const [lyrics, setLyrics] = useState('');
+  const [selectedLine, setSelectedLine] = useState<number | null>(null);
+  const [selectedText, setSelectedText] = useState('');
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(false);
-  const [variations, setVariations] = useState<LyricsVariation[]>([]);
-  const [selectedVariation, setSelectedVariation] = useState<number | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [suggestionType, setSuggestionType] = useState<'completion' | 'improvement' | 'alternative'>('completion');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const calculateSyllableCount = () => {
-    // Estimate syllables based on pitch points
-    // Rough estimate: 1 syllable per 0.2-0.3 seconds of audio
-    const duration = pitches.length > 0 ? pitches[pitches.length - 1].time - pitches[0].time : 0;
-    const estimatedSyllables = Math.round(duration / 0.25);
-    return Math.max(estimatedSyllables, 8); // Minimum 8 syllables
-  };
-
-  const calculatePhraseLengths = () => {
-    // Divide into phrases (roughly 4 phrases)
-    const totalSyllables = calculateSyllableCount();
-    const phrases = 4;
-    const baseLength = Math.floor(totalSyllables / phrases);
-    const remainder = totalSyllables % phrases;
-    
-    const lengths: number[] = [];
-    for (let i = 0; i < phrases; i++) {
-      lengths.push(baseLength + (i < remainder ? 1 : 0));
+  const getCurrentLine = (): string => {
+    const lines = lyrics.split('\n');
+    if (selectedLine !== null && selectedLine < lines.length) {
+      return lines[selectedLine];
     }
-    return lengths;
+    // Get the last line
+    return lines[lines.length - 1] || '';
   };
 
-  const generateLyrics = async () => {
-    if (!theme.trim()) {
-      alert('Please enter a theme');
+  const getCursorPosition = (): { line: number; column: number } => {
+    if (!textareaRef.current) return { line: 0, column: 0 };
+    
+    const textarea = textareaRef.current;
+    const text = textarea.value;
+    const cursorPos = textarea.selectionStart;
+    
+    const textBeforeCursor = text.substring(0, cursorPos);
+    const lines = textBeforeCursor.split('\n');
+    
+    return {
+      line: lines.length - 1,
+      column: lines[lines.length - 1].length
+    };
+  };
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setLyrics(e.target.value);
+    setSuggestions([]);
+  };
+
+  const handleTextSelection = () => {
+    if (!textareaRef.current) return;
+    
+    const textarea = textareaRef.current;
+    const selected = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+    
+    if (selected.trim()) {
+      setSelectedText(selected);
+      const cursorPos = getCursorPosition();
+      setSelectedLine(cursorPos.line);
+    } else {
+      setSelectedText('');
+      setSelectedLine(null);
+    }
+  };
+
+  const suggestCompletion = async () => {
+    const currentLine = getCurrentLine();
+    if (!currentLine.trim()) {
+      alert('Please start typing a line first');
       return;
     }
 
     setLoading(true);
+    setSuggestionType('completion');
+    
     try {
-      const syllableCount = calculateSyllableCount();
-      const phraseLengths = calculatePhraseLengths();
-
       const response = await fetch('/api/lyrics', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          syllableCount,
-          phraseLengths,
+          type: 'completion',
+          currentLine: currentLine.trim(),
+          context: lyrics,
           musicalKey: musicalKey || 'C Major',
-          mood,
-          theme: theme.trim(),
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate lyrics');
+        throw new Error('Failed to get suggestions');
       }
 
       const data = await response.json();
-      setVariations(data.variations || []);
-      setSelectedVariation(0);
+      setSuggestions(data.suggestions || []);
     } catch (error) {
-      console.error('Error generating lyrics:', error);
-      alert('Failed to generate lyrics. Please check your API configuration.');
+      console.error('Error getting suggestions:', error);
+      alert('Failed to get suggestions. Please check your API configuration.');
     } finally {
       setLoading(false);
     }
   };
 
-  const copyToClipboard = (variation: LyricsVariation) => {
-    const text = variation.lines.join('\n');
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const suggestImprovement = async () => {
+    if (!selectedText.trim()) {
+      alert('Please select a line or phrase to improve');
+      return;
+    }
+
+    setLoading(true);
+    setSuggestionType('improvement');
+    
+    try {
+      const response = await fetch('/api/lyrics', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'improvement',
+          selectedText: selectedText.trim(),
+          context: lyrics,
+          musicalKey: musicalKey || 'C Major',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get suggestions');
+      }
+
+      const data = await response.json();
+      setSuggestions(data.suggestions || []);
+    } catch (error) {
+      console.error('Error getting suggestions:', error);
+      alert('Failed to get suggestions. Please check your API configuration.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const suggestAlternative = async () => {
+    if (!selectedText.trim()) {
+      alert('Please select a line or phrase to get alternatives');
+      return;
+    }
+
+    setLoading(true);
+    setSuggestionType('alternative');
+    
+    try {
+      const response = await fetch('/api/lyrics', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'alternative',
+          selectedText: selectedText.trim(),
+          context: lyrics,
+          musicalKey: musicalKey || 'C Major',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get suggestions');
+      }
+
+      const data = await response.json();
+      setSuggestions(data.suggestions || []);
+    } catch (error) {
+      console.error('Error getting suggestions:', error);
+      alert('Failed to get suggestions. Please check your API configuration.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const applySuggestion = (suggestion: string) => {
+    if (!textareaRef.current) return;
+
+    const textarea = textareaRef.current;
+    const text = textarea.value;
+    const cursorPos = textarea.selectionStart;
+    const selectionEnd = textarea.selectionEnd;
+
+    if (suggestionType === 'completion') {
+      // Insert completion at cursor
+      const beforeCursor = text.substring(0, cursorPos);
+      const afterCursor = text.substring(cursorPos);
+      const newText = beforeCursor + suggestion + afterCursor;
+      setLyrics(newText);
+      
+      // Set cursor position after inserted text
+      setTimeout(() => {
+        if (textareaRef.current) {
+          const newPos = cursorPos + suggestion.length;
+          textareaRef.current.setSelectionRange(newPos, newPos);
+          textareaRef.current.focus();
+        }
+      }, 0);
+    } else {
+      // Replace selected text
+      const beforeSelection = text.substring(0, textarea.selectionStart);
+      const afterSelection = text.substring(selectionEnd);
+      const newText = beforeSelection + suggestion + afterSelection;
+      setLyrics(newText);
+      
+      // Set cursor position after replaced text
+      setTimeout(() => {
+        if (textareaRef.current) {
+          const newPos = beforeSelection.length + suggestion.length;
+          textareaRef.current.setSelectionRange(newPos, newPos);
+          textareaRef.current.focus();
+        }
+      }, 0);
+    }
+
+    setSuggestions([]);
+  };
+
+  const copyLyrics = () => {
+    navigator.clipboard.writeText(lyrics);
+    alert('Lyrics copied to clipboard!');
   };
 
   return (
     <div className="bg-gray-900 rounded-xl p-8 border border-gray-800 space-y-6">
-      <h2 className="text-xl font-semibold flex items-center gap-2">
-        <Sparkles size={24} className="text-secondary-500" />
-        AI Lyric Assist
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          <Sparkles size={24} className="text-secondary-500" />
+          AI Lyric Assistant
+        </h2>
+        {lyrics && (
+          <button
+            onClick={copyLyrics}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-sm"
+          >
+            <Copy size={16} />
+            Copy
+          </button>
+        )}
+      </div>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-2">Theme</label>
-          <input
-            type="text"
-            value={theme}
-            onChange={(e) => setTheme(e.target.value)}
-            placeholder="e.g., summer, love, adventure"
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-primary-500"
+          <label className="block text-sm font-medium mb-2">Write Your Lyrics</label>
+          <textarea
+            ref={textareaRef}
+            value={lyrics}
+            onChange={handleTextChange}
+            onSelect={handleTextSelection}
+            placeholder="Start writing your lyrics here...&#10;&#10;The AI will help you complete lines, improve phrases, and suggest alternatives."
+            className="w-full h-64 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-primary-500 resize-none font-mono text-sm"
           />
+          <p className="text-xs text-gray-400 mt-2">
+            {lyrics.split('\n').length} lines • {lyrics.length} characters
+          </p>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-2">Mood</label>
-          <select
-            value={mood}
-            onChange={(e) => setMood(e.target.value)}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-primary-500"
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={suggestCompletion}
+            disabled={loading || !lyrics.trim()}
+            className="flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
           >
-            <option value="happy">Happy</option>
-            <option value="sad">Sad</option>
-            <option value="energetic">Energetic</option>
-            <option value="calm">Calm</option>
-            <option value="romantic">Romantic</option>
-            <option value="neutral">Neutral</option>
-          </select>
+            {loading && suggestionType === 'completion' ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Suggesting...
+              </>
+            ) : (
+              <>
+                <Wand2 size={16} />
+                Complete Line
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={suggestImprovement}
+            disabled={loading || !selectedText.trim()}
+            className="flex items-center gap-2 px-4 py-2 bg-secondary-500 hover:bg-secondary-600 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+          >
+            {loading && suggestionType === 'improvement' ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Improving...
+              </>
+            ) : (
+              <>
+                <Lightbulb size={16} />
+                Improve Selected
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={suggestAlternative}
+            disabled={loading || !selectedText.trim()}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+          >
+            {loading && suggestionType === 'alternative' ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Finding...
+              </>
+            ) : (
+              <>
+                <Sparkles size={16} />
+                Alternatives
+              </>
+            )}
+          </button>
         </div>
 
-        <button
-          onClick={generateLyrics}
-          disabled={loading || !theme.trim()}
-          className="w-full px-6 py-3 bg-secondary-500 hover:bg-secondary-600 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {loading ? (
-            <>
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              Generating...
-            </>
-          ) : (
-            <>
-              <Sparkles size={20} />
-              Generate Lyrics
-            </>
-          )}
-        </button>
-      </div>
+        {selectedText && (
+          <div className="p-3 bg-gray-800 rounded-lg border border-gray-700">
+            <p className="text-xs text-gray-400 mb-1">Selected text:</p>
+            <p className="text-sm text-white font-mono">"{selectedText}"</p>
+          </div>
+        )}
 
-      {variations.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="font-medium">Generated Variations</h3>
-          {variations.map((variation, index) => (
-            <div
-              key={index}
-              className={`p-4 rounded-lg border ${
-                selectedVariation === index
-                  ? 'bg-primary-500/20 border-primary-500'
-                  : 'bg-gray-800 border-gray-700'
-              }`}
-            >
-              <div className="flex items-start justify-between mb-2">
-                <span className="text-sm text-gray-400">Variation {index + 1}</span>
+        {suggestions.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="font-medium text-sm">
+              {suggestionType === 'completion' && 'Completion Suggestions'}
+              {suggestionType === 'improvement' && 'Improvement Suggestions'}
+              {suggestionType === 'alternative' && 'Alternative Suggestions'}
+            </h3>
+            <div className="space-y-2">
+              {suggestions.map((suggestion, index) => (
                 <button
-                  onClick={() => copyToClipboard(variation)}
-                  className="p-1 hover:bg-gray-700 rounded transition-colors"
+                  key={index}
+                  onClick={() => applySuggestion(suggestion.text)}
+                  className="w-full p-4 bg-gray-800 border border-gray-700 rounded-lg hover:border-primary-500 hover:bg-gray-750 transition-colors text-left group"
                 >
-                  {copied ? (
-                    <Check size={16} className="text-green-400" />
-                  ) : (
-                    <Copy size={16} className="text-gray-400" />
-                  )}
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-white font-mono text-sm flex-1">{suggestion.text}</p>
+                    <ArrowRight size={16} className="text-gray-400 group-hover:text-primary-500 transition-colors flex-shrink-0" />
+                  </div>
                 </button>
-              </div>
-              <div className="space-y-1">
-                {variation.lines.map((line, lineIndex) => (
-                  <p key={lineIndex} className="text-white">
-                    {line}
-                  </p>
-                ))}
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+            <button
+              onClick={() => setSuggestions([])}
+              className="text-sm text-gray-400 hover:text-gray-300 transition-colors"
+            >
+              Dismiss suggestions
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-

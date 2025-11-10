@@ -12,14 +12,17 @@ import LyricsAssistant from './components/LyricsAssistant';
 import { PitchDetector } from '@/lib/audio/pitch-detector';
 import { BPMDetector } from '@/lib/audio/bpm-detector';
 import { KeyDetector } from '@/lib/audio/key-detector';
+import { TimeSignatureDetector } from '@/lib/audio/time-signature-detector';
 import { MusicGenerator } from '@/lib/audio/music-generator';
-import { PitchPoint, BPMAnalysis, KeyAnalysis, Section, InstrumentType } from '@/lib/types';
+import PianoRoll from './components/PianoRoll';
+import { PitchPoint, BPMAnalysis, KeyAnalysis, Section, InstrumentType, TimeSignature } from '@/lib/types';
 
 export default function Home() {
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
   const [pitches, setPitches] = useState<PitchPoint[]>([]);
   const [bpm, setBpm] = useState<BPMAnalysis | null>(null);
   const [key, setKey] = useState<KeyAnalysis | null>(null);
+  const [timeSignature, setTimeSignature] = useState<TimeSignature | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [sections, setSections] = useState<Section[]>([]);
   const [selectedInstruments, setSelectedInstruments] = useState<InstrumentType[]>(['drums', 'bass', 'chords']);
@@ -59,6 +62,11 @@ export default function Home() {
       const keyDetector = new KeyDetector();
       const keyAnalysis = keyDetector.analyze(detectedPitches);
       setKey(keyAnalysis);
+
+      // Run time signature detection
+      const timeSigDetector = new TimeSignatureDetector();
+      const timeSig = timeSigDetector.analyze(detectedPitches, bpmAnalysis.bpm);
+      setTimeSignature(timeSig);
 
       // Create section from recording
       const section: Section = {
@@ -116,6 +124,28 @@ export default function Home() {
     setIsPlaying(false);
   };
 
+  const handleBPMChange = (newBPM: number) => {
+    if (bpm) {
+      setBpm({ ...bpm, bpm: newBPM });
+    }
+    if (generatorRef.current) {
+      generatorRef.current.setBPM(newBPM);
+    }
+  };
+
+  const handleKeyChange = (newKey: string) => {
+    if (key) {
+      setKey({ ...key, key: newKey });
+    }
+    if (generatorRef.current) {
+      generatorRef.current.setKey(newKey);
+    }
+  };
+
+  const handleTimeSignatureChange = (newTimeSig: TimeSignature) => {
+    setTimeSignature(newTimeSig);
+  };
+
   const handleDeleteSection = (id: string) => {
     setSections(sections.filter(s => s.id !== id));
   };
@@ -170,11 +200,24 @@ export default function Home() {
 
         {/* Analysis Display */}
         {pitches.length > 0 && !isAnalyzing && (
-          <AnalysisDisplay 
-            pitches={pitches} 
-            bpm={bpm?.bpm || null}
-            musicalKey={key?.key || null}
-          />
+          <>
+            <AnalysisDisplay 
+              pitches={pitches} 
+              bpm={bpm?.bpm || null}
+              musicalKey={key?.key || null}
+              timeSignature={timeSignature}
+              onBPMChange={handleBPMChange}
+              onKeyChange={handleKeyChange}
+              onTimeSignatureChange={handleTimeSignatureChange}
+            />
+            {audioBuffer && (
+              <PianoRoll
+                pitches={pitches}
+                duration={audioBuffer.duration}
+                bpm={bpm?.bpm || null}
+              />
+            )}
+          </>
         )}
 
         {/* Music Generation */}

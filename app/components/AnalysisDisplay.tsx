@@ -1,20 +1,39 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { PitchPoint } from '@/lib/types';
+import { PitchPoint, TimeSignature } from '@/lib/types';
 import { PitchDetector } from '@/lib/audio/pitch-detector';
-import { Music, Activity, Play, Square } from 'lucide-react';
+import { TimeSignatureDetector } from '@/lib/audio/time-signature-detector';
+import { Music, Activity, Play, Square, Edit2, Check, X } from 'lucide-react';
 import * as Tone from 'tone';
 
 interface AnalysisDisplayProps {
   pitches: PitchPoint[];
   bpm?: number | null;
   musicalKey?: string | null;
+  timeSignature?: TimeSignature | null;
+  onBPMChange?: (bpm: number) => void;
+  onKeyChange?: (key: string) => void;
+  onTimeSignatureChange?: (ts: TimeSignature) => void;
 }
 
-export default function AnalysisDisplay({ pitches, bpm, musicalKey }: AnalysisDisplayProps) {
+export default function AnalysisDisplay({ 
+  pitches, 
+  bpm, 
+  musicalKey, 
+  timeSignature,
+  onBPMChange,
+  onKeyChange,
+  onTimeSignatureChange
+}: AnalysisDisplayProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentNoteIndex, setCurrentNoteIndex] = useState<number | null>(null);
+  const [editingBPM, setEditingBPM] = useState(false);
+  const [editingKey, setEditingKey] = useState(false);
+  const [editingTimeSig, setEditingTimeSig] = useState(false);
+  const [tempBPM, setTempBPM] = useState(bpm?.toString() || '120');
+  const [tempKey, setTempKey] = useState(musicalKey || 'C Major');
+  const [tempTimeSig, setTempTimeSig] = useState(timeSignature?.display || '4/4');
   const synthRef = useRef<Tone.Synth | null>(null);
   const sequenceRef = useRef<Tone.Sequence | null>(null);
 
@@ -120,7 +139,7 @@ export default function AnalysisDisplay({ pitches, bpm, musicalKey }: AnalysisDi
         Audio Analysis
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Pitch Info */}
         <div className="bg-black/30 rounded-lg p-4 border border-gray-800">
           <div className="flex items-center gap-2 mb-2">
@@ -135,10 +154,57 @@ export default function AnalysisDisplay({ pitches, bpm, musicalKey }: AnalysisDi
 
         {/* BPM */}
         <div className="bg-black/30 rounded-lg p-4 border border-gray-800">
-          <h3 className="font-medium mb-2">Tempo</h3>
-          <p className="text-2xl font-bold text-primary-500">
-            {bpm ? `${bpm} BPM` : 'Detecting...'}
-          </p>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-medium">Tempo</h3>
+            {!editingBPM ? (
+              <button
+                onClick={() => {
+                  setTempBPM(bpm?.toString() || '120');
+                  setEditingBPM(true);
+                }}
+                className="text-gray-400 hover:text-primary-500 transition-colors"
+              >
+                <Edit2 size={16} />
+              </button>
+            ) : (
+              <div className="flex gap-1">
+                <button
+                  onClick={() => {
+                    const newBPM = parseInt(tempBPM) || 120;
+                    onBPMChange?.(newBPM);
+                    setEditingBPM(false);
+                  }}
+                  className="text-green-400 hover:text-green-300"
+                >
+                  <Check size={16} />
+                </button>
+                <button
+                  onClick={() => {
+                    setTempBPM(bpm?.toString() || '120');
+                    setEditingBPM(false);
+                  }}
+                  className="text-red-400 hover:text-red-300"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
+          </div>
+          {editingBPM ? (
+            <input
+              type="number"
+              value={tempBPM}
+              onChange={(e) => setTempBPM(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-2xl font-bold text-primary-500"
+              min="60"
+              max="200"
+              autoFocus
+            />
+          ) : (
+            <p className="text-2xl font-bold text-primary-500">
+              {bpm ? `${bpm} BPM` : 'Detecting...'}
+            </p>
+          )}
           <p className="text-sm text-gray-400 mt-1">
             {bpm ? 'Auto-detected' : 'Analysis pending'}
           </p>
@@ -146,12 +212,125 @@ export default function AnalysisDisplay({ pitches, bpm, musicalKey }: AnalysisDi
 
         {/* Key */}
         <div className="bg-black/30 rounded-lg p-4 border border-gray-800">
-          <h3 className="font-medium mb-2">Musical Key</h3>
-          <p className="text-2xl font-bold text-primary-500">
-            {musicalKey || 'Detecting...'}
-          </p>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-medium">Musical Key</h3>
+            {!editingKey ? (
+              <button
+                onClick={() => {
+                  setTempKey(musicalKey || 'C Major');
+                  setEditingKey(true);
+                }}
+                className="text-gray-400 hover:text-primary-500 transition-colors"
+              >
+                <Edit2 size={16} />
+              </button>
+            ) : (
+              <div className="flex gap-1">
+                <button
+                  onClick={() => {
+                    onKeyChange?.(tempKey);
+                    setEditingKey(false);
+                  }}
+                  className="text-green-400 hover:text-green-300"
+                >
+                  <Check size={16} />
+                </button>
+                <button
+                  onClick={() => {
+                    setTempKey(musicalKey || 'C Major');
+                    setEditingKey(false);
+                  }}
+                  className="text-red-400 hover:text-red-300"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
+          </div>
+          {editingKey ? (
+            <select
+              value={tempKey}
+              onChange={(e) => setTempKey(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-2xl font-bold text-primary-500"
+              autoFocus
+            >
+              {['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].map(note => (
+                <option key={`${note} Major`} value={`${note} Major`}>{note} Major</option>
+              ))}
+              {['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].map(note => (
+                <option key={`${note} Minor`} value={`${note} Minor`}>{note} Minor</option>
+              ))}
+            </select>
+          ) : (
+            <p className="text-2xl font-bold text-primary-500">
+              {musicalKey || 'Detecting...'}
+            </p>
+          )}
           <p className="text-sm text-gray-400 mt-1">
             {musicalKey ? 'Auto-detected' : 'Analysis pending'}
+          </p>
+        </div>
+
+        {/* Time Signature */}
+        <div className="bg-black/30 rounded-lg p-4 border border-gray-800">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-medium">Time Signature</h3>
+            {!editingTimeSig ? (
+              <button
+                onClick={() => {
+                  setTempTimeSig(timeSignature?.display || '4/4');
+                  setEditingTimeSig(true);
+                }}
+                className="text-gray-400 hover:text-primary-500 transition-colors"
+              >
+                <Edit2 size={16} />
+              </button>
+            ) : (
+              <div className="flex gap-1">
+                <button
+                  onClick={() => {
+                    const [num, den] = tempTimeSig.split('/').map(Number);
+                    onTimeSignatureChange?.({ numerator: num, denominator: den, display: tempTimeSig });
+                    setEditingTimeSig(false);
+                  }}
+                  className="text-green-400 hover:text-green-300"
+                >
+                  <Check size={16} />
+                </button>
+                <button
+                  onClick={() => {
+                    setTempTimeSig(timeSignature?.display || '4/4');
+                    setEditingTimeSig(false);
+                  }}
+                  className="text-red-400 hover:text-red-300"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
+          </div>
+          {editingTimeSig ? (
+            <select
+              value={tempTimeSig}
+              onChange={(e) => setTempTimeSig(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-2xl font-bold text-primary-500"
+              autoFocus
+            >
+              <option value="4/4">4/4</option>
+              <option value="3/4">3/4</option>
+              <option value="2/4">2/4</option>
+              <option value="6/8">6/8</option>
+              <option value="12/8">12/8</option>
+              <option value="5/4">5/4</option>
+              <option value="7/8">7/8</option>
+            </select>
+          ) : (
+            <p className="text-2xl font-bold text-primary-500">
+              {timeSignature?.display || '4/4'}
+            </p>
+          )}
+          <p className="text-sm text-gray-400 mt-1">
+            {timeSignature ? 'Auto-detected' : 'Default'}
           </p>
         </div>
       </div>
