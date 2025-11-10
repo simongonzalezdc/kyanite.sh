@@ -3,26 +3,43 @@
 import { useState, useEffect } from 'react';
 import { X, Play, Sparkles, Music, Zap } from 'lucide-react';
 
-interface WelcomeModalProps {
-  isOpen: boolean;
-  onStartTour: () => void;
-  onJumpIn: () => void;
-}
+// Import store hooks
+import { 
+  useModalState, 
+  useUIActions,
+  useOnboardingAndHelp 
+} from '@/lib/store/hooks';
 
-export default function WelcomeModal({ isOpen, onStartTour, onJumpIn }: WelcomeModalProps) {
+export default function WelcomeModal() {
+  // Use store hooks instead of props
+  const { welcomeModal } = useModalState();
+  const { setWelcomeModal, setOnboardingTour } = useUIActions();
+  const { actions: onboardingActions } = useOnboardingAndHelp();
+  
   const [isVisible, setIsVisible] = useState(false);
 
+  const handleStartTour = () => {
+    setWelcomeModal(false);
+    setOnboardingTour(true);
+    onboardingActions.setModalState('onboarding', true);
+  };
+
+  const handleJumpIn = () => {
+    setWelcomeModal(false);
+    onboardingActions.setModalState('welcome', false);
+  };
+
   useEffect(() => {
-    if (isOpen) {
+    if (welcomeModal) {
       // Small delay for smooth entrance animation
       const timer = setTimeout(() => setIsVisible(true), 100);
       return () => clearTimeout(timer);
     } else {
       setIsVisible(false);
     }
-  }, [isOpen]);
+  }, [welcomeModal]);
 
-  if (!isOpen) return null;
+  if (!welcomeModal) return null;
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
@@ -41,7 +58,7 @@ export default function WelcomeModal({ isOpen, onStartTour, onJumpIn }: WelcomeM
       >
         {/* Close Button */}
         <button
-          onClick={onJumpIn}
+          onClick={handleJumpIn}
           className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-gray-800"
           aria-label="Close welcome modal"
         >
@@ -105,7 +122,7 @@ export default function WelcomeModal({ isOpen, onStartTour, onJumpIn }: WelcomeM
         {/* Actions */}
         <div className="space-y-3">
           <button
-            onClick={onStartTour}
+            onClick={handleStartTour}
             className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02]"
           >
             <Play size={20} />
@@ -113,7 +130,7 @@ export default function WelcomeModal({ isOpen, onStartTour, onJumpIn }: WelcomeM
           </button>
           
           <button
-            onClick={onJumpIn}
+            onClick={handleJumpIn}
             className="w-full px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors"
           >
             Jump Right In

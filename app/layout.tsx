@@ -1,10 +1,15 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { AnalyticsProvider } from './components/AnalyticsProvider'
+import { AccessibilityProvider } from './components/AccessibilityProvider'
+import { KeyboardNavigation } from './components/KeyboardNavigation'
+import { ScreenReaderNavigation } from './components/ScreenReaderSupport'
+import { HighContrastProvider, FontSizeProvider } from './components/VisualAccessibility'
+import { VisualAccessibilityToolbar } from './components/VisualAccessibility'
 
 export const metadata: Metadata = {
   title: 'VoxForge - Transform Your Voice into Music',
-  description: 'Browser-based voice-to-song tool that transforms vocal recordings into complete music arrangements',
+  description: 'Browser-based voice-to-song tool that transforms vocal recordings into complete music arrangements with full accessibility support',
   viewport: {
     width: 'device-width',
     initialScale: 1,
@@ -18,7 +23,12 @@ export const metadata: Metadata = {
     statusBarStyle: 'black-translucent',
     title: 'VoxForge'
   },
-  manifest: '/manifest.json'
+  manifest: '/manifest.json',
+  robots: {
+    index: true,
+    follow: true
+  },
+  keywords: ['music', 'voice', 'accessibility', 'WCAG', 'screen reader', 'keyboard navigation']
 }
 
 export default function RootLayout({
@@ -35,11 +45,26 @@ export default function RootLayout({
         <meta name="format-detection" content="telephone=no" />
         <meta name="msapplication-tap-highlight" content="no" />
         <meta name="theme-color" content="#0a0a0a" />
+        <meta name="description" content="VoxForge - Accessible voice-to-music transformation tool with WCAG 2.1 AA compliance" />
+        <meta name="author" content="VoxForge Team" />
+        <meta name="accessibility" content="WCAG 2.1 AA compliant" />
       </head>
       <body className="antialiased">
-        <AnalyticsProvider>
-          {children}
-        </AnalyticsProvider>
+        <AccessibilityProvider>
+          <HighContrastProvider>
+            <FontSizeProvider>
+              <KeyboardNavigation>
+                <ScreenReaderNavigation />
+                <AnalyticsProvider>
+                  <main role="application" aria-label="VoxForge Music Application">
+                    {children}
+                  </main>
+                  <VisualAccessibilityToolbar />
+                </AnalyticsProvider>
+              </KeyboardNavigation>
+            </FontSizeProvider>
+          </HighContrastProvider>
+        </AccessibilityProvider>
       </body>
     </html>
   )

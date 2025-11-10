@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import Recorder from './components/Recorder';
 import AnalysisDisplay from './components/AnalysisDisplay';
 import PlaybackControls from './components/PlaybackControls';
@@ -41,23 +41,60 @@ import {
 } from '@/lib/hooks/useMobileFeatures';
 import { usePerformanceOptimization } from '@/lib/hooks/usePerformanceOptimization';
 
+// Import store hooks
+import { StoreProvider, HydrationLoader } from './components/StoreProvider';
+import {
+  useAudioStore,
+  useRecordingState,
+  useAnalysisState,
+  useGeneratedAudioState,
+  useAudioActions,
+  useNavigationState,
+  useModalState,
+  useThemePreferences,
+  useLayoutPreferences,
+  useVisualizationState,
+  useUIActions,
+  useOnboardingState,
+  useUserActions,
+  useProjectState,
+  useProjectActions,
+  useAudioAndAnalysis,
+  useModalsAndNavigation,
+  useOnboardingAndHelp,
+  useMobileState,
+  usePersistenceState,
+  useAnalyticsState
+} from '@/lib/store/hooks';
+
 function HomeContent() {
-  const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
-  const [pitches, setPitches] = useState<PitchPoint[]>([]);
-  const [bpm, setBpm] = useState<BPMAnalysis | null>(null);
-  const [key, setKey] = useState<KeyAnalysis | null>(null);
-  const [timeSignature, setTimeSignature] = useState<TimeSignature | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [sections, setSections] = useState<Section[]>([]);
-  const [selectedInstruments, setSelectedInstruments] = useState<InstrumentType[]>(['drums', 'bass', 'chords']);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [arrangementMode, setArrangementMode] = useState<'sequential' | 'layered'>('sequential');
-  const [pixiMode, setPixiMode] = useState<'record' | 'edit' | 'game' | null>(null);
+  // Store hooks for state
+  const recording = useRecordingState();
+  const analysis = useAnalysisState();
+  const generated = useGeneratedAudioState();
+  const audioActions = useAudioActions();
+  const audioStore = useAudioStore(); // Get the full store for accessing state
   
-  // Onboarding state
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-  const [showTour, setShowTour] = useState(false);
-  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(true);
+  const navigation = useNavigationState();
+  const modals = useModalState();
+  const theme = useThemePreferences();
+  const layout = useLayoutPreferences();
+  const visualization = useVisualizationState();
+  const uiActions = useUIActions();
+  
+  const onboarding = useOnboardingState();
+  const userActions = useUserActions();
+  
+  const project = useProjectState();
+  const projectActions = useProjectActions();
+  
+  // Combined hooks for convenience
+  const audioAndAnalysis = useAudioAndAnalysis();
+  const modalsAndNavigation = useModalsAndNavigation();
+  const onboardingAndHelp = useOnboardingAndHelp();
+  const mobileState = useMobileState();
+  const persistenceState = usePersistenceState();
+  const analyticsState = useAnalyticsState();
   
   const generatorRef = useRef<MusicGenerator | null>(null);
 
@@ -93,11 +130,9 @@ function HomeContent() {
   const { trackStepStart, trackStepComplete, trackJourneyComplete } = useJourneyTracking('voxforge_workflow');
 
   useEffect(() => {
-    // Check if user has seen onboarding
-    const onboardingStatus = localStorage.getItem('voxforge-onboarding-complete');
-    if (!onboardingStatus) {
-      setHasSeenOnboarding(false);
-      setShowWelcomeModal(true);
+    // Check if user has seen onboarding using store state
+    if (!onboarding.hasSeenOnboarding) {
+      uiActions.setWelcomeModal(true);
     }
 
     // Initialize generator
@@ -109,7 +144,7 @@ function HomeContent() {
     return () => {
       generator?.dispose();
     };
-  }, []);
+  }, [onboarding.hasSeenOnboarding, uiActions]);
 
   const handleRecordingComplete = async (buffer: AudioBuffer) => {
     // Track recording completion
@@ -119,13 +154,9 @@ function HomeContent() {
     });
 
     // Clear previous analysis state
-    setPitches([]);
-    setBpm(null);
-    setKey(null);
-    setTimeSignature(null);
-    
-    setAudioBuffer(buffer);
-    setIsAnalyzing(true);
+    audioActions.resetAnalysis();
+    audioActions.setRecordedAudio(buffer);
+    audioActions.setAnalyzing(true);
 
     // Track analysis start
     trackStepStart('audio_analysis');
@@ -137,42 +168,42 @@ function HomeContent() {
         const pitchDetector = new PitchDetector(buffer.sampleRate);
         return pitchDetector.analyze(buffer);
       });
-      setPitches(detectedPitches);
+      audioActions.setPitches(detectedPitches);
 
       // Run BPM detection with performance tracking
       const bpmAnalysis = await measureAudioProcessing(async () => {
         const bpmDetector = new BPMDetector();
         return bpmDetector.analyze(buffer);
       });
-      setBpm(bpmAnalysis);
+      audioActions.setBPM(bpmAnalysis);
 
       // Run key detection with performance tracking
       const keyAnalysis = await measureAudioProcessing(async () => {
         const keyDetector = new KeyDetector();
         return keyDetector.analyze(detectedPitches);
       });
-      setKey(keyAnalysis);
+      audioActions.setKey(keyAnalysis);
 
       // Run time signature detection with performance tracking
       const timeSig = await measureAudioProcessing(async () => {
         const timeSigDetector = new TimeSignatureDetector();
         return timeSigDetector.analyze(detectedPitches, (bpmAnalysis as BPMAnalysis).bpm);
       });
-      setTimeSignature(timeSig);
+      audioActions.setTimeSignature(timeSig);
 
       // Create section from recording
       const section: Section = {
         id: `section-${Date.now()}`,
-        name: `Section ${sections.length + 1}`,
+        name: `Section ${audioStore.sections?.length || 0 + 1}`,
         audioBuffer: buffer,
         duration: buffer.duration,
         pitches: detectedPitches,
         bpm: bpmAnalysis,
         key: keyAnalysis,
-        instruments: [...selectedInstruments],
+        instruments: [...audioStore.selectedInstruments],
       };
 
-      setSections([...sections, section]);
+      audioActions.addSection(section);
       
       // Track successful analysis
       trackStepComplete('audio_analysis');
@@ -188,12 +219,12 @@ function HomeContent() {
       });
       alert('Failed to analyze audio. Please try again.');
     } finally {
-      setIsAnalyzing(false);
+      audioActions.setAnalyzing(false);
     }
   };
 
   const handleGenerateMusic = () => {
-    if (!generatorRef.current || !bpm || !key) {
+    if (!generatorRef.current || !analysis.bpm || !analysis.key) {
       trackInteraction('click', 'generate_music_error');
       alert('Please record and analyze audio first');
       return;
@@ -202,18 +233,18 @@ function HomeContent() {
     // Track music generation
     trackStepStart('music_generation');
     trackFeature('generation', 'start', {
-      bpm: bpm.bpm,
-      key: key.key,
-      instruments: selectedInstruments
+      bpm: analysis.bpm.bpm,
+      key: analysis.key.key,
+      instruments: audioStore.selectedInstruments
     });
 
     const generator = generatorRef.current;
-    generator.setBPM(bpm.bpm);
-    generator.setKey(key.key);
-    generator.setInstruments(selectedInstruments);
+    generator.setBPM(analysis.bpm.bpm);
+    generator.setKey(analysis.key.key);
+    generator.setInstruments(audioStore.selectedInstruments);
     generator.generateDrums('moderate');
-    generator.generateBass(key.key);
-    generator.generateChords(key.key);
+    generator.generateBass(analysis.key.key);
+    generator.generateChords(analysis.key.key);
     
     trackStepComplete('music_generation');
   };
@@ -223,24 +254,24 @@ function HomeContent() {
     
     handleGenerateMusic();
     generatorRef.current.start();
-    setIsPlaying(true);
+    audioActions.setGeneratedPlaying(true);
   };
 
   const handlePause = () => {
     if (!generatorRef.current) return;
     generatorRef.current.stop();
-    setIsPlaying(false);
+    audioActions.setGeneratedPlaying(false);
   };
 
   const handleStop = () => {
     if (!generatorRef.current) return;
     generatorRef.current.stop();
-    setIsPlaying(false);
+    audioActions.setGeneratedPlaying(false);
   };
 
   const handleBPMChange = (newBPM: number) => {
-    if (bpm) {
-      setBpm({ ...bpm, bpm: newBPM });
+    if (analysis.bpm) {
+      audioActions.setBPM({ ...analysis.bpm, bpm: newBPM });
     }
     if (generatorRef.current) {
       generatorRef.current.setBPM(newBPM);
@@ -248,8 +279,8 @@ function HomeContent() {
   };
 
   const handleKeyChange = (newKey: string) => {
-    if (key) {
-      setKey({ ...key, key: newKey });
+    if (analysis.key) {
+      audioActions.setKey({ ...analysis.key, key: newKey });
     }
     if (generatorRef.current) {
       generatorRef.current.setKey(newKey);
@@ -257,36 +288,33 @@ function HomeContent() {
   };
 
   const handleTimeSignatureChange = (newTimeSig: TimeSignature) => {
-    setTimeSignature(newTimeSig);
+    audioActions.setTimeSignature(newTimeSig);
   };
 
   const handleDeleteSection = (id: string) => {
-    setSections(sections.filter(s => s.id !== id));
+    audioActions.deleteSection(id);
   };
 
   const handleRenameSection = (id: string, name: string) => {
-    setSections(sections.map(s => s.id === id ? { ...s, name } : s));
+    audioActions.updateSection(id, { name });
   };
 
   const handleNewSection = () => {
-    setAudioBuffer(null);
-    setPitches([]);
-    setBpm(null);
-    setKey(null);
+    audioActions.resetRecording();
+    audioActions.resetAnalysis();
   };
 
   // Onboarding handlers
   const handleStartTour = () => {
     trackFeature('onboarding', 'start');
-    setShowWelcomeModal(false);
-    setShowTour(true);
+    uiActions.setWelcomeModal(false);
+    uiActions.setOnboardingTour(true);
   };
 
   const handleJumpIn = () => {
     trackFeature('onboarding', 'skip');
-    setShowWelcomeModal(false);
-    setHasSeenOnboarding(true);
-    localStorage.setItem('voxforge-onboarding-complete', 'true');
+    uiActions.setWelcomeModal(false);
+    userActions.completeOnboarding();
   };
 
   const handleTourComplete = () => {
@@ -294,21 +322,19 @@ function HomeContent() {
     trackJourneyComplete({
       tour_completed: true
     });
-    setShowTour(false);
-    setHasSeenOnboarding(true);
-    localStorage.setItem('voxforge-onboarding-complete', 'true');
+    uiActions.setOnboardingTour(false);
+    userActions.completeOnboarding();
   };
 
   const handleTourSkip = () => {
     trackFeature('onboarding', 'skip');
-    setShowTour(false);
-    setHasSeenOnboarding(true);
-    localStorage.setItem('voxforge-onboarding-complete', 'true');
+    uiActions.setOnboardingTour(false);
+    userActions.completeOnboarding();
   };
 
   const handleRestartTour = () => {
     trackInteraction('click', 'restart_tour');
-    setShowTour(true);
+    uiActions.setOnboardingTour(true);
   };
 
   return (
@@ -318,14 +344,10 @@ function HomeContent() {
       ${shouldReduceAnimations() ? 'reduce-animation' : ''}
     `}>
       {/* Onboarding Components */}
-      <WelcomeModal
-        isOpen={showWelcomeModal}
-        onStartTour={handleStartTour}
-        onJumpIn={handleJumpIn}
-      />
+      <WelcomeModal />
       
       <OnboardingTour
-        isOpen={showTour}
+        isOpen={modals.onboardingTour}
         onComplete={handleTourComplete}
         onSkip={handleTourSkip}
       />
@@ -338,7 +360,7 @@ function HomeContent() {
           <p className="fluid-base text-gray-400">
             Transform your voice into music
           </p>
-          {hasSeenOnboarding && (
+          {onboarding.hasSeenOnboarding && (
             <button
               onClick={() => {
                 handleRestartTour();
@@ -352,13 +374,13 @@ function HomeContent() {
         </header>
 
         {/* Quick Start Guide */}
-        {!hasSeenOnboarding && <QuickStartGuide />}
+        {!onboarding.hasSeenOnboarding && <QuickStartGuide />}
 
         {/* Recording Section */}
         <div className="bg-gray-900 rounded-xl p-4 sm:p-6 lg:p-8 border border-gray-800" id="record">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <h2 className="fluid-xl font-semibold">Step 1: Record Your Voice</h2>
-            {sections.length > 0 && (
+            {audioStore.sections && audioStore.sections.length > 0 && (
               <button
                 onClick={() => {
                   handleNewSection();
@@ -373,7 +395,7 @@ function HomeContent() {
           <Recorder onRecordingComplete={handleRecordingComplete} />
         </div>
 
-        {isAnalyzing && (
+        {analysis.isAnalyzing && (
           <div className="bg-gray-900 rounded-xl p-6 sm:p-8 border border-gray-800">
             <div className="flex items-center justify-center gap-3">
               <div className={`animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500 ${shouldReduceAnimations() ? 'animate-pulse' : ''}`}></div>
@@ -383,13 +405,13 @@ function HomeContent() {
         )}
 
         {/* Analysis Display */}
-        {pitches.length > 0 && !isAnalyzing && (
+        {analysis.pitches.length > 0 && !analysis.isAnalyzing && (
           <>
             <AnalysisDisplay 
-              pitches={pitches} 
-              bpm={bpm?.bpm || null}
-              musicalKey={key?.key || null}
-              timeSignature={timeSignature}
+              pitches={analysis.pitches} 
+              bpm={analysis.bpm?.bpm || null}
+              musicalKey={analysis.key?.key || null}
+              timeSignature={analysis.timeSignature}
               onBPMChange={handleBPMChange}
               onKeyChange={handleKeyChange}
               onTimeSignatureChange={handleTimeSignatureChange}
@@ -401,9 +423,9 @@ function HomeContent() {
                 <h3 className="text-lg font-semibold">Interactive Visualizations</h3>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setPixiMode(pixiMode === 'record' ? null : 'record')}
+                    onClick={() => uiActions.setPixiMode(visualization.pixiMode === 'record' ? null : 'record')}
                     className={`px-4 py-2 rounded-lg transition-colors text-sm ${
-                      pixiMode === 'record'
+                      visualization.pixiMode === 'record'
                         ? 'bg-primary-500 text-white'
                         : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                     }`}
@@ -411,9 +433,9 @@ function HomeContent() {
                     Real-Time Visualizer
                   </button>
                   <button
-                    onClick={() => setPixiMode(pixiMode === 'edit' ? null : 'edit')}
+                    onClick={() => uiActions.setPixiMode(visualization.pixiMode === 'edit' ? null : 'edit')}
                     className={`px-4 py-2 rounded-lg transition-colors text-sm ${
-                      pixiMode === 'edit'
+                      visualization.pixiMode === 'edit'
                         ? 'bg-primary-500 text-white'
                         : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                     }`}
@@ -421,9 +443,9 @@ function HomeContent() {
                     Piano Roll Editor
                   </button>
                   <button
-                    onClick={() => setPixiMode(pixiMode === 'game' ? null : 'game')}
+                    onClick={() => uiActions.setPixiMode(visualization.pixiMode === 'game' ? null : 'game')}
                     className={`px-4 py-2 rounded-lg transition-colors text-sm ${
-                      pixiMode === 'game'
+                      visualization.pixiMode === 'game'
                         ? 'bg-primary-500 text-white'
                         : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                     }`}
@@ -433,26 +455,26 @@ function HomeContent() {
                 </div>
               </div>
               
-              {pixiMode === 'record' && (
+              {visualization.pixiMode === 'record' && (
                 <VisualizerCanvas 
-                  pitches={pitches}
-                  isRecording={false}
+                  pitches={analysis.pitches}
+                  isRecording={recording.isRecording}
                 />
               )}
               
-              {pixiMode === 'edit' && bpm && (
+              {visualization.pixiMode === 'edit' && analysis.bpm && (
                 <PianoRollEditor
-                  initialPitches={pitches}
-                  bpm={bpm.bpm}
+                  initialPitches={analysis.pitches}
+                  bpm={analysis.bpm.bpm}
                   onExport={(newPitches) => {
-                    setPitches(newPitches);
+                    audioActions.setPitches(newPitches);
                   }}
                 />
               )}
               
-              {pixiMode === 'game' && bpm && (
+              {visualization.pixiMode === 'game' && analysis.bpm && (
                 <RhythmGameMode
-                  bpm={bpm.bpm}
+                  bpm={analysis.bpm.bpm}
                   onComplete={(notes) => {
                     // Convert game notes to pitches
                     const gamePitches: PitchPoint[] = notes.map(note => ({
@@ -461,30 +483,30 @@ function HomeContent() {
                       midi: note.midi,
                       confidence: 1
                     }));
-                    setPitches([...pitches, ...gamePitches]);
+                    audioActions.setPitches([...analysis.pitches, ...gamePitches]);
                   }}
                 />
               )}
             </div>
             
-            {audioBuffer && !pixiMode && (
+            {recording.recordedAudio && !visualization.pixiMode && (
               <PianoRoll
-                pitches={pitches}
-                duration={audioBuffer.duration}
-                bpm={bpm?.bpm || null}
+                pitches={analysis.pitches}
+                duration={recording.recordedAudio.duration}
+                bpm={analysis.bpm?.bpm || null}
               />
             )}
           </>
         )}
 
         {/* Music Generation */}
-        {bpm && key && !isAnalyzing && (
+        {analysis.bpm && analysis.key && !analysis.isAnalyzing && (
           <div className="bg-gray-900 rounded-xl p-6 sm:p-8 border border-gray-800 space-y-6" id="generate" data-tour="instruments">
             <h2 className="fluid-xl font-semibold">Step 2: Generate Music</h2>
             
             <InstrumentPicker
-              selected={selectedInstruments}
-              onChange={setSelectedInstruments}
+              selected={audioStore.selectedInstruments}
+              onChange={audioActions.setSelectedInstruments}
             />
 
             <div className="space-y-4">
@@ -500,37 +522,37 @@ function HomeContent() {
               </button>
 
               <PlaybackControls
-                isPlaying={isPlaying}
+                isPlaying={generated.generatedPlaying}
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onStop={handleStop}
               />
 
-              {bpm && (
-                <Metronome bpm={bpm.bpm} isPlaying={isPlaying} />
+              {analysis.bpm && (
+                <Metronome bpm={analysis.bpm.bpm} isPlaying={generated.generatedPlaying} />
               )}
             </div>
           </div>
         )}
 
         {/* Section Management */}
-        {sections.length > 0 && (
+        {audioStore.sections && audioStore.sections.length > 0 && (
           <SectionManager
-            sections={sections}
+            sections={audioStore.sections}
             onDelete={handleDeleteSection}
             onRename={handleRenameSection}
           />
         )}
 
         {/* Arrangement Mode */}
-        {sections.length > 1 && (
+        {audioStore.sections && audioStore.sections.length > 1 && (
           <div className="bg-gray-900 rounded-xl p-8 border border-gray-800">
             <h2 className="text-xl font-semibold mb-4">Arrangement Mode</h2>
             <div className="flex gap-4">
               <button
-                onClick={() => setArrangementMode('sequential')}
+                onClick={() => audioActions.setArrangementMode('sequential')}
                 className={`px-4 py-2 rounded-lg border transition-colors ${
-                  arrangementMode === 'sequential'
+                  generated.arrangementMode === 'sequential'
                     ? 'bg-primary-500/20 border-primary-500 text-primary-500'
                     : 'bg-gray-800 border-gray-700 text-gray-400'
                 }`}
@@ -538,9 +560,9 @@ function HomeContent() {
                 Sequential
               </button>
               <button
-                onClick={() => setArrangementMode('layered')}
+                onClick={() => audioActions.setArrangementMode('layered')}
                 className={`px-4 py-2 rounded-lg border transition-colors ${
-                  arrangementMode === 'layered'
+                  generated.arrangementMode === 'layered'
                     ? 'bg-primary-500/20 border-primary-500 text-primary-500'
                     : 'bg-gray-800 border-gray-700 text-gray-400'
                 }`}
@@ -552,21 +574,21 @@ function HomeContent() {
         )}
 
         {/* Export Panel */}
-        {pitches.length > 0 && (
+        {analysis.pitches.length > 0 && (
           <ExportPanel
-            audioBuffer={audioBuffer}
-            pitches={pitches}
-            bpm={bpm}
-            musicalKey={key?.key || null}
+            audioBuffer={recording.recordedAudio}
+            pitches={analysis.pitches}
+            bpm={analysis.bpm}
+            musicalKey={analysis.key?.key || null}
             generator={generatorRef.current}
           />
         )}
 
         {/* AI Lyrics Assistant */}
-        {pitches.length > 0 && key && (
+        {analysis.pitches.length > 0 && analysis.key && (
           <LyricsAssistant
-            pitches={pitches}
-            musicalKey={key.key}
+            pitches={analysis.pitches}
+            musicalKey={analysis.key.key}
           />
         )}
       </div>
@@ -576,9 +598,13 @@ function HomeContent() {
 
 export default function Home() {
   return (
-    <AnalyticsErrorBoundaryWithTracking>
-      <HomeContent />
-      <AnalyticsDashboardDev />
-    </AnalyticsErrorBoundaryWithTracking>
+    <StoreProvider>
+      <HydrationLoader>
+        <AnalyticsErrorBoundaryWithTracking>
+          <HomeContent />
+          <AnalyticsDashboardDev />
+        </AnalyticsErrorBoundaryWithTracking>
+      </HydrationLoader>
+    </StoreProvider>
   );
 }
