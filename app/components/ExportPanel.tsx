@@ -11,11 +11,11 @@ interface ExportPanelProps {
   audioBuffer: AudioBuffer | null;
   pitches: PitchPoint[];
   bpm: BPMAnalysis | null;
-  key: string | null;
+  musicalKey: string | null;
   generator: MusicGenerator | null;
 }
 
-export default function ExportPanel({ audioBuffer, pitches, bpm, key, generator }: ExportPanelProps) {
+export default function ExportPanel({ audioBuffer, pitches, bpm, musicalKey, generator }: ExportPanelProps) {
   const [exporting, setExporting] = useState<string | null>(null);
 
   const downloadBlob = (blob: Blob, filename: string) => {
@@ -59,7 +59,7 @@ export default function ExportPanel({ audioBuffer, pitches, bpm, key, generator 
     try {
       const exporter = new MidiExporter();
       const bpmValue = bpm?.bpm || 120;
-      const blob = exporter.export(pitches, bpmValue, key || undefined);
+      const blob = exporter.export(pitches, bpmValue, musicalKey || undefined);
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       downloadBlob(blob, `voxforge-melody-${timestamp}.mid`);
     } catch (error) {

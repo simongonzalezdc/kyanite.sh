@@ -253,7 +253,7 @@ export default function Home() {
             audioBuffer={audioBuffer}
             pitches={pitches}
             bpm={bpm}
-            key={key?.key || null}
+            musicalKey={key?.key || null}
             generator={generatorRef.current}
           />
         )}
