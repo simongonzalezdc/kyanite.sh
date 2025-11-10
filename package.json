@@ -9,19 +9,26 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@pixi/graphics-extras": "^7.4.3",
     "@tailwindcss/postcss": "^4.1.17",
     "@tonejs/midi": "^2.0.28",
+    "clsx": "^2.1.1",
+    "gsap": "^3.13.0",
     "lucide-react": "^0.553.0",
     "next": "^16.0.1",
     "openai": "^6.8.1",
     "pitchfinder": "^2.3.2",
+    "pixi.js": "^8.14.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "realtime-bpm-analyzer": "^4.0.2",
+    "tailwind-merge": "^3.4.0",
     "tonal": "^6.4.2",
-    "tone": "^15.1.22"
+    "tone": "^15.1.22",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@types/gsap": "^1.20.2",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

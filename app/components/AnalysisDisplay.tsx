@@ -6,6 +6,8 @@ import { PitchDetector } from '@/lib/audio/pitch-detector';
 import { TimeSignatureDetector } from '@/lib/audio/time-signature-detector';
 import { Music, Activity, Play, Square, Edit2, Check, X } from 'lucide-react';
 import * as Tone from 'tone';
+import Tooltip from './Tooltip';
+import { isMobile, isTouchDevice, triggerHaptic, enableSwipeGestures } from '@/lib/utils';
 
 interface AnalysisDisplayProps {
   pitches: PitchPoint[];
@@ -166,37 +168,62 @@ export default function AnalysisDisplay({
     setCurrentNoteIndex(null);
   };
 
+  // Add swipe gesture support for mobile
+  const analysisRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (isTouchDevice() && analysisRef.current) {
+      const cleanup = enableSwipeGestures(analysisRef.current, {
+        onSwipeLeft: () => {
+          if (!isPlaying) {
+            playNotes();
+          }
+        },
+        onSwipeRight: () => {
+          if (isPlaying) {
+            stopPlayback();
+          }
+        }
+      });
+      
+      return cleanup;
+    }
+  }, [isPlaying, simplified]);
+
   return (
-    <div className="bg-gray-900 rounded-xl p-8 border border-gray-800 space-y-6">
-      <h2 className="text-xl font-semibold flex items-center gap-2">
-        <Activity size={24} className="text-primary-500" />
+    <div ref={analysisRef} className="bg-gray-900 rounded-xl p-6 sm:p-8 border border-gray-800 space-y-6" id="analyze">
+      <h2 className="fluid-xl font-semibold flex items-center gap-2">
+        <Activity size={isMobile() ? 28 : 24} className="text-primary-500" />
         Audio Analysis
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Pitch Info */}
-        <div className="bg-black/30 rounded-lg p-4 border border-gray-800">
+        <div className="bg-black/30 rounded-lg p-4 border border-gray-800 touch-manipulation active:scale-[0.98] transition-transform">
           <div className="flex items-center gap-2 mb-2">
-            <Music size={20} className="text-secondary-500" />
+            <Music size={isMobile() ? 24 : 20} className="text-secondary-500" />
             <h3 className="font-medium">Pitch Range</h3>
+            <Tooltip content="The range of notes detected in your recording. This helps determine the melody's character and complexity." />
           </div>
-          <p className="text-2xl font-bold text-secondary-500 capitalize">{stats.range}</p>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="fluid-2xl font-bold text-secondary-500 capitalize">{stats.range}</p>
+          <p className="fluid-sm text-gray-400 mt-1">
             {stats.averageFrequency.toFixed(1)} Hz average
           </p>
         </div>
 
         {/* BPM */}
-        <div className="bg-black/30 rounded-lg p-4 border border-gray-800">
+        <div className="bg-black/30 rounded-lg p-4 border border-gray-800 touch-manipulation active:scale-[0.98] transition-transform">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-medium">Tempo</h3>
+            <Tooltip content="The speed of your music in beats per minute (BPM). Click edit to adjust the tempo for your generated music." />
             {!editingBPM ? (
               <button
                 onClick={() => {
                   setTempBPM(bpm?.toString() || '120');
                   setEditingBPM(true);
+                  triggerHaptic('light');
                 }}
-                className="text-gray-400 hover:text-primary-500 transition-colors"
+                className="text-gray-400 hover:text-primary-500 transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center rounded touch-manipulation active:scale-95"
               >
                 <Edit2 size={16} />
               </button>
@@ -207,8 +234,9 @@ export default function AnalysisDisplay({
                     const newBPM = parseInt(tempBPM) || 120;
                     onBPMChange?.(newBPM);
                     setEditingBPM(false);
+                    triggerHaptic('light');
                   }}
-                  className="text-green-400 hover:text-green-300"
+                  className="text-green-400 hover:text-green-300 min-h-[32px] min-w-[32px] flex items-center justify-center rounded touch-manipulation active:scale-95"
                 >
                   <Check size={16} />
                 </button>
@@ -216,8 +244,9 @@ export default function AnalysisDisplay({
                   onClick={() => {
                     setTempBPM(bpm?.toString() || '120');
                     setEditingBPM(false);
+                    triggerHaptic('light');
                   }}
-                  className="text-red-400 hover:text-red-300"
+                  className="text-red-400 hover:text-red-300 min-h-[32px] min-w-[32px] flex items-center justify-center rounded touch-manipulation active:scale-95"
                 >
                   <X size={16} />
                 </button>
@@ -229,32 +258,35 @@ export default function AnalysisDisplay({
               type="number"
               value={tempBPM}
               onChange={(e) => setTempBPM(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-2xl font-bold text-primary-500"
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 fluid-2xl font-bold text-primary-500 touch-manipulation"
               min="60"
               max="200"
               autoFocus
+              style={{ minHeight: isMobile() ? '48px' : '40px' }}
             />
           ) : (
-            <p className="text-2xl font-bold text-primary-500">
+            <p className="fluid-2xl font-bold text-primary-500">
               {bpm ? `${bpm} BPM` : 'Detecting...'}
             </p>
           )}
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="fluid-sm text-gray-400 mt-1">
             {bpm ? 'Auto-detected' : 'Analysis pending'}
           </p>
         </div>
 
         {/* Key */}
-        <div className="bg-black/30 rounded-lg p-4 border border-gray-800">
+        <div className="bg-black/30 rounded-lg p-4 border border-gray-800 touch-manipulation active:scale-[0.98] transition-transform">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-medium">Musical Key</h3>
+            <Tooltip content="The musical key of your recording. This determines the scale and harmony used in the generated accompaniment." />
             {!editingKey ? (
               <button
                 onClick={() => {
                   setTempKey(musicalKey || 'C Major');
                   setEditingKey(true);
+                  triggerHaptic('light');
                 }}
-                className="text-gray-400 hover:text-primary-500 transition-colors"
+                className="text-gray-400 hover:text-primary-500 transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center rounded touch-manipulation active:scale-95"
               >
                 <Edit2 size={16} />
               </button>
@@ -264,8 +296,9 @@ export default function AnalysisDisplay({
                   onClick={() => {
                     onKeyChange?.(tempKey);
                     setEditingKey(false);
+                    triggerHaptic('light');
                   }}
-                  className="text-green-400 hover:text-green-300"
+                  className="text-green-400 hover:text-green-300 min-h-[32px] min-w-[32px] flex items-center justify-center rounded touch-manipulation active:scale-95"
                 >
                   <Check size={16} />
                 </button>
@@ -273,8 +306,9 @@ export default function AnalysisDisplay({
                   onClick={() => {
                     setTempKey(musicalKey || 'C Major');
                     setEditingKey(false);
+                    triggerHaptic('light');
                   }}
-                  className="text-red-400 hover:text-red-300"
+                  className="text-red-400 hover:text-red-300 min-h-[32px] min-w-[32px] flex items-center justify-center rounded touch-manipulation active:scale-95"
                 >
                   <X size={16} />
                 </button>
@@ -285,8 +319,9 @@ export default function AnalysisDisplay({
             <select
               value={tempKey}
               onChange={(e) => setTempKey(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-2xl font-bold text-primary-500"
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 fluid-2xl font-bold text-primary-500 touch-manipulation"
               autoFocus
+              style={{ minHeight: isMobile() ? '48px' : '40px' }}
             >
               {['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].map(note => (
                 <option key={`${note} Major`} value={`${note} Major`}>{note} Major</option>
@@ -296,26 +331,28 @@ export default function AnalysisDisplay({
               ))}
             </select>
           ) : (
-            <p className="text-2xl font-bold text-primary-500">
+            <p className="fluid-2xl font-bold text-primary-500">
               {musicalKey || 'Detecting...'}
             </p>
           )}
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="fluid-sm text-gray-400 mt-1">
             {musicalKey ? 'Auto-detected' : 'Analysis pending'}
           </p>
         </div>
 
         {/* Time Signature */}
-        <div className="bg-black/30 rounded-lg p-4 border border-gray-800">
+        <div className="bg-black/30 rounded-lg p-4 border border-gray-800 touch-manipulation active:scale-[0.98] transition-transform">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-medium">Time Signature</h3>
+            <Tooltip content="The rhythmic structure of your music (e.g., 4/4 means four beats per measure). This affects the feel and groove of the generated music." />
             {!editingTimeSig ? (
               <button
                 onClick={() => {
                   setTempTimeSig(timeSignature?.display || '4/4');
                   setEditingTimeSig(true);
+                  triggerHaptic('light');
                 }}
-                className="text-gray-400 hover:text-primary-500 transition-colors"
+                className="text-gray-400 hover:text-primary-500 transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center rounded touch-manipulation active:scale-95"
               >
                 <Edit2 size={16} />
               </button>
@@ -326,8 +363,9 @@ export default function AnalysisDisplay({
                     const [num, den] = tempTimeSig.split('/').map(Number);
                     onTimeSignatureChange?.({ numerator: num, denominator: den, display: tempTimeSig });
                     setEditingTimeSig(false);
+                    triggerHaptic('light');
                   }}
-                  className="text-green-400 hover:text-green-300"
+                  className="text-green-400 hover:text-green-300 min-h-[32px] min-w-[32px] flex items-center justify-center rounded touch-manipulation active:scale-95"
                 >
                   <Check size={16} />
                 </button>
@@ -335,8 +373,9 @@ export default function AnalysisDisplay({
                   onClick={() => {
                     setTempTimeSig(timeSignature?.display || '4/4');
                     setEditingTimeSig(false);
+                    triggerHaptic('light');
                   }}
-                  className="text-red-400 hover:text-red-300"
+                  className="text-red-400 hover:text-red-300 min-h-[32px] min-w-[32px] flex items-center justify-center rounded touch-manipulation active:scale-95"
                 >
                   <X size={16} />
                 </button>
@@ -347,8 +386,9 @@ export default function AnalysisDisplay({
             <select
               value={tempTimeSig}
               onChange={(e) => setTempTimeSig(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-2xl font-bold text-primary-500"
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 fluid-2xl font-bold text-primary-500 touch-manipulation"
               autoFocus
+              style={{ minHeight: isMobile() ? '48px' : '40px' }}
             >
               <option value="4/4">4/4</option>
               <option value="3/4">3/4</option>
@@ -359,11 +399,11 @@ export default function AnalysisDisplay({
               <option value="7/8">7/8</option>
             </select>
           ) : (
-            <p className="text-2xl font-bold text-primary-500">
+            <p className="fluid-2xl font-bold text-primary-500">
               {timeSignature?.display || '4/4'}
             </p>
           )}
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="fluid-sm text-gray-400 mt-1">
             {timeSignature ? 'Auto-detected' : 'Default'}
           </p>
         </div>
@@ -371,21 +411,28 @@ export default function AnalysisDisplay({
 
       {/* Detected Notes */}
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <h3 className="font-medium">Detected Melody (first 20 notes)</h3>
+          <Tooltip content="The melody extracted from your recording. Click Play to hear how it sounds, or edit individual notes in the piano roll editor." />
           <div className="flex gap-2">
             {!isPlaying ? (
               <button
-                onClick={playNotes}
-                className="flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 rounded-lg font-medium transition-colors text-sm"
+                onClick={() => {
+                  playNotes();
+                  triggerHaptic('light');
+                }}
+                className="flex items-center gap-2 px-4 py-3 bg-primary-500 hover:bg-primary-600 rounded-lg font-medium transition-all duration-200 fluid-sm min-h-[44px] touch-manipulation active:scale-95"
               >
                 <Play size={16} />
                 Play Notes
               </button>
             ) : (
               <button
-                onClick={stopPlayback}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg font-medium transition-colors text-sm"
+                onClick={() => {
+                  stopPlayback();
+                  triggerHaptic('medium');
+                }}
+                className="flex items-center gap-2 px-4 py-3 bg-red-500 hover:bg-red-600 rounded-lg font-medium transition-all duration-200 fluid-sm min-h-[44px] touch-manipulation active:scale-95"
               >
                 <Square size={16} />
                 Stop
@@ -397,26 +444,29 @@ export default function AnalysisDisplay({
           {noteNames.map((note, i) => (
             <span
               key={i}
-              className={`px-3 py-1 border rounded-md text-sm font-mono transition-colors ${
-                currentNoteIndex === i && isPlaying
-                  ? 'bg-primary-500 border-primary-400 text-white scale-110'
-                  : 'bg-primary-500/20 border-primary-500/50 text-gray-300'
-              }`}
+              className={`
+                px-3 py-2 border rounded-md fluid-xs font-mono transition-all duration-200
+                ${currentNoteIndex === i && isPlaying
+                  ? 'bg-primary-500 border-primary-400 text-white scale-110 shadow-lg'
+                  : 'bg-primary-500/20 border-primary-500/50 text-gray-300 hover:bg-primary-500/30'
+                }
+                ${isTouchDevice() ? 'min-h-[36px] min-w-[36px] flex items-center justify-center' : ''}
+              `}
             >
               {note}
             </span>
           ))}
           {simplified.length > 20 && (
-            <span className="px-3 py-1 text-gray-400 text-sm">
+            <span className="px-3 py-2 text-gray-400 fluid-xs flex items-center">
               +{simplified.length - 20} more
             </span>
           )}
         </div>
         {isPlaying && (
-          <p className="text-sm text-gray-400 mt-2">
+          <p className="fluid-sm text-gray-400 mt-3">
             Playing detected notes... ({currentNoteIndex !== null ? currentNoteIndex + 1 : 0} / {simplified.length})
             {currentNoteIndex !== null && (
-              <span className="ml-2 text-primary-400 font-mono">
+              <span className="ml-2 text-primary-400 font-mono block sm:inline">
                 Now: {detector.midiToNoteName(simplified[currentNoteIndex])}
               </span>
             )}
@@ -425,7 +475,7 @@ export default function AnalysisDisplay({
       </div>
 
       {/* Stats */}
-      <div className="text-sm text-gray-400 space-y-1">
+      <div className="fluid-sm text-gray-400 space-y-1">
         <p>Total pitch points detected: {pitches.length}</p>
         <p>Unique notes: {simplified.length}</p>
         <p>Frequency range: {stats.minFrequency.toFixed(1)} - {stats.maxFrequency.toFixed(1)} Hz</p>

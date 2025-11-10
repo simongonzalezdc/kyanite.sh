@@ -1,21 +1,98 @@
 @import "tailwindcss";
 
+/* Mobile-first CSS variables with responsive scaling */
 :root {
+  /* Base colors */
   --background: #0a0a0a;
   --foreground: #ffffff;
   --primary: #3B82F6;
   --secondary: #8B5CF6;
+  
+  /* Mobile-specific variables */
+  --mobile-padding: 1rem;
+  --mobile-gap: 0.75rem;
+  --mobile-touch-target: 44px;
+  --mobile-border-radius: 12px;
+  
+  /* Fluid typography scale */
+  --font-size-xs: clamp(0.75rem, 2vw, 0.875rem);
+  --font-size-sm: clamp(0.875rem, 2.5vw, 1rem);
+  --font-size-base: clamp(1rem, 3vw, 1.125rem);
+  --font-size-lg: clamp(1.125rem, 3.5vw, 1.25rem);
+  --font-size-xl: clamp(1.25rem, 4vw, 1.5rem);
+  --font-size-2xl: clamp(1.5rem, 5vw, 2rem);
+  --font-size-3xl: clamp(1.875rem, 6vw, 2.5rem);
+  --font-size-4xl: clamp(2.25rem, 7vw, 3rem);
+  
+  /* Safe area insets for notched devices */
+  --safe-area-inset-top: env(safe-area-inset-top, 0);
+  --safe-area-inset-right: env(safe-area-inset-right, 0);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0);
+  --safe-area-inset-left: env(safe-area-inset-left, 0);
+  
+  /* Mobile navigation height */
+  --mobile-nav-height: 60px;
 }
 
+/* Tablet adjustments (768px+) */
+@media (min-width: 768px) {
+  :root {
+    --mobile-padding: 1.5rem;
+    --mobile-gap: 1rem;
+    --mobile-border-radius: 16px;
+  }
+}
+
+/* Desktop adjustments (1024px+) */
+@media (min-width: 1024px) {
+  :root {
+    --mobile-padding: 2rem;
+    --mobile-gap: 1.5rem;
+    --mobile-border-radius: 20px;
+  }
+}
+
+/* Base body styles with mobile-first approach */
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  /* Prevent horizontal scrolling on mobile */
+  overflow-x: hidden;
+  /* Improve text rendering on mobile */
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Handle touch events properly */
+  touch-action: manipulation;
+  /* Safe area support */
+  padding-top: var(--safe-area-inset-top);
+  padding-left: var(--safe-area-inset-left);
+  padding-right: var(--safe-area-inset-right);
+  padding-bottom: var(--safe-area-inset-bottom);
 }
 
-/* Custom scrollbar */
+/* Mobile viewport optimization */
+html {
+  /* Prevent zoom on input focus on iOS */
+  -webkit-text-size-adjust: 100%;
+  /* Ensure proper viewport handling */
+  height: 100%;
+  /* Enable smooth scrolling */
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar - hide on mobile, show on desktop */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 0px; /* Hidden on mobile */
+}
+
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
 }
 
 ::-webkit-scrollbar-track {
@@ -29,5 +106,56 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #2563EB;
+}
+
+/* Mobile-specific touch feedback */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices */
+  button:hover {
+    background-color: inherit;
+  }
+  
+  /* Add active state feedback */
+  button:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+  
+  /* Improve tap targets */
+  input, textarea, select, button {
+    min-height: var(--mobile-touch-target);
+  }
+}
+
+/* Focus styles for accessibility */
+*:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Landscape orientation handling */
+@media (orientation: landscape) and (max-height: 500px) {
+  body {
+    --mobile-nav-height: 50px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --background: #000000;
+    --foreground: #ffffff;
+    --primary: #0066cc;
+    --secondary: #9900cc;
+  }
 }
 

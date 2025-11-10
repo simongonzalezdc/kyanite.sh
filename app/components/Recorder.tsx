@@ -3,8 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { AudioRecorder } from '@/lib/audio/recorder';
 import Waveform from './Waveform';
+import Tooltip from './Tooltip';
 import { Mic, Square, Play, Scissors, RotateCcw } from 'lucide-react';
 import { trimAudioBuffer } from '@/lib/utils/audio-utils';
+import { isMobile, isTouchDevice, triggerHaptic, enableSwipeGestures } from '@/lib/utils';
 
 interface RecorderProps {
   onRecordingComplete: (audioBuffer: AudioBuffer) => void;
@@ -130,67 +132,138 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
     }
   }, [recordedAudio, isRecording]);
 
-  return (
-    <div className="space-y-4">
-      <Waveform
-        isRecording={isRecording}
-        getWaveformData={isRecording ? () => recorderRef.current!.getWaveformData() : undefined}
-        audioBuffer={recordedAudio}
-      />
+  // Add swipe gesture support for mobile
+  const waveformRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (isTouchDevice() && waveformRef.current) {
+      const cleanup = enableSwipeGestures(waveformRef.current, {
+        onSwipeLeft: () => {
+          if (recordedAudio && !isRecording && !isPlaying) {
+            playRecording();
+          }
+        },
+        onSwipeRight: () => {
+          if (isRecording) {
+            stopRecording();
+          } else if (!recordedAudio) {
+            startRecording();
+          }
+        }
+      });
+      
+      return cleanup;
+    }
+  }, [isRecording, recordedAudio, isPlaying]);
 
-      <div className="flex gap-4 justify-center">
+  return (
+    <div className="space-y-4" data-tour="recorder" id="record">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+        <h2 className="fluid-xl font-semibold flex items-center gap-2">
+          Voice Recorder
+          <Tooltip content="Record your voice, melody, or any sound. The recorder will capture audio from your microphone and analyze it for pitch and timing." />
+        </h2>
+      </div>
+      
+      <div ref={waveformRef} className="touch-manipulation">
+        <Waveform
+          isRecording={isRecording}
+          getWaveformData={isRecording ? () => recorderRef.current!.getWaveformData() : undefined}
+          audioBuffer={recordedAudio}
+        />
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
         {!isRecording ? (
           <button
-            onClick={startRecording}
-            className="flex items-center gap-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 rounded-lg font-medium transition-colors"
+            onClick={() => {
+              startRecording();
+              triggerHaptic('medium');
+            }}
+            className={`
+              flex items-center justify-center gap-2 px-6 py-4 sm:py-3
+              bg-primary-500 hover:bg-primary-600
+              rounded-lg font-medium transition-all duration-200
+              min-h-[44px] min-w-[44px] sm:min-w-0
+              ${isMobile() ? 'text-lg px-8 py-6' : ''}
+              active:scale-95 touch-manipulation
+            `}
+            style={{ minHeight: isMobile() ? '60px' : '48px' }}
           >
-            <Mic size={20} />
-            Start Recording
+            <Mic size={isMobile() ? 24 : 20} />
+            <span>Start Recording</span>
           </button>
         ) : (
           <button
-            onClick={stopRecording}
-            className="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 rounded-lg font-medium transition-colors"
+            onClick={() => {
+              stopRecording();
+              triggerHaptic('heavy');
+            }}
+            className={`
+              flex items-center justify-center gap-2 px-6 py-4 sm:py-3
+              bg-red-500 hover:bg-red-600
+              rounded-lg font-medium transition-all duration-200
+              min-h-[44px] min-w-[44px] sm:min-w-0
+              ${isMobile() ? 'text-lg px-8 py-6 animate-pulse' : ''}
+              active:scale-95 touch-manipulation
+            `}
+            style={{ minHeight: isMobile() ? '60px' : '48px' }}
           >
-            <Square size={20} />
-            Stop Recording
+            <Square size={isMobile() ? 24 : 20} />
+            <span>Stop Recording</span>
           </button>
         )}
 
         {recordedAudio && !isRecording && (
           <button
-            onClick={playRecording}
+            onClick={() => {
+              playRecording();
+              triggerHaptic('light');
+            }}
             disabled={isPlaying}
-            className="flex items-center gap-2 px-6 py-3 bg-secondary-500 hover:bg-secondary-600 rounded-lg font-medium transition-colors disabled:opacity-50"
+            className={`
+              flex items-center justify-center gap-2 px-6 py-4 sm:py-3
+              bg-secondary-500 hover:bg-secondary-600
+              rounded-lg font-medium transition-all duration-200
+              disabled:opacity-50 disabled:cursor-not-allowed
+              min-h-[44px] min-w-[44px] sm:min-w-0
+              ${isMobile() ? 'text-lg' : ''}
+              active:scale-95 touch-manipulation
+            `}
+            style={{ minHeight: isMobile() ? '48px' : '44px' }}
           >
-            <Play size={20} />
-            Play Back
+            <Play size={isMobile() ? 24 : 20} />
+            <span>Play Back</span>
           </button>
         )}
       </div>
 
       {recordedAudio && !isRecording && (
         <div className="space-y-4">
-          <div className="text-center text-sm text-gray-400">
+          <div className="text-center fluid-sm text-gray-400">
             Duration: {recordedAudio.duration.toFixed(2)}s
             {originalAudio && originalAudio !== recordedAudio && (
-              <span className="ml-2 text-primary-500">
+              <span className="ml-2 text-primary-500 block sm:inline">
                 (Trimmed from {originalAudio.duration.toFixed(2)}s)
               </span>
             )}
           </div>
 
           {/* Trim Controls */}
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium flex items-center gap-2">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <h3 className="fluid-sm font-medium flex items-center gap-2">
                 <Scissors size={16} className="text-secondary-500" />
                 Trim Audio
+                <Tooltip content="Remove unwanted parts from your recording. Adjust the start and end points to keep only the best portion of your audio." />
               </h3>
               {originalAudio && originalAudio !== recordedAudio && (
                 <button
-                  onClick={handleResetTrim}
-                  className="flex items-center gap-1 px-3 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded transition-colors"
+                  onClick={() => {
+                    handleResetTrim();
+                    triggerHaptic('light');
+                  }}
+                  className="flex items-center gap-1 px-3 py-2 text-xs sm:text-sm bg-gray-700 hover:bg-gray-600 rounded transition-colors min-h-[44px] touch-manipulation active:scale-95"
                 >
                   <RotateCcw size={14} />
                   Reset
@@ -198,9 +271,9 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
               )}
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <label className="block text-xs text-gray-400 mb-1">
+                <label className="block fluid-xs text-gray-400 mb-2">
                   Start: {trimStart.toFixed(2)}s
                 </label>
                 <input
@@ -213,12 +286,13 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
                     const newStart = parseFloat(e.target.value);
                     setTrimStart(Math.min(newStart, trimEnd - 0.1));
                   }}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary-500"
+                  className="w-full h-3 sm:h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary-500 touch-manipulation"
+                  style={{ minHeight: isMobile() ? '24px' : '16px' }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 mb-1">
+                <label className="block fluid-xs text-gray-400 mb-2">
                   End: {trimEnd.toFixed(2)}s
                 </label>
                 <input
@@ -231,11 +305,12 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
                     const newEnd = parseFloat(e.target.value);
                     setTrimEnd(Math.max(newEnd, trimStart + 0.1));
                   }}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary-500"
+                  className="w-full h-3 sm:h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary-500 touch-manipulation"
+                  style={{ minHeight: isMobile() ? '24px' : '16px' }}
                 />
               </div>
 
-              <div className="flex items-center justify-between text-xs text-gray-400">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between fluid-xs text-gray-400 gap-2">
                 <span>Trimmed length: {(trimEnd - trimStart).toFixed(2)}s</span>
                 <span>
                   {originalAudio && (
@@ -245,9 +320,12 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
               </div>
 
               <button
-                onClick={handleTrim}
+                onClick={() => {
+                  handleTrim();
+                  triggerHaptic('medium');
+                }}
                 disabled={isTrimming || !recordedAudio || (trimStart === 0 && trimEnd === (originalAudio?.duration || recordedAudio.duration))}
-                className="w-full px-4 py-2 bg-secondary-500 hover:bg-secondary-600 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                className="w-full px-4 py-3 sm:py-2 bg-secondary-500 hover:bg-secondary-600 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 fluid-sm min-h-[44px] touch-manipulation active:scale-95"
               >
                 {isTrimming ? (
                   <>
