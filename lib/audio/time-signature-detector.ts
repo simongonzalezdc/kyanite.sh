@@ -91,11 +91,17 @@ export class TimeSignatureDetector {
     let numerator = 4;
     let denominator = 4;
 
-    if (measureCounts.has(3) && measureCounts.get(3)! > measureCounts.get(4)!) {
+    const getCount = (beats: number) => measureCounts.get(beats) ?? 0;
+    const fourCount = getCount(4);
+    const threeCount = getCount(3);
+    const twoCount = getCount(2);
+    const sixCount = getCount(6);
+
+    if (threeCount > fourCount && threeCount >= twoCount) {
       numerator = 3;
-    } else if (measureCounts.has(2) && measureCounts.get(2)! > measureCounts.get(4)!) {
+    } else if (twoCount > fourCount && twoCount >= threeCount) {
       numerator = 2;
-    } else if (measureCounts.has(6)) {
+    } else if (sixCount > 0 && sixCount >= fourCount) {
       numerator = 6;
       denominator = 8;
     }
