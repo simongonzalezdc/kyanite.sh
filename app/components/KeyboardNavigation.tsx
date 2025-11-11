@@ -92,7 +92,7 @@ export function KeyboardNavigation({ children }: { children: React.ReactNode }) 
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [announce, settings.screenReaderEnabled, shortcutsRef.current.length]); // Add shortcutsRef.current.length to dependencies
+  }, [announce, settings.screenReaderEnabled]); // Remove shortcutsRef.current.length from dependencies
 
   // Focus management for skip links
   const handleSkipLink = (targetId: string) => {

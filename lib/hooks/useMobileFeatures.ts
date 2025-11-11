@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   isMobile, 
   isTouchDevice, 
@@ -151,22 +151,23 @@ function getSafeAreaInsets() {
 export function useMobileNavigation() {
   const [activeSection, setActiveSection] = useState('record');
   const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollYRef = useRef(0);
 
   const handleScroll = useCallback(() => {
     const currentScrollY = window.scrollY;
+    const lastScrollY = lastScrollYRef.current;
     
     // Show navigation when scrolling up or at top
     if (currentScrollY < lastScrollY || currentScrollY < 100) {
       setIsVisible(true);
-    } 
+    }
     // Hide navigation when scrolling down
     else if (currentScrollY > lastScrollY && currentScrollY > 100) {
       setIsVisible(false);
     }
     
-    setLastScrollY(currentScrollY);
-  }, [lastScrollY]);
+    lastScrollYRef.current = currentScrollY;
+  }, []); // Remove lastScrollY from dependencies
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll, { passive: true });

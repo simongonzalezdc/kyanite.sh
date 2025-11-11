@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { PitchPoint, TimeSignature } from '@/lib/types';
 import { PitchDetector } from '@/lib/audio/pitch-detector';
 import { TimeSignatureDetector } from '@/lib/audio/time-signature-detector';
@@ -120,11 +120,10 @@ export default function AnalysisDisplay({
       noteDurations.push(duration);
     }
 
-    // Create sequence to play notes
-    let noteIndex = 0;
-    const playNextNote = () => {
+    // Create sequence to play notes using a stable callback
+    const playNextNote = useCallback(() => {
       // Check if playback was stopped (use ref to avoid stale closure)
-      if (!isPlayingRef.current || noteIndex >= allNotes.length) {
+      if (!isPlayingRef.current || currentNoteIndex !== null && currentNoteIndex >= allNotes.length - 1) {
         setIsPlaying(false);
         isPlayingRef.current = false;
         setCurrentNoteIndex(null);
@@ -132,19 +131,29 @@ export default function AnalysisDisplay({
         return;
       }
 
-      setCurrentNoteIndex(noteIndex);
-      const note = allNotes[noteIndex];
-      const duration = noteDurations[noteIndex];
+      const nextIndex = currentNoteIndex !== null ? currentNoteIndex + 1 : 0;
+      
+      if (nextIndex >= allNotes.length) {
+        setIsPlaying(false);
+        isPlayingRef.current = false;
+        setCurrentNoteIndex(null);
+        timeoutRef.current = null;
+        return;
+      }
+
+      setCurrentNoteIndex(nextIndex);
+      const note = allNotes[nextIndex];
+      const duration = noteDurations[nextIndex];
       
       if (synthRef.current) {
         synthRef.current.triggerAttackRelease(note, duration);
       }
 
-      noteIndex++;
       // Store timeout ID so it can be cleared
       timeoutRef.current = setTimeout(playNextNote, duration * 1000);
-    };
+    }, [allNotes, noteDurations, currentNoteIndex]);
 
+    // Start playing
     playNextNote();
   };
 
@@ -171,24 +180,42 @@ export default function AnalysisDisplay({
   // Add swipe gesture support for mobile
   const analysisRef = useRef<HTMLDivElement>(null);
   
+  // Memoize the swipe handlers to prevent infinite loops
+  const swipeHandlers = useRef({
+    onSwipeLeft: () => {
+      if (!isPlaying) {
+        playNotes();
+      }
+    },
+    onSwipeRight: () => {
+      if (isPlaying) {
+        stopPlayback();
+      }
+    }
+  });
+  
+  // Update the handlers when isPlaying changes
+  useEffect(() => {
+    swipeHandlers.current = {
+      onSwipeLeft: () => {
+        if (!isPlaying) {
+          playNotes();
+        }
+      },
+      onSwipeRight: () => {
+        if (isPlaying) {
+          stopPlayback();
+        }
+      }
+    };
+  }, [isPlaying, playNotes, stopPlayback]);
+  
   useEffect(() => {
     if (isTouchDevice() && analysisRef.current) {
-      const cleanup = enableSwipeGestures(analysisRef.current, {
-        onSwipeLeft: () => {
-          if (!isPlaying) {
-            playNotes();
-          }
-        },
-        onSwipeRight: () => {
-          if (isPlaying) {
-            stopPlayback();
-          }
-        }
-      });
-      
+      const cleanup = enableSwipeGestures(analysisRef.current, swipeHandlers.current);
       return cleanup;
     }
-  }, [isPlaying, playNotes, stopPlayback]); // Add the functions to dependencies
+  }, [isTouchDevice()]); // Only depend on device detection
 
   return (
     <div ref={analysisRef} className="bg-gray-900 rounded-xl p-6 sm:p-8 border border-gray-800 space-y-6" id="analyze">

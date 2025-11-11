@@ -70,7 +70,7 @@ export function VibrationFeedback({
       triggerVibration(pattern);
       previousTrigger.current = trigger;
     }
-  }, [trigger, pattern, settings.vibrationFeedback]);
+  }, [trigger, pattern, settings.vibrationFeedback]); // This is correct
 
   const triggerVibration = (vibrationPattern: string) => {
     if (!('vibrate' in navigator)) {
@@ -122,7 +122,7 @@ export function AlternativeRecordingInput({
       document.addEventListener('keydown', handleSpacebarRecord);
       return () => document.removeEventListener('keydown', handleSpacebarRecord);
     }
-  }, [inputMethod, handleSpacebarRecord]);
+  }, [inputMethod]); // Remove handleSpacebarRecord from dependencies
 
   const handleVoiceCommand = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -356,7 +356,7 @@ export function AudioEventAnnouncer({
       announce(latestEvent.message);
       setLastEvent(latestEvent);
     }
-  }, [events, lastEvent, announce, settings.screenReaderEnabled]);
+  }, [events, lastEvent, settings.screenReaderEnabled]); // Remove announce from dependencies
 
   return null;
 }

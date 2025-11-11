@@ -86,25 +86,39 @@ export class RhythmGameRecorder {
    */
   private drawTargetLine(): void {
     this.targetLine = new PIXI.Graphics();
-    this.targetLine.setStrokeStyle({ width: 3, color: 0x3B82F6, alpha: 1 });
+    // Use the correct stroke API in PIXI v8
+    this.targetLine.setStrokeStyle({
+      width: 3,
+      color: 0x3B82F6,
+      alpha: 1
+    });
     this.targetLine.moveTo(0, this.config.targetY);
     this.targetLine.lineTo(800, this.config.targetY);
     
-    // Add glow
-    this.targetLine.filters = [new PIXI.BlurFilter({ strength: 4 })];
+    // Add glow - check if filters are available
+    if (PIXI.BlurFilter) {
+      this.targetLine.filters = [new PIXI.BlurFilter({ strength: 4 })];
+    }
     
-    this.container.addChild(this.targetLine);
+    // Ensure container exists before adding children
+    if (this.container) {
+      this.container.addChild(this.targetLine);
 
-    // Add hit zones
-    const hitZone = new PIXI.Graphics();
-    hitZone.setStrokeStyle({ width: 2, color: 0x3B82F6, alpha: 0.3 });
-    hitZone.drawRect(
-      200,
-      this.config.targetY - 30,
-      400,
-      60
-    );
-    this.container.addChild(hitZone);
+      // Add hit zones
+      const hitZone = new PIXI.Graphics();
+      hitZone.setStrokeStyle({
+        width: 2,
+        color: 0x3B82F6,
+        alpha: 0.3
+      });
+      hitZone.drawRect(
+        200,
+        this.config.targetY - 30,
+        400,
+        60
+      );
+      this.container.addChild(hitZone);
+    }
   }
 
   /**
@@ -193,7 +207,9 @@ export class RhythmGameRecorder {
       scale: 1.5,
       duration: 0.3,
       onComplete: () => {
-        this.container.removeChild(note.sprite);
+        if (this.container && this.container.children.includes(note.sprite)) {
+          this.container.removeChild(note.sprite);
+        }
         note.sprite.destroy();
       }
     });
@@ -235,27 +251,35 @@ export class RhythmGameRecorder {
    * Show accuracy feedback
    */
   private showAccuracyFeedback(x: number, y: number, text: string): void {
-    const feedback = new PIXI.Text(text, {
-      fontSize: 24,
-      fill: text === 'PERFECT!' ? 0xffd700 : 0x3B82F6,
-      fontWeight: 'bold'
+    const feedback = new PIXI.Text({
+      text,
+      style: {
+        fontSize: 24,
+        fill: text === 'PERFECT!' ? 0xffd700 : 0x3B82F6,
+        fontWeight: 'bold'
+      }
     });
     
     feedback.x = x;
     feedback.y = y;
     feedback.anchor.set(0.5);
     
-    this.container.addChild(feedback);
-    
-    gsap.to(feedback, {
-      y: y - 50,
-      alpha: 0,
-      duration: 1,
-      onComplete: () => {
-        this.container.removeChild(feedback);
-        feedback.destroy();
-      }
-    });
+    // Ensure container exists before adding children
+    if (this.container) {
+      this.container.addChild(feedback);
+      
+      gsap.to(feedback, {
+        y: y - 50,
+        alpha: 0,
+        duration: 1,
+        onComplete: () => {
+          if (this.container && this.container.children.includes(feedback)) {
+            this.container.removeChild(feedback);
+          }
+          feedback.destroy();
+        }
+      });
+    }
   }
 
   /**
@@ -290,7 +314,10 @@ export class RhythmGameRecorder {
     sprite.x = laneX;
     sprite.y = 0;
     
-    this.container.addChild(sprite);
+    // Ensure container exists before adding children
+    if (this.container) {
+      this.container.addChild(sprite);
+    }
     
     const fallingNote: FallingNote = {
       sprite,
@@ -354,7 +381,9 @@ export class RhythmGameRecorder {
           this.miss();
         }
         
-        this.container.removeChild(note.sprite);
+        if (this.container && this.container.children.includes(note.sprite)) {
+          this.container.removeChild(note.sprite);
+        }
         note.sprite.destroy();
         this.fallingNotes.splice(i, 1);
       }
@@ -414,7 +443,10 @@ export class RhythmGameRecorder {
    * Resize canvas
    */
   resize(width: number, height: number): void {
-    this.app.renderer.resize(width, height);
+    // Use the correct renderer API in PIXI v8
+    if (this.app.renderer) {
+      this.app.renderer.resize(width, height);
+    }
   }
 
   /**
@@ -429,7 +461,8 @@ export class RhythmGameRecorder {
       });
     }
     if (this.app) {
-      this.app.destroy(true, { children: true, texture: true });
+      // Use the correct destroy API in PIXI v8
+      this.app.destroy(true);
     }
   }
 }

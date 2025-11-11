@@ -123,7 +123,7 @@ export function ProgressAnnouncer({
       announce(completionMessage);
       setLastProgress(0);
     }
-  }, [isProcessing, progress, lastProgress, message, completionMessage, announce]);
+  }, [isProcessing, progress, lastProgress, message, completionMessage]); // Remove announce from dependencies
 
   return null;
 }
@@ -149,7 +149,7 @@ export function ScreenReaderNavigation() {
     return () => {
       window.removeEventListener('popstate', handleRouteChange);
     };
-  }, [announce, settings.screenReaderEnabled]);
+  }, [settings.screenReaderEnabled]); // Remove announce from dependencies
 
   return null;
 }
@@ -168,7 +168,7 @@ export function AudioDescription({ description, isPlaying = false, children }: A
     if (settings.audioDescriptions && isPlaying) {
       announce(description);
     }
-  }, [isPlaying, description, settings.audioDescriptions, announce]);
+  }, [isPlaying, description, settings.audioDescriptions]); // Remove announce from dependencies
 
   return <>{children}</>;
 }
@@ -198,7 +198,7 @@ export function StatusAnnouncer({ status, type = 'info' }: StatusAnnouncerProps)
       announce(`${prefix}: ${status}`);
       setPreviousStatus(status);
     }
-  }, [status, type, previousStatus, announce]);
+  }, [status, type, previousStatus]); // Remove announce from dependencies
 
   return null;
 }
@@ -214,7 +214,7 @@ export function ValidationAnnouncer({ errors, isValid }: ValidationAnnouncerProp
   const [previousErrors, setPreviousErrors] = useState<string[]>([]);
 
   useEffect(() => {
-    if (errors.length !== previousErrors.length || 
+    if (errors.length !== previousErrors.length ||
         !errors.every((error, index) => error === previousErrors[index])) {
       
       if (errors.length > 0) {
@@ -225,7 +225,7 @@ export function ValidationAnnouncer({ errors, isValid }: ValidationAnnouncerProp
       
       setPreviousErrors(errors);
     }
-  }, [errors, isValid, previousErrors, announce]);
+  }, [errors, isValid, previousErrors]); // Remove announce from dependencies
 
   return null;
 }
@@ -255,7 +255,7 @@ export function ListAnnouncer({ items, itemLabel, action }: ListAnnouncerProps) 
       
       setPreviousCount(currentCount);
     }
-  }, [items, itemLabel, action, previousCount, announce]);
+  }, [items, itemLabel, action, previousCount]); // Remove announce from dependencies
 
   return null;
 }

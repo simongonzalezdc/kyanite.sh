@@ -79,7 +79,7 @@ export default function ResponsiveGrid({
       resizeObserver.disconnect();
       window.removeEventListener('resize', handleResize);
     };
-  }, [minItemWidth, gap, maxColumns, adaptive, columns, onLayoutChange]);
+  }, [minItemWidth, gap, maxColumns, adaptive, onLayoutChange]); // Remove columns from dependencies
 
   // Responsive breakpoints for static layouts
   const getResponsiveClasses = () => {

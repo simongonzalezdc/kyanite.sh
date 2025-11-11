@@ -158,15 +158,22 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     
     document.body.appendChild(liveRegion);
     
-    // Update announcements in state
-    setSettings(prev => ({
-      ...prev,
-      announcements: [...prev.announcements, message]
-    }));
+    // Update announcements in state with a functional update to avoid dependency issues
+    setSettings(prev => {
+      // Limit announcements array size to prevent memory issues
+      const newAnnouncements = [...prev.announcements, message].slice(-50);
+      return {
+        ...prev,
+        announcements: newAnnouncements
+      };
+    });
     
     // Remove after announcement is read
     setTimeout(() => {
-      document.body.removeChild(liveRegion);
+      const element = document.getElementById(announcementId);
+      if (element && element.parentNode) {
+        element.parentNode.removeChild(element);
+      }
     }, 1000);
   }
 
