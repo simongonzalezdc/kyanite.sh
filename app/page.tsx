@@ -88,14 +88,6 @@ function HomeContent() {
   const project = useProjectState();
   const projectActions = useProjectActions();
   
-  // Combined hooks for convenience
-  const audioAndAnalysis = useAudioAndAnalysis();
-  const modalsAndNavigation = useModalsAndNavigation();
-  const onboardingAndHelp = useOnboardingAndHelp();
-  const mobileState = useMobileState();
-  const persistenceState = usePersistenceState();
-  const analyticsState = useAnalyticsState();
-  
   const generatorRef = useRef<MusicGenerator | null>(null);
 
   // Mobile and performance hooks
@@ -144,7 +136,7 @@ function HomeContent() {
     return () => {
       generator?.dispose();
     };
-  }, [onboarding.hasSeenOnboarding, uiActions]);
+  }, [onboarding.hasSeenOnboarding, uiActions.setWelcomeModal]); // Use only the specific action needed
 
   const handleRecordingComplete = async (buffer: AudioBuffer) => {
     // Track recording completion

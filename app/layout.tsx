@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { AnalyticsProvider } from './components/AnalyticsProvider'
 import { AccessibilityProvider } from './components/AccessibilityProvider'
@@ -7,17 +7,16 @@ import { ScreenReaderNavigation } from './components/ScreenReaderSupport'
 import { HighContrastProvider, FontSizeProvider } from './components/VisualAccessibility'
 import { VisualAccessibilityToolbar } from './components/VisualAccessibility'
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
+
 export const metadata: Metadata = {
   title: 'VoxForge - Transform Your Voice into Music',
   description: 'Browser-based voice-to-song tool that transforms vocal recordings into complete music arrangements with full accessibility support',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-    viewportFit: 'cover'
-  },
-  themeColor: '#0a0a0a',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',

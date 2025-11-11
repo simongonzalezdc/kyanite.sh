@@ -90,7 +90,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
       mediaQueryReducedMotion.removeEventListener('change', handleReducedMotionChange);
       mediaQueryHighContrast.removeEventListener('change', handleHighContrastChange);
     };
-  }, []);
+  }, []); // This is already correct, just confirming
 
   // Apply settings to document
   useEffect(() => {
@@ -110,7 +110,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     
     // Apply screen reader optimizations
     root.setAttribute('data-screen-reader', settings.screenReaderEnabled.toString());
-  }, [settings]);
+  }, [settings.fontSize, settings.highContrastMode, settings.reducedMotion, settings.focusVisible, settings.screenReaderEnabled]); // Use specific properties
 
   // Detect screen reader using multiple methods
   function detectScreenReader(): boolean {

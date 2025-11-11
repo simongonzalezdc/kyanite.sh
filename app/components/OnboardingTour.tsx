@@ -77,9 +77,9 @@ export default function OnboardingTour({ isOpen, onComplete, onSkip }: Onboardin
     const step = tourSteps[currentStep];
     if (step.target === 'body') {
       setHighlightedElement(null);
-      setTooltipPosition({ 
-        top: window.innerHeight / 2 - 150, 
-        left: window.innerWidth / 2 - 200 
+      setTooltipPosition({
+        top: window.innerHeight / 2 - 150,
+        left: window.innerWidth / 2 - 200
       });
       return;
     }
@@ -90,10 +90,10 @@ export default function OnboardingTour({ isOpen, onComplete, onSkip }: Onboardin
       updateTooltipPosition(element, step.position);
       
       // Scroll element into view if needed
-      element.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'center', 
-        inline: 'center' 
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'center'
       });
     } else {
       // If element not found, skip to next step
@@ -105,7 +105,7 @@ export default function OnboardingTour({ isOpen, onComplete, onSkip }: Onboardin
     }
 
     return cleanup;
-  }, [isOpen, currentStep]);
+  }, [isOpen, currentStep]); // Remove tourSteps.length since it's constant
 
   const cleanup = () => {
     setHighlightedElement(null);

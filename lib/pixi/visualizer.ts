@@ -271,9 +271,13 @@ export class MusicVisualizer {
   clear(): void {
     this.notes.forEach(note => note.destroy());
     this.notes.clear();
-    this.noteLayer.removeChildren();
+    if (this.noteLayer) {
+      this.noteLayer.removeChildren();
+    }
     this.currentTime = 0;
-    this.container.x = 0;
+    if (this.container) {
+      this.container.x = 0;
+    }
   }
 
   /**
@@ -312,7 +316,9 @@ export class MusicVisualizer {
     this.app.renderer.resize(width, height);
     
     // Redraw grid
-    this.gridLayer.removeChildren();
+    if (this.gridLayer) {
+      this.gridLayer.removeChildren();
+    }
     this.drawGrid();
   }
 

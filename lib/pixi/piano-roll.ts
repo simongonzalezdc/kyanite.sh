@@ -523,7 +523,9 @@ export class InteractivePianoRoll {
       note.sprite.destroy();
     });
     this.notes = [];
-    this.noteLayer.removeChildren();
+    if (this.noteLayer) {
+      this.noteLayer.removeChildren();
+    }
   }
 
   // Helper methods
@@ -605,8 +607,12 @@ export class InteractivePianoRoll {
     this.app.renderer.resize(width, height);
     
     // Redraw
-    this.gridLayer.removeChildren();
-    this.pianoLayer.removeChildren();
+    if (this.gridLayer) {
+      this.gridLayer.removeChildren();
+    }
+    if (this.pianoLayer) {
+      this.pianoLayer.removeChildren();
+    }
     this.drawGrid();
     this.drawPianoKeys();
   }

@@ -188,7 +188,7 @@ export default function AnalysisDisplay({
       
       return cleanup;
     }
-  }, [isPlaying, simplified]);
+  }, [isPlaying, playNotes, stopPlayback]); // Add the functions to dependencies
 
   return (
     <div ref={analysisRef} className="bg-gray-900 rounded-xl p-6 sm:p-8 border border-gray-800 space-y-6" id="analyze">

@@ -104,7 +104,7 @@ export function AnalyticsProvider({ children, config }: AnalyticsProviderProps) 
       analytics.dispose();
       performanceMonitor.dispose();
     };
-  }, [config]);
+  }, []); // Remove config from dependencies since it's only used on initial mount
 
   // Analytics methods
   const trackEvent = useCallback((event: AnalyticsEvent) => {

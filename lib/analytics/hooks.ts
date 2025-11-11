@@ -196,13 +196,13 @@ export function useComponentTracking(componentName: string, options: {
     if (trackRender) {
       renderCount.current++;
       measure(() => {
-        trackFeature('component', 'render', { 
+        trackFeature('component', 'render', {
           component: componentName,
-          renderCount: renderCount.current 
+          renderCount: renderCount.current
         });
       });
     }
-  });
+  }); // Intentionally missing dependency array to track every render
 
   // Track interactions
   const trackClick = useCallback((element: string, properties?: any) => {

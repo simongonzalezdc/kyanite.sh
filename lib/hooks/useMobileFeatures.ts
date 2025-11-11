@@ -59,20 +59,20 @@ export function useMobileFeatures(): MobileFeaturesState & MobileFeaturesActions
     };
 
     updateState();
-
+    
     // Listen for orientation changes
     const handleOrientationChange = () => {
       setTimeout(updateState, 100); // Delay to allow for orientation change completion
     };
-
+    
     window.addEventListener('resize', updateState);
     window.addEventListener('orientationchange', handleOrientationChange);
-
+    
     return () => {
       window.removeEventListener('resize', updateState);
       window.removeEventListener('orientationchange', handleOrientationChange);
     };
-  }, []);
+  }, []); // This is already correct, just confirming
 
   // Keyboard avoidance
   useEffect(() => {
@@ -80,7 +80,7 @@ export function useMobileFeatures(): MobileFeaturesState & MobileFeaturesActions
       const cleanup = enableKeyboardAvoidance();
       return cleanup;
     }
-  }, [state.isMobile]);
+  }, [state.isMobile]); // This is already correct
 
   // Haptic feedback
   const triggerHaptic = useCallback((type: 'light' | 'medium' | 'heavy') => {
@@ -202,33 +202,35 @@ export function useTouchGestures(
 
     const threshold = 50; // Minimum distance for swipe
     const longPressDelay = 500; // Long press delay in ms
+    let currentTouchStart = { x: 0, y: 0, time: 0 };
+    let currentLongPressTimer: NodeJS.Timeout | null = null;
 
     const handleTouchStart = (e: TouchEvent) => {
       const touch = e.touches[0];
-      setTouchStart({
+      currentTouchStart = {
         x: touch.clientX,
         y: touch.clientY,
         time: Date.now()
-      });
+      };
 
       // Start long press timer
       const timer = setTimeout(() => {
         handlers.onLongPress?.();
       }, longPressDelay);
-      setLongPressTimer(timer);
+      currentLongPressTimer = timer;
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
       // Clear long press timer
-      if (longPressTimer) {
-        clearTimeout(longPressTimer);
-        setLongPressTimer(null);
+      if (currentLongPressTimer) {
+        clearTimeout(currentLongPressTimer);
+        currentLongPressTimer = null;
       }
 
       const touch = e.changedTouches[0];
-      const deltaX = touch.clientX - touchStart.x;
-      const deltaY = touch.clientY - touchStart.y;
-      const deltaTime = Date.now() - touchStart.time;
+      const deltaX = touch.clientX - currentTouchStart.x;
+      const deltaY = touch.clientY - currentTouchStart.y;
+      const deltaTime = Date.now() - currentTouchStart.time;
 
       // Check for tap (quick touch with minimal movement)
       if (Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10 && deltaTime < 200) {
@@ -264,11 +266,11 @@ export function useTouchGestures(
     return () => {
       element.removeEventListener('touchstart', handleTouchStart);
       element.removeEventListener('touchend', handleTouchEnd);
-      if (longPressTimer) {
-        clearTimeout(longPressTimer);
+      if (currentLongPressTimer) {
+        clearTimeout(currentLongPressTimer);
       }
     };
-  }, [elementRef, handlers, touchStart, longPressTimer]);
+  }, [elementRef, handlers]);
 }
 
 // Hook for managing responsive breakpoints

@@ -113,7 +113,7 @@ export function StoreProvider({ children, enableDevTools = process.env.NODE_ENV 
       window.addEventListener('resize', detectMobile);
       return () => window.removeEventListener('resize', detectMobile);
     }
-  }, [uiStore]);
+  }, []); // Remove uiStore from dependencies
 
   // Handle store hydration
   useEffect(() => {
@@ -123,7 +123,7 @@ export function StoreProvider({ children, enableDevTools = process.env.NODE_ENV 
         await new Promise(resolve => setTimeout(resolve, 100));
         
         // Initialize session data if needed
-        const { sessionId, startTime } = userStore;
+        const { sessionId } = userStore;
         if (!sessionId) {
           userStore.setSessionId(`session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
           userStore.setStartTime(new Date());
@@ -148,8 +148,11 @@ export function StoreProvider({ children, enableDevTools = process.env.NODE_ENV 
       }
     };
 
-    handleHydration();
-  }, [userStore, isMobileDevice]);
+    // Only run hydration when isMobileDevice is set
+    if (isMobileDevice !== undefined) {
+      handleHydration();
+    }
+  }, [isMobileDevice]); // Remove userStore from dependencies
 
   // Setup DevTools integration
   useEffect(() => {
@@ -165,7 +168,7 @@ export function StoreProvider({ children, enableDevTools = process.env.NODE_ENV 
         console.log('Zustand stores are available for debugging in window.__ZUSTAND_STORES__');
       }
     }
-  }, [enableDevTools, uiStore, userStore]);
+  }, [enableDevTools]); // Remove stores from dependencies
 
   // Handle online/offline status
   useEffect(() => {
@@ -191,7 +194,7 @@ export function StoreProvider({ children, enableDevTools = process.env.NODE_ENV 
         window.removeEventListener('offline', handleOffline);
       };
     }
-  }, [uiStore]);
+  }, []); // Remove uiStore from dependencies
 
   // Handle beforeunload for unsaved changes
   useEffect(() => {

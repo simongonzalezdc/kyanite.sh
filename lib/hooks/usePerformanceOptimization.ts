@@ -41,7 +41,7 @@ export function usePerformanceOptimization(): PerformanceState & PerformanceActi
         isLowEndDevice: isLowEnd,
         reducedMotion: prefersReducedMotion
       }));
-
+      
       // Monitor battery level if available
       if ('getBattery' in navigator) {
         (navigator as any).getBattery().then((battery: any) => {
@@ -52,7 +52,7 @@ export function usePerformanceOptimization(): PerformanceState & PerformanceActi
           });
         });
       }
-
+      
       // Monitor network connection
       if ('connection' in navigator) {
         const connection = (navigator as any).connection;
@@ -62,7 +62,7 @@ export function usePerformanceOptimization(): PerformanceState & PerformanceActi
           setState(prev => ({ ...prev, connectionType: connection.effectiveType || 'unknown' }));
         });
       }
-
+      
       // Monitor memory pressure if available
       if ('memory' in performance) {
         const memory = (performance as any).memory;
@@ -77,19 +77,19 @@ export function usePerformanceOptimization(): PerformanceState & PerformanceActi
     };
 
     detectDeviceCapabilities();
-
+    
     // Listen for reduced motion preference changes
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const handleChange = (e: MediaQueryListEvent) => {
       setState(prev => ({ ...prev, reducedMotion: e.matches }));
     };
-
+    
     mediaQuery.addEventListener('change', handleChange);
-
+    
     return () => {
       mediaQuery.removeEventListener('change', handleChange);
     };
-  }, []);
+  }, []); // This is already correct, just confirming
 
   // Detect low-end device based on various factors
   const detectLowEndDevice = useCallback(() => {
@@ -341,5 +341,5 @@ export function useThrottledScroll(callback: () => void, delay = 16) {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [callback, delay]);
+  }, [callback]);
 }

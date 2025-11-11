@@ -154,7 +154,7 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
     if (recording.recordedAudio && !recording.isRecording) {
       audioActions.setTrimEnd(recording.recordedAudio.duration);
     }
-  }, [recording.recordedAudio, recording.isRecording, audioActions]);
+  }, [recording.recordedAudio?.duration, recording.isRecording]); // Use specific property and remove audioActions
 
   // Add swipe gesture support for mobile
   const waveformRef = useRef<HTMLDivElement>(null);
@@ -178,7 +178,7 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
       
       return cleanup;
     }
-  }, [recording.isRecording, recording.recordedAudio, recording.isPlaying]);
+  }, [recording.isRecording, recording.recordedAudio?.duration, recording.isPlaying]); // Use specific property
 
   // Register keyboard shortcuts
   useEffect(() => {
@@ -210,7 +210,7 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
       unregisterShortcut('r');
       unregisterShortcut('p');
     };
-  }, [recording.isRecording, recording.recordedAudio, startRecording, stopRecording, playRecording, registerShortcut, unregisterShortcut]);
+  }, [recording.isRecording, recording.recordedAudio?.duration]); // Use specific property and remove functions
 
   return (
     <div className="space-y-4" data-tour="recorder" id="record" role="region" aria-labelledby="recorder-heading">
