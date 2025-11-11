@@ -29,6 +29,12 @@ type tickMsg time.Time
 // Spinner message for loading states
 type spinnerTickMsg time.Time
 
+// AI response message for chat
+type aiResponseMsg struct {
+	response  string
+	userInput string
+}
+
 // Loading state
 type loadingState int
 
@@ -785,20 +791,14 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.chatInput != "" {
 					// Start AI thinking indicator
 					m.aiThinking = true
+					userInput := m.chatInput
+					m.chatInput = "" // Clear input immediately
 					m.chatHistory = append(m.chatHistory,
-						chatUserStyle.Render("You: ")+m.chatInput,
+						chatUserStyle.Render("You: ")+userInput,
 						"🤖 AI is thinking...")
 
-					// Process chat message in background
-					go func() {
-						response := m.processChatMessage(m.chatInput)
-						// Replace thinking message with actual response
-						if len(m.chatHistory) >= 2 {
-							m.chatHistory[len(m.chatHistory)-1] = chatMessageStyle.Render("AI: " + response)
-						}
-						m.aiThinking = false
-						m.chatInput = ""
-					}()
+					// Process chat message in background using tea.Cmd (thread-safe)
+					return m, m.processChatCmd(userInput)
 				}
 				return m, nil
 
@@ -1208,6 +1208,15 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return m, tea.Tick(time.Millisecond*100, func(t time.Time) tea.Msg { return spinnerTickMsg(t) })
+
+	case aiResponseMsg:
+		// Handle AI chat response (thread-safe)
+		if len(m.chatHistory) >= 2 {
+			// Replace the "thinking..." message with actual response
+			m.chatHistory[len(m.chatHistory)-1] = chatMessageStyle.Render("AI: " + msg.response)
+		}
+		m.aiThinking = false
+		return m, nil
 	}
 
 	return m, nil
@@ -1239,12 +1248,24 @@ func (m MainModel) processChatMessage(message string) string {
 	return response
 }
 
-func (m MainModel) formatChatHistory() string {
-	content := ""
-	for _, msg := range m.chatHistory {
-		content += msg + "\n"
+// processChatCmd runs the AI chat processing in a goroutine and returns the result as a message
+func (m MainModel) processChatCmd(userInput string) tea.Cmd {
+	return func() tea.Msg {
+		response := m.processChatMessage(userInput)
+		return aiResponseMsg{
+			response:  response,
+			userInput: userInput,
+		}
 	}
-	return content
+}
+
+func (m MainModel) formatChatHistory() string {
+	var b strings.Builder
+	for _, msg := range m.chatHistory {
+		b.WriteString(msg)
+		b.WriteString("\n")
+	}
+	return b.String()
 }
 
 func (m *MainModel) loadTasksIntoCalendar() {
@@ -1399,7 +1420,7 @@ func (m MainModel) renderStats() string {
 	stats = append(stats, currentTime)
 
 	// Render enhanced stats with proper alignment and theme colors
-	statsContent := ""
+	var statsContent strings.Builder
 	for i, stat := range stats {
 		statStyle := lipgloss.NewStyle().
 			Bold(true).
@@ -1424,15 +1445,15 @@ func (m MainModel) renderStats() string {
 		// Ensure consistent width for alignment
 		maxWidth := 25 // Reasonable width for stat boxes
 		statText := lipgloss.NewStyle().Width(maxWidth).Render("  " + stat + "  ")
-		statsContent += statStyle.Render(statText)
+		statsContent.WriteString(statStyle.Render(statText))
 
 		if i < len(stats)-1 {
-			statsContent += " "
+			statsContent.WriteString(" ")
 		}
 
 		// Break lines properly: 3 per line
 		if (i+1)%3 == 0 {
-			statsContent += "\n"
+			statsContent.WriteString("\n")
 		}
 	}
 
@@ -1448,7 +1469,7 @@ func (m MainModel) renderStats() string {
 		BorderLeft(true).
 		BorderRight(true)
 
-	return statsContainer.Render(statsContent)
+	return statsContainer.Render(statsContent.String())
 }
 
 func (m MainModel) renderTaskList() string {

@@ -6,13 +6,19 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/kyanite/focus/pkg/models"
 )
 
-// JournalStorage handles journal entry persistence
+// JournalStorage handles journal entry persistence with in-memory caching
 type JournalStorage struct {
-	filePath string
+	filePath   string
+	cache      []*models.JournalEntry
+	cacheIdx   map[string]int // ID -> index mapping for O(1) lookups
+	cacheDirty bool
+	cacheMutex sync.RWMutex
+	cacheValid bool // Track if cache is loaded
 }
 
 // NewJournalStorage creates a new journal storage instance
@@ -23,30 +29,69 @@ func NewJournalStorage() *JournalStorage {
 	}
 	storageDir := filepath.Join(homeDir, ".focus")
 
-	return &JournalStorage{
+	js := &JournalStorage{
 		filePath: filepath.Join(storageDir, "journal.json"),
+		cacheIdx: make(map[string]int),
 	}
+
+	// Pre-load cache
+	_ = js.ensureCached()
+
+	return js
 }
 
-// LoadEntries loads all journal entries from storage
-func (js *JournalStorage) LoadEntries() ([]*models.JournalEntry, error) {
+// ensureCached loads entries into cache if not already loaded
+func (js *JournalStorage) ensureCached() error {
+	js.cacheMutex.Lock()
+	defer js.cacheMutex.Unlock()
+
+	if js.cacheValid {
+		return nil // Already cached
+	}
+
 	// Check if file exists
 	if _, err := os.Stat(js.filePath); os.IsNotExist(err) {
-		// Create empty journal file
-		return []*models.JournalEntry{}, js.SaveEntries([]*models.JournalEntry{})
+		// Initialize empty cache
+		js.cache = []*models.JournalEntry{}
+		js.cacheIdx = make(map[string]int)
+		js.cacheValid = true
+		return nil
 	}
 
 	data, err := os.ReadFile(js.filePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read journal file: %w", err)
+		return fmt.Errorf("failed to read journal file: %w", err)
 	}
 
 	var entries []*models.JournalEntry
 	if err := json.Unmarshal(data, &entries); err != nil {
-		return nil, fmt.Errorf("failed to parse journal entries: %w", err)
+		return fmt.Errorf("failed to parse journal entries: %w", err)
 	}
 
-	return entries, nil
+	// Build cache and index
+	js.cache = entries
+	js.cacheIdx = make(map[string]int)
+	for i, entry := range entries {
+		js.cacheIdx[entry.ID] = i
+	}
+	js.cacheValid = true
+
+	return nil
+}
+
+// LoadEntries loads all journal entries from storage (now uses cache)
+func (js *JournalStorage) LoadEntries() ([]*models.JournalEntry, error) {
+	if err := js.ensureCached(); err != nil {
+		return nil, err
+	}
+
+	js.cacheMutex.RLock()
+	defer js.cacheMutex.RUnlock()
+
+	// Return copy of cache to prevent external modification
+	result := make([]*models.JournalEntry, len(js.cache))
+	copy(result, js.cache)
+	return result, nil
 }
 
 // SaveEntries saves all journal entries to storage
@@ -58,7 +103,7 @@ func (js *JournalStorage) SaveEntries(entries []*models.JournalEntry) error {
 
 	// Ensure directory exists
 	dir := filepath.Dir(js.filePath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("failed to create journal directory: %w", err)
 	}
 
@@ -66,41 +111,87 @@ func (js *JournalStorage) SaveEntries(entries []*models.JournalEntry) error {
 		return fmt.Errorf("failed to write journal file: %w", err)
 	}
 
+	// Update cache
+	js.cacheMutex.Lock()
+	defer js.cacheMutex.Unlock()
+	js.cache = entries
+	js.cacheIdx = make(map[string]int)
+	for i, entry := range entries {
+		js.cacheIdx[entry.ID] = i
+	}
+	js.cacheValid = true
+
 	return nil
 }
 
-// AddEntry adds a new journal entry
-func (js *JournalStorage) AddEntry(entry *models.JournalEntry) error {
-	entries, err := js.LoadEntries()
+// flushCache saves cache to disk (called when cache is dirty)
+func (js *JournalStorage) flushCache() error {
+	js.cacheMutex.RLock()
+	if !js.cacheDirty {
+		js.cacheMutex.RUnlock()
+		return nil
+	}
+	entries := make([]*models.JournalEntry, len(js.cache))
+	copy(entries, js.cache)
+	js.cacheMutex.RUnlock()
+
+	data, err := json.MarshalIndent(entries, "", "  ")
 	if err != nil {
+		return fmt.Errorf("failed to marshal journal entries: %w", err)
+	}
+
+	// Ensure directory exists
+	dir := filepath.Dir(js.filePath)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return fmt.Errorf("failed to create journal directory: %w", err)
+	}
+
+	if err := os.WriteFile(js.filePath, data, 0644); err != nil {
+		return fmt.Errorf("failed to write journal file: %w", err)
+	}
+
+	js.cacheMutex.Lock()
+	js.cacheDirty = false
+	js.cacheMutex.Unlock()
+
+	return nil
+}
+
+// AddEntry adds a new journal entry (O(1) with cache)
+func (js *JournalStorage) AddEntry(entry *models.JournalEntry) error {
+	if err := js.ensureCached(); err != nil {
 		return err
 	}
 
-	// Check if entry with same ID already exists
-	for i, existing := range entries {
-		if existing.ID == entry.ID {
-			// Update existing entry
-			entries[i] = entry
-			return js.SaveEntries(entries)
-		}
+	js.cacheMutex.Lock()
+	defer js.cacheMutex.Unlock()
+
+	// Check if entry with same ID already exists (O(1) lookup)
+	if idx, exists := js.cacheIdx[entry.ID]; exists {
+		// Update existing entry
+		js.cache[idx] = entry
+	} else {
+		// Add new entry
+		js.cacheIdx[entry.ID] = len(js.cache)
+		js.cache = append(js.cache, entry)
 	}
 
-	// Add new entry
-	entries = append(entries, entry)
-	return js.SaveEntries(entries)
+	js.cacheDirty = true
+	return js.flushCache()
 }
 
-// GetEntryByID retrieves a journal entry by ID
+// GetEntryByID retrieves a journal entry by ID (O(1) with cache)
 func (js *JournalStorage) GetEntryByID(id string) (*models.JournalEntry, error) {
-	entries, err := js.LoadEntries()
-	if err != nil {
+	if err := js.ensureCached(); err != nil {
 		return nil, err
 	}
 
-	for _, entry := range entries {
-		if entry.ID == id {
-			return entry, nil
-		}
+	js.cacheMutex.RLock()
+	defer js.cacheMutex.RUnlock()
+
+	// O(1) lookup via index
+	if idx, exists := js.cacheIdx[id]; exists {
+		return js.cache[idx], nil
 	}
 
 	return nil, fmt.Errorf("journal entry with ID %s not found", id)
@@ -122,39 +213,51 @@ func (js *JournalStorage) GetEntryByDate(date string) (*models.JournalEntry, err
 	return nil, fmt.Errorf("journal entry for date %s not found", date)
 }
 
-// UpdateEntry updates an existing journal entry
+// UpdateEntry updates an existing journal entry (O(1) with cache)
 func (js *JournalStorage) UpdateEntry(entry *models.JournalEntry) error {
-	entries, err := js.LoadEntries()
-	if err != nil {
+	if err := js.ensureCached(); err != nil {
 		return err
 	}
 
-	for i, existing := range entries {
-		if existing.ID == entry.ID {
-			entries[i] = entry
-			return js.SaveEntries(entries)
-		}
+	js.cacheMutex.Lock()
+	defer js.cacheMutex.Unlock()
+
+	// O(1) lookup via index
+	if idx, exists := js.cacheIdx[entry.ID]; exists {
+		js.cache[idx] = entry
+		js.cacheDirty = true
+		return js.flushCache()
 	}
 
 	return fmt.Errorf("journal entry with ID %s not found", entry.ID)
 }
 
-// DeleteEntry deletes a journal entry by ID
+// DeleteEntry deletes a journal entry by ID (O(1) with cache)
 func (js *JournalStorage) DeleteEntry(id string) error {
-	entries, err := js.LoadEntries()
-	if err != nil {
+	if err := js.ensureCached(); err != nil {
 		return err
 	}
 
-	for i, entry := range entries {
-		if entry.ID == id {
-			// Remove entry from slice
-			entries = append(entries[:i], entries[i+1:]...)
-			return js.SaveEntries(entries)
-		}
+	js.cacheMutex.Lock()
+	defer js.cacheMutex.Unlock()
+
+	// O(1) lookup via index
+	idx, exists := js.cacheIdx[id]
+	if !exists {
+		return fmt.Errorf("journal entry with ID %s not found", id)
 	}
 
-	return fmt.Errorf("journal entry with ID %s not found", id)
+	// Remove entry from slice
+	js.cache = append(js.cache[:idx], js.cache[idx+1:]...)
+
+	// Rebuild index (since indices shifted)
+	delete(js.cacheIdx, id)
+	for i := idx; i < len(js.cache); i++ {
+		js.cacheIdx[js.cache[i].ID] = i
+	}
+
+	js.cacheDirty = true
+	return js.flushCache()
 }
 
 // SearchEntries searches journal entries by keyword in content, title, or tags

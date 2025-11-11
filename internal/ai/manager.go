@@ -24,10 +24,14 @@ type Manager struct {
 	model           string
 	availableModels []string
 
-	// Cache for AI responses
-	cache      map[string]cacheEntry
-	cacheMutex sync.RWMutex
-	cachePath  string
+	// Cache for AI responses with LRU eviction
+	cache         map[string]cacheEntry
+	cacheHits     map[string]time.Time // Track last access time for LRU
+	cacheMaxSize  int
+	cacheMutex    sync.RWMutex
+	cachePath     string
+	cacheDirty    bool // Track if cache needs saving
+	lastCacheSave time.Time
 
 	// Model management
 	modelAvailable map[string]bool
@@ -39,6 +43,7 @@ type cacheEntry struct {
 	Response  any       `json:"response"`
 	Timestamp time.Time `json:"timestamp"`
 	ExpiresAt time.Time `json:"expires_at"`
+	AccessCnt int       `json:"access_count"` // Track access count for LRU
 }
 
 // ParsedTask represents the structured output from AI
@@ -59,6 +64,8 @@ func New() *Manager {
 			"qwen2.5:1.5b", // Primary - fast and efficient
 		},
 		cache:          make(map[string]cacheEntry),
+		cacheHits:      make(map[string]time.Time),
+		cacheMaxSize:   500, // Limit cache to 500 entries
 		modelAvailable: make(map[string]bool),
 	}
 
@@ -72,6 +79,9 @@ func New() *Manager {
 
 	// Load cache if it exists
 	manager.loadCache()
+
+	// Start background cache saver (saves every 5 minutes)
+	go manager.periodicCacheSaver()
 
 	return manager
 }
@@ -337,27 +347,48 @@ func (m *Manager) LaunchOllama() error {
 		return nil // Already running
 	}
 
-	// Try to launch Ollama using common commands
-	commands := [][]string{
-		{"ollama", "serve"},
-		{"cmd", "/c", "start", "ollama"},
-		{"powershell", "-Command", "Start-Process", "ollama"},
+	// Use async launch with proper startup detection
+	return m.launchOllamaAsync()
+}
+
+// launchOllamaAsync starts Ollama and waits for it to be available
+func (m *Manager) launchOllamaAsync() error {
+	var cmd *exec.Cmd
+
+	// Choose command based on OS
+	if os.Getenv("OS") == "Windows_NT" {
+		cmd = exec.Command("powershell", "-Command", "Start-Process", "ollama")
+	} else {
+		cmd = exec.Command("ollama", "serve")
 	}
 
-	for _, cmdArgs := range commands {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
+	// Start process without context timeout since we want it to persist
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to start ollama: %w", err)
+	}
 
-		if err := m.runCommand(ctx, cmdArgs...); err == nil {
-			// Give Ollama a moment to start
-			time.Sleep(2 * time.Second)
+	// Wait for Ollama to be available with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	return m.waitForOllamaAvailable(ctx)
+}
+
+// waitForOllamaAvailable polls until Ollama is available or context times out
+func (m *Manager) waitForOllamaAvailable(ctx context.Context) error {
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("timeout waiting for ollama to start")
+		case <-ticker.C:
 			if m.IsOllamaAvailable() {
 				return nil
 			}
 		}
 	}
-
-	return fmt.Errorf("failed to launch Ollama")
 }
 
 // runCommand executes a command in a separate process
@@ -372,6 +403,7 @@ func (m *Manager) runCommand(ctx context.Context, cmdArgs ...string) error {
 
 // isModelAvailable checks if a model is available in Ollama
 func (m *Manager) isModelAvailable(modelName string) bool {
+	// Fast path: check cache
 	m.modelMutex.RLock()
 	if available, exists := m.modelAvailable[modelName]; exists {
 		m.modelMutex.RUnlock()
@@ -379,21 +411,27 @@ func (m *Manager) isModelAvailable(modelName string) bool {
 	}
 	m.modelMutex.RUnlock()
 
-	// Check Ollama API
+	// Slow path: fetch from Ollama without holding lock
+	available := m.checkModelWithOllama(modelName)
+
+	// Update cache
+	m.modelMutex.Lock()
+	m.modelAvailable[modelName] = available
+	m.modelMutex.Unlock()
+
+	return available
+}
+
+// checkModelWithOllama queries Ollama API to check if a model is available
+func (m *Manager) checkModelWithOllama(modelName string) bool {
 	url := "http://localhost:11434/api/tags"
 	resp, err := http.Get(url)
 	if err != nil {
-		m.modelMutex.Lock()
-		m.modelAvailable[modelName] = false
-		m.modelMutex.Unlock()
 		return false
 	}
-	defer func() { _ = resp.Body.Close() }()
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		m.modelMutex.Lock()
-		m.modelAvailable[modelName] = false
-		m.modelMutex.Unlock()
 		return false
 	}
 
@@ -404,24 +442,15 @@ func (m *Manager) isModelAvailable(modelName string) bool {
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&tags); err != nil {
-		m.modelMutex.Lock()
-		m.modelAvailable[modelName] = false
-		m.modelMutex.Unlock()
 		return false
 	}
 
 	for _, model := range tags.Models {
 		if strings.Contains(model.Name, modelName) {
-			m.modelMutex.Lock()
-			m.modelAvailable[modelName] = true
-			m.modelMutex.Unlock()
 			return true
 		}
 	}
 
-	m.modelMutex.Lock()
-	m.modelAvailable[modelName] = false
-	m.modelMutex.Unlock()
 	return false
 }
 
@@ -1232,8 +1261,8 @@ func (m *Manager) generateCacheKey(operation, input string) string {
 
 // getFromCache retrieves a response from cache if available and not expired
 func (m *Manager) getFromCache(key string) (interface{}, bool) {
-	m.cacheMutex.RLock()
-	defer m.cacheMutex.RUnlock()
+	m.cacheMutex.Lock()
+	defer m.cacheMutex.Unlock()
 
 	entry, exists := m.cache[key]
 	if !exists {
@@ -1245,6 +1274,11 @@ func (m *Manager) getFromCache(key string) (interface{}, bool) {
 		return nil, false
 	}
 
+	// Update access time for LRU
+	m.cacheHits[key] = time.Now()
+	entry.AccessCnt++
+	m.cache[key] = entry
+
 	return entry.Response, true
 }
 
@@ -1253,15 +1287,47 @@ func (m *Manager) saveToCache(key string, response interface{}) {
 	m.cacheMutex.Lock()
 	defer m.cacheMutex.Unlock()
 
+	// Evict LRU entry if cache is full
+	if len(m.cache) >= m.cacheMaxSize {
+		m.evictLRUEntryUnsafe()
+	}
+
 	now := time.Now()
 	m.cache[key] = cacheEntry{
 		Response:  response,
 		Timestamp: now,
 		ExpiresAt: now.Add(24 * time.Hour), // Cache for 24 hours
+		AccessCnt: 1,
+	}
+	m.cacheHits[key] = now
+	m.cacheDirty = true // Mark cache as needing save
+}
+
+// evictLRUEntryUnsafe removes the least recently used cache entry
+// Must be called with cacheMutex held
+func (m *Manager) evictLRUEntryUnsafe() {
+	if len(m.cache) == 0 {
+		return
 	}
 
-	// Save cache to file
-	m.saveCache()
+	// Find LRU entry
+	var oldestKey string
+	var oldestTime time.Time
+	first := true
+
+	for key, accessTime := range m.cacheHits {
+		if first || accessTime.Before(oldestTime) {
+			oldestKey = key
+			oldestTime = accessTime
+			first = false
+		}
+	}
+
+	// Remove oldest entry
+	if oldestKey != "" {
+		delete(m.cache, oldestKey)
+		delete(m.cacheHits, oldestKey)
+	}
 }
 
 // loadCache loads cached responses from file
@@ -1279,22 +1345,46 @@ func (m *Manager) loadCache() {
 		return
 	}
 
-	// Filter out expired entries
+	// Filter out expired entries and initialize cacheHits
 	now := time.Now()
 	for key, entry := range cache {
 		if now.After(entry.ExpiresAt) {
 			delete(cache, key)
+		} else {
+			m.cacheHits[key] = entry.Timestamp
 		}
 	}
 
 	m.cache = cache
+	m.cacheDirty = false
+}
+
+// periodicCacheSaver saves cache to disk every 5 minutes
+func (m *Manager) periodicCacheSaver() {
+	ticker := time.NewTicker(5 * time.Minute)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		m.cacheMutex.RLock()
+		needsSave := m.cacheDirty
+		m.cacheMutex.RUnlock()
+
+		if needsSave {
+			m.cacheMutex.Lock()
+			if m.cacheDirty {
+				m.saveCache()
+				m.cacheDirty = false
+			}
+			m.cacheMutex.Unlock()
+		}
+	}
 }
 
 // saveCache persists cache to file
 func (m *Manager) saveCache() {
 	// Ensure directory exists
 	dir := filepath.Dir(m.cachePath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return
 	}
 
