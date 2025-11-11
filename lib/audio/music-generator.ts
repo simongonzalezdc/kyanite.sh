@@ -1,4 +1,5 @@
 import * as Tone from 'tone';
+import { Scale } from 'tonal';
 import { InstrumentType } from '../types';
 
 export class MusicGenerator {
@@ -94,6 +95,10 @@ export class MusicGenerator {
         // Complex pattern with fills
         patternArray = ['kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat'];
         break;
+      default:
+        // Fallback to moderate pattern
+        patternArray = ['kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat', 'kick', 'hihat', 'snare', 'hihat'];
+        break;
     }
 
     this.drumPattern = new Tone.Pattern((time, note) => {
@@ -124,7 +129,6 @@ export class MusicGenerator {
     const tonic = key.split(' ')[0];
     
     // Generate I-V-vi-IV progression in the detected key
-    const { Scale } = require('tonal');
     const scale = Scale.get(`${tonic} major`).notes;
     
     // I-V-vi-IV progression
@@ -158,8 +162,7 @@ export class MusicGenerator {
     // Extract tonic from key
     const tonic = key.split(' ')[0];
     const isMajor = key.includes('Major');
-    
-    const { Scale } = require('tonal');
+
     const scale = Scale.get(`${tonic} ${isMajor ? 'major' : 'minor'}`).notes;
     
     // I-V-vi-IV progression

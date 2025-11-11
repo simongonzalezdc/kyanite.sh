@@ -1,5 +1,6 @@
 import { createStore } from './index';
 import { PitchPoint, BPMAnalysis, KeyAnalysis, TimeSignature, InstrumentType, Section } from '@/lib/types';
+import * as Tone from 'tone';
 
 // Audio recording state
 export interface RecordingState {
@@ -29,9 +30,9 @@ export interface GeneratedAudioState {
   isGenerating: boolean;
   generatedPlaying: boolean;
   generatedParts: {
-    drums?: any;
-    bass?: any;
-    chords?: any;
+    drums?: unknown;
+    bass?: unknown;
+    chords?: unknown;
   };
   arrangementMode: 'sequential' | 'layered';
 }

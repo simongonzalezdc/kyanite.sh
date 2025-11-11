@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { AccessibilityProvider } from '../../app/components/AccessibilityProvider';
 import { KeyboardNavigation } from '../../app/components/KeyboardNavigation';
-import { ScreenReaderSupport } from '../../app/components/ScreenReaderSupport';
+import { ScreenReaderNavigation } from '../../app/components/ScreenReaderSupport';
 import { VisualAccessibilityControls } from '../../app/components/VisualAccessibility';
 import { AudioAccessibilityControls } from '../../app/components/AudioAccessibility';
 
@@ -27,9 +27,8 @@ Object.defineProperty(window, 'axe', {
 const AccessibilityWrapper = ({ children }: { children: React.ReactNode }) => (
   <AccessibilityProvider>
     <KeyboardNavigation>
-      <ScreenReaderSupport>
-        {children}
-      </ScreenReaderSupport>
+      <ScreenReaderNavigation />
+      {children}
     </KeyboardNavigation>
   </AccessibilityProvider>
 );

@@ -20,6 +20,14 @@ export class PitchDetector {
   }
 
   analyze(audioBuffer: AudioBuffer): PitchPoint[] {
+    if (audioBuffer.numberOfChannels === 0) {
+      console.warn('AudioBuffer has no channels');
+      return [];
+    }
+    if (this.sampleRate <= 0) {
+      console.warn('Invalid sample rate:', this.sampleRate);
+      return [];
+    }
     const channelData = audioBuffer.getChannelData(0);
     const pitches: PitchPoint[] = [];
     
@@ -28,6 +36,11 @@ export class PitchDetector {
     const hopSize = 256; // 75% overlap for smooth tracking
     const minFreq = 60; // Lower bound for voice/instruments
     const maxFreq = 2500; // Upper bound for voice/instruments
+    
+    if (channelData.length < windowSize) {
+      console.warn('Audio buffer too short for analysis');
+      return [];
+    }
     
     console.log('Starting advanced pitch analysis with industry techniques...');
     console.log('Audio duration:', audioBuffer.duration, 'seconds');
@@ -493,7 +506,7 @@ export class PitchDetector {
       
       // Weighted average for time and confidence
       const totalWeight = window.reduce((sum, p) => sum + (p.confidence || 0), 0);
-      const weightedTime = window.reduce((sum, p) => sum + p.time * (p.confidence || 0), 0) / totalWeight;
+      const weightedTime = totalWeight > 0 ? window.reduce((sum, p) => sum + p.time * (p.confidence || 0), 0) / totalWeight : window.reduce((sum, p) => sum + p.time, 0) / window.length;
       const avgConfidence = window.reduce((sum, p) => sum + (p.confidence || 0), 0) / window.length;
       
       smoothed.push({
@@ -570,10 +583,9 @@ export class PitchDetector {
     const midis = pitches.map(p => p.midi);
     const confidences = pitches.map(p => p.confidence || 0);
 
-    const weightedAvgFreq = frequencies.reduce((sum, freq, i) => sum + freq * confidences[i], 0) / 
-                           confidences.reduce((sum, conf) => sum + conf, 0);
-    const weightedAvgMidi = midis.reduce((sum, midi, i) => sum + midi * confidences[i], 0) / 
-                           confidences.reduce((sum, conf) => sum + conf, 0);
+    const totalConfidence = confidences.reduce((sum, conf) => sum + conf, 0);
+    const weightedAvgFreq = totalConfidence > 0 ? frequencies.reduce((sum, freq, i) => sum + freq * confidences[i], 0) / totalConfidence : frequencies.reduce((sum, freq) => sum + freq, 0) / frequencies.length;
+    const weightedAvgMidi = totalConfidence > 0 ? midis.reduce((sum, midi, i) => sum + midi * confidences[i], 0) / totalConfidence : midis.reduce((sum, midi) => sum + midi, 0) / midis.length;
 
     // Calculate note variety (unique notes)
     const uniqueNotes = new Set(midis.map(m => Math.round(m)));

@@ -49,6 +49,9 @@ export class BPMDetector {
   }
   
   private detectBPMFromOnsets(audioBuffer: AudioBuffer): number | null {
+    if (audioBuffer.numberOfChannels === 0) {
+      return null;
+    }
     const channelData = audioBuffer.getChannelData(0);
     const sampleRate = audioBuffer.sampleRate;
     
@@ -124,6 +127,9 @@ export class BPMDetector {
   }
   
   private detectBPMFromEnergy(audioBuffer: AudioBuffer): number | null {
+    if (audioBuffer.numberOfChannels === 0) {
+      return null;
+    }
     const channelData = audioBuffer.getChannelData(0);
     const sampleRate = audioBuffer.sampleRate;
     
