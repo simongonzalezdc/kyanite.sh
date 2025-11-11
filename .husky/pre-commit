@@ -1,6 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 # Quick check: just verify we're in the right directory
 # Don't run linting or tests - they're too slow and block commits
 # Run these manually: npm run lint && npm test
