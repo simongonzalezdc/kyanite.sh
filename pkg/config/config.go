@@ -1,8 +1,10 @@
 package config
 
 import (
+	"log"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/spf13/viper"
 )
@@ -50,11 +52,17 @@ type UI struct {
 	SoundEffects  bool   `yaml:"sound_effects" mapstructure:"sound_effects"`
 }
 
-var globalConfig *Config
-var configLoaded = false
+var (
+	globalConfigMutex sync.RWMutex
+	globalConfig      *Config
+	configLoaded      = false
+)
 
 // LoadConfig loads configuration from file
 func LoadConfig() (*Config, error) {
+	globalConfigMutex.Lock()
+	defer globalConfigMutex.Unlock()
+
 	if configLoaded && globalConfig != nil {
 		return globalConfig, nil
 	}
@@ -125,7 +133,7 @@ func SaveConfig(config *Config) error {
 	}
 
 	configDir := filepath.Join(homeDir, ".focus")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		return err
 	}
 
@@ -147,10 +155,56 @@ func SaveConfig(config *Config) error {
 
 // GetConfig returns the global configuration
 func GetConfig() *Config {
-	if !configLoaded {
-		_, _ = LoadConfig() // Ignore error for global config retrieval
+	globalConfigMutex.RLock()
+	loaded := configLoaded
+	cfg := globalConfig
+	globalConfigMutex.RUnlock()
+
+	if !loaded {
+		loadedCfg, err := LoadConfig()
+		if err != nil {
+			log.Printf("Warning: Failed to load config: %v", err)
+			// Return a safe default config to prevent nil dereferences
+			if loadedCfg == nil {
+				return getDefaultConfig()
+			}
+		}
+		return loadedCfg
 	}
-	return globalConfig
+	return cfg
+}
+
+// getDefaultConfig returns a default configuration to prevent nil dereferences
+func getDefaultConfig() *Config {
+	return &Config{
+		AI: AIConfig{
+			Provider:    "ollama",
+			Model:       "llama3",
+			Temperature: 0.7,
+			MaxTokens:   1000,
+			Timeout:     30,
+		},
+		Theme: "amber-night",
+		Dashboard: Dashboard{
+			AutoRefresh:     true,
+			RefreshInterval: 5,
+			ShowAnimation:   true,
+			CompactMode:     false,
+		},
+		Notes: Notes{
+			DefaultEditor: "auto",
+			AutoSave:      true,
+			SaveInterval:  5,
+			Directory:     "",
+		},
+		UI: UI{
+			TimeFormat:    "12h",
+			DateFormat:    "2006-01-02",
+			ShowHelpTips:  true,
+			Notifications: false,
+			SoundEffects:  true,
+		},
+	}
 }
 
 // UpdateConfig updates specific configuration values
@@ -211,7 +265,7 @@ func createDefaultConfig() error {
 	}
 
 	configDir := filepath.Join(homeDir, ".focus")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		return err
 	}
 
@@ -235,8 +289,10 @@ func IsConfigLoaded() bool {
 
 // ReloadConfig forces a reload of the configuration
 func ReloadConfig() error {
+	globalConfigMutex.Lock()
 	configLoaded = false
 	globalConfig = nil
+	globalConfigMutex.Unlock()
 	_, err := LoadConfig()
 	return err
 }

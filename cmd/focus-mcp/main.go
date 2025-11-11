@@ -144,7 +144,18 @@ func (s *mcpServer) handleToolsList(req request) response {
 }
 
 func (s *mcpServer) handleToolsCall(req request) response {
-	paramsBytes, _ := json.Marshal(req.Params)
+	paramsBytes, err := json.Marshal(req.Params)
+	if err != nil {
+		return response{
+			JSONRPC: "2.0",
+			ID:      req.ID,
+			Error: &rpcError{
+				Code:    -32603,
+				Message: fmt.Sprintf("Internal error marshaling parameters: %v", err),
+			},
+		}
+	}
+
 	var params callToolParams
 	if err := json.Unmarshal(paramsBytes, &params); err != nil {
 		return response{

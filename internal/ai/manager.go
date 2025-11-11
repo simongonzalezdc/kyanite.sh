@@ -346,9 +346,11 @@ func (m *Manager) LaunchOllama() error {
 
 	for _, cmdArgs := range commands {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
 
-		if err := m.runCommand(ctx, cmdArgs...); err == nil {
+		err := m.runCommand(ctx, cmdArgs...)
+		cancel() // Cancel immediately after command finishes
+
+		if err == nil {
 			// Give Ollama a moment to start
 			time.Sleep(2 * time.Second)
 			if m.IsOllamaAvailable() {
@@ -1294,7 +1296,7 @@ func (m *Manager) loadCache() {
 func (m *Manager) saveCache() {
 	// Ensure directory exists
 	dir := filepath.Dir(m.cachePath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return
 	}
 

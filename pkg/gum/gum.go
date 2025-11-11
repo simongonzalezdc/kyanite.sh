@@ -62,15 +62,23 @@ func Filter(options []string, prompt string) string {
 		return ""
 	}
 
+	// Channel to communicate write errors
+	errChan := make(chan error, 1)
 	go func() {
-		defer func() { _ = stdin.Close() }()
+		defer stdin.Close()
 		for _, option := range options {
-			_, _ = stdin.Write([]byte(option + "\n"))
+			if _, err := stdin.Write([]byte(option + "\n")); err != nil {
+				errChan <- err
+				return
+			}
 		}
+		errChan <- nil
 	}()
 
 	output, err := cmd.Output()
-	if err != nil {
+	writeErr := <-errChan // Wait for goroutine to finish
+
+	if err != nil || writeErr != nil {
 		return ""
 	}
 
@@ -94,15 +102,23 @@ func MultiSelect(options []string, prompt string, limit int) []string {
 		return nil
 	}
 
+	// Channel to communicate write errors
+	errChan := make(chan error, 1)
 	go func() {
-		defer func() { _ = stdin.Close() }()
+		defer stdin.Close()
 		for _, option := range options {
-			_, _ = stdin.Write([]byte(option + "\n"))
+			if _, err := stdin.Write([]byte(option + "\n")); err != nil {
+				errChan <- err
+				return
+			}
 		}
+		errChan <- nil
 	}()
 
 	output, err := cmd.Output()
-	if err != nil {
+	writeErr := <-errChan // Wait for goroutine to finish
+
+	if err != nil || writeErr != nil {
 		return nil
 	}
 

@@ -58,7 +58,7 @@ func (js *JournalStorage) SaveEntries(entries []*models.JournalEntry) error {
 
 	// Ensure directory exists
 	dir := filepath.Dir(js.filePath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("failed to create journal directory: %w", err)
 	}
 

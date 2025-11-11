@@ -88,7 +88,7 @@ func TestExporter_ListExports(t *testing.T) {
 	// Create a test file
 	testFile := filepath.Join(exporter.syntaxDir, "test.md")
 	testDir := filepath.Dir(testFile)
-	os.MkdirAll(testDir, 0755)
+	os.MkdirAll(testDir, 0o755)
 	os.WriteFile(testFile, []byte("test content"), 0644)
 
 	// Test listing with file
@@ -111,7 +111,7 @@ func TestExporter_RemoveExport(t *testing.T) {
 	// Create a test file
 	testFile := filepath.Join(exporter.syntaxDir, "test.md")
 	testDir := filepath.Dir(testFile)
-	os.MkdirAll(testDir, 0755)
+	os.MkdirAll(testDir, 0o755)
 	os.WriteFile(testFile, []byte("test content"), 0644)
 
 	// Remove the file

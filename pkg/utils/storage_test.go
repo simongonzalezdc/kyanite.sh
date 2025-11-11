@@ -96,11 +96,11 @@ func TestCopyDir(t *testing.T) {
 	dstDir := filepath.Join(t.TempDir(), "dst")
 
 	// Create source directory with files
-	os.MkdirAll(srcDir, 0755)
+	os.MkdirAll(srcDir, 0o755)
 
 	file1 := filepath.Join(srcDir, "file1.txt")
 	file2 := filepath.Join(srcDir, "subdir", "file2.txt")
-	os.MkdirAll(filepath.Dir(file2), 0755)
+	os.MkdirAll(filepath.Dir(file2), 0o755)
 
 	os.WriteFile(file1, []byte("content1"), 0644)
 	os.WriteFile(file2, []byte("content2"), 0644)
@@ -150,7 +150,7 @@ func TestCopyDir_EmptySource(t *testing.T) {
 	dstDir := filepath.Join(t.TempDir(), "empty_dst")
 
 	// Create empty source directory
-	os.Mkdir(srcDir, 0755)
+	os.Mkdir(srcDir, 0o755)
 
 	// Copy empty directory
 	err := copyDir(srcDir, dstDir)

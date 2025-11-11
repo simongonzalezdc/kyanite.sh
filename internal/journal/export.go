@@ -18,12 +18,11 @@ type Exporter struct {
 func NewExporter() *Exporter {
 	// Default syntax.sh imports directory
 	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		// fallback to current working directory if home not available
-		syntaxDir := filepath.Join(".", "syntax", "imports")
-		return &Exporter{syntaxDir: syntaxDir}
+
+	syntaxDir := filepath.Join(".", "syntax", "imports") // Default fallback
+	if err == nil {
+		syntaxDir = filepath.Join(homeDir, "syntax", "imports")
 	}
-	syntaxDir := filepath.Join(homeDir, "syntax", "imports")
 
 	return &Exporter{
 		syntaxDir: syntaxDir,
@@ -33,7 +32,7 @@ func NewExporter() *Exporter {
 // ExportToSyntax exports a journal entry to syntax.sh format
 func (e *Exporter) ExportToSyntax(entry *models.JournalEntry, exportType models.ExportType) error {
 	// Ensure syntax directory exists
-	if err := os.MkdirAll(e.syntaxDir, 0755); err != nil {
+	if err := os.MkdirAll(e.syntaxDir, 0o755); err != nil {
 		return fmt.Errorf("failed to create syntax imports directory: %w", err)
 	}
 

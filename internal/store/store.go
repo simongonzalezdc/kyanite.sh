@@ -17,7 +17,7 @@ type Store struct {
 func New(filePath string) *Store {
 	// Ensure the directory exists
 	dir := filepath.Dir(filePath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		// If we can't create the directory, fall back to current directory
 		// Log the error for debugging (will be added with logging framework)
 		// For now, use a safe fallback
@@ -59,7 +59,7 @@ func (s *Store) Load() ([]models.Task, error) {
 func (s *Store) Save(tasks []models.Task) error {
 	// Ensure the directory exists
 	dir := filepath.Dir(s.filePath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
