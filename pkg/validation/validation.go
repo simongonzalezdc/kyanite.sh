@@ -11,6 +11,20 @@ import (
 	"time"
 )
 
+// Pre-compiled regular expressions for performance
+var (
+	passwordLowerRegex = regexp.MustCompile(`[a-z]`)
+	passwordUpperRegex = regexp.MustCompile(`[A-Z]`)
+	passwordDigitRegex = regexp.MustCompile(`[0-9]`)
+
+	sqlInjectionRegexes = []*regexp.Regexp{
+		regexp.MustCompile(`(?i)(\bunion\b|\bselect\b|\binsert\b|\bupdate\b|\bdelete\b|\bdrop\b|\bcreate\b|\balter\b)`),
+		regexp.MustCompile(`(?i)(\bexec\b|\bexecute\b|\bsp_|\bxp_)`),
+		regexp.MustCompile(`(?i)(\bscript\b|\bjavascript\b|\bvbscript\b)`),
+		regexp.MustCompile(`(?i)(['\"]\s*;\s*(drop|delete|union|select))`),
+	}
+)
+
 func ValidateTaskDescription(description string) error {
 	trimmed := strings.TrimSpace(description)
 	if trimmed == "" {
@@ -188,9 +202,9 @@ func ValidatePassword(pw string) error {
 	if len(pw) < 8 {
 		return fmt.Errorf("password too short (min 8)")
 	}
-	hasLower := regexp.MustCompile(`[a-z]`).MatchString(pw)
-	hasUpper := regexp.MustCompile(`[A-Z]`).MatchString(pw)
-	hasDigit := regexp.MustCompile(`[0-9]`).MatchString(pw)
+	hasLower := passwordLowerRegex.MatchString(pw)
+	hasUpper := passwordUpperRegex.MatchString(pw)
+	hasDigit := passwordDigitRegex.MatchString(pw)
 	if !(hasLower && hasUpper && hasDigit) {
 		return fmt.Errorf("password must contain upper, lower, and digit")
 	}
@@ -247,18 +261,8 @@ func ValidateTask(task map[string]interface{}) error {
 }
 
 func containsSQLInjection(input string) bool {
-	sqlPatterns := []string{
-		`(?i)(\bunion\b|\bselect\b|\binsert\b|\bupdate\b|\bdelete\b|\bdrop\b|\bcreate\b|\balter\b)`,
-		`(?i)(\bexec\b|\bexecute\b|\bsp_|\bxp_)`,
-		`(?i)(\bscript\b|\bjavascript\b|\bvbscript\b)`,
-		`(?i)(['\"]\s*;\s*(drop|delete|union|select))`,
-	}
-	for _, pattern := range sqlPatterns {
-		matched, err := regexp.MatchString(pattern, input)
-		if err != nil {
-			continue // Skip invalid patterns
-		}
-		if matched {
+	for _, regex := range sqlInjectionRegexes {
+		if regex.MatchString(input) {
 			return true
 		}
 	}
