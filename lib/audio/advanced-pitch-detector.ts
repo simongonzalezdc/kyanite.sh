@@ -1,7 +1,7 @@
 import { PitchPoint } from '../types';
 
 // Industry-standard pitch detection using advanced techniques
-export class PitchDetector {
+export class AdvancedPitchDetector {
   private sampleRate: number;
   private hannWindow: Float32Array;
   private noiseProfile: number[] = [];
@@ -148,7 +148,7 @@ export class PitchDetector {
       { pitch: autoPitch, confidence: 0.7 },
       { pitch: hpsPitch, confidence: 0.6 },
       { pitch: fftPitch, confidence: 0.5 }
-    ].filter(c => c.pitch !== null) as { pitch: number; confidence: number }[];
+    ].filter(c => c.pitch !== null);
 
     if (candidates.length === 0) return null;
     
@@ -617,12 +617,5 @@ export class PitchDetector {
     }
 
     return melody;
-  }
-
-  midiToNoteName(midi: number): string {
-    const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    const octave = Math.floor(midi / 12) - 1;
-    const note = noteNames[Math.round(midi) % 12];
-    return `${note}${octave}`;
   }
 }

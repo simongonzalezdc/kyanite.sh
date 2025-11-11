@@ -5,7 +5,7 @@ import { PianoRollConfig, PixiNote } from '../types/pixi';
 import { Midi } from '@tonejs/midi';
 
 export class InteractivePianoRoll {
-  private app: PIXI.Application;
+  private app: PIXI.Application | null = null;
   private container!: PIXI.Container;
   private gridLayer!: PIXI.Container;
   private noteLayer!: PIXI.Container;
@@ -16,6 +16,7 @@ export class InteractivePianoRoll {
   private isDragging: boolean = false;
   private dragStartPos: { x: number; y: number } = { x: 0, y: 0 };
   private initPromise: Promise<void>;
+  private isInitialized: boolean = false;
 
   constructor(config: Partial<PianoRollConfig> = {}) {
     this.config = {
@@ -34,15 +35,29 @@ export class InteractivePianoRoll {
       subdivision: config.subdivision || 16 // 16th notes
     };
 
-    // Create Pixi application (v8 API - init separately)
-    this.app = new PIXI.Application();
-    this.initPromise = this.app.init({
-      width: this.config.width,
-      height: this.config.height,
-      backgroundColor: this.config.backgroundColor,
-      antialias: true
-    }).then(() => {
-      // Create layers after init
+    // Initialize promise that resolves when setup is complete
+    this.initPromise = this.initializeApp();
+  }
+
+  /**
+   * Initialize the PixiJS application
+   */
+  private async initializeApp(): Promise<void> {
+    try {
+      // Create Pixi application with v7 API
+      this.app = new PIXI.Application({
+        width: this.config.width,
+        height: this.config.height,
+        backgroundColor: this.config.backgroundColor,
+        antialias: true
+      });
+
+      // Wait for app to be ready
+      await new Promise((resolve) => {
+        this.app!.ticker.addOnce(resolve);
+      });
+
+      // Create layers
       this.container = new PIXI.Container();
       this.gridLayer = new PIXI.Container();
       this.pianoLayer = new PIXI.Container();
@@ -67,22 +82,33 @@ export class InteractivePianoRoll {
       // Draw grid and piano keys
       this.drawGrid();
       this.drawPianoKeys();
-    });
+
+      this.isInitialized = true;
+    } catch (error) {
+      console.error('Failed to initialize PixiJS application:', error);
+      throw error;
+    }
   }
 
   /**
    * Wait for initialization to complete
    */
   async waitForInit(): Promise<void> {
+    if (this.isInitialized) return;
     await this.initPromise;
   }
 
   getCanvas(): HTMLCanvasElement {
-    // Use app.canvas instead of app.view in v8
-    const canvas = (this.app.canvas || this.app.view) as HTMLCanvasElement;
+    if (!this.app) {
+      throw new Error('Application not initialized');
+    }
+
+    // Use app.view for v7
+    const canvas = this.app.view as HTMLCanvasElement;
     if (!canvas) {
       throw new Error('Canvas not available. Wait for initialization to complete.');
     }
+    
     // Ensure canvas doesn't block other elements
     canvas.style.position = 'relative';
     canvas.style.zIndex = '1';
@@ -96,6 +122,9 @@ export class InteractivePianoRoll {
     const graphics = new PIXI.Graphics();
     const midiRange = this.config.maxMidi - this.config.minMidi;
 
+    // Clear existing grid
+    this.gridLayer.removeChildren();
+
     // Horizontal lines (one per MIDI note)
     for (let i = 0; i <= midiRange; i++) {
       const midi = this.config.minMidi + i;
@@ -103,11 +132,7 @@ export class InteractivePianoRoll {
       const isBlackKey = this.isBlackKey(midi);
       
       // Alternate colors for white/black keys
-      graphics.setStrokeStyle({
-        width: 1,
-        color: this.config.gridColor,
-        alpha: isBlackKey ? 0.3 : 0.2
-      });
+      graphics.lineStyle(1, this.config.gridColor, isBlackKey ? 0.3 : 0.2);
       graphics.moveTo(60, y);
       graphics.lineTo(this.config.width, y);
     }
@@ -118,11 +143,7 @@ export class InteractivePianoRoll {
       const x = 60 + (i * this.config.pixelsPerSecond);
       const isBarLine = i % this.config.beatsPerBar === 0;
       
-      graphics.setStrokeStyle({
-        width: isBarLine ? 2 : 1,
-        color: this.config.gridColor,
-        alpha: isBarLine ? 0.5 : 0.2
-      });
+      graphics.lineStyle(isBarLine ? 2 : 1, this.config.gridColor, isBarLine ? 0.5 : 0.2);
       graphics.moveTo(x, 0);
       graphics.lineTo(x, this.config.height);
     }
@@ -133,7 +154,7 @@ export class InteractivePianoRoll {
       if (i % this.config.subdivision === 0) continue; // Skip beat lines
       
       const x = 60 + (i * subdivisionWidth);
-      graphics.setStrokeStyle({ width: 1, color: this.config.gridColor, alpha: 0.1 });
+      graphics.lineStyle(1, this.config.gridColor, 0.1);
       graphics.moveTo(x, 0);
       graphics.lineTo(x, this.config.height);
     }
@@ -147,6 +168,9 @@ export class InteractivePianoRoll {
   private drawPianoKeys(): void {
     const graphics = new PIXI.Graphics();
     const midiRange = this.config.maxMidi - this.config.minMidi;
+
+    // Clear existing keys
+    this.pianoLayer.removeChildren();
 
     for (let i = 0; i <= midiRange; i++) {
       const midi = this.config.minMidi + i;
@@ -164,7 +188,7 @@ export class InteractivePianoRoll {
       graphics.endFill();
 
       // Draw border
-      graphics.setStrokeStyle({ width: 1, color: 0x444444, alpha: 0.5 });
+      graphics.lineStyle(1, 0x444444, 0.5);
       graphics.drawRect(
         0,
         y - this.config.noteHeight / 2,
@@ -315,7 +339,7 @@ export class InteractivePianoRoll {
     sprite.endFill();
 
     // Border
-    sprite.setStrokeStyle({ width: 1, color: 0xffffff, alpha: 0.3 });
+    sprite.lineStyle(1, 0xffffff, 0.3);
     sprite.drawRoundedRect(
       x,
       y - this.config.noteHeight / 2,
@@ -602,6 +626,8 @@ export class InteractivePianoRoll {
   }
 
   resize(width: number, height: number): void {
+    if (!this.app) return;
+    
     this.config.width = width;
     this.config.height = height;
     this.app.renderer.resize(width, height);
@@ -619,8 +645,9 @@ export class InteractivePianoRoll {
 
   destroy(): void {
     if (!this.app) return;
+    
     this.clear();
     this.app.destroy(true, { children: true, texture: true });
+    this.app = null;
   }
 }
-

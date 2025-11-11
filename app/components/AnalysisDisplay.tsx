@@ -40,6 +40,8 @@ export default function AnalysisDisplay({
   const sequenceRef = useRef<Tone.Sequence | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isPlayingRef = useRef<boolean>(false);
+  const currentNotesRef = useRef<string[]>([]);
+  const currentDurationsRef = useRef<number[]>([]);
 
   useEffect(() => {
     // Initialize synth
@@ -56,6 +58,33 @@ export default function AnalysisDisplay({
       synthRef.current?.dispose();
       sequenceRef.current?.dispose();
     };
+  }, []);
+
+  // Extract the note playing logic into a callback
+  const playNextNote = useCallback((index: number) => {
+    const allNotes = currentNotesRef.current;
+    const noteDurations = currentDurationsRef.current;
+    
+    if (!isPlayingRef.current || index >= allNotes.length) {
+      setIsPlaying(false);
+      isPlayingRef.current = false;
+      setCurrentNoteIndex(null);
+      timeoutRef.current = null;
+      return;
+    }
+
+    setCurrentNoteIndex(index);
+    const note = allNotes[index];
+    const duration = noteDurations[index];
+    
+    if (synthRef.current) {
+      synthRef.current.triggerAttackRelease(note, duration);
+    }
+
+    // Store timeout ID so it can be cleared
+    timeoutRef.current = setTimeout(() => {
+      playNextNote(index + 1);
+    }, duration * 1000);
   }, []);
 
   if (pitches.length === 0) {
@@ -120,41 +149,12 @@ export default function AnalysisDisplay({
       noteDurations.push(duration);
     }
 
-    // Create sequence to play notes using a stable callback
-    const playNextNote = useCallback(() => {
-      // Check if playback was stopped (use ref to avoid stale closure)
-      if (!isPlayingRef.current || currentNoteIndex !== null && currentNoteIndex >= allNotes.length - 1) {
-        setIsPlaying(false);
-        isPlayingRef.current = false;
-        setCurrentNoteIndex(null);
-        timeoutRef.current = null;
-        return;
-      }
-
-      const nextIndex = currentNoteIndex !== null ? currentNoteIndex + 1 : 0;
-      
-      if (nextIndex >= allNotes.length) {
-        setIsPlaying(false);
-        isPlayingRef.current = false;
-        setCurrentNoteIndex(null);
-        timeoutRef.current = null;
-        return;
-      }
-
-      setCurrentNoteIndex(nextIndex);
-      const note = allNotes[nextIndex];
-      const duration = noteDurations[nextIndex];
-      
-      if (synthRef.current) {
-        synthRef.current.triggerAttackRelease(note, duration);
-      }
-
-      // Store timeout ID so it can be cleared
-      timeoutRef.current = setTimeout(playNextNote, duration * 1000);
-    }, [allNotes, noteDurations, currentNoteIndex]);
+    // Store notes and durations in refs for the callback
+    currentNotesRef.current = allNotes;
+    currentDurationsRef.current = noteDurations;
 
     // Start playing
-    playNextNote();
+    playNextNote(0);
   };
 
   const stopPlayback = () => {
@@ -510,4 +510,3 @@ export default function AnalysisDisplay({
     </div>
   );
 }
-

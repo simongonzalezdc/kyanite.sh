@@ -1,95 +1,48 @@
-import { createRealTimeBpmProcessor } from 'realtime-bpm-analyzer';
 import { BPMAnalysis } from '../types';
 
 export class BPMDetector {
   async analyze(audioBuffer: AudioBuffer): Promise<BPMAnalysis> {
-    // First try the realtime-bpm-analyzer
     try {
-      const audioContext = new AudioContext({ sampleRate: audioBuffer.sampleRate });
-      const processor = await createRealTimeBpmProcessor(audioContext, {
-        continuousAnalysis: false,
-        stabilizationTime: Math.min(audioBuffer.duration * 1000, 10000) // Max 10 seconds
-      });
+      console.log('Starting BPM analysis...');
+      console.log('Audio duration:', audioBuffer.duration, 'seconds');
+      console.log('Sample rate:', audioBuffer.sampleRate);
       
-      return new Promise((resolve) => {
-        let detectedBPM: number | null = null;
-        let confidence = 0.5;
-        let bpmValues: number[] = [];
-        
-        processor.port.onmessage = (event) => {
-          if (event.data.message === 'BPM') {
-            const bpm = Math.round(event.data.data.bpm);
-            if (bpm >= 60 && bpm <= 200) { // Valid BPM range
-              bpmValues.push(bpm);
-              detectedBPM = bpm;
-              confidence = event.data.data.confidence || 0.7;
-            }
-          }
-          
-          if (event.data.message === 'BPM_STABLE') {
-            const bpm = Math.round(event.data.data.bpm);
-            if (bpm >= 60 && bpm <= 200) {
-              detectedBPM = bpm;
-              confidence = 1.0;
-            }
-          }
+      // Use onset-based detection as primary method
+      const onsetBPM = this.detectBPMFromOnsets(audioBuffer);
+      
+      if (onsetBPM) {
+        console.log('BPM detected from onsets:', onsetBPM);
+        return {
+          bpm: onsetBPM,
+          confidence: 0.8,
+          stable: true
         };
-
-        const source = audioContext.createBufferSource();
-        source.buffer = audioBuffer;
-        source.connect(processor);
-        source.connect(audioContext.destination);
-        
-        source.onended = () => {
-          // Wait a bit for final BPM calculation
-          setTimeout(() => {
-            audioContext.close();
-            
-            // If we got multiple BPM readings, use the median
-            if (bpmValues.length > 0) {
-              bpmValues.sort((a, b) => a - b);
-              const medianIndex = Math.floor(bpmValues.length / 2);
-              detectedBPM = bpmValues[medianIndex];
-            }
-            
-            // Fallback to onset-based detection if realtime analyzer failed
-            if (!detectedBPM || detectedBPM < 60 || detectedBPM > 200) {
-              const onsetBPM = this.detectBPMFromOnsets(audioBuffer);
-              if (onsetBPM) {
-                detectedBPM = onsetBPM;
-                confidence = 0.6;
-              }
-            }
-            
-            const finalBPM = detectedBPM || 120;
-            
-            // Debug logging (only in development)
-            if (process.env.NODE_ENV === 'development') {
-              console.log('BPM detection:', {
-                detectedBPM: finalBPM,
-                confidence,
-                stable: detectedBPM !== null && confidence > 0.7,
-                method: detectedBPM ? 'realtime-analyzer' : 'onset-fallback'
-              });
-            }
-            
-            resolve({
-              bpm: finalBPM,
-              confidence: confidence,
-              stable: detectedBPM !== null && confidence > 0.7
-            });
-          }, 1000); // Increased wait time
+      }
+      
+      // Fallback to energy-based analysis
+      const energyBPM = this.detectBPMFromEnergy(audioBuffer);
+      if (energyBPM) {
+        console.log('BPM detected from energy:', energyBPM);
+        return {
+          bpm: energyBPM,
+          confidence: 0.6,
+          stable: false
         };
-        
-        source.start();
-      });
+      }
+      
+      // Default fallback
+      console.log('Using default BPM: 120');
+      return {
+        bpm: 120,
+        confidence: 0.1,
+        stable: false
+      };
+      
     } catch (error) {
       console.error('BPM detection error:', error);
-      // Fallback to onset-based detection
-      const onsetBPM = this.detectBPMFromOnsets(audioBuffer);
       return {
-        bpm: onsetBPM || 120,
-        confidence: onsetBPM ? 0.5 : 0.1,
+        bpm: 120,
+        confidence: 0.1,
         stable: false
       };
     }
@@ -99,12 +52,14 @@ export class BPMDetector {
     const channelData = audioBuffer.getChannelData(0);
     const sampleRate = audioBuffer.sampleRate;
     
-    // Find note onsets (peaks in amplitude)
+    // Find note onsets using peak detection
     const onsets: number[] = [];
-    const threshold = 0.1; // Amplitude threshold
-    const minInterval = sampleRate * 0.1; // Minimum 0.1s between onsets
+    const threshold = 0.05; // Lower threshold for better detection
+    const minInterval = Math.floor(sampleRate * 0.2); // Minimum 0.2s between onsets
     
     let lastOnset = -minInterval;
+    
+    // First pass: find potential onsets
     for (let i = 1; i < channelData.length - 1; i++) {
       const current = Math.abs(channelData[i]);
       const prev = Math.abs(channelData[i - 1]);
@@ -112,41 +67,123 @@ export class BPMDetector {
       
       // Peak detection
       if (current > threshold && current > prev && current > next) {
-        const time = i / sampleRate;
-        if (time - lastOnset >= 0.1) {
-          onsets.push(time);
-          lastOnset = time;
+        if (i - lastOnset >= minInterval) {
+          onsets.push(i);
+          lastOnset = i;
         }
       }
     }
+    
+    console.log('Found onsets:', onsets.length);
     
     if (onsets.length < 4) return null;
     
     // Calculate intervals between onsets
     const intervals: number[] = [];
     for (let i = 1; i < onsets.length; i++) {
-      intervals.push(onsets[i] - onsets[i - 1]);
+      const interval = (onsets[i] - onsets[i - 1]) / sampleRate;
+      intervals.push(interval);
+    }
+    
+    // Find most common interval using histogram
+    const intervalHist = new Map<number, number>();
+    const tolerance = 0.1; // 100ms tolerance
+    
+    for (const interval of intervals) {
+      let found = false;
+      for (const [key, count] of intervalHist.entries()) {
+        if (Math.abs(key - interval) < tolerance) {
+          intervalHist.set(key, count + 1);
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        intervalHist.set(interval, 1);
+      }
+    }
+    
+    // Find interval with most votes
+    let maxVotes = 0;
+    let bestInterval = 0;
+    intervalHist.forEach((votes, interval) => {
+      if (votes > maxVotes && interval > 0.3 && interval < 2.0) {
+        maxVotes = votes;
+        bestInterval = interval;
+      }
+    });
+    
+    if (bestInterval > 0) {
+      const bpm = Math.round(60 / bestInterval);
+      if (bpm >= 60 && bpm <= 200) {
+        return bpm;
+      }
+    }
+    
+    return null;
+  }
+  
+  private detectBPMFromEnergy(audioBuffer: AudioBuffer): number | null {
+    const channelData = audioBuffer.getChannelData(0);
+    const sampleRate = audioBuffer.sampleRate;
+    
+    // Calculate energy in small windows
+    const windowSize = Math.floor(sampleRate * 0.05); // 50ms windows
+    const hopSize = Math.floor(windowSize / 2); // 50% overlap
+    const energies: number[] = [];
+    
+    for (let i = 0; i < channelData.length - windowSize; i += hopSize) {
+      let energy = 0;
+      for (let j = 0; j < windowSize; j++) {
+        energy += channelData[i + j] * channelData[i + j];
+      }
+      energies.push(energy / windowSize);
+    }
+    
+    // Find peaks in energy
+    const peaks: number[] = [];
+    const threshold = 0.01;
+    const minPeakInterval = Math.floor(sampleRate * 0.3 / hopSize); // 300ms minimum
+    
+    let lastPeak = -minPeakInterval;
+    for (let i = 1; i < energies.length - 1; i++) {
+      if (energies[i] > threshold && 
+          energies[i] > energies[i - 1] && 
+          energies[i] > energies[i + 1]) {
+        if (i - lastPeak >= minPeakInterval) {
+          peaks.push(i);
+          lastPeak = i;
+        }
+      }
+    }
+    
+    if (peaks.length < 4) return null;
+    
+    // Calculate intervals between peaks
+    const intervals: number[] = [];
+    for (let i = 1; i < peaks.length; i++) {
+      const interval = (peaks[i] - peaks[i - 1]) * hopSize / sampleRate;
+      intervals.push(interval);
     }
     
     // Find most common interval
     const intervalCounts = new Map<number, number>();
     intervals.forEach(interval => {
-      // Round to nearest 0.1s
-      const rounded = Math.round(interval * 10) / 10;
+      const rounded = Math.round(interval * 10) / 10; // Round to 0.1s
       intervalCounts.set(rounded, (intervalCounts.get(rounded) || 0) + 1);
     });
     
     let maxCount = 0;
-    let mostCommonInterval = 0;
+    let bestInterval = 0;
     intervalCounts.forEach((count, interval) => {
-      if (count > maxCount && interval > 0.2 && interval < 2.0) {
+      if (count > maxCount && interval > 0.3 && interval < 2.0) {
         maxCount = count;
-        mostCommonInterval = interval;
+        bestInterval = interval;
       }
     });
     
-    if (mostCommonInterval > 0) {
-      const bpm = Math.round(60 / mostCommonInterval);
+    if (bestInterval > 0) {
+      const bpm = Math.round(60 / bestInterval);
       if (bpm >= 60 && bpm <= 200) {
         return bpm;
       }
@@ -155,4 +192,3 @@ export class BPMDetector {
     return null;
   }
 }
-

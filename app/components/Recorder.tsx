@@ -1,5 +1,3 @@
-'use client';
-
 import { useRef, useEffect } from 'react';
 import { AudioRecorder } from '@/lib/audio/recorder';
 import Waveform from './Waveform';
@@ -34,7 +32,7 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
   const { registerShortcut, unregisterShortcut } = useKeyboardNavigation();
   
   const recorderRef = useRef<AudioRecorder | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
+  const currentAudioSource = useRef<AudioBufferSourceNode | null>(null);
 
   const requestPermission = async () => {
     if (!recorderRef.current) {
@@ -55,6 +53,16 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
       if (!recording.hasPermission) return;
     }
 
+    // Stop any current playback first
+    if (currentAudioSource.current) {
+      try {
+        currentAudioSource.current.stop();
+        currentAudioSource.current = null;
+      } catch (error) {
+        console.warn('Error stopping previous playback:', error);
+      }
+    }
+
     if (!recorderRef.current) {
       recorderRef.current = new AudioRecorder();
     }
@@ -62,6 +70,7 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
     try {
       await recorderRef.current.startRecording();
       audioActions.setRecording(true);
+      audioActions.setPlaying(false);
       audioActions.setRecordedAudio(null);
       
       // Announce to screen readers
@@ -97,26 +106,74 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
   };
 
   const playRecording = async () => {
-    if (!recording.recordedAudio) return;
-
-    if (!audioContextRef.current) {
-      audioContextRef.current = new AudioContext();
+    if (!recording.recordedAudio) {
+      console.log('No audio to play');
+      return;
     }
 
-    const source = audioContextRef.current.createBufferSource();
-    source.buffer = recording.recordedAudio;
-    source.connect(audioContextRef.current.destination);
-    
-    source.onended = () => {
-      audioActions.setPlaying(false);
-      announce('Playback finished');
-    };
+    // Stop any current playback first
+    if (currentAudioSource.current) {
+      try {
+        currentAudioSource.current.stop();
+        currentAudioSource.current = null;
+      } catch (error) {
+        console.warn('Error stopping previous playback:', error);
+      }
+    }
 
-    source.start();
-    audioActions.setPlaying(true);
-    
-    // Announce to screen readers
-    announce('Playing recording');
+    try {
+      // Create a new AudioContext for each playback to avoid conflicts
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Resume audio context if needed
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+
+      // Create a gain node for volume control
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = 0.8; // Set volume to 80%
+      
+      // Create source and connect
+      const source = audioContext.createBufferSource();
+      source.buffer = recording.recordedAudio;
+      source.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Store reference for cleanup
+      currentAudioSource.current = source;
+      
+      // Set up event handlers
+      source.onended = () => {
+        audioActions.setPlaying(false);
+        currentAudioSource.current = null;
+        audioContext.close();
+        announce('Playback finished');
+      };
+
+      source.onerror = (error) => {
+        console.error('Audio playback error:', error);
+        audioActions.setPlaying(false);
+        currentAudioSource.current = null;
+        audioContext.close();
+        announce('Playback error');
+      };
+
+      // Start playback
+      source.start();
+      audioActions.setPlaying(true);
+      
+      console.log('Audio playback started successfully');
+      
+      // Announce to screen readers
+      announce('Playing recording');
+      
+    } catch (error) {
+      console.error('Failed to play recording:', error);
+      audioActions.setPlaying(false);
+      announce('Failed to play recording');
+      alert('Failed to play recording. Please check your audio settings.');
+    }
   };
 
   const handleTrim = async () => {
@@ -154,7 +211,7 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
     if (recording.recordedAudio && !recording.isRecording) {
       audioActions.setTrimEnd(recording.recordedAudio.duration);
     }
-  }, [recording.recordedAudio?.duration, recording.isRecording]); // Use specific property and remove audioActions
+  }, [recording.recordedAudio?.duration, recording.isRecording]);
 
   // Add swipe gesture support for mobile
   const waveformRef = useRef<HTMLDivElement>(null);
@@ -178,7 +235,7 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
       
       return cleanup;
     }
-  }, [recording.isRecording, recording.recordedAudio?.duration, recording.isPlaying]); // Use specific property
+  }, [recording.isRecording, recording.recordedAudio?.duration, recording.isPlaying]);
 
   // Register keyboard shortcuts
   useEffect(() => {
@@ -210,7 +267,7 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
       unregisterShortcut('r');
       unregisterShortcut('p');
     };
-  }, [recording.isRecording, recording.recordedAudio?.duration]); // Use specific property and remove functions
+  }, [recording.isRecording, recording.recordedAudio?.duration]);
 
   return (
     <div className="space-y-4" data-tour="recorder" id="record" role="region" aria-labelledby="recorder-heading">

@@ -32,8 +32,8 @@
     "openai": "^6.8.1",
     "pitchfinder": "^2.3.2",
     "pixi.js": "^8.14.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "realtime-bpm-analyzer": "^4.0.2",
     "tailwind-merge": "^3.4.0",
     "tonal": "^6.4.2",
@@ -48,8 +48,8 @@
     "@types/gsap": "^1.20.2",
     "@types/jest": "^29.5.12",
     "@types/node": "^22.0.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
     "@types/sinon": "^17.0.3",
     "autoprefixer": "^10.4.0",
     "cypress": "^13.7.2",
@@ -65,6 +65,6 @@
     "tailwindcss": "^4.1.17",
     "ts-jest": "^29.1.2",
     "typescript": "^5.9.3",
-    "web-audio-mock-api": "^1.1.0"
+    "web-audio-mock-api": "^1.0.0"
   }
 }

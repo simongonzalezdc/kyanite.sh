@@ -2,19 +2,17 @@ import * as PIXI from 'pixi.js';
 import { gsap } from 'gsap';
 import { PitchPoint } from '../types';
 import { VisualizerConfig } from '../types/pixi';
-import { MusicParticleSystem } from './particle-system';
 
 export class MusicVisualizer {
-  private app: PIXI.Application;
-  private container!: PIXI.Container;
-  private noteLayer!: PIXI.Container;
-  private gridLayer!: PIXI.Container;
-  private particleLayer!: PIXI.Container;
-  private particleSystem!: MusicParticleSystem;
+  private app: PIXI.Application | null = null;
+  private container: PIXI.Container | null = null;
+  private noteLayer: PIXI.Container | null = null;
+  private gridLayer: PIXI.Container | null = null;
   private config: VisualizerConfig;
   private currentTime: number = 0;
   private notes: Map<string, PIXI.Graphics> = new Map();
   private initPromise: Promise<void>;
+  private isInitialized: boolean = false;
 
   constructor(config: Partial<VisualizerConfig> = {}) {
     this.config = {
@@ -27,41 +25,63 @@ export class MusicVisualizer {
       maxMidi: config.maxMidi || 84  // C6
     };
 
-    // Create Pixi application (v8 API - init separately)
-    this.app = new PIXI.Application();
-    this.initPromise = this.app.init({
-      width: this.config.width,
-      height: this.config.height,
-      backgroundColor: this.config.backgroundColor,
-      antialias: true,
-      resolution: window.devicePixelRatio || 1,
-      autoDensity: true
-    }).then(() => {
-      // Create layers after init
+    // Initialize the application properly
+    this.initPromise = this.initializeApp();
+  }
+
+  /**
+   * Initialize the Pixi Application
+   */
+  private async initializeApp(): Promise<void> {
+    try {
+      // Create the application with v7-compatible API
+      this.app = new PIXI.Application();
+      
+      // Initialize the application with fallback options
+      const initOptions = {
+        width: this.config.width,
+        height: this.config.height,
+        backgroundColor: this.config.backgroundColor,
+        antialias: true,
+        resolution: window.devicePixelRatio || 1,
+        autoDensity: true
+      };
+
+      // Try to initialize, with fallback to simpler options
+      try {
+        await this.app.init(initOptions);
+      } catch (initError) {
+        console.warn('PixiJS v8 init failed, trying v7 fallback:', initError);
+        // Fallback: try to create with v7 style
+        this.app = new PIXI.Application(initOptions as any);
+        await new Promise((resolve, reject) => {
+          this.app!.ticker.addOnce(() => resolve(void 0));
+          setTimeout(() => resolve(void 0), 100); // Fallback timeout
+        });
+      }
+
+      // Create layers after initialization
       this.container = new PIXI.Container();
       this.gridLayer = new PIXI.Container();
       this.noteLayer = new PIXI.Container();
-      this.particleLayer = new PIXI.Container();
 
       this.container.addChild(this.gridLayer);
       this.container.addChild(this.noteLayer);
-      this.container.addChild(this.particleLayer);
-      this.app.stage.addChild(this.container);
-
-      // Initialize particle system
-      this.particleSystem = new MusicParticleSystem(this.particleLayer, 2000);
       
-      // Start update loop - ticker should be available after init
-      if (this.app.ticker) {
-        this.app.ticker.add(() => {
-          const deltaTime = this.app.ticker?.deltaMS ? this.app.ticker.deltaMS / 1000 : 0.016; // Default to ~60fps
-          this.particleSystem.update(deltaTime);
-        });
+      // Safe stage access with null checks
+      if (this.app && (this.app.stage || (this.app as any).view)) {
+        this.app.stage.addChild(this.container);
       }
 
       // Draw background grid
       this.drawGrid();
-    });
+      
+      this.isInitialized = true;
+      console.log('MusicVisualizer initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize MusicVisualizer:', error);
+      throw error;
+    }
   }
 
   /**
@@ -76,21 +96,33 @@ export class MusicVisualizer {
    * Note: Wait for init to complete before calling this
    */
   getCanvas(): HTMLCanvasElement {
-    // Use app.canvas instead of app.view in v8
-    const canvas = (this.app.canvas || this.app.view) as HTMLCanvasElement;
+    if (!this.app) {
+      throw new Error('Application not initialized. Call waitForInit() first.');
+    }
+    
+    // Use the appropriate canvas access method
+    const canvas = (this.app as any).canvas || (this.app as any).view || (this.app as any).renderer?.view;
+    
     if (!canvas) {
       throw new Error('Canvas not available. Wait for initialization to complete.');
     }
+    
     // Ensure canvas doesn't block other elements
     canvas.style.position = 'relative';
     canvas.style.zIndex = '1';
-    return canvas;
+    canvas.style.display = 'block';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    
+    return canvas as HTMLCanvasElement;
   }
 
   /**
    * Draw piano roll grid lines
    */
   private drawGrid(): void {
+    if (!this.gridLayer) return;
+    
     const graphics = new PIXI.Graphics();
     
     // Horizontal lines (one per octave)
@@ -100,7 +132,8 @@ export class MusicVisualizer {
     for (let i = 0; i <= octaves; i++) {
       const y = this.midiToY(this.config.minMidi + (i * 12));
       
-      graphics.setStrokeStyle({ width: 1, color: 0x333333, alpha: 0.5 });
+      // Use v7 API format for lineStyle
+      graphics.lineStyle(1, 0x333333, 0.5);
       graphics.moveTo(0, y);
       graphics.lineTo(this.config.width, y);
     }
@@ -110,7 +143,7 @@ export class MusicVisualizer {
     for (let i = 0; i <= beatsToShow; i++) {
       const x = i * this.config.pixelsPerSecond;
       
-      graphics.setStrokeStyle({ width: 1, color: 0x222222, alpha: 0.3 });
+      graphics.lineStyle(1, 0x222222, 0.3);
       graphics.moveTo(x, 0);
       graphics.lineTo(x, this.config.height);
     }
@@ -178,80 +211,58 @@ export class MusicVisualizer {
    * Add a note to the visualization
    */
   addNote(pitch: PitchPoint, isRealtime: boolean = true): void {
-    const noteGraphics = new PIXI.Graphics();
-    const color = this.getColorForMidi(pitch.midi);
-    const y = this.midiToY(pitch.midi);
-    const x = this.timeToX(pitch.time);
-
-    // Draw note rectangle
-    noteGraphics.beginFill(color, 0.8);
-    noteGraphics.drawRoundedRect(
-      x,
-      y - this.config.noteHeight / 2,
-      5, // width (will grow as note sustains)
-      this.config.noteHeight,
-      2 // corner radius
-    );
-    noteGraphics.endFill();
-
-    // Add glow effect
-    noteGraphics.filters = [new PIXI.BlurFilter({ strength: 2, quality: 4 })];
-
-    this.noteLayer.addChild(noteGraphics);
-
-    // Store reference
-    const noteId = `${pitch.time}-${pitch.midi}`;
-    this.notes.set(noteId, noteGraphics);
-
-    if (isRealtime) {
-      // Fade in animation
-      noteGraphics.alpha = 0;
-      gsap.to(noteGraphics, {
-        alpha: 1,
-        duration: 0.1
-      });
-      
-      // Create particle burst at note position
-      this.particleSystem.createBurst(x, y, {
-        color,
-        size: 3,
-        lifetime: 1
-      });
+    if (!this.isInitialized || !this.noteLayer) {
+      console.warn('Visualizer not initialized yet, skipping note add');
+      return;
     }
-  }
-  
-  /**
-   * Create beat explosion
-   */
-  addBeatEffect(time: number, intensity: number = 1): void {
-    const x = this.timeToX(time);
-    const y = this.config.height / 2;
-    
-    this.particleSystem.createExplosion(x, y, 0x3B82F6, intensity * 50);
-  }
 
-  /**
-   * Update note duration (as user continues singing same note)
-   */
-  updateNoteDuration(noteId: string, endTime: number): void {
-    const note = this.notes.get(noteId);
-    if (!note) return;
+    try {
+      const noteGraphics = new PIXI.Graphics();
+      const color = this.getColorForMidi(pitch.midi);
+      const y = this.midiToY(pitch.midi);
+      const x = this.timeToX(pitch.time);
 
-    const duration = endTime - this.currentTime;
-    const width = duration * this.config.pixelsPerSecond;
-    
-    // Redraw with new width
-    note.clear();
-    const color = note.tint || 0x3B82F6;
-    note.beginFill(color, 0.8);
-    note.drawRoundedRect(0, 0, width, this.config.noteHeight, 2);
-    note.endFill();
+      // Draw note rectangle using v7 API
+      noteGraphics.beginFill(color, 0.8);
+      noteGraphics.drawRoundedRect(
+        x,
+        y - this.config.noteHeight / 2,
+        5, // width (will grow as note sustains)
+        this.config.noteHeight,
+        2 // corner radius
+      );
+      noteGraphics.endFill();
+
+      this.noteLayer.addChild(noteGraphics);
+
+      // Store reference
+      const noteId = `${pitch.time}-${pitch.midi}`;
+      this.notes.set(noteId, noteGraphics);
+
+      if (isRealtime) {
+        // Fade in animation
+        noteGraphics.alpha = 0;
+        try {
+          gsap.to(noteGraphics, {
+            alpha: 1,
+            duration: 0.1
+          });
+        } catch (error) {
+          // Ignore animation errors
+          noteGraphics.alpha = 1;
+        }
+      }
+    } catch (error) {
+      console.warn('Error adding note:', error);
+    }
   }
 
   /**
    * Scroll the view (for real-time recording)
    */
   scroll(deltaTime: number): void {
+    if (!this.isInitialized || !this.container) return;
+    
     this.currentTime += deltaTime;
     this.container.x -= deltaTime * this.config.pixelsPerSecond;
 
@@ -259,7 +270,11 @@ export class MusicVisualizer {
     const minX = -this.container.x - 100;
     this.notes.forEach((note, id) => {
       if (note.x < minX) {
-        note.destroy();
+        try {
+          note.destroy();
+        } catch (error) {
+          // Ignore destroy errors
+        }
         this.notes.delete(id);
       }
     });
@@ -269,11 +284,25 @@ export class MusicVisualizer {
    * Clear all notes
    */
   clear(): void {
-    this.notes.forEach(note => note.destroy());
+    if (!this.isInitialized) return;
+    
+    this.notes.forEach(note => {
+      try {
+        note.destroy();
+      } catch (error) {
+        // Ignore destroy errors
+      }
+    });
     this.notes.clear();
+    
     if (this.noteLayer) {
-      this.noteLayer.removeChildren();
+      try {
+        this.noteLayer.removeChildren();
+      } catch (error) {
+        // Ignore removal errors
+      }
     }
+    
     this.currentTime = 0;
     if (this.container) {
       this.container.x = 0;
@@ -284,40 +313,34 @@ export class MusicVisualizer {
    * Load and display pre-recorded notes
    */
   loadNotes(pitches: PitchPoint[]): void {
+    if (!this.isInitialized) return;
+    
     this.clear();
     pitches.forEach(pitch => this.addNote(pitch, false));
-  }
-
-  /**
-   * Animate playback cursor
-   */
-  playback(startTime: number, duration: number): void {
-    const cursor = new PIXI.Graphics();
-    cursor.setStrokeStyle({ width: 2, color: 0x3B82F6, alpha: 1 });
-    cursor.moveTo(0, 0);
-    cursor.lineTo(0, this.config.height);
-    
-    this.container.addChild(cursor);
-
-    gsap.to(cursor, {
-      x: duration * this.config.pixelsPerSecond,
-      duration: duration,
-      ease: 'none',
-      onComplete: () => cursor.destroy()
-    });
   }
 
   /**
    * Resize canvas
    */
   resize(width: number, height: number): void {
+    if (!this.app || !this.isInitialized) return;
+    
     this.config.width = width;
     this.config.height = height;
-    this.app.renderer.resize(width, height);
+    
+    try {
+      this.app.renderer.resize(width, height);
+    } catch (error) {
+      console.warn('Error resizing renderer:', error);
+    }
     
     // Redraw grid
     if (this.gridLayer) {
-      this.gridLayer.removeChildren();
+      try {
+        this.gridLayer.removeChildren();
+      } catch (error) {
+        console.warn('Error clearing grid layer:', error);
+      }
     }
     this.drawGrid();
   }
@@ -326,13 +349,25 @@ export class MusicVisualizer {
    * Cleanup
    */
   destroy(): void {
-    if (this.particleSystem) {
-      this.particleSystem.destroy();
-    }
-    this.clear();
-    if (this.app) {
-      this.app.destroy(true, { children: true, texture: true });
+    try {
+      this.clear();
+      
+      if (this.app) {
+        // Safe destruction with null checks
+        try {
+          this.app.destroy(true, { children: true, texture: true });
+        } catch (error) {
+          console.warn('Error during app destruction:', error);
+        }
+      }
+      
+      this.isInitialized = false;
+      this.app = null;
+      this.container = null;
+      this.noteLayer = null;
+      this.gridLayer = null;
+    } catch (error) {
+      console.warn('Error during visualizer cleanup:', error);
     }
   }
 }
-

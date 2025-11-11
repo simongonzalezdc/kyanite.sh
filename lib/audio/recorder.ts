@@ -33,6 +33,11 @@ export class AudioRecorder {
   }
 
   async startRecording(): Promise<void> {
+    // Ensure AudioContext is resumed (required in browsers)
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
+
     this.stream = await navigator.mediaDevices.getUserMedia({
       audio: {
         sampleRate: 44100,
@@ -71,6 +76,11 @@ export class AudioRecorder {
 
       this.mediaRecorder.onstop = async () => {
         try {
+          // Ensure AudioContext is resumed for decoding
+          if (this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
+          }
+
           // Create blob from chunks
           const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
           
@@ -117,4 +127,3 @@ export class AudioRecorder {
     this.audioContext.close();
   }
 }
-

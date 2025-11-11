@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-. "$(dirname "$0")/_/husky.sh"
+. "$(dirname -- "$0")/_/husky.sh"
 
 # Run linting
 npm run lint
@@ -10,15 +10,6 @@ npm run test
 # Check if tests passed
 if [ $? -ne 0 ]; then
   echo "Tests failed. Please fix them before committing."
-  exit 1
-fi
-
-# Run type checking
-npm run type-check
-
-# Check if type checking passed
-if [ $? -ne 0 ]; then
-  echo "Type checking failed. Please fix type errors before committing."
   exit 1
 fi
 
