@@ -63,7 +63,7 @@ Plain text export provides a clean, format-free version of your lyrics with mini
 - Printing lyrics without chord clutter
 - Compatibility with legacy systems
 
-**Keyboard Shortcut:** `Ctrl+Shift+T`
+**Keyboard Shortcut:** `Ctrl+Shift+T` (Note: This conflicts with theme switching. Use the export menu `Ctrl+E` instead.)
 
 **Example Output:**
 ```

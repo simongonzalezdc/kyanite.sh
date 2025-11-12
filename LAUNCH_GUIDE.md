@@ -76,6 +76,7 @@ powershell -ExecutionPolicy Bypass -File .\launch_noise.ps1 --debug
 ## Kyanite Theme System Testing
 
 ### Available Themes (10 Total)
+**Note:** The README mentions "twelve curated themes" but the current implementation includes 10 themes. This documentation reflects the actual implementation.
 1. **Monochrome** - Classic black and white
 2. **Amber Night** - Warm amber tones (default)
 3. **Twilight Mist** - Soft purple gradients

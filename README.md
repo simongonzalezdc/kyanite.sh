@@ -21,23 +21,25 @@ For the strategic roadmap and long-term milestones, see [`docs/roadmap.md`](docs
 # Launch scratch mode with instant brainstorming
 noise.exe quick "lost my dog"
 
-# Start pattern live coding
-noise live
+# Start with default interface
+noise.exe
 
-# Export current draft to Markdown + JSON bundle
-noise export draft --output drafts/lost-my-dog.md
+# Open a specific song file
+noise.exe song.md
 ```
 
 ### Editor shortcuts
 | Action | Keys |
 | --- | --- |
-| AI unstick / next line | `Ctrl+G` |
-| Spark ideas | `Ctrl+R` |
-| Tweak selected line | `Ctrl+V` |
+| AI unstick / next line | `Alt+G` |
+| Spark ideas | `Alt+R` |
+| Tweak selected line | `Alt+V` |
+| AI check | `Alt+C` |
 | Quick chord picker | `Ctrl+F` |
-| BPM tapper | `Ctrl+T` |
+| BPM tapper | `Ctrl+Shift+B` |
 | Theme switcher | `Ctrl+Shift+T` |
-| Keep scratch draft | `Ctrl+K` |
+| Export menu | `Ctrl+E` |
+| Save | `Ctrl+S` |
 
 ## Installation
 Clone the repository and build the single binary:

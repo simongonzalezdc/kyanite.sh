@@ -6,7 +6,7 @@ When features, documents, or configuration flags no longer align with the rapid-
 ## 2. Recently Deprecated Features
 - **LyricForge branding assets** → Use the new “noise.sh — rapid-capture songwriting studio” messaging in [`README.md`](../README.md).
 - **Legacy four-agent AI pipeline** → Replaced by QuickIdeaAgent (see [`docs/context_aware_ai_guide.md`](./context_aware_ai_guide.md)).
-- **Legacy CLI flows (`lyricforge …`)** → Use `noise`, `noise quick`, `noise live`, and `noise export` commands documented in README.
+- **Legacy CLI flows (`lyricforge …`)** → Use `noise` and `noise quick [theme]` commands documented in README. Export is accessed via UI (`Ctrl+E`).
 - **Old export path assumptions (pre JSON + theme-ready exports)** → Use the Enhancement 6 export pipeline in [`docs/export_formats.md`](./export_formats.md).
 
 ## 3. Legacy AI Agent System
@@ -34,9 +34,9 @@ Remove or avoid:
 | Deprecated Command | Replacement | Notes |
 | --- | --- | --- |
 | `lyricforge quick [theme]` | `noise quick [theme]` | Launches scratch mode with auto-brainstorm. |
-| `lyricforge live` | `noise live` | Enter pattern coding mode. |
-| `lyricforge export …` | `noise export pattern/draft …` | Emits JSON + Markdown with current schema. |
-| `lyricforge brainstorm` | `noise` + QuickIdeaAgent shortcuts | Use `Ctrl+G/R/V` triggers in editor. |
+| `lyricforge live` | Not implemented | Pattern coding mode is planned but not yet available. |
+| `lyricforge export …` | `Ctrl+E` in UI | Export menu provides Markdown, Plain Text, ChordPro, JSON, HTML, and PDF formats. |
+| `lyricforge brainstorm` | `noise` + QuickIdeaAgent shortcuts | Use `Alt+G/R/V/C` triggers in editor. |
 
 ## 10. Migration Checklist
 - [ ] Update shell aliases and scripts to call `noise` binaries.

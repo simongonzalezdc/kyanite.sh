@@ -267,7 +267,7 @@ func (m *SplitPaneModel) View() string {
 	switch editorMode {
 	case ModeSketch:
 		// Sketch mode: Editor + AI panel
-		brainstormContent := "AI Assistant\n\nCtrl+G: Continue\nCtrl+V: Variations\n\nTheme brainstorming will appear here..."
+		brainstormContent := "AI Assistant\n\nAlt+G: Unstick\nAlt+R: Spark\nAlt+V: Tweak\nAlt+C: Check\n\nTheme brainstorming will appear here..."
 		return m.sketchLayout.Render(editorContent, brainstormContent)
 
 	case ModeDraft:

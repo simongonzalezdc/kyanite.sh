@@ -8,7 +8,7 @@ noise.sh is delivered as a modular monolith that follows the Elm-inspired Modelâ
 | --- | --- | --- |
 | Language | Go 1.21+ | Single static binary per platform. |
 | TUI | Bubble Tea, Lip Gloss, Bubbles, Glamour, Harmonica | Bubble Tea implements the Elm pattern; Lip Gloss provides deterministic styling; Glamour renders previews; Harmonica supplies animations. |
-| CLI | Cobra, Viper | Cobra powers command structure (e.g. `noise live`, `noise quick`); Viper manages configuration. |
+| CLI | Custom parser | Simple argument parsing handles commands (`noise quick [theme]`, file opening); Viper is available for configuration but not currently used for CLI parsing. |
 | Persistence | SQLite (modernc.org/sqlite), local Markdown + YAML | Domain data is stored in Markdown with YAML frontmatter; SQLite tracks metadata, versions, knowledge base, and project stats; schema defined in [`internal/infra/db/schema.go`](../internal/infra/db/schema.go). |
 | AI | Ollama + Go client | QuickIdeaAgent uses Ollama models with cached prompts and 2s timeouts. |
 | Export | Custom JSON + Markdown formatters | Export services stream Markdown/JSON to disk and wave.sh. |
@@ -73,7 +73,7 @@ Export services turn captured ideas into shareable artifacts per [`docs/export_f
 - Markdown export preserves sections, chords, metadata headers.
 - Plain text strips formatting for raw lyric sharing.
 - ChordPro (and JSON pattern exports) keep tempo, chord progressions, and metadata aligned for wave.sh ingestion.
-- CLI commands (`noise export pattern`, `noise export draft`) call handlers in `internal/export/`, which use domain structs to serialize content.
+- Export functionality is accessed via the UI (`Ctrl+E` to open export menu) and uses handlers in `internal/export/`, which use domain structs to serialize content. Export formats include Markdown, Plain Text, ChordPro, JSON, HTML, and PDF.
 
 ## 10. Performance & Observability
 Targets sourced from [`PROJECT_SNAPSHOT.md`](../PROJECT_SNAPSHOT.md) and the enhancement plan:

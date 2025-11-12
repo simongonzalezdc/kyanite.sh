@@ -82,7 +82,10 @@ The system works automatically in the background:
 
 ### AI Shortcuts
 Use the following shortcuts with context-aware AI:
-- `Ctrl+G`: Continue writing (context-aware suggestions)
+- `Alt+G`: Unstick/Continue writing (context-aware suggestions)
+- `Alt+R`: Spark ideas (generate new content)
+- `Alt+V`: Tweak selected line (variations)
+- `Alt+C`: Check quality (feedback and suggestions)
 - `Ctrl+1`: Generate ideas (context-aware starting points)
 - `Ctrl+2`: Refine content (context-aware variations)
 - `Ctrl+3`: Quality check (context-aware feedback)
