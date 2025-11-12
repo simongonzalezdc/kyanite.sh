@@ -54,7 +54,7 @@ The QuickIdeaAgent consolidates unstick, spark, tweak, and check flows into a si
 ## 7. Theme & Styling
 [`docs/design_system_reference.md`](./design_system_reference.md) defines the core palette, Lip Gloss styles, animation patterns, and component guidance:
 
-- 12 named themes registered in `internal/theme/` with runtime switching (`Ctrl+Shift+T`).
+- 10 named themes registered in `internal/theme/` with runtime switching (`Ctrl+Shift+T`).
 - Custom theme loader reads TOML presets from `~/.config/noise/themes/`.
 - Theme manager enforces WCAG contrast; `internal/theme/validator.go` provides checks.
 - Status bars, modals, and editor panes all rehydrate theme tokens to keep CLI and documentation visuals aligned.

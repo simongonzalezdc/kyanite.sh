@@ -1,20 +1,20 @@
-# noise.sh â€” rapid-capture songwriting studio
+# noise.sh — rapid-capture songwriting studio
 
 ## Overview
 noise.sh is a local-first, AI-assisted TUI that turns inspiration into captured lyrics in under a minute. The terminal interface combines embedded songwriting pedagogy, deterministic AI prompts, and a modular monolith architecture so contributors and artists can create, iterate, and export without ever leaving their machine or leaking creative work.
 
-- âš¡ **Instant idea-to-lyrics workflow** â€“ launch straight into scratch mode with live autosave.
-- ðŸ§  **Right-sized AI** â€“ the QuickIdeaAgent delivers unstick, spark, tweak, and check flows in <2 seconds while respecting context.
-- ðŸŽ¨ **Theme + export pipeline** â€“ twelve curated themes, custom theme loading, and JSON/Markdown exports ready for downstream tooling.
-- ðŸ”’ **Local-only privacy** â€“ all processing happens on-device; Ollama models are optional and configurable.
+- **Instant idea-to-lyrics workflow** — launch straight into scratch mode with live autosave.
+- **Right-sized AI** — the QuickIdeaAgent delivers unstick, spark, tweak, and check flows in <2 seconds while respecting context.
+- **Theme + export pipeline** — ten curated themes, custom theme loading, and JSON/Markdown exports ready for downstream tooling.
+- **Local-only privacy** — all processing happens on-device; Ollama models are optional and configurable.
 
 For the strategic roadmap and long-term milestones, see [`docs/roadmap.md`](docs/roadmap.md).
 
 ## Key Features
-1. **Instant capture** â€“ Split-pane editor, live mode pattern parser, BPM tapper, and chord picker shipped in Enhancement 6 Weeks 1-2.
-2. **Smart suggestions** â€“ QuickIdeaAgent modes (unstick, spark, tweak, check) replace the legacy multi-agent stack with faster, context-aware responses.
-3. **Theme-ready exports** â€“ Markdown + JSON export services deliver wave.sh-compatible payloads and theme-preserving drafts.
-4. **Low-latency AI** â€“ Cached prompts, 3B local models, and 2s timeouts keep writing momentum intact.
+1. **Instant capture** — Split-pane editor, live mode pattern parser, BPM tapper, and chord picker shipped in Enhancement 6 Weeks 1-2.
+2. **Smart suggestions** — QuickIdeaAgent modes (unstick, spark, tweak, check) replace the legacy multi-agent stack with faster, context-aware responses.
+3. **Theme-ready exports** — Markdown + JSON export services deliver wave.sh-compatible payloads and theme-preserving drafts.
+4. **Low-latency AI** — Cached prompts, 3B local models, and 2s timeouts keep writing momentum intact.
 
 ## Quickstart (15 seconds)
 ```bash
@@ -56,15 +56,15 @@ go build -o noise.exe ./cmd/noise
 - SQLite bundled via `modernc.org/sqlite`
 
 ## Workflow essentials
-1. **Capture** â€“ `noise.exe` or `noise.exe quick` drops you into the split-pane editor with autosave.
-2. **Shape** â€“ Use QuickIdeaAgent shortcuts, chord picker, BPM tapper, and theme manager to iterate rapidly.
-3. **Export** â€“ `noise export pattern` or `noise export draft` generates JSON + Markdown ready for wave.sh or sharing.
-4. **Extend** â€“ Plugins live under `internal/plugins/`; see [`internal/plugins/README.md`](internal/plugins/README.md) for capabilities.
+1. **Capture** — `noise.exe` or `noise.exe quick` drops you into the split-pane editor with autosave.
+2. **Shape** — Use QuickIdeaAgent shortcuts (`Alt+G`, `Alt+R`, `Alt+V`, `Alt+C`), chord picker (`Ctrl+F`), BPM tapper (`Ctrl+Shift+B`), and theme manager (`Ctrl+Shift+T`) to iterate rapidly.
+3. **Export** — Press `Ctrl+E` to open the export menu, then select your format (Markdown, Plain Text, ChordPro, JSON, HTML, or PDF).
+4. **Extend** — Plugins live under `internal/plugins/`; see [`internal/plugins/README.md`](internal/plugins/README.md) for capabilities.
 
 ## Roadmap snapshot
-- ðŸ“ **Week 4 (current):** Documentation unification, README refresh, archival cleanup.
-- ðŸ§­ **Mid-term:** Theme accessibility QA, QuickIdeaAgent observability, end-to-end workflow stitching.
-- ðŸš€ **Long-term:** Mobile companion capture app, i18n expansion, plugin ecosystem growth.
+- **Week 4 (current):** Documentation unification, README refresh, archival cleanup.
+- **Mid-term:** Theme accessibility QA, QuickIdeaAgent observability, end-to-end workflow stitching.
+- **Long-term:** Mobile companion capture app, i18n expansion, plugin ecosystem growth.
 
 Details and cross-team dependencies are tracked in [`docs/roadmap.md`](docs/roadmap.md) and [`docs/Enhancements/enhancement_06_complete (2).md`](docs/Enhancements/enhancement_06_complete%20(2).md).
 
@@ -85,4 +85,4 @@ noise.sh is local-first by design:
 - Documentation index: [`docs/`](docs/)
 - Archived legacy material: [`docs/archive/`](docs/archive/)
 
-noise.sh keeps creativity private, fast, and repeatableâ€”capture on the spot, ship when ready.
+noise.sh keeps creativity private, fast, and repeatable—capture on the spot, ship when ready.
