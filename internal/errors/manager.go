@@ -165,6 +165,17 @@ func (em *ErrorManager) AddReporter(reporter ErrorReporter) {
 func (em *ErrorManager) HandleError(ctx context.Context, err error) *ErrorReport {
 	appErr := em.wrapError(err)
 
+	// If error is nil, return a report with nil error
+	if appErr == nil {
+		return &ErrorReport{
+			Error:     nil,
+			Handled:   true,
+			Recovered: false,
+			Context:   make(map[string]string),
+			Timestamp: time.Now(),
+		}
+	}
+
 	// Update error statistics
 	em.updateErrorStats(appErr.Category)
 
@@ -197,7 +208,7 @@ func (em *ErrorManager) HandleError(ctx context.Context, err error) *ErrorReport
 func (em *ErrorManager) HandleErrorWithRecovery(ctx context.Context, err error, recoveryFunc RecoveryFunc) *ErrorReport {
 	report := em.HandleError(ctx, err)
 
-	if recoveryFunc != nil && report.Error.CanRecover(report.Error.Recovery) {
+	if recoveryFunc != nil && report.Error != nil && report.Error.CanRecover(report.Error.Recovery) {
 		recovery := em.attemptRecovery(ctx, report.Error, recoveryFunc)
 		report.Recovery = recovery
 		report.Recovered = recovery.Success
@@ -444,20 +455,22 @@ func (em *ErrorManager) GetErrorStats() map[string]interface{} {
 			recentCount++
 		}
 
-		// Count by severity
-		switch report.Error.Severity {
-		case SeverityCritical:
-			severityCounts["critical"]++
-			stats["critical_errors"] = stats["critical_errors"].(int) + 1
-		case SeverityHigh:
-			severityCounts["high"]++
-			stats["high_errors"] = stats["high_errors"].(int) + 1
-		case SeverityMedium:
-			severityCounts["medium"]++
-			stats["medium_errors"] = stats["medium_errors"].(int) + 1
-		case SeverityLow:
-			severityCounts["low"]++
-			stats["low_errors"] = stats["low_errors"].(int) + 1
+		// Count by severity (skip if error is nil)
+		if report.Error != nil {
+			switch report.Error.Severity {
+			case SeverityCritical:
+				severityCounts["critical"]++
+				stats["critical_errors"] = stats["critical_errors"].(int) + 1
+			case SeverityHigh:
+				severityCounts["high"]++
+				stats["high_errors"] = stats["high_errors"].(int) + 1
+			case SeverityMedium:
+				severityCounts["medium"]++
+				stats["medium_errors"] = stats["medium_errors"].(int) + 1
+			case SeverityLow:
+				severityCounts["low"]++
+				stats["low_errors"] = stats["low_errors"].(int) + 1
+			}
 		}
 	}
 

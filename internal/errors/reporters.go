@@ -102,6 +102,11 @@ func NewConsoleErrorReporter(writer io.Writer, logger *logging.Logger) *ConsoleE
 
 // Report writes an error report to the console
 func (r *ConsoleErrorReporter) Report(ctx context.Context, report *ErrorReport) error {
+	// Skip if error is nil
+	if report.Error == nil {
+		return nil
+	}
+
 	// Only report high severity errors to console to avoid spam
 	if report.Error.Severity == SeverityLow {
 		return nil
@@ -166,6 +171,11 @@ func NewExternalErrorReporter(endpoint, apiKey string, logger *logging.Logger) *
 
 // Report sends an error report to an external service
 func (r *ExternalErrorReporter) Report(ctx context.Context, report *ErrorReport) error {
+	// Skip if error is nil
+	if report.Error == nil {
+		return nil
+	}
+
 	// Only report critical and high severity errors to external services
 	if report.Error.Severity != SeverityCritical && report.Error.Severity != SeverityHigh {
 		return nil

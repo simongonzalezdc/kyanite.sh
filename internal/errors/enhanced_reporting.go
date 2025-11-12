@@ -337,6 +337,11 @@ func NewEnhancedErrorReporter(logger *logging.Logger) *EnhancedErrorReporter {
 
 // Report sends an enhanced error report to all configured reporters
 func (eer *EnhancedErrorReporter) Report(ctx context.Context, report *ErrorReport) error {
+	// Skip if error is nil
+	if report.Error == nil {
+		return nil
+	}
+
 	// Enhance the report
 	enhanced := eer.enhancer.EnhanceReport(report)
 

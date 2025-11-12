@@ -1,3 +1,5 @@
+// +build verify
+
 package main
 
 import (
@@ -6,7 +8,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"time"
 )
 

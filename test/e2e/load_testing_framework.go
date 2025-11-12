@@ -64,6 +64,7 @@ type LoadTester struct {
 }
 
 // NewLoadTester creates a new load tester instance
+// Note: E2ETestSetup is defined in comprehensive_integration_test.go
 func NewLoadTester(t *testing.T, config LoadTestConfig) *LoadTester {
 	setup := NewE2ETestSetup(t)
 	
