@@ -7,7 +7,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/internal/engine"
-	"github.com/kyanite/focus/internal/store"
+	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/calendar"
 	"github.com/kyanite/focus/pkg/config"
 	"github.com/kyanite/focus/pkg/models"
@@ -72,8 +72,8 @@ func init() {
 
 func calendarShowHandler(cmd *cobra.Command, args []string) {
 	// Initialize components
-	storage := store.New(utils.GetStoragePath())
-	taskEngine := engine.New(storage)
+	repo := repository.NewStoreRepository(utils.GetStoragePath())
+	taskEngine := engine.New(repo)
 
 	// Load configuration
 	cfg, err := config.LoadConfig()
@@ -133,8 +133,8 @@ func calendarShowHandler(cmd *cobra.Command, args []string) {
 
 func calendarTodayHandler(cmd *cobra.Command, args []string) {
 	// Initialize components
-	storage := store.New(utils.GetStoragePath())
-	taskEngine := engine.New(storage)
+	repo := repository.NewStoreRepository(utils.GetStoragePath())
+	taskEngine := engine.New(repo)
 
 	// Load configuration
 	cfg, err := config.LoadConfig()
@@ -197,8 +197,8 @@ func calendarAddHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Initialize components
-	storage := store.New(utils.GetStoragePath())
-	taskEngine := engine.New(storage)
+	repo := repository.NewStoreRepository(utils.GetStoragePath())
+	taskEngine := engine.New(repo)
 
 	// Create task with deadline
 	task := struct {
@@ -247,8 +247,8 @@ func calendarAddHandler(cmd *cobra.Command, args []string) {
 
 func calendarListHandler(cmd *cobra.Command, args []string) {
 	// Initialize components
-	storage := store.New(utils.GetStoragePath())
-	taskEngine := engine.New(storage)
+	repo := repository.NewStoreRepository(utils.GetStoragePath())
+	taskEngine := engine.New(repo)
 
 	// Get all tasks
 	tasks, err := taskEngine.ListTasks("all")
@@ -325,8 +325,8 @@ func calendarListHandler(cmd *cobra.Command, args []string) {
 
 func calendarNavigateHandler(cmd *cobra.Command, args []string) {
 	// Initialize components
-	storage := store.New(utils.GetStoragePath())
-	taskEngine := engine.New(storage)
+	repo := repository.NewStoreRepository(utils.GetStoragePath())
+	taskEngine := engine.New(repo)
 
 	// Load configuration
 	cfg, err := config.LoadConfig()

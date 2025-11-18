@@ -9,7 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/internal/ai"
 	"github.com/kyanite/focus/internal/engine"
-	"github.com/kyanite/focus/internal/store"
+	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/pkg/styles"
 	"github.com/kyanite/focus/pkg/utils"
@@ -31,8 +31,8 @@ Example: focus edit abc123`,
 		taskID := args[0]
 
 		// Initialize components
-		store := store.New(utils.GetStoragePath())
-		engine := engine.New(store)
+		repo := repository.NewStoreRepository(utils.GetStoragePath())
+		engine := engine.New(repo)
 
 		// Get the existing task
 		task, err := engine.GetTask(taskID)

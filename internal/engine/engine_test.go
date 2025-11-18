@@ -1,19 +1,20 @@
 package engine
 
 import (
-	"github.com/kyanite/focus/internal/store"
-	"github.com/kyanite/focus/pkg/models"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/kyanite/focus/internal/repository"
+	"github.com/kyanite/focus/pkg/models"
 )
 
 func TestEngine_New(t *testing.T) {
 	tempDir := t.TempDir()
 	testFile := filepath.Join(tempDir, "test.json")
 
-	store := store.New(testFile)
-	engine := New(store)
+	repo := repository.NewStoreRepository(testFile)
+	engine := New(repo)
 
 	if engine == nil {
 		t.Error("New() returned nil engine")
@@ -24,8 +25,8 @@ func TestEngine_AddTask(t *testing.T) {
 	tempDir := t.TempDir()
 	testFile := filepath.Join(tempDir, "test.json")
 
-	store := store.New(testFile)
-	engine := New(store)
+	repo := repository.NewStoreRepository(testFile)
+	engine := New(repo)
 
 	tests := []struct {
 		name    string
@@ -107,8 +108,8 @@ func TestEngine_ListTasks(t *testing.T) {
 	tempDir := t.TempDir()
 	testFile := filepath.Join(tempDir, "test.json")
 
-	store := store.New(testFile)
-	engine := New(store)
+	repo := repository.NewStoreRepository(testFile)
+	engine := New(repo)
 
 	// Add some test tasks
 	task1 := models.ParsedTask{
@@ -175,8 +176,8 @@ func TestEngine_CompleteTask(t *testing.T) {
 	tempDir := t.TempDir()
 	testFile := filepath.Join(tempDir, "test.json")
 
-	store := store.New(testFile)
-	engine := New(store)
+	repo := repository.NewStoreRepository(testFile)
+	engine := New(repo)
 
 	// Add a task first
 	task := models.ParsedTask{
@@ -209,8 +210,8 @@ func TestEngine_DeleteTask(t *testing.T) {
 	tempDir := t.TempDir()
 	testFile := filepath.Join(tempDir, "test.json")
 
-	store := store.New(testFile)
-	engine := New(store)
+	repo := repository.NewStoreRepository(testFile)
+	engine := New(repo)
 
 	// Add a task first
 	task := models.ParsedTask{
@@ -249,8 +250,8 @@ func TestEngine_GetTask(t *testing.T) {
 	tempDir := t.TempDir()
 	testFile := filepath.Join(tempDir, "test.json")
 
-	store := store.New(testFile)
-	engine := New(store)
+	repo := repository.NewStoreRepository(testFile)
+	engine := New(repo)
 
 	// Add a task first
 	task := models.ParsedTask{
@@ -281,8 +282,8 @@ func TestEngine_updateTaskStatus(t *testing.T) {
 	tempDir := t.TempDir()
 	testFile := filepath.Join(tempDir, "test.json")
 
-	store := store.New(testFile)
-	engine := New(store)
+	repo := repository.NewStoreRepository(testFile)
+	engine := New(repo)
 
 	// Add a task first
 	task := models.ParsedTask{

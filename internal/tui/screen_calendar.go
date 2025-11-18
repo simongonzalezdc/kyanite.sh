@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func (m MainModel) renderCalendarView() string {
+func (m *MainModel) renderCalendarView() string {
 	var b strings.Builder
 
 	// CONSISTENT: Standard header styling

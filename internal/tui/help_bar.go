@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func (m MainModel) renderHelpBar() string {
+func (m *MainModel) renderHelpBar() string {
 	// CONSISTENT: Help bar styling
 	helpStyle := lipgloss.NewStyle().
 		Foreground(styles.GetForeground()).

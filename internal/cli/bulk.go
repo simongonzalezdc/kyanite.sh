@@ -6,7 +6,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/internal/engine"
-	"github.com/kyanite/focus/internal/store"
+	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/pkg/styles"
 	"github.com/kyanite/focus/pkg/utils"
@@ -36,8 +36,8 @@ Examples:
   focus bulk complete --category=work`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Initialize components
-		store := store.New(utils.GetStoragePath())
-		engine := engine.New(store)
+		repo := repository.NewStoreRepository(utils.GetStoragePath())
+		engine := engine.New(repo)
 
 		var tasksToComplete []models.Task
 		var err error
@@ -106,8 +106,8 @@ Examples:
   focus bulk delete --category=old`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Initialize components
-		store := store.New(utils.GetStoragePath())
-		engine := engine.New(store)
+		repo := repository.NewStoreRepository(utils.GetStoragePath())
+		engine := engine.New(repo)
 
 		var tasksToDelete []models.Task
 

@@ -8,7 +8,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/internal/engine"
-	"github.com/kyanite/focus/internal/store"
+	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/pkg/utils"
 	"github.com/spf13/cobra"
@@ -24,8 +24,8 @@ var notesCmd = &cobra.Command{
 
 func notesHandler(cmd *cobra.Command, args []string) {
 	// Initialize components
-	storage := store.New(utils.GetStoragePath())
-	taskEngine := engine.New(storage)
+	repo := repository.NewStoreRepository(utils.GetStoragePath())
+	taskEngine := engine.New(repo)
 
 	if len(args) == 0 {
 		// Show all notes browser

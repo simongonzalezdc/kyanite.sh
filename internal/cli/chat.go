@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/kyanite/focus/internal/ai"
 	"github.com/kyanite/focus/internal/engine"
-	"github.com/kyanite/focus/internal/store"
+	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/styles"
 	"github.com/kyanite/focus/pkg/utils"
 	"os"
@@ -26,8 +26,8 @@ var chatCmd = &cobra.Command{
 		fmt.Println("~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~")
 
 		// Initialize components
-		store := store.New(utils.GetStoragePath())
-		engine := engine.New(store)
+		repo := repository.NewStoreRepository(utils.GetStoragePath())
+		engine := engine.New(repo)
 		aiManager := ai.New()
 
 		// Check AI status and show indicator

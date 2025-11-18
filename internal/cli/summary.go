@@ -12,8 +12,8 @@ var summaryCmd = &cobra.Command{
 		fmt.Println("~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~")
 
 		// Initialize components
-		store := store.New(utils.GetStoragePath())
-		engine := engine.New(store)
+		repo := repository.NewStoreRepository(utils.GetStoragePath())
+		engine := engine.New(repo)
 		aiManager := ai.New()
 
 		// Get all tasks

@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 	"github.com/kyanite/focus/internal/engine"
-	"github.com/kyanite/focus/internal/store"
+	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/utils"
 
 	"github.com/spf13/cobra"
@@ -21,8 +21,8 @@ var deleteCmd = &cobra.Command{
 		taskID := args[0]
 
 		// Initialize components
-		store := store.New(utils.GetStoragePath())
-		engine := engine.New(store)
+		repo := repository.NewStoreRepository(utils.GetStoragePath())
+		engine := engine.New(repo)
 
 		// Get task first to show what we're deleting
 		task, err := engine.GetTask(taskID)

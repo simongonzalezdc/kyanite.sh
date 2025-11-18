@@ -9,7 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/internal/engine"
-	"github.com/kyanite/focus/internal/store"
+	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/internal/wizards"
 	"github.com/kyanite/focus/pkg/config"
 	"github.com/kyanite/focus/pkg/models"
@@ -121,8 +121,8 @@ func DefaultUnifiedKeyMap() UnifiedKeyMap {
 }
 
 func NewUnifiedDashboardModel() UnifiedDashboardModel {
-	storage := store.New(utils.GetStoragePath())
-	taskEngine := engine.New(storage)
+	repo := repository.NewStoreRepository(utils.GetStoragePath())
+	taskEngine := engine.New(repo)
 	cfg, _ := config.LoadConfig()
 
 	initial := styles.ThemeSynthwave

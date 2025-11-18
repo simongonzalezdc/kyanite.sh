@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/kyanite/focus/internal/store"
+	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/models"
 )
 
 // Engine handles task management operations with in-memory caching
 type Engine struct {
-	store *store.Store
+	repo repository.Repository
 
 	// In-memory cache for performance
 	cache      []models.Task
@@ -23,9 +23,9 @@ type Engine struct {
 }
 
 // New creates a new engine instance
-func New(store *store.Store) *Engine {
+func New(repo repository.Repository) *Engine {
 	e := &Engine{
-		store:      store,
+		repo:       repo,
 		cacheIndex: make(map[string]int),
 		cacheValid: false,
 	}
@@ -39,7 +39,7 @@ func (e *Engine) loadCache() error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
-	tasks, err := e.store.Load()
+	tasks, err := e.repo.Load()
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func (e *Engine) flushCache() error {
 		return nil // Nothing to save
 	}
 
-	if err := e.store.Save(e.cache); err != nil {
+	if err := e.repo.Save(e.cache); err != nil {
 		return err
 	}
 
