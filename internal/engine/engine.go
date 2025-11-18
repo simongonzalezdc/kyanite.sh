@@ -88,14 +88,18 @@ func (e *Engine) AddTask(parsedTask models.ParsedTask) (models.Task, error) {
 
 	now := time.Now()
 	task := models.Task{
-		ID:          generateID(),
-		Description: parsedTask.Description,
-		Status:      "pending",
-		Priority:    parsedTask.Priority,
-		Deadline:    parsedTask.Deadline,
-		Categories:  parsedTask.Categories,
-		CreatedAt:   now,
-		UpdatedAt:   now,
+		ID:                 generateID(),
+		Description:        parsedTask.Description,
+		Status:             "pending",
+		Priority:           parsedTask.Priority,
+		Deadline:           parsedTask.Deadline,
+		Categories:         parsedTask.Categories,
+		Notes:              parsedTask.Notes,
+		CreatedAt:          now,
+		UpdatedAt:          now,
+		RecurrencePattern:  parsedTask.RecurrencePattern,
+		RecurrenceInterval: parsedTask.RecurrenceInterval,
+		RecurrenceEndDate:  parsedTask.RecurrenceEndDate,
 	}
 
 	// Validate priority
