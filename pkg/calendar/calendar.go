@@ -65,8 +65,8 @@ func (c *Calendar) GetDayDetails(date time.Time) CalendarDay {
 	pending := 0
 
 	for _, task := range c.Tasks {
-		// Check if task is on this date
-		if task.Deadline.After(startOfDay) && task.Deadline.Before(endOfDay) {
+		// Check if task is on this date (inclusive of start, exclusive of end)
+		if !task.Deadline.Before(startOfDay) && task.Deadline.Before(endOfDay) {
 			day.Tasks = append(day.Tasks, task)
 
 			if task.Status == "completed" {

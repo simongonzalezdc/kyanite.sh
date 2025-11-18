@@ -2,9 +2,11 @@ package engine
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/google/uuid"
 	"github.com/kyanite/focus/internal/store"
 	"github.com/kyanite/focus/pkg/models"
-	"time"
 )
 
 // Engine handles task management operations
@@ -184,9 +186,7 @@ func (e *Engine) UpdateTaskStatus(id, status string) error {
 	return fmt.Errorf("task with ID %s not found", id)
 }
 
-// generateID creates a simple ID for tasks
+// generateID creates a unique ID for tasks using UUID
 func generateID() string {
-	// In a real implementation, this would use a proper UUID generator
-	// For now, using a simple timestamp-based approach
-	return time.Now().Format("20060102150405")
+	return uuid.New().String()
 }

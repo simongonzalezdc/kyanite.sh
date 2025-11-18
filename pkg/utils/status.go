@@ -17,6 +17,15 @@ type AIStatus struct {
 
 var openRouterKey = "" // This would be os.Getenv("OPENROUTER_API_KEY") in real use
 
+// Shared HTTP client for status checks
+var httpClient = &http.Client{
+	Timeout: 3 * time.Second,
+	Transport: &http.Transport{
+		MaxIdleConns:    10,
+		IdleConnTimeout: 30 * time.Second,
+	},
+}
+
 // CheckAIStatus checks the availability of AI services
 func CheckAIStatus() AIStatus {
 	status := AIStatus{
@@ -25,11 +34,12 @@ func CheckAIStatus() AIStatus {
 	}
 
 	// Check Ollama availability
-	client := &http.Client{Timeout: 3 * time.Second}
-	resp, err := client.Get("http://localhost:11434/api/tags")
-	if err == nil && resp.StatusCode == 200 {
-		status.OllamaAvailable = true
-		_ = resp.Body.Close()
+	resp, err := httpClient.Get("http://localhost:11434/api/tags")
+	if err == nil {
+		defer resp.Body.Close()
+		if resp.StatusCode == 200 {
+			status.OllamaAvailable = true
+		}
 	}
 
 	return status

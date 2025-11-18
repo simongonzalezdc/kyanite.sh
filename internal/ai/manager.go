@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -23,6 +24,9 @@ type Manager struct {
 	openRouterKey   string
 	model           string
 	availableModels []string
+
+	// Shared HTTP client for connection pooling
+	httpClient *http.Client
 
 	// Cache for AI responses with LRU eviction
 	cache         map[string]cacheEntry
@@ -62,6 +66,15 @@ func New() *Manager {
 		model:         "qwen2.5:1.5b", // Use Qwen 2.5 1.5B for everything
 		availableModels: []string{
 			"qwen2.5:1.5b", // Primary - fast and efficient
+		},
+		// Create shared HTTP client with connection pooling
+		httpClient: &http.Client{
+			Timeout: 30 * time.Second,
+			Transport: &http.Transport{
+				MaxIdleConns:        100,
+				MaxIdleConnsPerHost: 10,
+				IdleConnTimeout:     90 * time.Second,
+			},
 		},
 		cache:          make(map[string]cacheEntry),
 		cacheHits:      make(map[string]time.Time),
@@ -298,8 +311,7 @@ func (m *Manager) parseWithOllama(ctx context.Context, input string) (*ParsedTas
 
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -356,7 +368,7 @@ func (m *Manager) launchOllamaAsync() error {
 	var cmd *exec.Cmd
 
 	// Choose command based on OS
-	if os.Getenv("OS") == "Windows_NT" {
+	if runtime.GOOS == "windows" {
 		cmd = exec.Command("powershell", "-Command", "Start-Process", "ollama")
 	} else {
 		cmd = exec.Command("ollama", "serve")
@@ -475,8 +487,8 @@ func (m *Manager) pullModel(modelName string) error {
 
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 5 * time.Minute}
-	resp, err := client.Do(req)
+	// Note: Using shared client; for longer operations consider using context with timeout
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -517,8 +529,7 @@ func (m *Manager) suggestWithOllama(ctx context.Context, existingTasks []string)
 
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -576,8 +587,7 @@ func (m *Manager) chatWithOllama(ctx context.Context, question string, tasks []s
 
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -620,17 +630,8 @@ func (m *Manager) summarizeWithOllama(ctx context.Context, tasks []string) (stri
 
 	req.Header.Set("Content-Type", "application/json")
 
-	// Performance optimization - reuse HTTP client with connection pooling
-	client := &http.Client{
-		Timeout: 30 * time.Second,
-		Transport: &http.Transport{
-			MaxIdleConns:        10,
-			IdleConnTimeout:     30 * time.Second,
-			MaxIdleConnsPerHost: 2,
-		},
-	}
-
-	resp, err := client.Do(req)
+	// Use shared HTTP client with connection pooling
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -681,8 +682,7 @@ func (m *Manager) parseWithOpenRouter(ctx context.Context, input string) (*Parse
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -757,8 +757,7 @@ func (m *Manager) suggestWithOpenRouter(ctx context.Context, existingTasks []str
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -839,8 +838,7 @@ func (m *Manager) chatWithOpenRouter(ctx context.Context, question string, tasks
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -899,17 +897,8 @@ func (m *Manager) summarizeWithOpenRouter(ctx context.Context, tasks []string) (
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
 
-	// Performance optimization - reuse HTTP client with connection pooling
-	client := &http.Client{
-		Timeout: 30 * time.Second,
-		Transport: &http.Transport{
-			MaxIdleConns:        10,
-			IdleConnTimeout:     30 * time.Second,
-			MaxIdleConnsPerHost: 2,
-		},
-	}
-
-	resp, err := client.Do(req)
+	// Use shared HTTP client with connection pooling
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}

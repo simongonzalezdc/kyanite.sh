@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -33,6 +34,11 @@ type spinnerTickMsg time.Time
 type aiResponseMsg struct {
 	response  string
 	userInput string
+}
+
+// AI status message for status updates from goroutines
+type aiStatusMsg struct {
+	status string
 }
 
 // Loading state
@@ -115,6 +121,9 @@ type MainModel struct {
 	audioEnabled  bool
 	workDuration  time.Duration
 	breakDuration time.Duration
+
+	// Mutex for protecting concurrent access to shared fields
+	mu sync.RWMutex
 
 	// Calendar management (temporarily disabled)
 	// calendarView     calendar.ViewMode
@@ -424,20 +433,8 @@ func NewMainModel(tasks []DashboardTask) MainModel {
 	// Initialize theme colors and styles
 	m.updateTheme()
 
-	// Auto-launch Ollama at startup
-	if m.aiManager != nil {
-		go func() {
-			if !m.aiManager.IsOllamaAvailable() {
-				if err := m.aiManager.LaunchOllama(); err == nil {
-					m.aiStatus = "online"
-				} else {
-					m.aiStatus = "offline"
-				}
-			} else {
-				m.aiStatus = "online"
-			}
-		}()
-	}
+	// AI status will be checked via command in Init()
+	m.aiStatus = "checking"
 
 	// Initialize calendar renderer after theme is set
 	m.calRenderer = calendar.NewRenderer(theme.GetManager().Current().Name, 80, 20)
@@ -449,11 +446,30 @@ func NewMainModel(tasks []DashboardTask) MainModel {
 }
 
 func (m MainModel) Init() tea.Cmd {
-	// Start real-time clock ticker and spinner
+	// Start real-time clock ticker, spinner, and AI status check
 	return tea.Batch(
 		tea.Tick(time.Second, func(t time.Time) tea.Msg { return tickMsg(t) }),
 		tea.Tick(time.Millisecond*100, func(t time.Time) tea.Msg { return spinnerTickMsg(t) }),
+		m.checkAIStatusCmd(),
 	)
+}
+
+// checkAIStatusCmd returns a command that checks AI status and returns a message
+func (m MainModel) checkAIStatusCmd() tea.Cmd {
+	if m.aiManager == nil {
+		return nil
+	}
+	return func() tea.Msg {
+		status := "offline"
+		if !m.aiManager.IsOllamaAvailable() {
+			if err := m.aiManager.LaunchOllama(); err == nil {
+				status = "online"
+			}
+		} else {
+			status = "online"
+		}
+		return aiStatusMsg{status: status}
+	}
 }
 
 // Spinner frames
@@ -836,14 +852,9 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	// Auto-launch Ollama if offline and haven't tried recently
-	if m.aiStatus == "offline" && time.Since(m.lastAICheck) < 11*time.Second {
-		if m.aiManager != nil {
-			go func() {
-				if err := m.aiManager.LaunchOllama(); err == nil {
-					m.aiStatus = "online"
-				}
-			}()
-		}
+	if m.aiStatus == "offline" && time.Since(m.lastAICheck) > 11*time.Second {
+		m.lastAICheck = time.Now()
+		return m, m.checkAIStatusCmd()
 	}
 
 	// Handle normal dashboard mode
@@ -1216,6 +1227,11 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.chatHistory[len(m.chatHistory)-1] = chatMessageStyle.Render("AI: " + msg.response)
 		}
 		m.aiThinking = false
+		return m, nil
+
+	case aiStatusMsg:
+		// Handle AI status update (thread-safe via message passing)
+		m.aiStatus = msg.status
 		return m, nil
 	}
 

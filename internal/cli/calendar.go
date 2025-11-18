@@ -404,8 +404,17 @@ func parseDate(dateStr string) (time.Time, error) {
 	case "last week":
 		return now.AddDate(0, 0, -7), nil
 	case "next monday", "next tuesday", "next wednesday", "next thursday", "next friday", "next saturday", "next sunday":
-		days := map[string]int{"next monday": 1, "next tuesday": 2, "next wednesday": 3, "next thursday": 4, "next friday": 5, "next saturday": 6, "next sunday": 7}
-		return now.AddDate(0, 0, days[dateStr]), nil
+		targetDays := map[string]time.Weekday{
+			"next monday": time.Monday, "next tuesday": time.Tuesday, "next wednesday": time.Wednesday,
+			"next thursday": time.Thursday, "next friday": time.Friday, "next saturday": time.Saturday, "next sunday": time.Sunday,
+		}
+		targetDay := targetDays[dateStr]
+		currentDay := now.Weekday()
+		daysUntilTarget := (int(targetDay) - int(currentDay) + 7) % 7
+		if daysUntilTarget == 0 {
+			daysUntilTarget = 7 // If it's the same day, go to next week
+		}
+		return now.AddDate(0, 0, daysUntilTarget), nil
 	}
 
 	// Try ISO date format
