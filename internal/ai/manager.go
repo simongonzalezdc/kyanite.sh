@@ -280,15 +280,14 @@ func (m *Manager) requestRemoteApproval(feature string) bool {
 	return response == "y" || response == "yes"
 }
 
-// parseWithOllama uses local Ollama for task parsing
-func (m *Manager) parseWithOllama(ctx context.Context, input string) (*ParsedTask, error) {
-	prompt := m.buildParsePrompt(input)
-
+// makeOllamaRequest is a helper function to make requests to Ollama
+// Returns the raw response string from the model
+func (m *Manager) makeOllamaRequest(ctx context.Context, prompt string) (string, error) {
 	// Check if model is available
 	if !m.isModelAvailable(m.model) {
 		// Try to pull model automatically
 		if err := m.pullModel(m.model); err != nil {
-			return nil, fmt.Errorf("model %s not available and could not be pulled: %w", m.model, err)
+			return "", fmt.Errorf("model %s not available and could not be pulled: %w", m.model, err)
 		}
 	}
 
@@ -301,24 +300,24 @@ func (m *Manager) parseWithOllama(ctx context.Context, input string) (*ParsedTas
 
 	body, err := json.Marshal(payload)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", m.ollamaURL, bytes.NewBuffer(body))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := m.httpClient.Do(req)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("ollama request failed with status %d", resp.StatusCode)
+		return "", fmt.Errorf("ollama request failed with status %d", resp.StatusCode)
 	}
 
 	var result struct {
@@ -326,13 +325,78 @@ func (m *Manager) parseWithOllama(ctx context.Context, input string) (*ParsedTas
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+
+	return result.Response, nil
+}
+
+// makeOpenRouterRequest is a helper function to make requests to OpenRouter
+// Returns the raw response string from the model
+func (m *Manager) makeOpenRouterRequest(ctx context.Context, prompt string) (string, error) {
+	payload := map[string]any{
+		"model": "meta-llama/llama-3.2-3b-instruct:free",
+		"messages": []map[string]string{
+			{"role": "user", "content": prompt},
+		},
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", "https://openrouter.ai/api/v1/chat/completions", bytes.NewBuffer(body))
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+m.openRouterKey)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
+
+	resp, err := m.httpClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("openrouter request failed with status %d", resp.StatusCode)
+	}
+
+	var result struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+
+	if len(result.Choices) == 0 {
+		return "", fmt.Errorf("no response from openrouter")
+	}
+
+	return result.Choices[0].Message.Content, nil
+}
+
+// parseWithOllama uses local Ollama for task parsing
+func (m *Manager) parseWithOllama(ctx context.Context, input string) (*ParsedTask, error) {
+	prompt := m.buildParsePrompt(input)
+
+	response, err := m.makeOllamaRequest(ctx, prompt)
+	if err != nil {
 		return nil, err
 	}
 
 	var parsedTask ParsedTask
-	if err := json.Unmarshal([]byte(result.Response), &parsedTask); err != nil {
+	if err := json.Unmarshal([]byte(response), &parsedTask); err != nil {
 		// Try to extract JSON from the response if it's wrapped
-		content := m.extractJSON(result.Response)
+		content := m.extractJSON(response)
 		if err := json.Unmarshal([]byte(content), &parsedTask); err != nil {
 			return nil, err
 		}

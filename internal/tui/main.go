@@ -2067,14 +2067,19 @@ func (m MainModel) renderDashboard() string {
 		return b.String()
 	}
 
-	// Main dashboard layout
-	var leftContent, centerContent, rightContent string
+	// Main dashboard layout - using strings.Builder for performance
+	var leftContent strings.Builder
+	var centerContent strings.Builder
+	var rightContent strings.Builder
 
 	// Left column - Task list
-	leftContent = sectionTitleStyle.Render("📋 MISSION BOARD:") + "\n\n" + m.renderTaskList()
+	leftContent.WriteString(sectionTitleStyle.Render("📋 MISSION BOARD:"))
+	leftContent.WriteString("\n\n")
+	leftContent.WriteString(m.renderTaskList())
 
 	// Center column - Selected task
-	centerContent = sectionTitleStyle.Render("🎯 SELECTED MISSION:") + "\n"
+	centerContent.WriteString(sectionTitleStyle.Render("🎯 SELECTED MISSION:"))
+	centerContent.WriteString("\n")
 	if len(m.tasks) > 0 && m.selectedTask < len(m.tasks) {
 		task := m.tasks[m.selectedTask]
 		status := "PENDING"
@@ -2082,27 +2087,34 @@ func (m MainModel) renderDashboard() string {
 			status = "COMPLETED ✅"
 		}
 
-		centerContent += lipgloss.NewStyle().
+		centerContent.WriteString(lipgloss.NewStyle().
 			Foreground(synthCyan).
 			Background(styles.GetBoxStyle().GetBackground()).
 			Padding(1).
 			BorderStyle(lipgloss.RoundedBorder()).
 			BorderForeground(synthBlue).
-			Render(task.Description) + "\n\n"
-		centerContent += lipgloss.NewStyle().Foreground(synthGreen).Render(
-			fmt.Sprintf("Status: %s\nPriority: %s", status, strings.ToUpper(task.Priority)))
+			Render(task.Description))
+		centerContent.WriteString("\n\n")
+		centerContent.WriteString(lipgloss.NewStyle().Foreground(synthGreen).Render(
+			fmt.Sprintf("Status: %s\nPriority: %s", status, strings.ToUpper(task.Priority))))
 	} else {
-		centerContent += "😴 No missions selected"
+		centerContent.WriteString("😴 No missions selected")
 	}
-	centerContent += "\n\n" + lipgloss.NewStyle().Foreground(synthBlue).Render(
-		"💡 [ENTER] Focus mode\n💡 [A] Add mission\n💡 [C] Chat assistant\n💡 [D] Complete\n💡 [P] Priority\n💡 [G] Glitch")
+	centerContent.WriteString("\n\n")
+	centerContent.WriteString(lipgloss.NewStyle().Foreground(synthBlue).Render(
+		"💡 [ENTER] Focus mode\n💡 [A] Add mission\n💡 [C] Chat assistant\n💡 [D] Complete\n💡 [P] Priority\n💡 [G] Glitch"))
 
 	// Right column - Stats and quick actions
-	rightContent = m.renderStats()
-	rightContent += "\n\n" + sectionTitleStyle.Render("⚡ REAL-TIME DATA:") + "\n"
-	rightContent += lipgloss.NewStyle().Foreground(synthCyan).Render("🕐 "+time.Now().Format("15:04:05")) + "\n"
-	rightContent += lipgloss.NewStyle().Foreground(synthYellow).Render("📅 "+time.Now().Format("2006-01-02")) + "\n\n"
-	rightContent += sectionTitleStyle.Render("⚡ QUICK ACTIONS:") + "\n"
+	rightContent.WriteString(m.renderStats())
+	rightContent.WriteString("\n\n")
+	rightContent.WriteString(sectionTitleStyle.Render("⚡ REAL-TIME DATA:"))
+	rightContent.WriteString("\n")
+	rightContent.WriteString(lipgloss.NewStyle().Foreground(synthCyan).Render("🕐 " + time.Now().Format("15:04:05")))
+	rightContent.WriteString("\n")
+	rightContent.WriteString(lipgloss.NewStyle().Foreground(synthYellow).Render("📅 " + time.Now().Format("2006-01-02")))
+	rightContent.WriteString("\n\n")
+	rightContent.WriteString(sectionTitleStyle.Render("⚡ QUICK ACTIONS:"))
+	rightContent.WriteString("\n")
 	actions := []string{
 		"[A] Add task",
 		"[D] Complete task",
@@ -2112,8 +2124,14 @@ func (m MainModel) renderDashboard() string {
 		"[↑/↓] Navigate",
 	}
 	for _, action := range actions {
-		rightContent += lipgloss.NewStyle().Foreground(styles.GetAccent()).Render("  "+action) + "\n"
+		rightContent.WriteString(lipgloss.NewStyle().Foreground(styles.GetAccent()).Render("  " + action))
+		rightContent.WriteString("\n")
 	}
+
+	// Convert builders to strings
+	leftStr := leftContent.String()
+	centerStr := centerContent.String()
+	rightStr := rightContent.String()
 
 	// Apply width constraints safely
 	if m.width > 80 { // Only apply if we have enough width
@@ -2126,27 +2144,27 @@ func (m MainModel) renderDashboard() string {
 		centerStyle := lipgloss.NewStyle().Width(colWidth)
 		rightStyle := lipgloss.NewStyle().Width(colWidth)
 
-		leftContent = leftStyle.Render(leftContent)
-		centerContent = centerStyle.Render(centerContent)
-		rightContent = rightStyle.Render(rightContent)
+		leftStr = leftStyle.Render(leftStr)
+		centerStr = centerStyle.Render(centerStr)
+		rightStr = rightStyle.Render(rightStr)
 	} else {
 		// For small windows, stack vertically
 		leftStyle := lipgloss.NewStyle().Width(m.width - 4)
 		centerStyle := lipgloss.NewStyle().Width(m.width - 4)
 		rightStyle := lipgloss.NewStyle().Width(m.width - 4)
 
-		leftContent = leftStyle.Render(leftContent)
-		centerContent = centerStyle.Render(centerContent)
-		rightContent = rightStyle.Render(rightContent)
+		leftStr = leftStyle.Render(leftStr)
+		centerStr = centerStyle.Render(centerStr)
+		rightStr = rightStyle.Render(rightStr)
 	}
 
 	// Use appropriate layout based on window size
 	var layout string
 	if m.width > 80 {
-		layout = lipgloss.JoinHorizontal(lipgloss.Top, leftContent, centerContent, rightContent)
+		layout = lipgloss.JoinHorizontal(lipgloss.Top, leftStr, centerStr, rightStr)
 	} else {
 		// Small windows: stack vertically
-		layout = lipgloss.JoinVertical(lipgloss.Left, leftContent, centerContent, rightContent)
+		layout = lipgloss.JoinVertical(lipgloss.Left, leftStr, centerStr, rightStr)
 	}
 	b.WriteString(layout)
 

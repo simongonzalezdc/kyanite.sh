@@ -5,21 +5,35 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 )
 
+var (
+	// Storage path cache
+	cachedStoragePath string
+	// Ensure migration runs only once
+	migrationOnce sync.Once
+)
+
 // GetStoragePath returns the path to tasks.json (migrated to ~/.focus)
-// It triggers a best-effort migration from old locations on first call.
+// Migration is performed only once, on first call.
 func GetStoragePath() string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "./tasks.json"
-	}
+	// Run migration exactly once
+	migrationOnce.Do(func() {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			cachedStoragePath = "./tasks.json"
+			return
+		}
 
-	// Ensure migration is attempted (idempotent and best-effort).
-	_ = migrateStorage()
+		// Attempt migration (best-effort, errors ignored)
+		_ = migrateStorage()
 
-	return filepath.Join(home, ".focus", "tasks.json")
+		cachedStoragePath = filepath.Join(home, ".focus", "tasks.json")
+	})
+
+	return cachedStoragePath
 }
 
 // migrateStorage performs a best-effort migration:
