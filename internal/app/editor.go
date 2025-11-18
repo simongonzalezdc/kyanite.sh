@@ -121,7 +121,7 @@ func (s *EditorService) SaveSong(song *domain.Song) error {
 		return errors.NewValidationError("invalid song metadata: "+validationResult.Error(), nil)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), SaveOperationTimeout)
 	defer cancel()
 
 	// Create backup before saving (safety measure)
@@ -132,11 +132,10 @@ func (s *EditorService) SaveSong(song *domain.Song) error {
 
 	// Attempt to save with retry logic
 	var err error
-	maxRetries := 3
-	retryTimer := time.NewTimer(time.Second)
+	retryTimer := time.NewTimer(SaveRetryDelayBase)
 	defer retryTimer.Stop()
 
-	for attempt := 1; attempt <= maxRetries; attempt++ {
+	for attempt := 1; attempt <= MaxSaveRetries; attempt++ {
 		err = s.songRepo.UpdateSong(song)
 		if err == nil {
 			// Success - log and notify
@@ -153,8 +152,8 @@ func (s *EditorService) SaveSong(song *domain.Song) error {
 			logging.GetDefaultLogger().Warn("Save attempt failed", "id", song.ID, "attempt", attempt, "error", dbErr)
 
 			// Check if retryable
-			if attempt < maxRetries && dbErr.CanRecover(errors.RecoveryRetry) {
-				wait := time.Duration(attempt) * time.Second
+			if attempt < MaxSaveRetries && dbErr.CanRecover(errors.RecoveryRetry) {
+				wait := time.Duration(attempt) * SaveRetryDelayBase
 				logging.GetDefaultLogger().Info("Retrying save operation", "id", song.ID, "attempt", attempt+1, "wait", wait)
 
 				retryTimer.Reset(wait)
@@ -294,11 +293,10 @@ func (s *EditorService) AutoSave(song *domain.Song) error {
 
 	// Attempt to save version with retry logic
 	var err error
-	maxRetries := 2
-	retryTimer := time.NewTimer(500 * time.Millisecond)
+	retryTimer := time.NewTimer(AutoSaveRetryDelay)
 	defer retryTimer.Stop()
 
-	for attempt := 1; attempt <= maxRetries; attempt++ {
+	for attempt := 1; attempt <= MaxAutoSaveRetries; attempt++ {
 		// Serialize full song content (YAML frontmatter + body)
 		content, err := serializeSongToMarkdown(song)
 		if err != nil {
@@ -317,8 +315,8 @@ func (s *EditorService) AutoSave(song *domain.Song) error {
 			logging.GetDefaultLogger().Warn("Auto-save attempt failed", "song_id", song.ID, "attempt", attempt, "error", dbErr)
 
 			// Check if retryable
-			if attempt < maxRetries && dbErr.CanRecover(errors.RecoveryRetry) {
-				wait := time.Duration(attempt) * 500 * time.Millisecond
+			if attempt < MaxAutoSaveRetries && dbErr.CanRecover(errors.RecoveryRetry) {
+				wait := time.Duration(attempt) * AutoSaveRetryDelay
 				logging.GetDefaultLogger().Debug("Retrying auto-save", "song_id", song.ID, "attempt", attempt+1, "wait", wait)
 
 				retryTimer.Reset(wait)

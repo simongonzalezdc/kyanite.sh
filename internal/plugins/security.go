@@ -1030,15 +1030,27 @@ func (sm *SecurityManager) CalculatePluginHashSHA256(path string) (string, error
 
 // VerifyPluginSignature verifies a plugin's digital signature
 func (sm *SecurityManager) VerifyPluginSignature(path string) error {
-	// In a real implementation, you would:
-	// 1. Load the plugin's signature
-	// 2. Load the public key of the signer
-	// 3. Verify the signature against the plugin hash
-	// 4. Check if the signer is trusted
+	// Implementation moved to signature.go for better organization
+	verifier := NewSignatureVerifier(sm.logger)
 
-	// For now, just log the attempt
-	sm.logger.Debugf("Verifying plugin signature for: %s", path)
-	return nil
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		sm.logger.Warnf("Cannot get home directory: %v", err)
+		return fmt.Errorf("cannot verify signature: %w", err)
+	}
+
+	keysDir := filepath.Join(homeDir, ".config", "noise", "plugin-keys")
+	if err := verifier.LoadTrustedKeysFromDir(keysDir); err != nil {
+		sm.logger.Warnf("Cannot load trusted keys: %v", err)
+	}
+
+	if len(verifier.trustedKeys) == 0 {
+		sm.logger.Warnf("No trusted keys found - skipping signature verification for: %s", path)
+		sm.logger.Info("To enable signature verification, add public keys to: " + keysDir)
+		return nil
+	}
+
+	return verifier.VerifyPlugin(path)
 }
 
 // Security policy and data structures

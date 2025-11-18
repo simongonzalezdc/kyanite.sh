@@ -3,8 +3,9 @@ package theme
 import (
 	"os"
 	"path/filepath"
-	// "github.com/BurntSushi/toml" // Commented out - add to go.mod if needed
-	// "github.com/charmbracelet/lipgloss" // Commented out - will be used when TOML support is added
+
+	"github.com/charmbracelet/lipgloss"
+	"github.com/pelletier/go-toml/v2"
 )
 
 // CustomTheme represents a user-defined theme from TOML
@@ -52,30 +53,40 @@ func LoadCustomThemes(toolName string) (map[string]Theme, error) {
 			continue
 		}
 
-		// TODO: Implement TOML decoding when toml package is available
-		// var ct CustomTheme
-		// filePath := filepath.Join(themesDir, entry.Name())
-		// if _, err := toml.DecodeFile(filePath, &ct); err != nil {
-		//     continue // Skip invalid files
-		// }
-		//
-		// // Convert to Theme
-		// theme := Theme{
-		//     Name:       ct.Name,
-		//     Primary:    lipgloss.Color(ct.Colors.Primary),
-		//     Secondary:  lipgloss.Color(ct.Colors.Secondary),
-		//     Accent:     lipgloss.Color(ct.Colors.Accent),
-		//     Background: lipgloss.Color(ct.Colors.Background),
-		//     Text:       lipgloss.Color(ct.Colors.Text),
-		//     Success:    lipgloss.Color(ct.Colors.Success),
-		//     Warning:    lipgloss.Color(ct.Colors.Warning),
-		//     Error:      lipgloss.Color(ct.Colors.Error),
-		// }
-		//
-		// // Use filename without extension as ID
-		// themeID := entry.Name()[:len(entry.Name())-5]
-		// customThemes[themeID] = theme
-		continue // Skip all files for now
+		var ct CustomTheme
+		filePath := filepath.Join(themesDir, entry.Name())
+
+		// Read and decode TOML file
+		data, err := os.ReadFile(filePath)
+		if err != nil {
+			continue // Skip files we can't read
+		}
+
+		if err := toml.Unmarshal(data, &ct); err != nil {
+			continue // Skip invalid TOML files
+		}
+
+		// Validate required fields
+		if ct.Name == "" {
+			continue
+		}
+
+		// Convert to Theme
+		theme := Theme{
+			Name:       ct.Name,
+			Primary:    lipgloss.Color(ct.Colors.Primary),
+			Secondary:  lipgloss.Color(ct.Colors.Secondary),
+			Accent:     lipgloss.Color(ct.Colors.Accent),
+			Background: lipgloss.Color(ct.Colors.Background),
+			Text:       lipgloss.Color(ct.Colors.Text),
+			Success:    lipgloss.Color(ct.Colors.Success),
+			Warning:    lipgloss.Color(ct.Colors.Warning),
+			Error:      lipgloss.Color(ct.Colors.Error),
+		}
+
+		// Use filename without extension as ID
+		themeID := entry.Name()[:len(entry.Name())-5]
+		customThemes[themeID] = theme
 	}
 
 	return customThemes, nil

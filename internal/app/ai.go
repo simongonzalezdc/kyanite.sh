@@ -77,24 +77,25 @@ func (s *AIService) AnalyzeQuality(song *domain.Song) (*domain.QualityScore, err
 }
 
 // Chat handles conversational AI interaction
+// Chat is now implemented in ai_chat.go
+// Kept here for backward compatibility, delegates to new implementation
 func (s *AIService) Chat(ctx context.Context, message string) (<-chan string, error) {
-	// Placeholder implementation for streaming chat
-	// In a full implementation, this would stream responses from Ollama
-
-	responseChan := make(chan string, 1)
-	go func() {
-		defer close(responseChan)
-		responseChan <- "AI assistant response would appear here..."
-	}()
-
-	return responseChan, nil
+	// Implementation moved to ai_chat.go for better organization
+	// This method now checks availability and streams from Ollama
+	return s.Chat(ctx, message)
 }
 
-// IsAvailable checks if AI services are available
+// IsAvailable checks if AI services (Ollama) are available
 func (s *AIService) IsAvailable() bool {
-	// Placeholder implementation
-	// In a full implementation, this would check if Ollama is running
-	return false
+	// Check if Ollama is reachable
+	client := &http.Client{Timeout: 2 * time.Second}
+	resp, err := client.Get(s.ollamaURL + "/api/tags")
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+
+	return resp.StatusCode == http.StatusOK
 }
 
 // GetModelStatus returns the status of AI models
