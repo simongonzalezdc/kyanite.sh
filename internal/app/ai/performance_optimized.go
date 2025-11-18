@@ -20,10 +20,10 @@ type PerformanceOptimizedAI struct {
 	knowledgeBase   interface{} // Using interface{} to avoid import issues
 
 	// Performance optimization
-	responseCache   *ResponseCache
-	batchProcessor  *BatchProcessor
-	metrics         *AIMetrics
-	
+	responseCache  *ResponseCache
+	batchProcessor *BatchProcessor
+	metrics        *AIMetrics
+
 	// Configuration
 	config OptimizationConfig
 }
@@ -45,7 +45,7 @@ type ResponseCache struct {
 	mutex   sync.RWMutex
 	maxSize int
 	ttl     time.Duration
-	
+
 	// Cache statistics
 	hits   int64
 	misses int64
@@ -80,9 +80,9 @@ type BatchRequest struct {
 
 // BatchResponse represents the result of a batched request
 type BatchResponse struct {
-	ID      string      `json:"id"`
-	Result  interface{} `json:"result"`
-	Error   error       `json:"error"`
+	ID      string        `json:"id"`
+	Result  interface{}   `json:"result"`
+	Error   error         `json:"error"`
 	Latency time.Duration `json:"latency"`
 }
 
@@ -152,7 +152,7 @@ func NewResponseCache(maxSize int, ttl time.Duration) *ResponseCache {
 // GenerateWithContextOptimized generates AI responses with caching and optimization
 func (ai *PerformanceOptimizedAI) GenerateWithContextOptimized(ctx context.Context, contentType ContentType, mode QuickIdeaMode, contentText string, options map[string]string) (interface{}, error) {
 	start := time.Now()
-	
+
 	// Update metrics
 	ai.metrics.mutex.Lock()
 	ai.metrics.TotalRequests++
@@ -163,7 +163,7 @@ func (ai *PerformanceOptimizedAI) GenerateWithContextOptimized(ctx context.Conte
 		ai.metrics.mutex.Lock()
 		ai.metrics.ConcurrentRequests--
 		ai.metrics.mutex.Unlock()
-		
+
 		latency := time.Since(start)
 		ai.updateAverageResponseTime(latency)
 	}()
@@ -175,11 +175,11 @@ func (ai *PerformanceOptimizedAI) GenerateWithContextOptimized(ctx context.Conte
 			ai.metrics.mutex.Lock()
 			ai.metrics.CacheHits++
 			ai.metrics.mutex.Unlock()
-			
+
 			logging.GetDefaultLogger().Debug("AI response cache hit", "key", cacheKey[:16]+"...")
 			return cached, nil
 		}
-		
+
 		ai.metrics.mutex.Lock()
 		ai.metrics.CacheMisses++
 		ai.metrics.mutex.Unlock()
@@ -199,7 +199,7 @@ func (ai *PerformanceOptimizedAI) GenerateWithContextOptimized(ctx context.Conte
 	// Use context-aware generation
 	prompts := NewContextAwarePrompts()
 	prompts.Initialize()
-	
+
 	switch mode {
 	case QuickIdeaModeUnstick:
 		response, err = ai.generateUnstickResponse(ctx, contentType, contentText, options, prompts)
@@ -217,7 +217,7 @@ func (ai *PerformanceOptimizedAI) GenerateWithContextOptimized(ctx context.Conte
 		ai.metrics.mutex.Lock()
 		ai.metrics.FailedRequests++
 		ai.metrics.mutex.Unlock()
-		
+
 		return nil, fmt.Errorf("AI generation failed: %w", err)
 	}
 
@@ -228,8 +228,8 @@ func (ai *PerformanceOptimizedAI) GenerateWithContextOptimized(ctx context.Conte
 	}
 
 	latency := time.Since(start)
-	logging.GetDefaultLogger().Debug("AI response generated", 
-		"mode", mode, 
+	logging.GetDefaultLogger().Debug("AI response generated",
+		"mode", mode,
 		"content_type", contentType,
 		"latency", latency,
 		"cached", false)
@@ -245,7 +245,7 @@ func (ai *PerformanceOptimizedAI) generateCacheKey(contentType ContentType, mode
 		"context":      contentText,
 		"options":      options,
 	}
-	
+
 	jsonBytes, _ := json.Marshal(data)
 	hash := sha256.Sum256(jsonBytes)
 	return hex.EncodeToString(hash[:])
@@ -270,7 +270,7 @@ func (rc *ResponseCache) Get(key string) (interface{}, bool) {
 	// Update access statistics
 	entry.AccessCount++
 	entry.LastAccess = time.Now()
-	
+
 	rc.hits++
 	return entry.Response, true
 }
@@ -353,11 +353,11 @@ func (rc *ResponseCache) GetCacheStats() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"entries":    len(rc.entries),
-		"max_size":   rc.maxSize,
-		"hits":       rc.hits,
-		"misses":     rc.misses,
-		"hit_rate":   hitRate,
+		"entries":     len(rc.entries),
+		"max_size":    rc.maxSize,
+		"hits":        rc.hits,
+		"misses":      rc.misses,
+		"hit_rate":    hitRate,
 		"ttl_minutes": rc.ttl.Minutes(),
 	}
 }
@@ -400,7 +400,7 @@ func (bp *BatchProcessor) worker(id int) {
 		select {
 		case request := <-bp.requestQueue:
 			batch = append(batch, request)
-			
+
 			if len(batch) >= bp.batchSize {
 				bp.processBatch(batch)
 				batch = batch[:0] // Reset batch
@@ -418,7 +418,7 @@ func (bp *BatchProcessor) worker(id int) {
 // processBatch processes a batch of requests
 func (bp *BatchProcessor) processBatch(batch []*BatchRequest) {
 	start := time.Now()
-	
+
 	for _, request := range batch {
 		if request == nil {
 			continue
@@ -431,7 +431,7 @@ func (bp *BatchProcessor) processBatch(batch []*BatchRequest) {
 			Error:   nil,
 			Latency: time.Since(start),
 		}
-		
+
 		if request.Response != nil {
 			select {
 			case request.Response <- response:
@@ -488,7 +488,7 @@ func (ai *PerformanceOptimizedAI) GetPerformanceReport() map[string]interface{} 
 // Helper methods for different AI modes
 func (ai *PerformanceOptimizedAI) generateUnstickResponse(ctx context.Context, contentType ContentType, contentText string, options map[string]string, prompts *ContextAwarePrompts) (interface{}, error) {
 	prompt := prompts.RenderPrompt(contentType, QuickIdeaModeUnstick, contentText, options)
-	
+
 	// Create a mock response for demonstration
 	// In real implementation, this would call the actual AI service
 	return map[string]interface{}{
@@ -500,7 +500,7 @@ func (ai *PerformanceOptimizedAI) generateUnstickResponse(ctx context.Context, c
 
 func (ai *PerformanceOptimizedAI) generateSparkResponse(ctx context.Context, contentType ContentType, contentText string, options map[string]string, prompts *ContextAwarePrompts) (interface{}, error) {
 	prompt := prompts.RenderPrompt(contentType, QuickIdeaModeSpark, contentText, options)
-	
+
 	return map[string]interface{}{
 		"type":    "spark",
 		"prompt":  prompt,
@@ -510,7 +510,7 @@ func (ai *PerformanceOptimizedAI) generateSparkResponse(ctx context.Context, con
 
 func (ai *PerformanceOptimizedAI) generateTweakResponse(ctx context.Context, contentType ContentType, contentText string, options map[string]string, prompts *ContextAwarePrompts) (interface{}, error) {
 	prompt := prompts.RenderPrompt(contentType, QuickIdeaModeTweak, contentText, options)
-	
+
 	return map[string]interface{}{
 		"type":    "tweak",
 		"prompt":  prompt,
@@ -520,7 +520,7 @@ func (ai *PerformanceOptimizedAI) generateTweakResponse(ctx context.Context, con
 
 func (ai *PerformanceOptimizedAI) generateCheckResponse(ctx context.Context, contentType ContentType, contentText string, options map[string]string, prompts *ContextAwarePrompts) (interface{}, error) {
 	prompt := prompts.RenderPrompt(contentType, QuickIdeaModeCheck, contentText, options)
-	
+
 	return map[string]interface{}{
 		"type":    "check",
 		"prompt":  prompt,
@@ -540,11 +540,11 @@ func (ai *PerformanceOptimizedAI) SetKnowledgeBase(kb interface{}) {
 // Close cleans up resources
 func (ai *PerformanceOptimizedAI) Close() error {
 	logging.GetDefaultLogger().Info("Performance-optimized AI service shutting down")
-	
+
 	// Close batch processor
 	if ai.batchProcessor != nil && ai.batchProcessor.requestQueue != nil {
 		close(ai.batchProcessor.requestQueue)
 	}
-	
+
 	return nil
 }

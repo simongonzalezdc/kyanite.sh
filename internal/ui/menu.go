@@ -20,7 +20,7 @@ type MenuModel struct {
 	compactMode     bool
 	showShortTitles bool
 	showMinimalMenu bool
-	
+
 	// Navigation simplification
 	showHelpHint bool // New field for contextual help
 }

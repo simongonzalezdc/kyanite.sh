@@ -12,48 +12,48 @@ import (
 type MemoryOptimizer struct {
 	// Configuration
 	config MemoryOptimizerConfig
-	
+
 	// Memory monitoring
-	currentMemory    MemoryMetrics
-	peakMemory       MemoryMetrics
-	memoryHistory    []MemorySnapshot
-	mutex            sync.RWMutex
-	
+	currentMemory MemoryMetrics
+	peakMemory    MemoryMetrics
+	memoryHistory []MemorySnapshot
+	mutex         sync.RWMutex
+
 	// Garbage collection control
-	gcController     *GCController
-	
+	gcController *GCController
+
 	// Object pooling
-	stringPool       *StringPool
-	bufferPool       *BufferPool
-	
+	stringPool *StringPool
+	bufferPool *BufferPool
+
 	// Memory pressure detection
 	pressureDetector *MemoryPressureDetector
-	
+
 	// Background processes
-	stopChan         chan struct{}
+	stopChan chan struct{}
 }
 
 // MemoryOptimizerConfig defines memory optimization configuration
 type MemoryOptimizerConfig struct {
-	EnableMonitoring       bool          `json:"enable_monitoring"`
-	EnableGCOptimization    bool          `json:"enable_gc_optimization"`
-	EnableObjectPooling     bool          `json:"enable_object_pooling"`
-	MemoryCheckInterval     time.Duration `json:"memory_check_interval"`
-	GCThreshold             float64       `json:"gc_threshold"`
-	PressureThreshold       float64       `json:"pressure_threshold"`
-	MaxHistorySize          int           `json:"max_history_size"`
-	StringPoolSize          int           `json:"string_pool_size"`
-	BufferPoolSize          int           `json:"buffer_pool_size"`
-	EnableAdaptiveGC        bool          `json:"enable_adaptive_gc"`
-	TargetMemoryUsage       uint64        `json:"target_memory_usage"`
+	EnableMonitoring     bool          `json:"enable_monitoring"`
+	EnableGCOptimization bool          `json:"enable_gc_optimization"`
+	EnableObjectPooling  bool          `json:"enable_object_pooling"`
+	MemoryCheckInterval  time.Duration `json:"memory_check_interval"`
+	GCThreshold          float64       `json:"gc_threshold"`
+	PressureThreshold    float64       `json:"pressure_threshold"`
+	MaxHistorySize       int           `json:"max_history_size"`
+	StringPoolSize       int           `json:"string_pool_size"`
+	BufferPoolSize       int           `json:"buffer_pool_size"`
+	EnableAdaptiveGC     bool          `json:"enable_adaptive_gc"`
+	TargetMemoryUsage    uint64        `json:"target_memory_usage"`
 }
 
 // MemorySnapshot represents a point-in-time memory snapshot
 type MemorySnapshot struct {
-	Timestamp    time.Time   `json:"timestamp"`
-	Memory       MemoryMetrics `json:"memory"`
-	Pressure     MemoryPressure `json:"pressure"`
-	GCStats      GCStats     `json:"gc_stats"`
+	Timestamp time.Time      `json:"timestamp"`
+	Memory    MemoryMetrics  `json:"memory"`
+	Pressure  MemoryPressure `json:"pressure"`
+	GCStats   GCStats        `json:"gc_stats"`
 }
 
 // MemoryPressure represents memory pressure level
@@ -68,11 +68,11 @@ const (
 
 // GCStats represents garbage collection statistics
 type GCStats struct {
-	NumGC        uint32        `json:"num_gc"`
-	NumForcedGC  uint32        `json:"num_forced_gc"`
-	GCCPUFraction float64      `json:"gc_cpu_fraction"`
-	TotalPause   time.Duration `json:"total_pause"`
-	LastGC       time.Time     `json:"last_gc"`
+	NumGC         uint32        `json:"num_gc"`
+	NumForcedGC   uint32        `json:"num_forced_gc"`
+	GCCPUFraction float64       `json:"gc_cpu_fraction"`
+	TotalPause    time.Duration `json:"total_pause"`
+	LastGC        time.Time     `json:"last_gc"`
 }
 
 // GCController provides garbage collection control
@@ -80,7 +80,7 @@ type GCController struct {
 	enabled           bool
 	threshold         float64
 	adaptiveMode      bool
-	targetMemoryUsage  uint64
+	targetMemoryUsage uint64
 	lastGC            time.Time
 	gcInterval        time.Duration
 	mutex             sync.Mutex
@@ -214,12 +214,12 @@ func (mo *MemoryOptimizer) checkMemoryUsage() {
 	// Update current memory
 	mo.mutex.Lock()
 	mo.currentMemory = memory
-	
+
 	// Update peak memory
 	if memory.HeapAlloc > mo.peakMemory.HeapAlloc {
 		mo.peakMemory = memory
 	}
-	
+
 	// Add to history
 	snapshot := MemorySnapshot{
 		Timestamp: time.Now(),
@@ -227,7 +227,7 @@ func (mo *MemoryOptimizer) checkMemoryUsage() {
 		Pressure:  pressure,
 		GCStats:   gcStats,
 	}
-	
+
 	mo.memoryHistory = append(mo.memoryHistory, snapshot)
 	if len(mo.memoryHistory) > mo.config.MaxHistorySize {
 		mo.memoryHistory = mo.memoryHistory[1:]
@@ -240,7 +240,7 @@ func (mo *MemoryOptimizer) checkMemoryUsage() {
 		logging.GetDefaultLogger().Warn("High memory pressure detected", "heap_alloc", memory.HeapAlloc)
 		mo.triggerGC()
 		mo.clearCaches()
-		
+
 	case PressureCritical:
 		logging.GetDefaultLogger().Error("Critical memory pressure detected", "heap_alloc", memory.HeapAlloc)
 		mo.triggerGC()
@@ -250,7 +250,7 @@ func (mo *MemoryOptimizer) checkMemoryUsage() {
 
 	// Log memory usage periodically
 	if len(mo.memoryHistory)%10 == 0 {
-		logging.GetDefaultLogger().Debug("Memory usage", 
+		logging.GetDefaultLogger().Debug("Memory usage",
 			"heap_alloc", memory.HeapAlloc,
 			"heap_sys", memory.HeapSys,
 			"pressure", pressure)
@@ -270,9 +270,9 @@ func (mo *MemoryOptimizer) optimizeGC() {
 	// Calculate memory usage ratio
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
-	
+
 	memoryRatio := float64(currentMemory.HeapAlloc) / float64(memStats.Sys)
-	
+
 	// Trigger GC if memory usage exceeds threshold
 	if memoryRatio > mo.config.GCThreshold {
 		mo.triggerGC()
@@ -289,9 +289,9 @@ func (mo *MemoryOptimizer) triggerGC() {
 	start := time.Now()
 	runtime.GC()
 	duration := time.Since(start)
-	
+
 	logging.GetDefaultLogger().Debug("Manual GC triggered", "duration", duration)
-	
+
 	mo.gcController.RecordGC()
 }
 
@@ -301,7 +301,7 @@ func (mo *MemoryOptimizer) clearCaches() {
 		mo.stringPool.Clear()
 		mo.bufferPool.Clear()
 	}
-	
+
 	logging.GetDefaultLogger().Debug("Memory caches cleared")
 }
 
@@ -311,7 +311,7 @@ func (mo *MemoryOptimizer) releasePools() {
 		mo.stringPool.Release()
 		mo.bufferPool.Release()
 	}
-	
+
 	logging.GetDefaultLogger().Debug("Memory pools released")
 }
 
@@ -394,7 +394,7 @@ func (mo *MemoryOptimizer) GetPeakMemoryMetrics() MemoryMetrics {
 func (mo *MemoryOptimizer) GetMemoryHistory() []MemorySnapshot {
 	mo.mutex.RLock()
 	defer mo.mutex.RUnlock()
-	
+
 	history := make([]MemorySnapshot, len(mo.memoryHistory))
 	copy(history, mo.memoryHistory)
 	return history
@@ -432,11 +432,11 @@ func (mo *MemoryOptimizer) GetMemoryReport() map[string]interface{} {
 // NewGCController creates a new garbage collection controller
 func NewGCController(threshold float64, adaptiveMode bool, targetMemoryUsage uint64) *GCController {
 	return &GCController{
-		enabled:          true,
-		threshold:        threshold,
-		adaptiveMode:     adaptiveMode,
+		enabled:           true,
+		threshold:         threshold,
+		adaptiveMode:      adaptiveMode,
 		targetMemoryUsage: targetMemoryUsage,
-		gcInterval:       30 * time.Second,
+		gcInterval:        30 * time.Second,
 	}
 }
 
@@ -584,14 +584,14 @@ func (mpd *MemoryPressureDetector) DetectPressure(memory MemoryMetrics) MemoryPr
 	runtime.ReadMemStats(&memStats)
 
 	memoryRatio := float64(memory.HeapAlloc) / float64(memStats.Sys)
-	
+
 	// Add to history
 	mpd.mutex.Lock()
 	mpd.history = append(mpd.history, memoryRatio)
 	if len(mpd.history) > mpd.maxHistory {
 		mpd.history = mpd.history[1:]
 	}
-	
+
 	// Calculate average memory ratio
 	var avgRatio float64
 	if len(mpd.history) > 0 {
@@ -601,7 +601,7 @@ func (mpd *MemoryPressureDetector) DetectPressure(memory MemoryMetrics) MemoryPr
 		}
 		avgRatio = sum / float64(len(mpd.history))
 	}
-	
+
 	// Determine pressure level
 	var pressure MemoryPressure
 	switch {
@@ -614,7 +614,7 @@ func (mpd *MemoryPressureDetector) DetectPressure(memory MemoryMetrics) MemoryPr
 	default:
 		pressure = PressureLow
 	}
-	
+
 	mpd.currentLevel = pressure
 	mpd.mutex.Unlock()
 

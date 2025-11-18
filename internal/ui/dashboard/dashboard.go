@@ -36,7 +36,7 @@ type DashboardModel struct {
 	systemInfo   *SystemInfoModel
 
 	// UI state
-	focusedPanel string
+	focusedPanel  string
 	showAllPanels bool // New field for progressive disclosure
 
 	// Header and footer
@@ -47,17 +47,17 @@ type DashboardModel struct {
 // NewDashboardModel creates a new dashboard model
 func NewDashboardModel() *DashboardModel {
 	return &DashboardModel{
-		currentTheme: theme.GetManager().Current(),
-		themeManager: NewThemePreviewModel(),
-		quickActions: NewQuickActionsModel(),
-		recentWork:   NewRecentWorkModel(),
-		musicTools:   NewMusicToolsModel(),
-		aiAssistant:  NewAIAssistantModel(),
-		systemInfo:   NewSystemInfoModel(),
-		focusedPanel: "quickactions",
+		currentTheme:  theme.GetManager().Current(),
+		themeManager:  NewThemePreviewModel(),
+		quickActions:  NewQuickActionsModel(),
+		recentWork:    NewRecentWorkModel(),
+		musicTools:    NewMusicToolsModel(),
+		aiAssistant:   NewAIAssistantModel(),
+		systemInfo:    NewSystemInfoModel(),
+		focusedPanel:  "quickactions",
 		showAllPanels: false, // Start with simplified view
-		header:       NewHeaderModel(),
-		footer:       NewFooterModel(),
+		header:        NewHeaderModel(),
+		footer:        NewFooterModel(),
 	}
 }
 
@@ -295,7 +295,6 @@ func (dm *DashboardModel) GetOnboardingHints() []string {
 
 	return hints
 }
-
 
 // renderMinimalMenu renders a minimal menu for very small terminals
 func (dm *DashboardModel) renderMinimalMenu() string {

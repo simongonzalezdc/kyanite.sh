@@ -75,13 +75,13 @@ func NewContextDetector() *ContextDetector {
 		regexp.MustCompile(`(?i)^\s*rhythm\s*\d*\s*[:\-=]`),
 		// Additional musical notation patterns
 		regexp.MustCompile(`(?i)^\s*[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?\s*(?:[-|/]\s*[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?)*\s*$`), // Chord sequences
-		regexp.MustCompile(`(?i)^\s*\d+\/\d+\s*$`),                                                                                                                                             // Time signatures standalone
-		regexp.MustCompile(`(?i)^\s*[A-G][#b]?\s*(?:major|minor)\s*$`),                                                                                                                         // Key signatures standalone
+		regexp.MustCompile(`(?i)^\s*\d+\/\d+\s*$`),                     // Time signatures standalone
+		regexp.MustCompile(`(?i)^\s*[A-G][#b]?\s*(?:major|minor)\s*$`), // Key signatures standalone
 		// Enhanced patterns for better musical notation detection
-		regexp.MustCompile(`(?i)^\s*\d+\s*bpm\s*$`),                                                                                                                                            // Simple BPM notation
-		regexp.MustCompile(`(?i)^\s*\d+\/\d+\s*(?:time|time\s*sig|signature)?\s*$`),                                                                                                            // Time signatures with optional text
-		regexp.MustCompile(`(?i)^\s*[A-G][#b]?\s*(?:major|minor)?\s*(?:key|scale)?\s*$`),                                                                                                       // Key signatures with optional text
-		regexp.MustCompile(`(?i)^\s*(?:intro|verse|chorus|bridge|outro|pre-chorus|prechorus)\s*[:\-\=]\s*[A-G][#b]?(?:maj|min|m|dim|aug)?`),                                                   // Section with chord
+		regexp.MustCompile(`(?i)^\s*\d+\s*bpm\s*$`),                                                                                         // Simple BPM notation
+		regexp.MustCompile(`(?i)^\s*\d+\/\d+\s*(?:time|time\s*sig|signature)?\s*$`),                                                         // Time signatures with optional text
+		regexp.MustCompile(`(?i)^\s*[A-G][#b]?\s*(?:major|minor)?\s*(?:key|scale)?\s*$`),                                                    // Key signatures with optional text
+		regexp.MustCompile(`(?i)^\s*(?:intro|verse|chorus|bridge|outro|pre-chorus|prechorus)\s*[:\-\=]\s*[A-G][#b]?(?:maj|min|m|dim|aug)?`), // Section with chord
 	}
 
 	detector.lyricStructuralPatterns = map[*regexp.Regexp]bool{

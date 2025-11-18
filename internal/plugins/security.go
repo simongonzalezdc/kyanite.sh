@@ -460,10 +460,10 @@ func (sm *SecurityManager) SandboxPlugin(plugin Plugin) error {
 	}
 
 	// Create or update sandbox policy for this plugin
-	_ = sm.getOrCreateSandboxPolicy(pluginID)
+	sm.getOrCreateSandboxPolicy(pluginID)
 
 	// Create permissions for this plugin
-	_ = sm.getOrCreatePluginPermissions(pluginID)
+	sm.getOrCreatePluginPermissions(pluginID)
 
 	// Initialize resource usage tracking
 	sm.initializeResourceTracking(pluginID)

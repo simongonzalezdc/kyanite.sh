@@ -13,36 +13,36 @@ import (
 // PerformanceOptimizedCollaborationManager provides collaboration features with performance optimizations
 type PerformanceOptimizedCollaborationManager struct {
 	*CollaborationManager
-	
+
 	// Performance optimization
-	sessionCache      map[string]*CachedSession
-	operationPool     *OperationPool
-	batchProcessor    *BatchProcessor
-	
+	sessionCache   map[string]*CachedSession
+	operationPool  *OperationPool
+	batchProcessor *BatchProcessor
+
 	// Connection pooling
-	connectionPool    *ConnectionPool
-	
+	connectionPool *ConnectionPool
+
 	// Performance monitoring
-	metrics           *CollaborationMetrics
-	
+	metrics *CollaborationMetrics
+
 	// Configuration
-	config            CollaborationPerformanceConfig
-	
+	config CollaborationPerformanceConfig
+
 	// Synchronization
-	mutex             sync.RWMutex
+	mutex sync.RWMutex
 }
 
 // CollaborationPerformanceConfig defines collaboration performance optimization settings
 type CollaborationPerformanceConfig struct {
-	SessionCacheSize     int           `json:"session_cache_size"`
-	OperationPoolSize    int           `json:"operation_pool_size"`
-	BatchSize            int           `json:"batch_size"`
-	BatchTimeout         time.Duration `json:"batch_timeout"`
-	ConnectionPoolSize   int           `json:"connection_pool_size"`
-	ConnectionTimeout    time.Duration `json:"connection_timeout"`
-	EnableMetrics        bool          `json:"enable_metrics"`
-	EnableCompression    bool          `json:"enable_compression"`
-	MaxConcurrentUsers   int           `json:"max_concurrent_users"`
+	SessionCacheSize   int           `json:"session_cache_size"`
+	OperationPoolSize  int           `json:"operation_pool_size"`
+	BatchSize          int           `json:"batch_size"`
+	BatchTimeout       time.Duration `json:"batch_timeout"`
+	ConnectionPoolSize int           `json:"connection_pool_size"`
+	ConnectionTimeout  time.Duration `json:"connection_timeout"`
+	EnableMetrics      bool          `json:"enable_metrics"`
+	EnableCompression  bool          `json:"enable_compression"`
+	MaxConcurrentUsers int           `json:"max_concurrent_users"`
 }
 
 // CachedSession represents a cached collaboration session
@@ -83,9 +83,9 @@ type BatchRequest struct {
 
 // BatchResponse represents the result of a batched request
 type BatchResponse struct {
-	ID      string      `json:"id"`
-	Result  interface{} `json:"result"`
-	Error   error       `json:"error"`
+	ID      string        `json:"id"`
+	Result  interface{}   `json:"result"`
+	Error   error         `json:"error"`
 	Latency time.Duration `json:"latency"`
 }
 
@@ -99,14 +99,14 @@ type ConnectionPool struct {
 
 // CollaborationMetrics tracks collaboration performance metrics
 type CollaborationMetrics struct {
-	SessionOperations   int64         `json:"session_operations"`
-	OperationBatches    int64         `json:"operation_batches"`
+	SessionOperations    int64         `json:"session_operations"`
+	OperationBatches     int64         `json:"operation_batches"`
 	AverageOperationTime time.Duration `json:"average_operation_time"`
-	CacheHits           int64         `json:"cache_hits"`
-	CacheMisses         int64         `json:"cache_misses"`
-	ConnectionErrors    int64         `json:"connection_errors"`
-	ConcurrentUsers     int64         `json:"concurrent_users"`
-	mutex               sync.RWMutex
+	CacheHits            int64         `json:"cache_hits"`
+	CacheMisses          int64         `json:"cache_misses"`
+	ConnectionErrors     int64         `json:"connection_errors"`
+	ConcurrentUsers      int64         `json:"concurrent_users"`
+	mutex                sync.RWMutex
 }
 
 // NewPerformanceOptimizedCollaborationManager creates a new performance-optimized collaboration manager
@@ -161,7 +161,7 @@ func NewPerformanceOptimizedCollaborationManager(database *db.DB, config Collabo
 // CreateSessionOptimized creates a new session with performance optimizations
 func (m *PerformanceOptimizedCollaborationManager) CreateSessionOptimized(documentID int, name, createdBy string, settings SessionSettings) (*Session, error) {
 	start := time.Now()
-	
+
 	// Update metrics
 	m.metrics.mutex.Lock()
 	m.metrics.SessionOperations++
@@ -193,7 +193,7 @@ func (m *PerformanceOptimizedCollaborationManager) CreateSessionOptimized(docume
 
 	duration := time.Since(start)
 	m.updateAverageOperationTime(duration)
-	
+
 	logging.GetDefaultLogger().Debug("Session created with optimization", "id", session.ID, "duration", duration)
 	return session, nil
 }
@@ -217,7 +217,7 @@ func (m *PerformanceOptimizedCollaborationManager) JoinSessionOptimized(sessionI
 				IsActive:    true,
 				Permissions: m.getPermissionsForRole(role),
 			}
-			
+
 			cached.Participants = append(cached.Participants, participant)
 			cached.AccessCount++
 			cached.LastAccess = time.Now()
@@ -225,7 +225,7 @@ func (m *PerformanceOptimizedCollaborationManager) JoinSessionOptimized(sessionI
 
 			duration := time.Since(start)
 			m.updateAverageOperationTime(duration)
-			
+
 			logging.GetDefaultLogger().Debug("User joined session from cache", "session_id", sessionID, "user_id", userID)
 			return cached.Session, nil
 		}
@@ -242,7 +242,7 @@ func (m *PerformanceOptimizedCollaborationManager) JoinSessionOptimized(sessionI
 
 	duration := time.Since(start)
 	m.updateAverageOperationTime(duration)
-	
+
 	return session, nil
 }
 
@@ -279,12 +279,12 @@ func (m *PerformanceOptimizedCollaborationManager) ApplyOperationOptimized(sessi
 		if response.Error != nil {
 			return response.Error
 		}
-		
+
 		duration := time.Since(start)
 		m.updateAverageOperationTime(duration)
-		
+
 		return nil
-		
+
 	case <-time.After(5 * time.Second):
 		return fmt.Errorf("operation timeout")
 	}
@@ -349,8 +349,8 @@ func (m *PerformanceOptimizedCollaborationManager) evictSessionCacheLRU() {
 	first := true
 
 	for id, cached := range m.sessionCache {
-		if first || cached.AccessCount < lowestAccess || 
-		   (cached.AccessCount == lowestAccess && cached.LastAccess.Before(oldestTime)) {
+		if first || cached.AccessCount < lowestAccess ||
+			(cached.AccessCount == lowestAccess && cached.LastAccess.Before(oldestTime)) {
 			oldestID = id
 			oldestTime = cached.LastAccess
 			lowestAccess = cached.AccessCount
@@ -435,10 +435,10 @@ func (op *OperationPool) Get() *Operation {
 func (op *OperationPool) Put(operation *Operation) {
 	// Reset operation
 	*operation = Operation{}
-	
+
 	op.mutex.Lock()
 	defer op.mutex.Unlock()
-	
+
 	// Operations are reused by index, no need to explicitly put back
 }
 
@@ -479,7 +479,7 @@ func (bp *BatchProcessor) worker(id int) {
 		select {
 		case request := <-bp.requestQueue:
 			batch = append(batch, request)
-			
+
 			if len(batch) >= bp.batchSize {
 				bp.processBatch(batch)
 				batch = batch[:0]
@@ -497,11 +497,11 @@ func (bp *BatchProcessor) worker(id int) {
 // processBatch processes a batch of requests
 func (bp *BatchProcessor) processBatch(batch []*BatchRequest) {
 	start := time.Now()
-	
+
 	for _, request := range batch {
 		bp.processRequest(request)
 	}
-	
+
 	duration := time.Since(start)
 	logging.GetDefaultLogger().Debug("Processed batch", "size", len(batch), "duration", duration)
 }
@@ -509,14 +509,14 @@ func (bp *BatchProcessor) processBatch(batch []*BatchRequest) {
 // processRequest processes a single request
 func (bp *BatchProcessor) processRequest(request *BatchRequest) {
 	start := time.Now()
-	
+
 	response := &BatchResponse{
 		ID:      request.ID,
 		Result:  map[string]interface{}{"processed": true},
 		Error:   nil,
 		Latency: time.Since(start),
 	}
-	
+
 	select {
 	case request.Response <- response:
 	case <-request.Context.Done():
@@ -571,7 +571,7 @@ func (m *PerformanceOptimizedCollaborationManager) GetMetrics() CollaborationMet
 // GetPerformanceReport returns a comprehensive performance report
 func (m *PerformanceOptimizedCollaborationManager) GetPerformanceReport() map[string]interface{} {
 	metrics := m.GetMetrics()
-	
+
 	m.mutex.RLock()
 	sessionCacheSize := len(m.sessionCache)
 	concurrentUsers := m.getConcurrentUserCount()
@@ -602,7 +602,7 @@ func (m *PerformanceOptimizedCollaborationManager) generateOperationID() string 
 // Close cleans up resources
 func (m *PerformanceOptimizedCollaborationManager) Close() error {
 	logging.GetDefaultLogger().Info("Performance-optimized collaboration manager shutting down")
-	
+
 	// Close base manager
 	return m.CollaborationManager.Close()
 }

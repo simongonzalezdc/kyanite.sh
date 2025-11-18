@@ -18,58 +18,58 @@ import (
 // Monitor provides comprehensive performance monitoring for the noise.sh application
 type Monitor struct {
 	// Component monitors
-	dbMonitor         *DatabaseMonitor
-	aiMonitor         *AIMonitor
-	uiMonitor         *UIMonitor
-	themeMonitor      *ThemeMonitor
-	collabMonitor     *CollaborationMonitor
-	
+	dbMonitor     *DatabaseMonitor
+	aiMonitor     *AIMonitor
+	uiMonitor     *UIMonitor
+	themeMonitor  *ThemeMonitor
+	collabMonitor *CollaborationMonitor
+
 	// System monitoring
-	systemMonitor     *SystemMonitor
-	memoryMonitor     *MemoryMonitor
-	
+	systemMonitor *SystemMonitor
+	memoryMonitor *MemoryMonitor
+
 	// Aggregated metrics
 	aggregatedMetrics *AggregatedMetrics
-	
+
 	// Configuration
-	config            MonitorConfig
-	
+	config MonitorConfig
+
 	// Synchronization
-	mutex             sync.RWMutex
-	stopChan          chan struct{}
-	
+	mutex    sync.RWMutex
+	stopChan chan struct{}
+
 	// Performance regression detection
 	regressionDetector *RegressionDetector
 }
 
 // MonitorConfig defines performance monitoring configuration
 type MonitorConfig struct {
-	Enabled              bool          `json:"enabled"`
-	CollectInterval      time.Duration `json:"collect_interval"`
-	ReportInterval       time.Duration `json:"report_interval"`
-	EnableRegression     bool          `json:"enable_regression"`
-	RegressionThreshold  float64       `json:"regression_threshold"`
-	EnableAlerts         bool          `json:"enable_alerts"`
-	AlertThresholds      AlertThresholds `json:"alert_thresholds"`
-	HistorySize          int           `json:"history_size"`
-	EnableAutoOptimization bool        `json:"enable_auto_optimization"`
+	Enabled                bool            `json:"enabled"`
+	CollectInterval        time.Duration   `json:"collect_interval"`
+	ReportInterval         time.Duration   `json:"report_interval"`
+	EnableRegression       bool            `json:"enable_regression"`
+	RegressionThreshold    float64         `json:"regression_threshold"`
+	EnableAlerts           bool            `json:"enable_alerts"`
+	AlertThresholds        AlertThresholds `json:"alert_thresholds"`
+	HistorySize            int             `json:"history_size"`
+	EnableAutoOptimization bool            `json:"enable_auto_optimization"`
 }
 
 // AlertThresholds defines thresholds for performance alerts
 type AlertThresholds struct {
-	CPUUsage            float64 `json:"cpu_usage"`
-	MemoryUsage         float64 `json:"memory_usage"`
+	CPUUsage             float64       `json:"cpu_usage"`
+	MemoryUsage          float64       `json:"memory_usage"`
 	DatabaseQueryTime    time.Duration `json:"database_query_time"`
-	AIResponseTime      time.Duration `json:"ai_response_time"`
-	UIRenderTime        time.Duration `json:"ui_render_time"`
-	ThemeSwitchTime     time.Duration `json:"theme_switch_time"`
+	AIResponseTime       time.Duration `json:"ai_response_time"`
+	UIRenderTime         time.Duration `json:"ui_render_time"`
+	ThemeSwitchTime      time.Duration `json:"theme_switch_time"`
 	CollaborationLatency time.Duration `json:"collaboration_latency"`
 }
 
 // DatabaseMonitor monitors database performance
 type DatabaseMonitor struct {
-	connectionPool   *db.PerformanceOptimizedDB
-	metrics          *db.PerformanceMetrics
+	connectionPool     *db.PerformanceOptimizedDB
+	metrics            *db.PerformanceMetrics
 	slowQueryThreshold time.Duration
 }
 
@@ -82,23 +82,23 @@ type AIMonitor struct {
 
 // UIMonitor monitors UI performance
 type UIMonitor struct {
-	service           *ui.PerformanceOptimizedUI
-	metrics           ui.UIMetrics
-	renderThreshold   time.Duration
+	service         *ui.PerformanceOptimizedUI
+	metrics         ui.UIMetrics
+	renderThreshold time.Duration
 }
 
 // ThemeMonitor monitors theme performance
 type ThemeMonitor struct {
-	service           *theme.PerformanceOptimizedManager
-	metrics           theme.ThemeMetrics
-	switchThreshold   time.Duration
+	service         *theme.PerformanceOptimizedManager
+	metrics         theme.ThemeMetrics
+	switchThreshold time.Duration
 }
 
 // CollaborationMonitor monitors collaboration performance
 type CollaborationMonitor struct {
-	service           *collaboration.PerformanceOptimizedCollaborationManager
-	metrics           collaboration.CollaborationMetrics
-	latencyThreshold  time.Duration
+	service          *collaboration.PerformanceOptimizedCollaborationManager
+	metrics          collaboration.CollaborationMetrics
+	latencyThreshold time.Duration
 }
 
 // SystemMonitor monitors system-level performance
@@ -110,41 +110,41 @@ type SystemMonitor struct {
 
 // MemoryMonitor monitors memory usage
 type MemoryMonitor struct {
-	allocations    uint64
-	gcCount        uint32
-	lastGCTime     time.Time
-	mutex          sync.RWMutex
+	allocations uint64
+	gcCount     uint32
+	lastGCTime  time.Time
+	mutex       sync.RWMutex
 }
 
 // AggregatedMetrics combines metrics from all components
 type AggregatedMetrics struct {
-	Timestamp           time.Time              `json:"timestamp"`
-	Database            db.PerformanceMetrics   `json:"database"`
-	AI                  ai.AIMetrics            `json:"ai"`
-	UI                  ui.UIMetrics            `json:"ui"`
-	Theme               theme.ThemeMetrics      `json:"theme"`
-	Collaboration       collaboration.CollaborationMetrics `json:"collaboration"`
-	System              SystemMetrics           `json:"system"`
-	Memory              MemoryMetrics           `json:"memory"`
-	OverallScore        float64                 `json:"overall_score"`
-	PerformanceLevel    PerformanceLevel       `json:"performance_level"`
+	Timestamp        time.Time                          `json:"timestamp"`
+	Database         db.PerformanceMetrics              `json:"database"`
+	AI               ai.AIMetrics                       `json:"ai"`
+	UI               ui.UIMetrics                       `json:"ui"`
+	Theme            theme.ThemeMetrics                 `json:"theme"`
+	Collaboration    collaboration.CollaborationMetrics `json:"collaboration"`
+	System           SystemMetrics                      `json:"system"`
+	Memory           MemoryMetrics                      `json:"memory"`
+	OverallScore     float64                            `json:"overall_score"`
+	PerformanceLevel PerformanceLevel                   `json:"performance_level"`
 }
 
 // SystemMetrics represents system-level metrics
 type SystemMetrics struct {
-	CPUUsage    float64 `json:"cpu_usage"`
-	GoRoutines  int     `json:"go_routines"`
-	GCCount     uint32  `json:"gc_count"`
+	CPUUsage   float64 `json:"cpu_usage"`
+	GoRoutines int     `json:"go_routines"`
+	GCCount    uint32  `json:"gc_count"`
 }
 
 // MemoryMetrics represents memory usage metrics
 type MemoryMetrics struct {
-	Alloc      uint64  `json:"alloc"`
-	TotalAlloc uint64  `json:"total_alloc"`
-	Sys        uint64  `json:"sys"`
-	HeapAlloc  uint64  `json:"heap_alloc"`
-	HeapSys    uint64  `json:"heap_sys"`
-	HeapInuse  uint64  `json:"heap_inuse"`
+	Alloc      uint64 `json:"alloc"`
+	TotalAlloc uint64 `json:"total_alloc"`
+	Sys        uint64 `json:"sys"`
+	HeapAlloc  uint64 `json:"heap_alloc"`
+	HeapSys    uint64 `json:"heap_sys"`
+	HeapInuse  uint64 `json:"heap_inuse"`
 }
 
 // PerformanceLevel represents overall performance level
@@ -159,11 +159,11 @@ const (
 
 // RegressionDetector detects performance regressions
 type RegressionDetector struct {
-	baseline      *AggregatedMetrics
-	history       []*AggregatedMetrics
-	maxHistory    int
-	threshold     float64
-	mutex         sync.RWMutex
+	baseline   *AggregatedMetrics
+	history    []*AggregatedMetrics
+	maxHistory int
+	threshold  float64
+	mutex      sync.RWMutex
 }
 
 // PerformanceAlert represents a performance alert
@@ -195,9 +195,9 @@ func NewMonitor(config MonitorConfig) *Monitor {
 
 	monitor := &Monitor{
 		config:             config,
-		aggregatedMetrics:   &AggregatedMetrics{},
+		aggregatedMetrics:  &AggregatedMetrics{},
 		stopChan:           make(chan struct{}),
-		regressionDetector:  NewRegressionDetector(config.RegressionThreshold, config.HistorySize),
+		regressionDetector: NewRegressionDetector(config.RegressionThreshold, config.HistorySize),
 	}
 
 	// Initialize default alert thresholds
@@ -258,15 +258,15 @@ func (m *Monitor) Stop() {
 // SetDatabaseMonitor sets the database monitor
 func (m *Monitor) SetDatabaseMonitor(db *db.PerformanceOptimizedDB) {
 	m.dbMonitor = &DatabaseMonitor{
-		connectionPool:        db,
-		slowQueryThreshold:   100 * time.Millisecond,
+		connectionPool:     db,
+		slowQueryThreshold: 100 * time.Millisecond,
 	}
 }
 
 // SetAIMonitor sets the AI monitor
 func (m *Monitor) SetAIMonitor(ai *ai.PerformanceOptimizedAI) {
 	m.aiMonitor = &AIMonitor{
-		service:          ai,
+		service:           ai,
 		responseThreshold: 2 * time.Second,
 	}
 }
@@ -274,7 +274,7 @@ func (m *Monitor) SetAIMonitor(ai *ai.PerformanceOptimizedAI) {
 // SetUIMonitor sets the UI monitor
 func (m *Monitor) SetUIMonitor(ui *ui.PerformanceOptimizedUI) {
 	m.uiMonitor = &UIMonitor{
-		service:        ui,
+		service:         ui,
 		renderThreshold: 16 * time.Millisecond,
 	}
 }
@@ -282,7 +282,7 @@ func (m *Monitor) SetUIMonitor(ui *ui.PerformanceOptimizedUI) {
 // SetThemeMonitor sets the theme monitor
 func (m *Monitor) SetThemeMonitor(theme *theme.PerformanceOptimizedManager) {
 	m.themeMonitor = &ThemeMonitor{
-		service:        theme,
+		service:         theme,
 		switchThreshold: 50 * time.Millisecond,
 	}
 }
@@ -531,7 +531,7 @@ func (m *Monitor) checkAlerts(metrics *AggregatedMetrics) {
 
 	// Log alerts
 	for _, alert := range alerts {
-		logging.GetDefaultLogger().Warn("Performance alert", 
+		logging.GetDefaultLogger().Warn("Performance alert",
 			"component", alert.Component,
 			"metric", alert.Metric,
 			"value", alert.Value,
@@ -570,7 +570,7 @@ func (m *Monitor) detectRegressions() {
 	m.mutex.RUnlock()
 
 	regressions := m.regressionDetector.Detect(current)
-	
+
 	for _, regression := range regressions {
 		logging.GetDefaultLogger().Error("Performance regression detected",
 			"component", regression.Component,
@@ -592,7 +592,7 @@ func (m *Monitor) GetMetrics() AggregatedMetrics {
 // GetPerformanceReport returns a comprehensive performance report
 func (m *Monitor) GetPerformanceReport() map[string]interface{} {
 	metrics := m.GetMetrics()
-	
+
 	report := map[string]interface{}{
 		"metrics": metrics,
 		"config":  m.config,
@@ -658,7 +658,7 @@ func (rd *RegressionDetector) compareMetrics(baseline, current *AggregatedMetric
 	if baseline.Database.QueryCount > 0 && current.Database.QueryCount > 0 {
 		baselineAvg := float64(baseline.Database.TotalQueryTime.Nanoseconds()) / float64(baseline.Database.QueryCount)
 		currentAvg := float64(current.Database.TotalQueryTime.Nanoseconds()) / float64(current.Database.QueryCount)
-		
+
 		if degradation := (currentAvg - baselineAvg) / baselineAvg; degradation > rd.threshold {
 			alerts = append(alerts, RegressionAlert{
 				Timestamp:     time.Now(),
@@ -675,7 +675,7 @@ func (rd *RegressionDetector) compareMetrics(baseline, current *AggregatedMetric
 	if baseline.AI.TotalRequests > 0 && current.AI.TotalRequests > 0 {
 		baselineAvg := float64(baseline.AI.AverageResponseTime.Nanoseconds()) / 1e6
 		currentAvg := float64(current.AI.AverageResponseTime.Nanoseconds()) / 1e6
-		
+
 		if degradation := (currentAvg - baselineAvg) / baselineAvg; degradation > rd.threshold {
 			alerts = append(alerts, RegressionAlert{
 				Timestamp:     time.Now(),
@@ -698,6 +698,6 @@ func (rd *RegressionDetector) GetHistory() []*AggregatedMetrics {
 
 	history := make([]*AggregatedMetrics, len(rd.history))
 	copy(history, rd.history)
-	
+
 	return history
 }

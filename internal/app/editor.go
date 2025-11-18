@@ -133,6 +133,8 @@ func (s *EditorService) SaveSong(song *domain.Song) error {
 	// Attempt to save with retry logic
 	var err error
 	maxRetries := 3
+	retryTimer := time.NewTimer(time.Second)
+	defer retryTimer.Stop()
 
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		err = s.songRepo.UpdateSong(song)
@@ -155,11 +157,12 @@ func (s *EditorService) SaveSong(song *domain.Song) error {
 				wait := time.Duration(attempt) * time.Second
 				logging.GetDefaultLogger().Info("Retrying save operation", "id", song.ID, "attempt", attempt+1, "wait", wait)
 
+				retryTimer.Reset(wait)
 				select {
 				case <-ctx.Done():
 					err = errors.NewDatabaseError("save_timeout", ctx.Err()).WithOperation("SaveSong").WithComponent("editor_service")
 					goto handleError
-				case <-time.After(wait):
+				case <-retryTimer.C:
 					continue
 				}
 			}
@@ -292,6 +295,8 @@ func (s *EditorService) AutoSave(song *domain.Song) error {
 	// Attempt to save version with retry logic
 	var err error
 	maxRetries := 2
+	retryTimer := time.NewTimer(500 * time.Millisecond)
+	defer retryTimer.Stop()
 
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		// Serialize full song content (YAML frontmatter + body)
@@ -316,10 +321,11 @@ func (s *EditorService) AutoSave(song *domain.Song) error {
 				wait := time.Duration(attempt) * 500 * time.Millisecond
 				logging.GetDefaultLogger().Debug("Retrying auto-save", "song_id", song.ID, "attempt", attempt+1, "wait", wait)
 
+				retryTimer.Reset(wait)
 				select {
 				case <-ctx.Done():
 					goto handleError
-				case <-time.After(wait):
+				case <-retryTimer.C:
 					// Continue to next retry attempt
 					continue
 				}
