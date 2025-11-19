@@ -2,9 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"github.com/kyanite/focus/internal/engine"
-	"github.com/kyanite/focus/internal/store"
-	"github.com/kyanite/focus/pkg/utils"
 
 	"github.com/spf13/cobra"
 )
@@ -21,8 +18,7 @@ var completeCmd = &cobra.Command{
 		taskID := args[0]
 
 		// Initialize components
-		store := store.New(utils.GetStoragePath())
-		engine := engine.New(store)
+		engine := initEngine()
 
 		// Get task first to show what we're completing
 		task, err := engine.GetTask(taskID)

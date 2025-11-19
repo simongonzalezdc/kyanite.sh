@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -23,6 +24,9 @@ type Manager struct {
 	openRouterKey   string
 	model           string
 	availableModels []string
+
+	// Shared HTTP client for connection pooling
+	httpClient *http.Client
 
 	// Cache for AI responses with LRU eviction
 	cache         map[string]cacheEntry
@@ -36,6 +40,11 @@ type Manager struct {
 	// Model management
 	modelAvailable map[string]bool
 	modelMutex     sync.RWMutex
+
+	// Helper modules
+	promptBuilder *PromptBuilder
+	validator     *TaskValidator
+	ollamaManager *OllamaManager
 }
 
 // cacheEntry represents a cached AI response
@@ -56,15 +65,30 @@ type ParsedTask struct {
 
 // New creates a new AI manager
 func New() *Manager {
+	model := "qwen2.5:1.5b"
+	ollamaBaseURL := "http://localhost:11434"
+
 	manager := &Manager{
-		ollamaURL:     "http://localhost:11434/api/generate",
+		ollamaURL:     ollamaBaseURL + "/api/generate",
 		openRouterKey: os.Getenv("OPENROUTER_API_KEY"),
-		model:         "qwen2.5:1.5b", // Use Qwen 2.5 1.5B for everything
+		model:         model,
 		availableModels: []string{
-			"qwen2.5:1.5b", // Primary - fast and efficient
+			model, // Primary - fast and efficient
+		},
+		// Create shared HTTP client with connection pooling
+		httpClient: &http.Client{
+			Timeout: 30 * time.Second,
+			Transport: &http.Transport{
+				MaxIdleConns:        100,
+				MaxIdleConnsPerHost: 10,
+				IdleConnTimeout:     90 * time.Second,
+			},
 		},
 		cache:          make(map[string]cacheEntry),
 		cacheHits:      make(map[string]time.Time),
+		promptBuilder:  NewPromptBuilder(),
+		validator:      NewTaskValidator(),
+		ollamaManager:  NewOllamaManager(ollamaBaseURL, model),
 		cacheMaxSize:   500, // Limit cache to 500 entries
 		modelAvailable: make(map[string]bool),
 	}
@@ -267,15 +291,14 @@ func (m *Manager) requestRemoteApproval(feature string) bool {
 	return response == "y" || response == "yes"
 }
 
-// parseWithOllama uses local Ollama for task parsing
-func (m *Manager) parseWithOllama(ctx context.Context, input string) (*ParsedTask, error) {
-	prompt := m.buildParsePrompt(input)
-
+// makeOllamaRequest is a helper function to make requests to Ollama
+// Returns the raw response string from the model
+func (m *Manager) makeOllamaRequest(ctx context.Context, prompt string) (string, error) {
 	// Check if model is available
 	if !m.isModelAvailable(m.model) {
 		// Try to pull model automatically
 		if err := m.pullModel(m.model); err != nil {
-			return nil, fmt.Errorf("model %s not available and could not be pulled: %w", m.model, err)
+			return "", fmt.Errorf("model %s not available and could not be pulled: %w", m.model, err)
 		}
 	}
 
@@ -288,25 +311,24 @@ func (m *Manager) parseWithOllama(ctx context.Context, input string) (*ParsedTas
 
 	body, err := json.Marshal(payload)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", m.ollamaURL, bytes.NewBuffer(body))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("ollama request failed with status %d", resp.StatusCode)
+		return "", fmt.Errorf("ollama request failed with status %d", resp.StatusCode)
 	}
 
 	var result struct {
@@ -314,13 +336,78 @@ func (m *Manager) parseWithOllama(ctx context.Context, input string) (*ParsedTas
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+
+	return result.Response, nil
+}
+
+// makeOpenRouterRequest is a helper function to make requests to OpenRouter
+// Returns the raw response string from the model
+func (m *Manager) makeOpenRouterRequest(ctx context.Context, prompt string) (string, error) {
+	payload := map[string]any{
+		"model": "meta-llama/llama-3.2-3b-instruct:free",
+		"messages": []map[string]string{
+			{"role": "user", "content": prompt},
+		},
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", "https://openrouter.ai/api/v1/chat/completions", bytes.NewBuffer(body))
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+m.openRouterKey)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
+
+	resp, err := m.httpClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("openrouter request failed with status %d", resp.StatusCode)
+	}
+
+	var result struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+
+	if len(result.Choices) == 0 {
+		return "", fmt.Errorf("no response from openrouter")
+	}
+
+	return result.Choices[0].Message.Content, nil
+}
+
+// parseWithOllama uses local Ollama for task parsing
+func (m *Manager) parseWithOllama(ctx context.Context, input string) (*ParsedTask, error) {
+	prompt := m.buildParsePrompt(input)
+
+	response, err := m.makeOllamaRequest(ctx, prompt)
+	if err != nil {
 		return nil, err
 	}
 
 	var parsedTask ParsedTask
-	if err := json.Unmarshal([]byte(result.Response), &parsedTask); err != nil {
+	if err := json.Unmarshal([]byte(response), &parsedTask); err != nil {
 		// Try to extract JSON from the response if it's wrapped
-		content := m.extractJSON(result.Response)
+		content := m.extractJSON(response)
 		if err := json.Unmarshal([]byte(content), &parsedTask); err != nil {
 			return nil, err
 		}
@@ -356,7 +443,7 @@ func (m *Manager) launchOllamaAsync() error {
 	var cmd *exec.Cmd
 
 	// Choose command based on OS
-	if os.Getenv("OS") == "Windows_NT" {
+	if runtime.GOOS == "windows" {
 		cmd = exec.Command("powershell", "-Command", "Start-Process", "ollama")
 	} else {
 		cmd = exec.Command("ollama", "serve")
@@ -475,8 +562,8 @@ func (m *Manager) pullModel(modelName string) error {
 
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 5 * time.Minute}
-	resp, err := client.Do(req)
+	// Note: Using shared client; for longer operations consider using context with timeout
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -517,8 +604,7 @@ func (m *Manager) suggestWithOllama(ctx context.Context, existingTasks []string)
 
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -576,8 +662,7 @@ func (m *Manager) chatWithOllama(ctx context.Context, question string, tasks []s
 
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -620,17 +705,8 @@ func (m *Manager) summarizeWithOllama(ctx context.Context, tasks []string) (stri
 
 	req.Header.Set("Content-Type", "application/json")
 
-	// Performance optimization - reuse HTTP client with connection pooling
-	client := &http.Client{
-		Timeout: 30 * time.Second,
-		Transport: &http.Transport{
-			MaxIdleConns:        10,
-			IdleConnTimeout:     30 * time.Second,
-			MaxIdleConnsPerHost: 2,
-		},
-	}
-
-	resp, err := client.Do(req)
+	// Use shared HTTP client with connection pooling
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -681,8 +757,7 @@ func (m *Manager) parseWithOpenRouter(ctx context.Context, input string) (*Parse
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -757,8 +832,7 @@ func (m *Manager) suggestWithOpenRouter(ctx context.Context, existingTasks []str
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -839,8 +913,7 @@ func (m *Manager) chatWithOpenRouter(ctx context.Context, question string, tasks
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -899,17 +972,8 @@ func (m *Manager) summarizeWithOpenRouter(ctx context.Context, tasks []string) (
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("HTTP-Referer", "https://github.com/kyanite/focus")
 
-	// Performance optimization - reuse HTTP client with connection pooling
-	client := &http.Client{
-		Timeout: 30 * time.Second,
-		Transport: &http.Transport{
-			MaxIdleConns:        10,
-			IdleConnTimeout:     30 * time.Second,
-			MaxIdleConnsPerHost: 2,
-		},
-	}
-
-	resp, err := client.Do(req)
+	// Use shared HTTP client with connection pooling
+	resp, err := m.httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -938,231 +1002,34 @@ func (m *Manager) summarizeWithOpenRouter(ctx context.Context, tasks []string) (
 	return result.Choices[0].Message.Content, nil
 }
 
-// buildParsePrompt creates the prompt for task parsing with enhanced deadline parsing
+// buildParsePrompt delegates to PromptBuilder
 func (m *Manager) buildParsePrompt(input string) string {
-	return fmt.Sprintf(`You are a task parsing assistant for focus.sh. Extract task information from user input.
- 
-Guidelines:
-- Be concise and direct
-- Focus on action words
-- Parse natural language dates
-- Set priority to medium if unclear
-- Extract up to 3 meaningful categories
- 
-Format response as JSON:
-{
-  "description": "clear task description (2-200 chars)",
-  "deadline": "ISO date or null",
-  "priority": "low|medium|high",
-  "categories": ["category1", "category2"]
-}
- 
-User input: %s
- 
-JSON Response:`, input)
+	return m.promptBuilder.BuildParsePrompt(input)
 }
 
-// buildSuggestPrompt creates the prompt for task suggestions with context awareness
+// buildSuggestPrompt delegates to PromptBuilder
 func (m *Manager) buildSuggestPrompt(existingTasks []string) string {
-	tasksStr := "[]"
-	if len(existingTasks) > 0 {
-		tasksStr = fmt.Sprintf("[\"%s\"]", strings.Join(existingTasks, "\", \""))
-	}
-
-	return fmt.Sprintf(`You are a task suggestion assistant for focus.sh. Generate 3-5 relevant follow-up tasks.
-	
-Guidelines:
-- Create actionable items starting with verbs
-- Make tasks specific and manageable
-- Consider user's existing tasks
-- Focus on one task at a time
-	
-Existing tasks: %s
-	
-Format response as JSON:
-{
-	 "tasks": [
-	   "actionable task 1",
-	   "actionable task 2",
-	   "actionable task 3"
-	 ]
-}
-	
-JSON Response:`, tasksStr)
+	return m.promptBuilder.BuildSuggestPrompt(existingTasks)
 }
 
-// buildSummaryPrompt creates the prompt for task summary with advanced insights
+// buildSummaryPrompt delegates to PromptBuilder
 func (m *Manager) buildSummaryPrompt(tasks []string) string {
-	tasksStr := "[]"
-	if len(tasks) > 0 {
-		tasksStr = fmt.Sprintf("[\"%s\"]", strings.Join(tasks, "\", \""))
-	}
-
-	return fmt.Sprintf(`You are a productivity analyst for focus.sh. Provide a concise task summary.
-	
-Required Analysis:
-1. Total tasks and completion ratio
-2. Priority distribution
-3. 1-2 key insights or patterns
-4. 1 specific recommendation
-	
-Tasks: %s
-	
-Provide exactly 3-4 sentences with clear insights. No filler.
-	
-Summary:`, tasksStr)
+	return m.promptBuilder.BuildSummaryPrompt(tasks)
 }
 
-// buildChatPrompt creates the prompt for chat assistance
+// buildChatPrompt delegates to PromptBuilder
 func (m *Manager) buildChatPrompt(question string, tasks []string) string {
-	tasksStr := "[]"
-	if len(tasks) > 0 {
-		tasksStr = fmt.Sprintf("[\"%s\"]", strings.Join(tasks, "\", \""))
-	}
-
-	return fmt.Sprintf(`You are Focus, a helpful AI assistant for task management and productivity. You have three main roles:
-
-1. 📋 TASK HELPER - Help with task management, planning, and productivity
-2. 🎮 APP GUIDE - Help with using the focus.sh application features  
-3. 🤖 GENERAL ASSISTANT - Be a helpful AI assistant for various questions
-
-PERSONALITY:
-- Helpful and professional, but friendly and approachable
-- Clear and concise in your responses
-- Knowledgeable about productivity, task management, and technology
-- Encouraging and positive
-
-SPEECH STYLE:
-- Be direct and practical
-- Use clear, simple language
-- Provide actionable advice when possible
-- Be encouraging without being overly casual
-- Use appropriate emojis to enhance clarity
-
-CURRENT USER TASKS (only mention if relevant to the conversation):
-User tasks: %s
-
-focus.sh APP COMMANDS:
-- add "task" - Add new task
-- list --filter=active/completed/all - List tasks
-- done <task-id> - Complete task
-- remove <task-id> - Delete task
-- priority <task-id> <high/medium/low> - Set priority
-- notes <task-id> - Edit task notes
-- dashboard - Launch TUI dashboard
-- K - Open calendar (in TUI), rad synthwave month view
-- N - Edit notes (in TUI)
-- / - Filter tasks (in TUI)
-- C - Chat assistant (in TUI)
-- help - Show all commands
-	
-RESPONSE GUIDELINES:
-- If user asks about tasks: be helpful and professional
-- If user asks about app: explain focus.sh features with synthwave vibe
-- If general question: be a confident, knowledgeable AI with personality
-- You can code, explain tech concepts, give advice, be creative
-- Add some synthwave flavor when it fits
-	
-USER QUESTION: %s
-	
-Give a rad synthwave-cyberpunk response that's actually helpful. Be confident, engaging, and maybe a little edgy.`, tasksStr, question)
+	return m.promptBuilder.BuildChatPrompt(question, tasks)
 }
 
-// validateResponse checks for hallucinations and invalid responses with enhanced detection
+// validateResponse delegates to TaskValidator
 func (m *Manager) validateResponse(task *ParsedTask) (*ParsedTask, bool) {
-	if task == nil {
-		return nil, false
-	}
-
-	// Check description is not empty
-	if task.Description == "" {
-		return nil, false
-	}
-
-	// Check description is reasonable (not too short or too long)
-	if len(task.Description) < 2 || len(task.Description) > 200 {
-		return nil, false
-	}
-
-	// Enhanced description quality check
-	if m.isLowQualityDescription(task.Description) {
-		return nil, false
-	}
-
-	// Check priority is valid
-	validPriorities := map[string]bool{
-		"low":    true,
-		"medium": true,
-		"high":   true,
-	}
-
-	if task.Priority == "" {
-		task.Priority = "medium" // Default priority
-	} else if !validPriorities[task.Priority] {
-		task.Priority = "medium" // Normalize invalid priority
-	}
-
-	// Basic category validation
-	validCategories := []string{}
-	for _, category := range task.Categories {
-		if len(category) >= 2 && len(category) <= 20 {
-			validCategories = append(validCategories, category)
-		}
-	}
-	task.Categories = validCategories
-
-	// Validate deadline if present
-	if !task.Deadline.IsZero() {
-		now := time.Now()
-		// Check if deadline is in the past (unreasonable)
-		if task.Deadline.Before(now.Add(-24 * time.Hour)) {
-			task.Deadline = time.Time{} // Clear invalid deadline
-		}
-		// Check if deadline is too far in the future (likely hallucination)
-		if task.Deadline.After(now.Add(365 * 24 * time.Hour)) {
-			task.Deadline = time.Time{} // Clear unreasonable deadline
-		}
-	}
-
-	return task, true
+	return m.validator.Validate(task)
 }
 
-// isLowQualityDescription checks if a description is likely hallucinated or low quality
+// isLowQualityDescription delegates to TaskValidator
 func (m *Manager) isLowQualityDescription(description string) bool {
-	// Check for repeated characters (hallucination indicator)
-	if strings.Contains(description, "aaaa") || strings.Contains(description, "bbbb") {
-		return true
-	}
-
-	// Check for placeholder text
-	lowerDesc := strings.ToLower(description)
-	placeholderIndicators := []string{"task description", "placeholder", "example task"}
-	for _, indicator := range placeholderIndicators {
-		if strings.Contains(lowerDesc, indicator) {
-			return true
-		}
-	}
-
-	// Check for meaningless text (all same words, etc.)
-	words := strings.Fields(description)
-	if len(words) == 0 {
-		return true
-	}
-
-	// If all words are the same (likely hallucination)
-	firstWord := strings.ToLower(words[0])
-	allSame := true
-	for _, word := range words {
-		if strings.ToLower(word) != firstWord {
-			allSame = false
-			break
-		}
-	}
-	if allSame && len(words) > 3 {
-		return true
-	}
-
-	return false
+	return m.validator.IsLowQuality(description)
 }
 
 // filterLowQualitySuggestions removes low quality or hallucinated suggestions

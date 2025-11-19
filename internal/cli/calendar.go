@@ -7,7 +7,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/internal/engine"
-	"github.com/kyanite/focus/internal/store"
+	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/calendar"
 	"github.com/kyanite/focus/pkg/config"
 	"github.com/kyanite/focus/pkg/models"
@@ -72,8 +72,8 @@ func init() {
 
 func calendarShowHandler(cmd *cobra.Command, args []string) {
 	// Initialize components
-	storage := store.New(utils.GetStoragePath())
-	taskEngine := engine.New(storage)
+	repo := repository.NewStoreRepository(utils.GetStoragePath())
+	taskEngine := engine.New(repo)
 
 	// Load configuration
 	cfg, err := config.LoadConfig()
@@ -133,8 +133,8 @@ func calendarShowHandler(cmd *cobra.Command, args []string) {
 
 func calendarTodayHandler(cmd *cobra.Command, args []string) {
 	// Initialize components
-	storage := store.New(utils.GetStoragePath())
-	taskEngine := engine.New(storage)
+	repo := repository.NewStoreRepository(utils.GetStoragePath())
+	taskEngine := engine.New(repo)
 
 	// Load configuration
 	cfg, err := config.LoadConfig()
@@ -197,8 +197,8 @@ func calendarAddHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Initialize components
-	storage := store.New(utils.GetStoragePath())
-	taskEngine := engine.New(storage)
+	repo := repository.NewStoreRepository(utils.GetStoragePath())
+	taskEngine := engine.New(repo)
 
 	// Create task with deadline
 	task := struct {
@@ -247,8 +247,8 @@ func calendarAddHandler(cmd *cobra.Command, args []string) {
 
 func calendarListHandler(cmd *cobra.Command, args []string) {
 	// Initialize components
-	storage := store.New(utils.GetStoragePath())
-	taskEngine := engine.New(storage)
+	repo := repository.NewStoreRepository(utils.GetStoragePath())
+	taskEngine := engine.New(repo)
 
 	// Get all tasks
 	tasks, err := taskEngine.ListTasks("all")
@@ -325,8 +325,8 @@ func calendarListHandler(cmd *cobra.Command, args []string) {
 
 func calendarNavigateHandler(cmd *cobra.Command, args []string) {
 	// Initialize components
-	storage := store.New(utils.GetStoragePath())
-	taskEngine := engine.New(storage)
+	repo := repository.NewStoreRepository(utils.GetStoragePath())
+	taskEngine := engine.New(repo)
 
 	// Load configuration
 	cfg, err := config.LoadConfig()
@@ -404,8 +404,17 @@ func parseDate(dateStr string) (time.Time, error) {
 	case "last week":
 		return now.AddDate(0, 0, -7), nil
 	case "next monday", "next tuesday", "next wednesday", "next thursday", "next friday", "next saturday", "next sunday":
-		days := map[string]int{"next monday": 1, "next tuesday": 2, "next wednesday": 3, "next thursday": 4, "next friday": 5, "next saturday": 6, "next sunday": 7}
-		return now.AddDate(0, 0, days[dateStr]), nil
+		targetDays := map[string]time.Weekday{
+			"next monday": time.Monday, "next tuesday": time.Tuesday, "next wednesday": time.Wednesday,
+			"next thursday": time.Thursday, "next friday": time.Friday, "next saturday": time.Saturday, "next sunday": time.Sunday,
+		}
+		targetDay := targetDays[dateStr]
+		currentDay := now.Weekday()
+		daysUntilTarget := (int(targetDay) - int(currentDay) + 7) % 7
+		if daysUntilTarget == 0 {
+			daysUntilTarget = 7 // If it's the same day, go to next week
+		}
+		return now.AddDate(0, 0, daysUntilTarget), nil
 	}
 
 	// Try ISO date format

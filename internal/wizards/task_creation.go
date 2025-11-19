@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/internal/engine"
-	"github.com/kyanite/focus/internal/store"
+	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/pkg/utils"
 )
@@ -26,8 +26,8 @@ var (
 // TaskCreationWizard creates a comprehensive task creation form
 func TaskCreationWizard() error {
 	// Initialize components
-	storage := store.New(utils.GetStoragePath())
-	taskEngine := engine.New(storage)
+	repo := repository.NewStoreRepository(utils.GetStoragePath())
+	taskEngine := engine.New(repo)
 
 	var task models.ParsedTask
 	var dueDateStr string

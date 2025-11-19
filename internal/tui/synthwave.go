@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/kyanite/focus/internal/engine"
-	"github.com/kyanite/focus/internal/store"
+	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/pkg/styles"
 	"github.com/kyanite/focus/pkg/utils"
@@ -17,7 +17,6 @@ import (
 
 // Clean TUI Model
 type Model struct {
-	store         *store.Store
 	engine        *engine.Engine
 	tasks         []models.Task
 	currentView   string
@@ -27,8 +26,8 @@ type Model struct {
 }
 
 func NewModel() *Model {
-	store := store.New(utils.GetStoragePath())
-	engine := engine.New(store)
+	repo := repository.NewStoreRepository(utils.GetStoragePath())
+	engine := engine.New(repo)
 
 	tasks, _ := engine.ListTasks("all")
 
@@ -46,7 +45,6 @@ func NewModel() *Model {
 	}
 
 	return &Model{
-		store:         store,
 		engine:        engine,
 		tasks:         modelTasks,
 		currentView:   "dashboard",

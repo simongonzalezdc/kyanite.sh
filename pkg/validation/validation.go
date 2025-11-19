@@ -273,8 +273,10 @@ func SanitizeInput(input string) string {
 	sanitized := strings.ReplaceAll(input, "\x00", "")
 	sanitized = strings.ReplaceAll(sanitized, "\r\n", " ")
 	sanitized = strings.ReplaceAll(sanitized, "\n", " ")
-	if len(sanitized) > 1000 {
-		sanitized = sanitized[:1000]
+	// Use rune length to properly handle multi-byte UTF-8 characters
+	runes := []rune(sanitized)
+	if len(runes) > 1000 {
+		sanitized = string(runes[:1000])
 	}
 	return strings.TrimSpace(sanitized)
 }

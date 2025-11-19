@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func (m MainModel) renderChatView() string {
+func (m *MainModel) renderChatView() string {
 	var b strings.Builder
 
 	// CONSISTENT: Standard header styling

@@ -2,15 +2,15 @@ package main
 
 import (
 	"github.com/kyanite/focus/internal/engine"
-	"github.com/kyanite/focus/internal/store"
+	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/models"
 	"testing"
 )
 
 func TestTaskManagement(t *testing.T) {
 	// Create a temporary store for testing
-	store := store.New("./test_tasks.json")
-	engine := engine.New(store)
+	repo := repository.NewStoreRepository("./test_tasks.json")
+	engine := engine.New(repo)
 
 	// Test adding a task
 	parsedTask := models.ParsedTask{

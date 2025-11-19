@@ -6,7 +6,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/internal/engine"
-	"github.com/kyanite/focus/internal/store"
+	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/gum"
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/pkg/utils"
@@ -30,8 +30,8 @@ func interactiveHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Initialize components
-	storage := store.New(utils.GetStoragePath())
-	taskEngine := engine.New(storage)
+	repo := repository.NewStoreRepository(utils.GetStoragePath())
+	taskEngine := engine.New(repo)
 
 	fmt.Println("🎯 focus.sh Interactive Task Creator")
 	fmt.Println(strings.Repeat("─", 50))
@@ -108,8 +108,8 @@ func filterHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Initialize components
-	storage := store.New(utils.GetStoragePath())
-	taskEngine := engine.New(storage)
+	repo := repository.NewStoreRepository(utils.GetStoragePath())
+	taskEngine := engine.New(repo)
 
 	// Get all tasks
 	tasks, err := taskEngine.ListTasks("all")

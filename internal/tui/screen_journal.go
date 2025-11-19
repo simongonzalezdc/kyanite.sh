@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func (m MainModel) renderJournalView() string {
+func (m *MainModel) renderJournalView() string {
 	var b strings.Builder
 
 	// CONSISTENT: Standard header styling
