@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/huh"
@@ -46,10 +47,31 @@ Example: focus edit abc123`,
 
 		// Interactive form for editing
 		var (
-			description string
-			priority    string
-			useAI       bool
+			description  string
+			priority     string
+			deadline     string
+			categories   string
+			notes        string
+			status       string
+			useAI        bool
 		)
+
+		// Prepare default values
+		deadlineStr := ""
+		if !task.Deadline.IsZero() {
+			deadlineStr = task.Deadline.Format("2006-01-02")
+		}
+
+		categoriesStr := ""
+		if len(task.Categories) > 0 {
+			categoriesStr = ""
+			for i, cat := range task.Categories {
+				if i > 0 {
+					categoriesStr += ", "
+				}
+				categoriesStr += cat
+			}
+		}
 
 		form := huh.NewForm(
 			huh.NewGroup(
@@ -67,6 +89,32 @@ Example: focus edit abc123`,
 					).
 					Value(&priority),
 
+				huh.NewSelect[string]().
+					Title("Status").
+					Options(
+						huh.NewOption("Pending", "pending"),
+						huh.NewOption("Completed", "completed"),
+					).
+					Value(&status),
+			),
+			huh.NewGroup(
+				huh.NewInput().
+					Title("Deadline (YYYY-MM-DD, leave empty to clear)").
+					Value(&deadline).
+					Placeholder(deadlineStr),
+
+				huh.NewInput().
+					Title("Categories (comma-separated)").
+					Value(&categories).
+					Placeholder(categoriesStr),
+
+				huh.NewText().
+					Title("Notes (optional)").
+					Value(&notes).
+					Placeholder(task.Notes).
+					Lines(3),
+			),
+			huh.NewGroup(
 				huh.NewConfirm().
 					Title("Use AI to enhance description?").
 					Value(&useAI),
@@ -84,6 +132,12 @@ Example: focus edit abc123`,
 		}
 		if priority == "" {
 			priority = task.Priority
+		}
+		if status == "" {
+			status = task.Status
+		}
+		if notes == "" {
+			notes = task.Notes
 		}
 
 		// Validate new description
@@ -113,9 +167,36 @@ Example: focus edit abc123`,
 			}
 		}
 
-		// Update task
+		// Parse and update deadline
+		if deadline != "" {
+			deadlineTime, err := time.Parse("2006-01-02", deadline)
+			if err == nil {
+				task.Deadline = deadlineTime
+			}
+		} else if deadline == "" && deadlineStr != "" {
+			// User cleared the deadline
+			task.Deadline = time.Time{}
+		}
+
+		// Parse and update categories
+		if categories != "" {
+			task.Categories = []string{}
+			for _, cat := range splitAndTrim(categories) {
+				if cat != "" {
+					task.Categories = append(task.Categories, cat)
+				}
+			}
+		} else if categories == "" && categoriesStr != "" {
+			// User cleared categories
+			task.Categories = []string{}
+		}
+
+		// Update task fields
 		task.Description = description
 		task.Priority = priority
+		task.Status = status
+		task.Notes = notes
+		task.UpdatedAt = time.Now()
 
 		if err := engine.UpdateTask(task); err != nil {
 			showEditError(fmt.Sprintf("Failed to update task: %s", err.Error()))
@@ -192,6 +273,18 @@ func showEditSuccess(task models.Task) {
 		fmt.Println(detailLine)
 	}
 	fmt.Println()
+}
+
+func splitAndTrim(s string) []string {
+	parts := strings.Split(s, ",")
+	result := make([]string, 0, len(parts))
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+	return result
 }
 
 func init() {
