@@ -198,18 +198,18 @@ func TestOpenRouterProvider_GetName(t *testing.T) {
 
 func TestOpenRouterProvider_IsAvailable(t *testing.T) {
 	tests := []struct {
-		name           string
-		openRouterKey  string
+		name            string
+		openRouterKey   string
 		expectAvailable bool
 	}{
 		{
-			name:           "with API key",
-			openRouterKey:  "test-key",
+			name:            "with API key",
+			openRouterKey:   "test-key",
 			expectAvailable: true,
 		},
 		{
-			name:           "without API key",
-			openRouterKey:  "",
+			name:            "without API key",
+			openRouterKey:   "",
 			expectAvailable: false,
 		},
 	}

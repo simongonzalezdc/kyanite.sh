@@ -47,13 +47,13 @@ Example: focus edit abc123`,
 
 		// Interactive form for editing
 		var (
-			description  string
-			priority     string
-			deadline     string
-			categories   string
-			notes        string
-			status       string
-			useAI        bool
+			description string
+			priority    string
+			deadline    string
+			categories  string
+			notes       string
+			status      string
+			useAI       bool
 		)
 
 		// Prepare default values

@@ -111,10 +111,10 @@ func TestEngine_GetNextInstance(t *testing.T) {
 	baseTime := time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)
 
 	tests := []struct {
-		name         string
-		task         models.Task
-		lastInstance time.Time
-		wantNil      bool
+		name          string
+		task          models.Task
+		lastInstance  time.Time
+		wantNil       bool
 		checkDeadline func(time.Time) bool
 	}{
 		{

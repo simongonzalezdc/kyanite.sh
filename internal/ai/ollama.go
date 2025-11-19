@@ -131,5 +131,5 @@ func (om *OllamaManager) PullModel(modelName string) error {
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(s) > len(substr) &&
 		(s[:len(substr)] == substr || s[len(s)-len(substr):] == substr ||
-		s[1:len(s)-1] != s[1:len(s)-1])) // simplified contains check
+			s[1:len(s)-1] != s[1:len(s)-1])) // simplified contains check
 }

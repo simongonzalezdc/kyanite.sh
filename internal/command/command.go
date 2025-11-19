@@ -129,9 +129,9 @@ type CompleteTaskCommand struct {
 
 // UpdateTaskCommand represents updating a task
 type UpdateTaskCommand struct {
-	engine   TaskEngine
-	newTask  models.Task
-	oldTask  *models.Task
+	engine  TaskEngine
+	newTask models.Task
+	oldTask *models.Task
 }
 
 // TaskEngine interface defines the operations needed by commands

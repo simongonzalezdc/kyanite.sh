@@ -3,16 +3,12 @@ package cli
 import (
 	"context"
 	"fmt"
-	"github.com/kyanite/focus/internal/ai"
-	"github.com/kyanite/focus/internal/engine"
-	"github.com/kyanite/focus/internal/repository"
-	"github.com/kyanite/focus/pkg/models"
-	"github.com/kyanite/focus/pkg/styles"
-	"github.com/kyanite/focus/pkg/utils"
-	"github.com/kyanite/focus/pkg/validation"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/focus/pkg/models"
+	"github.com/kyanite/focus/pkg/styles"
+	"github.com/kyanite/focus/pkg/validation"
 	"github.com/spf13/cobra"
 )
 
@@ -42,9 +38,7 @@ Example: focus add "Complete the project by Friday"`,
 		showProcessingAnimation(description)
 
 		// Initialize components
-		repo := repository.NewStoreRepository(utils.GetStoragePath())
-		engine := engine.New(repo)
-		aiManager := ai.New()
+		engine, aiManager := initEngineAndAI()
 
 		// AI-powered task parsing
 		var task models.ParsedTask

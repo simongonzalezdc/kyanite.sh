@@ -261,9 +261,9 @@ func exportToJSON(tasks []models.Task, filename string) error {
 
 	// Create export structure
 	export := struct {
-		ExportedAt time.Time      `json:"exported_at"`
-		TotalTasks int            `json:"total_tasks"`
-		Tasks      []models.Task  `json:"tasks"`
+		ExportedAt time.Time     `json:"exported_at"`
+		TotalTasks int           `json:"total_tasks"`
+		Tasks      []models.Task `json:"tasks"`
 	}{
 		ExportedAt: time.Now(),
 		TotalTasks: len(tasks),

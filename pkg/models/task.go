@@ -26,7 +26,7 @@ type Task struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 
 	// Hierarchy fields
-	ParentID string   `json:"parent_id,omitempty"` // for subtasks
+	ParentID   string   `json:"parent_id,omitempty"`   // for subtasks
 	SubtaskIDs []string `json:"subtask_ids,omitempty"` // IDs of child tasks
 
 	// Recurrence fields

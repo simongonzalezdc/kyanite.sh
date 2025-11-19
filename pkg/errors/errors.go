@@ -8,12 +8,12 @@ import (
 // Common error types
 var (
 	// Task errors
-	ErrTaskNotFound        = errors.New("task not found")
-	ErrTaskAlreadyExists   = errors.New("task already exists")
-	ErrEmptyDescription    = errors.New("task description cannot be empty")
-	ErrInvalidPriority     = errors.New("invalid priority level")
-	ErrInvalidStatus       = errors.New("invalid task status")
-	ErrInvalidDeadline     = errors.New("invalid deadline format")
+	ErrTaskNotFound      = errors.New("task not found")
+	ErrTaskAlreadyExists = errors.New("task already exists")
+	ErrEmptyDescription  = errors.New("task description cannot be empty")
+	ErrInvalidPriority   = errors.New("invalid priority level")
+	ErrInvalidStatus     = errors.New("invalid task status")
+	ErrInvalidDeadline   = errors.New("invalid deadline format")
 
 	// Template errors
 	ErrTemplateNotFound      = errors.New("template not found")
