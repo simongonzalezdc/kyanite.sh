@@ -16,53 +16,53 @@ import (
 // PerformanceManager integrates all performance optimization components
 type PerformanceManager struct {
 	// Performance components
-	dbOptimizer       *db.PerformanceOptimizedDB
-	aiOptimizer       *ai.PerformanceOptimizedAI
-	uiOptimizer       *ui.PerformanceOptimizedUI
-	themeOptimizer    *theme.PerformanceOptimizedManager
-	collabOptimizer   *collaboration.PerformanceOptimizedCollaborationManager
-	memoryOptimizer   *MemoryOptimizer
-	monitor           *Monitor
-	
+	dbOptimizer     *db.PerformanceOptimizedDB
+	aiOptimizer     *ai.PerformanceOptimizedAI
+	uiOptimizer     *ui.PerformanceOptimizedUI
+	themeOptimizer  *theme.PerformanceOptimizedManager
+	collabOptimizer *collaboration.PerformanceOptimizedCollaborationManager
+	memoryOptimizer *MemoryOptimizer
+	monitor         *Monitor
+
 	// Configuration
-	config            PerformanceManagerConfig
-	
+	config PerformanceManagerConfig
+
 	// Synchronization
-	mutex             sync.RWMutex
-	started           bool
-	stopChan          chan struct{}
-	
+	mutex    sync.RWMutex
+	started  bool
+	stopChan chan struct{}
+
 	// Metrics collection
-	metricsCollector  *MetricsCollector
+	metricsCollector *MetricsCollector
 }
 
 // PerformanceManagerConfig defines configuration for the performance manager
 type PerformanceManagerConfig struct {
-	EnableDBOptimization       bool          `json:"enable_db_optimization"`
-	EnableAIOptimization       bool          `json:"enable_ai_optimization"`
-	EnableUIOptimization       bool          `json:"enable_ui_optimization"`
-	EnableThemeOptimization    bool          `json:"enable_theme_optimization"`
-	EnableCollabOptimization   bool          `json:"enable_collab_optimization"`
-	EnableMemoryOptimization   bool          `json:"enable_memory_optimization"`
-	EnableMonitoring           bool          `json:"enable_monitoring"`
-	MetricsCollectionInterval  time.Duration `json:"metrics_collection_interval"`
-	PerformanceReportInterval  time.Duration `json:"performance_report_interval"`
-	EnableAutoTuning           bool          `json:"enable_auto_tuning"`
-	TargetResponseTime         time.Duration `json:"target_response_time"`
-	TargetMemoryUsage          uint64        `json:"target_memory_usage"`
-	EnableRegressionDetection  bool          `json:"enable_regression_detection"`
+	EnableDBOptimization      bool          `json:"enable_db_optimization"`
+	EnableAIOptimization      bool          `json:"enable_ai_optimization"`
+	EnableUIOptimization      bool          `json:"enable_ui_optimization"`
+	EnableThemeOptimization   bool          `json:"enable_theme_optimization"`
+	EnableCollabOptimization  bool          `json:"enable_collab_optimization"`
+	EnableMemoryOptimization  bool          `json:"enable_memory_optimization"`
+	EnableMonitoring          bool          `json:"enable_monitoring"`
+	MetricsCollectionInterval time.Duration `json:"metrics_collection_interval"`
+	PerformanceReportInterval time.Duration `json:"performance_report_interval"`
+	EnableAutoTuning          bool          `json:"enable_auto_tuning"`
+	TargetResponseTime        time.Duration `json:"target_response_time"`
+	TargetMemoryUsage         uint64        `json:"target_memory_usage"`
+	EnableRegressionDetection bool          `json:"enable_regression_detection"`
 }
 
 // MetricsCollector collects and aggregates performance metrics
 type MetricsCollector struct {
-	dbMetrics        []db.PerformanceMetrics
-	aiMetrics        []ai.AIMetrics
-	uiMetrics        []ui.UIMetrics
-	themeMetrics     []theme.ThemeMetrics
-	collabMetrics    []collaboration.CollaborationMetrics
-	memoryMetrics    []MemoryMetrics
-	mutex            sync.RWMutex
-	maxHistorySize   int
+	dbMetrics      []db.PerformanceMetrics
+	aiMetrics      []ai.AIMetrics
+	uiMetrics      []ui.UIMetrics
+	themeMetrics   []theme.ThemeMetrics
+	collabMetrics  []collaboration.CollaborationMetrics
+	memoryMetrics  []MemoryMetrics
+	mutex          sync.RWMutex
+	maxHistorySize int
 }
 
 // NewPerformanceManager creates a new performance manager
@@ -126,14 +126,14 @@ func (pm *PerformanceManager) Initialize() error {
 	// Initialize UI optimizer
 	if pm.config.EnableUIOptimization {
 		uiConfig := ui.UIPerformanceConfig{
-			MaxFrameRate:       60,
-			EnableRenderCache:  true,
-			CacheMaxSize:       1000,
-			EnableLazyLoading:  true,
-			AnimationPoolSize:  50,
+			MaxFrameRate:      60,
+			EnableRenderCache: true,
+			CacheMaxSize:      1000,
+			EnableLazyLoading: true,
+			AnimationPoolSize: 50,
 			ThemePreloadCount: 3,
-			EnableMetrics:      true,
-			RenderTimeout:      16 * time.Millisecond,
+			EnableMetrics:     true,
+			RenderTimeout:     16 * time.Millisecond,
 		}
 		pm.uiOptimizer = ui.NewPerformanceOptimizedUI(uiConfig)
 	}
@@ -141,14 +141,14 @@ func (pm *PerformanceManager) Initialize() error {
 	// Initialize theme optimizer
 	if pm.config.EnableThemeOptimization {
 		themeConfig := theme.ThemePerformanceConfig{
-			PreloadThemes:      []string{"default", "dark", "light"},
-			CacheSize:          100,
-			EnableAsyncSave:    true,
-			SaveBatchSize:      5,
-			SaveInterval:       1 * time.Second,
-			EnableRenderCache:  true,
-			RenderCacheSize:    200,
-			EnableMetrics:      true,
+			PreloadThemes:     []string{"default", "dark", "light"},
+			CacheSize:         100,
+			EnableAsyncSave:   true,
+			SaveBatchSize:     5,
+			SaveInterval:      1 * time.Second,
+			EnableRenderCache: true,
+			RenderCacheSize:   200,
+			EnableMetrics:     true,
 		}
 		pm.themeOptimizer = theme.NewPerformanceOptimizedManager(themeConfig)
 	}
@@ -158,15 +158,15 @@ func (pm *PerformanceManager) Initialize() error {
 		// Create a mock database for collaboration manager
 		mockDB := &db.DB{} // This would be the actual database connection
 		collabConfig := collaboration.CollaborationPerformanceConfig{
-			SessionCacheSize:     100,
-			OperationPoolSize:    50,
-			BatchSize:            10,
-			BatchTimeout:         100 * time.Millisecond,
-			ConnectionPoolSize:   20,
-			ConnectionTimeout:    30 * time.Second,
-			EnableMetrics:        true,
-			EnableCompression:    false,
-			MaxConcurrentUsers:   50,
+			SessionCacheSize:   100,
+			OperationPoolSize:  50,
+			BatchSize:          10,
+			BatchTimeout:       100 * time.Millisecond,
+			ConnectionPoolSize: 20,
+			ConnectionTimeout:  30 * time.Second,
+			EnableMetrics:      true,
+			EnableCompression:  false,
+			MaxConcurrentUsers: 50,
 		}
 		pm.collabOptimizer = collaboration.NewPerformanceOptimizedCollaborationManager(mockDB, collabConfig)
 	}
@@ -174,17 +174,17 @@ func (pm *PerformanceManager) Initialize() error {
 	// Initialize memory optimizer
 	if pm.config.EnableMemoryOptimization {
 		memConfig := MemoryOptimizerConfig{
-			EnableMonitoring: true,
+			EnableMonitoring:     true,
 			EnableGCOptimization: true,
-			EnableObjectPooling: true,
-			MemoryCheckInterval: 5 * time.Second,
-			GCThreshold: 0.8,
-			PressureThreshold: 0.9,
-			MaxHistorySize: 100,
-			StringPoolSize: 1000,
-			BufferPoolSize: 100,
-			EnableAdaptiveGC: true,
-			TargetMemoryUsage: pm.config.TargetMemoryUsage,
+			EnableObjectPooling:  true,
+			MemoryCheckInterval:  5 * time.Second,
+			GCThreshold:          0.8,
+			PressureThreshold:    0.9,
+			MaxHistorySize:       100,
+			StringPoolSize:       1000,
+			BufferPoolSize:       100,
+			EnableAdaptiveGC:     true,
+			TargetMemoryUsage:    pm.config.TargetMemoryUsage,
 		}
 		pm.memoryOptimizer = NewMemoryOptimizer(memConfig)
 	}
@@ -445,7 +445,7 @@ func (pm *PerformanceManager) autoTuneAI(metrics map[string]interface{}) {
 	if avgResponseTime, ok := metrics["average_response_time"].(float64); ok {
 		responseTime := time.Duration(avgResponseTime) * time.Millisecond
 		if responseTime > pm.config.TargetResponseTime {
-			logging.GetDefaultLogger().Warn("AI response time exceeds target", 
+			logging.GetDefaultLogger().Warn("AI response time exceeds target",
 				"actual", responseTime, "target", pm.config.TargetResponseTime)
 			// Could implement automatic cache size adjustment here
 		}
@@ -470,7 +470,7 @@ func (pm *PerformanceManager) autoTuneUI(metrics map[string]interface{}) {
 	if avgRenderTime, ok := metrics["average_render_time"].(float64); ok {
 		renderTime := time.Duration(avgRenderTime) * time.Millisecond
 		if renderTime > 16*time.Millisecond { // 60fps target
-			logging.GetDefaultLogger().Warn("UI render time exceeds target", 
+			logging.GetDefaultLogger().Warn("UI render time exceeds target",
 				"actual", renderTime, "target", "16ms")
 			// Could implement automatic render cache adjustment here
 		}
@@ -483,7 +483,7 @@ func (pm *PerformanceManager) autoTuneMemory(metrics map[string]interface{}) {
 	if memoryUsage, ok := metrics["heap_alloc"].(float64); ok {
 		usage := uint64(memoryUsage)
 		if usage > pm.config.TargetMemoryUsage {
-			logging.GetDefaultLogger().Warn("Memory usage exceeds target", 
+			logging.GetDefaultLogger().Warn("Memory usage exceeds target",
 				"actual", usage, "target", pm.config.TargetMemoryUsage)
 			// Could implement automatic garbage collection tuning here
 		}
@@ -495,7 +495,6 @@ func (pm *PerformanceManager) autoTuneMemory(metrics map[string]interface{}) {
 		// Could implement automatic cache clearing here
 	}
 }
-
 
 // GetPerformanceReport returns a comprehensive performance report
 func (pm *PerformanceManager) GetPerformanceReport() map[string]interface{} {
@@ -555,26 +554,26 @@ func (pm *PerformanceManager) GetPerformanceReport() map[string]interface{} {
 // GetPerformanceTargets returns the current performance targets
 func (pm *PerformanceManager) GetPerformanceTargets() map[string]interface{} {
 	return map[string]interface{}{
-		"database_query_time":    "100ms",
-		"ai_response_time":       pm.config.TargetResponseTime.String(),
-		"ui_render_time":         "16ms",
-		"theme_switch_time":      "50ms",
-		"memory_usage":           pm.config.TargetMemoryUsage,
-		"application_startup":    "3s",
-		"ui_frame_rate":          "60fps",
+		"database_query_time": "100ms",
+		"ai_response_time":    pm.config.TargetResponseTime.String(),
+		"ui_render_time":      "16ms",
+		"theme_switch_time":   "50ms",
+		"memory_usage":        pm.config.TargetMemoryUsage,
+		"application_startup": "3s",
+		"ui_frame_rate":       "60fps",
 	}
 }
 
 // NewMetricsCollector creates a new metrics collector
 func NewMetricsCollector(maxHistorySize int) *MetricsCollector {
 	return &MetricsCollector{
-		dbMetrics:       make([]db.PerformanceMetrics, 0, maxHistorySize),
-		aiMetrics:       make([]ai.AIMetrics, 0, maxHistorySize),
-		uiMetrics:       make([]ui.UIMetrics, 0, maxHistorySize),
-		themeMetrics:    make([]theme.ThemeMetrics, 0, maxHistorySize),
-		collabMetrics:   make([]collaboration.CollaborationMetrics, 0, maxHistorySize),
-		memoryMetrics:   make([]MemoryMetrics, 0, maxHistorySize),
-		maxHistorySize:  maxHistorySize,
+		dbMetrics:      make([]db.PerformanceMetrics, 0, maxHistorySize),
+		aiMetrics:      make([]ai.AIMetrics, 0, maxHistorySize),
+		uiMetrics:      make([]ui.UIMetrics, 0, maxHistorySize),
+		themeMetrics:   make([]theme.ThemeMetrics, 0, maxHistorySize),
+		collabMetrics:  make([]collaboration.CollaborationMetrics, 0, maxHistorySize),
+		memoryMetrics:  make([]MemoryMetrics, 0, maxHistorySize),
+		maxHistorySize: maxHistorySize,
 	}
 }
 
@@ -582,7 +581,7 @@ func NewMetricsCollector(maxHistorySize int) *MetricsCollector {
 func (mc *MetricsCollector) AddDatabaseMetrics(metrics db.PerformanceMetrics) {
 	mc.mutex.Lock()
 	defer mc.mutex.Unlock()
-	
+
 	mc.dbMetrics = append(mc.dbMetrics, metrics)
 	if len(mc.dbMetrics) > mc.maxHistorySize {
 		mc.dbMetrics = mc.dbMetrics[1:]
@@ -593,7 +592,7 @@ func (mc *MetricsCollector) AddDatabaseMetrics(metrics db.PerformanceMetrics) {
 func (mc *MetricsCollector) AddAIMetrics(metrics ai.AIMetrics) {
 	mc.mutex.Lock()
 	defer mc.mutex.Unlock()
-	
+
 	mc.aiMetrics = append(mc.aiMetrics, metrics)
 	if len(mc.aiMetrics) > mc.maxHistorySize {
 		mc.aiMetrics = mc.aiMetrics[1:]
@@ -604,7 +603,7 @@ func (mc *MetricsCollector) AddAIMetrics(metrics ai.AIMetrics) {
 func (mc *MetricsCollector) AddUIMetrics(metrics ui.UIMetrics) {
 	mc.mutex.Lock()
 	defer mc.mutex.Unlock()
-	
+
 	mc.uiMetrics = append(mc.uiMetrics, metrics)
 	if len(mc.uiMetrics) > mc.maxHistorySize {
 		mc.uiMetrics = mc.uiMetrics[1:]
@@ -615,7 +614,7 @@ func (mc *MetricsCollector) AddUIMetrics(metrics ui.UIMetrics) {
 func (mc *MetricsCollector) AddThemeMetrics(metrics theme.ThemeMetrics) {
 	mc.mutex.Lock()
 	defer mc.mutex.Unlock()
-	
+
 	mc.themeMetrics = append(mc.themeMetrics, metrics)
 	if len(mc.themeMetrics) > mc.maxHistorySize {
 		mc.themeMetrics = mc.themeMetrics[1:]
@@ -626,7 +625,7 @@ func (mc *MetricsCollector) AddThemeMetrics(metrics theme.ThemeMetrics) {
 func (mc *MetricsCollector) AddCollaborationMetrics(metrics collaboration.CollaborationMetrics) {
 	mc.mutex.Lock()
 	defer mc.mutex.Unlock()
-	
+
 	mc.collabMetrics = append(mc.collabMetrics, metrics)
 	if len(mc.collabMetrics) > mc.maxHistorySize {
 		mc.collabMetrics = mc.collabMetrics[1:]
@@ -637,7 +636,7 @@ func (mc *MetricsCollector) AddCollaborationMetrics(metrics collaboration.Collab
 func (mc *MetricsCollector) AddMemoryMetrics(metrics MemoryMetrics) {
 	mc.mutex.Lock()
 	defer mc.mutex.Unlock()
-	
+
 	mc.memoryMetrics = append(mc.memoryMetrics, metrics)
 	if len(mc.memoryMetrics) > mc.maxHistorySize {
 		mc.memoryMetrics = mc.memoryMetrics[1:]

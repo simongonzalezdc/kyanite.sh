@@ -15,55 +15,55 @@ import (
 type PerformanceOptimizedManager struct {
 	// Core theme management
 	*Manager
-	
+
 	// Performance optimization
 	preloadedThemes map[string]Theme
 	themeCache      map[string]*CachedTheme
 	renderCache     map[string]*CachedRender
 	mutex           sync.RWMutex
-	
+
 	// Async operations
 	saveQueue chan *ThemeSaveRequest
 	stopChan  chan struct{}
-	
+
 	// Performance metrics
 	metrics *ThemeMetrics
-	
+
 	// Configuration
 	config ThemePerformanceConfig
 }
 
 // ThemePerformanceConfig defines theme performance optimization settings
 type ThemePerformanceConfig struct {
-	PreloadThemes      []string      `json:"preload_themes"`
-	CacheSize          int           `json:"cache_size"`
-	EnableAsyncSave    bool          `json:"enable_async_save"`
-	SaveBatchSize      int           `json:"save_batch_size"`
-	SaveInterval       time.Duration `json:"save_interval"`
-	EnableRenderCache  bool          `json:"enable_render_cache"`
-	RenderCacheSize    int           `json:"render_cache_size"`
-	EnableMetrics      bool          `json:"enable_metrics"`
+	PreloadThemes     []string      `json:"preload_themes"`
+	CacheSize         int           `json:"cache_size"`
+	EnableAsyncSave   bool          `json:"enable_async_save"`
+	SaveBatchSize     int           `json:"save_batch_size"`
+	SaveInterval      time.Duration `json:"save_interval"`
+	EnableRenderCache bool          `json:"enable_render_cache"`
+	RenderCacheSize   int           `json:"render_cache_size"`
+	EnableMetrics     bool          `json:"enable_metrics"`
 }
 
 // CachedTheme represents a cached theme with metadata
 type CachedTheme struct {
-	Theme     Theme    `json:"theme"`
-	LoadTime  time.Time `json:"load_time"`
-	AccessCount int     `json:"access_count"`
-	LastAccess time.Time `json:"last_access"`
-	Preloaded bool     `json:"preloaded"`
+	Theme       Theme     `json:"theme"`
+	LoadTime    time.Time `json:"load_time"`
+	AccessCount int       `json:"access_count"`
+	LastAccess  time.Time `json:"last_access"`
+	Preloaded   bool      `json:"preloaded"`
 }
 
 // CachedRender represents a cached rendered theme component
 type CachedRender struct {
-	Rendered   string    `json:"rendered"`
-	ThemeName  string    `json:"theme_name"`
-	Component  string    `json:"component"`
-	Width      int       `json:"width"`
-	Height     int       `json:"height"`
-	Hash       string    `json:"hash"`
-	CreateTime time.Time `json:"create_time"`
-	AccessCount int      `json:"access_count"`
+	Rendered    string    `json:"rendered"`
+	ThemeName   string    `json:"theme_name"`
+	Component   string    `json:"component"`
+	Width       int       `json:"width"`
+	Height      int       `json:"height"`
+	Hash        string    `json:"hash"`
+	CreateTime  time.Time `json:"create_time"`
+	AccessCount int       `json:"access_count"`
 }
 
 // ThemeSaveRequest represents an asynchronous theme save request
@@ -75,15 +75,15 @@ type ThemeSaveRequest struct {
 
 // ThemeMetrics tracks theme performance metrics
 type ThemeMetrics struct {
-	ThemeSwitches      int64         `json:"theme_switches"`
-	AverageSwitchTime  time.Duration `json:"average_switch_time"`
-	CacheHits          int64         `json:"cache_hits"`
-	CacheMisses        int64         `json:"cache_misses"`
-	RenderCacheHits    int64         `json:"render_cache_hits"`
-	RenderCacheMisses  int64         `json:"render_cache_misses"`
-	AsyncSaves         int64         `json:"async_saves"`
-	FailedSaves        int64         `json:"failed_saves"`
-	mutex              sync.RWMutex
+	ThemeSwitches     int64         `json:"theme_switches"`
+	AverageSwitchTime time.Duration `json:"average_switch_time"`
+	CacheHits         int64         `json:"cache_hits"`
+	CacheMisses       int64         `json:"cache_misses"`
+	RenderCacheHits   int64         `json:"render_cache_hits"`
+	RenderCacheMisses int64         `json:"render_cache_misses"`
+	AsyncSaves        int64         `json:"async_saves"`
+	FailedSaves       int64         `json:"failed_saves"`
+	mutex             sync.RWMutex
 }
 
 // NewPerformanceOptimizedManager creates a new performance-optimized theme manager
@@ -135,7 +135,7 @@ func NewPerformanceOptimizedManager(config ThemePerformanceConfig) *PerformanceO
 // SetThemeOptimized sets the current theme with performance optimization
 func (m *PerformanceOptimizedManager) SetThemeOptimized(id string) time.Duration {
 	start := time.Now()
-	
+
 	// Update metrics
 	m.metrics.mutex.Lock()
 	m.metrics.ThemeSwitches++
@@ -154,7 +154,7 @@ func (m *PerformanceOptimizedManager) SetThemeOptimized(id string) time.Duration
 
 		duration := time.Since(start)
 		m.updateAverageSwitchTime(duration)
-		
+
 		logging.GetDefaultLogger().Debug("Theme switched from cache", "id", id, "duration", duration)
 		return duration
 	}
@@ -188,7 +188,7 @@ func (m *PerformanceOptimizedManager) SetThemeOptimized(id string) time.Duration
 
 	duration := time.Since(start)
 	m.updateAverageSwitchTime(duration)
-	
+
 	logging.GetDefaultLogger().Debug("Theme switched and cached", "id", id, "duration", duration)
 	return duration
 }
@@ -208,11 +208,11 @@ func (m *PerformanceOptimizedManager) GetRenderedComponentOptimized(component st
 	if cached, found := m.renderCache[cacheKey]; found {
 		cached.AccessCount++
 		m.mutex.RUnlock()
-		
+
 		m.metrics.mutex.Lock()
 		m.metrics.RenderCacheHits++
 		m.metrics.mutex.Unlock()
-		
+
 		return cached.Rendered
 	}
 	m.mutex.RUnlock()
@@ -225,7 +225,7 @@ func (m *PerformanceOptimizedManager) GetRenderedComponentOptimized(component st
 	if len(m.renderCache) >= m.config.RenderCacheSize {
 		m.evictRenderCacheLRU()
 	}
-	
+
 	m.renderCache[cacheKey] = &CachedRender{
 		Rendered:    rendered,
 		ThemeName:   currentTheme.Name,
@@ -252,14 +252,14 @@ func (m *PerformanceOptimizedManager) preloadThemes() {
 			m.mutex.Lock()
 			m.preloadedThemes[themeID] = theme
 			m.themeCache[themeID] = &CachedTheme{
-				Theme:      theme,
-				LoadTime:   time.Now(),
+				Theme:       theme,
+				LoadTime:    time.Now(),
 				AccessCount: 0,
-				LastAccess: time.Now(),
-				Preloaded:  true,
+				LastAccess:  time.Now(),
+				Preloaded:   true,
 			}
 			m.mutex.Unlock()
-			
+
 			logging.GetDefaultLogger().Debug("Preloaded theme", "id", themeID)
 		}
 	}
@@ -319,9 +319,9 @@ func (m *PerformanceOptimizedManager) evictThemeCacheLRU() {
 		if cached.Preloaded {
 			continue // Don't evict preloaded themes
 		}
-		
-		if first || cached.AccessCount < lowestAccess || 
-		   (cached.AccessCount == lowestAccess && cached.LastAccess.Before(oldestTime)) {
+
+		if first || cached.AccessCount < lowestAccess ||
+			(cached.AccessCount == lowestAccess && cached.LastAccess.Before(oldestTime)) {
 			oldestID = id
 			oldestTime = cached.LastAccess
 			lowestAccess = cached.AccessCount
@@ -347,8 +347,8 @@ func (m *PerformanceOptimizedManager) evictRenderCacheLRU() {
 	first := true
 
 	for key, cached := range m.renderCache {
-		if first || cached.AccessCount < lowestAccess || 
-		   (cached.AccessCount == lowestAccess && cached.CreateTime.Before(oldestTime)) {
+		if first || cached.AccessCount < lowestAccess ||
+			(cached.AccessCount == lowestAccess && cached.CreateTime.Before(oldestTime)) {
 			oldestKey = key
 			oldestTime = cached.CreateTime
 			lowestAccess = cached.AccessCount
@@ -369,7 +369,7 @@ func (m *PerformanceOptimizedManager) generateRenderCacheKey(themeName, componen
 // renderComponent renders a specific theme component (simplified)
 func (m *PerformanceOptimizedManager) renderComponent(component string, width, height int) string {
 	currentTheme := m.Manager.Current()
-	
+
 	// This is a simplified implementation
 	// In a real application, this would render actual theme components
 	switch component {
@@ -413,7 +413,7 @@ func (m *PerformanceOptimizedManager) startAsyncSaveWorker() {
 		select {
 		case request := <-m.saveQueue:
 			batch = append(batch, request)
-			
+
 			if len(batch) >= m.config.SaveBatchSize {
 				m.processSaveBatch(batch)
 				batch = batch[:0] // Reset batch
@@ -446,7 +446,7 @@ func (m *PerformanceOptimizedManager) processSaveBatch(batch []*ThemeSaveRequest
 	// Process each unique theme
 	for themeID, requests := range themeMap {
 		err := m.saveThemePreferenceSync(themeID)
-		
+
 		// Send result to all requesters
 		for _, req := range requests {
 			select {
@@ -460,7 +460,7 @@ func (m *PerformanceOptimizedManager) processSaveBatch(batch []*ThemeSaveRequest
 			m.metrics.mutex.Lock()
 			m.metrics.FailedSaves += int64(len(requests))
 			m.metrics.mutex.Unlock()
-			
+
 			logging.GetDefaultLogger().Warn("Failed to save theme preference", "theme_id", themeID, "error", err)
 		}
 	}
@@ -519,7 +519,7 @@ func (m *PerformanceOptimizedManager) GetMetrics() ThemeMetrics {
 // GetPerformanceReport returns a comprehensive performance report
 func (m *PerformanceOptimizedManager) GetPerformanceReport() map[string]interface{} {
 	metrics := m.GetMetrics()
-	
+
 	m.mutex.RLock()
 	themeCacheSize := len(m.themeCache)
 	renderCacheSize := len(m.renderCache)
@@ -540,7 +540,7 @@ func (m *PerformanceOptimizedManager) GetPerformanceReport() map[string]interfac
 	if metrics.CacheHits+metrics.CacheMisses > 0 {
 		report["theme_cache_hit_rate"] = float64(metrics.CacheHits) / float64(metrics.CacheHits+metrics.CacheMisses)
 	}
-	
+
 	if metrics.RenderCacheHits+metrics.RenderCacheMisses > 0 {
 		report["render_cache_hit_rate"] = float64(metrics.RenderCacheHits) / float64(metrics.RenderCacheHits+metrics.RenderCacheMisses)
 	}
@@ -555,19 +555,19 @@ func (m *PerformanceOptimizedManager) ClearCaches() {
 
 	m.themeCache = make(map[string]*CachedTheme)
 	m.renderCache = make(map[string]*CachedRender)
-	
+
 	logging.GetDefaultLogger().Info("Theme caches cleared")
 }
 
 // Close cleans up resources
 func (m *PerformanceOptimizedManager) Close() error {
 	logging.GetDefaultLogger().Info("Performance-optimized theme manager shutting down")
-	
+
 	// Stop async save worker
 	close(m.stopChan)
-	
+
 	// Clear caches
 	m.ClearCaches()
-	
+
 	return nil
 }

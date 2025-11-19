@@ -182,7 +182,7 @@ func (am *AnimationManager) Update() tea.Cmd {
 		if frameRate <= 0 {
 			frameRate = DefaultAnimationConfig().FrameRate
 		}
-		
+
 		// Use a goroutine to avoid blocking the main thread
 		return func() tea.Msg {
 			time.Sleep(time.Second / time.Duration(frameRate))

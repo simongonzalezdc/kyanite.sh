@@ -62,13 +62,17 @@ type RootModel struct {
 	// Child models
 	splash    *SplashModel
 	menu      *MenuModel
-	dashboard interface{ Init() tea.Cmd; Update(tea.Msg) tea.Cmd; View() string }
-	editor    *EditorModel
-	export    *ExportModel
-	theory    *TheoryModel
-	audio     *AudioModel
-	manager   *ManagerModel
-	settings  *SettingsModel
+	dashboard interface {
+		Init() tea.Cmd
+		Update(tea.Msg) tea.Cmd
+		View() string
+	}
+	editor   *EditorModel
+	export   *ExportModel
+	theory   *TheoryModel
+	audio    *AudioModel
+	manager  *ManagerModel
+	settings *SettingsModel
 
 	// Help system
 	helpMode bool
@@ -290,14 +294,13 @@ func (m *RootModel) initializeChildModels() {
 	m.audio = NewAudioModel()
 	m.manager = NewManagerModel(m.database)
 	m.settings = NewSettingsModel(m.config)
-	
+
 	// Initialize dashboard
 	m.dashboard = dashboard.NewDashboardModel()
-	
+
 	// Initialize help system
 	m.helpPane = editor.NewHelpPaneModel(nil)
 }
-
 
 // initializeCollaborationSystem initializes the collaboration system
 func (m *RootModel) initializeCollaborationSystem() {

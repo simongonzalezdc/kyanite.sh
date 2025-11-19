@@ -580,17 +580,21 @@ func (m *SettingsModel) editSetting(setting *SettingsItem) {
 	// This would open a modal or inline editor for the setting value
 	// For demonstration, we'll show a simple toggle for boolean settings
 	if setting.Type == TypeBool {
-		setting.Value = !setting.Value.(bool)
-		if setting.Callback != nil {
-			setting.Callback(setting.Value)
+		if boolVal, ok := setting.Value.(bool); ok {
+			setting.Value = !boolVal
+			if setting.Callback != nil {
+				setting.Callback(setting.Value)
+			}
 		}
 	} else if setting.Type == TypeSelect {
 		// Cycle through options for select type
 		currentIndex := -1
-		for i, option := range setting.Options {
-			if option == setting.Value.(string) {
-				currentIndex = i
-				break
+		if strVal, ok := setting.Value.(string); ok {
+			for i, option := range setting.Options {
+				if option == strVal {
+					currentIndex = i
+					break
+				}
 			}
 		}
 
@@ -608,22 +612,21 @@ func (m *SettingsModel) editSetting(setting *SettingsItem) {
 func (m *SettingsModel) incrementSetting(setting *SettingsItem) {
 	switch setting.Type {
 	case TypeInt:
-		if setting.Value.(int) < int(setting.Max) {
-			setting.Value = setting.Value.(int) + 1
+		if intVal, ok := setting.Value.(int); ok && intVal < int(setting.Max) {
+			setting.Value = intVal + 1
 			if setting.Callback != nil {
 				setting.Callback(setting.Value)
 			}
 		}
 	case TypeFloat:
-		if setting.Value.(float64) < setting.Max {
-			setting.Value = setting.Value.(float64) + 0.1
+		if floatVal, ok := setting.Value.(float64); ok && floatVal < setting.Max {
+			setting.Value = floatVal + 0.1
 			if setting.Callback != nil {
 				setting.Callback(setting.Value)
 			}
 		}
 	case TypeDuration:
-		duration := setting.Value.(time.Duration)
-		if duration.Seconds() < setting.Max {
+		if duration, ok := setting.Value.(time.Duration); ok && duration.Seconds() < setting.Max {
 			setting.Value = duration + time.Second
 			if setting.Callback != nil {
 				setting.Callback(setting.Value)
@@ -636,22 +639,21 @@ func (m *SettingsModel) incrementSetting(setting *SettingsItem) {
 func (m *SettingsModel) decrementSetting(setting *SettingsItem) {
 	switch setting.Type {
 	case TypeInt:
-		if setting.Value.(int) > int(setting.Min) {
-			setting.Value = setting.Value.(int) - 1
+		if intVal, ok := setting.Value.(int); ok && intVal > int(setting.Min) {
+			setting.Value = intVal - 1
 			if setting.Callback != nil {
 				setting.Callback(setting.Value)
 			}
 		}
 	case TypeFloat:
-		if setting.Value.(float64) > setting.Min {
-			setting.Value = setting.Value.(float64) - 0.1
+		if floatVal, ok := setting.Value.(float64); ok && floatVal > setting.Min {
+			setting.Value = floatVal - 0.1
 			if setting.Callback != nil {
 				setting.Callback(setting.Value)
 			}
 		}
 	case TypeDuration:
-		duration := setting.Value.(time.Duration)
-		if duration.Seconds() > setting.Min {
+		if duration, ok := setting.Value.(time.Duration); ok && duration.Seconds() > setting.Min {
 			setting.Value = duration - time.Second
 			if setting.Callback != nil {
 				setting.Callback(setting.Value)
@@ -666,31 +668,57 @@ func (m *SettingsModel) saveSettings() {
 	for _, setting := range m.settings {
 		switch setting.ID {
 		case "ui.theme":
-			m.config.UI.Theme = setting.Value.(string)
+			if strVal, ok := setting.Value.(string); ok {
+				m.config.UI.Theme = strVal
+			}
 		case "ui.font_size":
-			m.config.UI.FontSize = setting.Value.(int)
+			if intVal, ok := setting.Value.(int); ok {
+				m.config.UI.FontSize = intVal
+			}
 		case "ui.animations":
-			m.config.UI.Animations = setting.Value.(bool)
+			if boolVal, ok := setting.Value.(bool); ok {
+				m.config.UI.Animations = boolVal
+			}
 		case "ui.show_line_numbers":
-			m.config.UI.ShowLineNumbers = setting.Value.(bool)
+			if boolVal, ok := setting.Value.(bool); ok {
+				m.config.UI.ShowLineNumbers = boolVal
+			}
 		case "ui.word_wrap":
-			m.config.UI.WordWrap = setting.Value.(bool)
+			if boolVal, ok := setting.Value.(bool); ok {
+				m.config.UI.WordWrap = boolVal
+			}
 		case "app.auto_save":
-			m.config.App.AutoSave = setting.Value.(bool)
+			if boolVal, ok := setting.Value.(bool); ok {
+				m.config.App.AutoSave = boolVal
+			}
 		case "app.auto_save_interval":
-			m.config.App.AutoSaveInterval = setting.Value.(time.Duration)
+			if durVal, ok := setting.Value.(time.Duration); ok {
+				m.config.App.AutoSaveInterval = durVal
+			}
 		case "app.max_recent_files":
-			m.config.App.MaxRecentFiles = setting.Value.(int)
+			if intVal, ok := setting.Value.(int); ok {
+				m.config.App.MaxRecentFiles = intVal
+			}
 		case "audio.enabled":
-			m.config.Audio.Enabled = setting.Value.(bool)
+			if boolVal, ok := setting.Value.(bool); ok {
+				m.config.Audio.Enabled = boolVal
+			}
 		case "audio.playback_gain":
-			m.config.Audio.PlaybackGain = setting.Value.(float64)
+			if floatVal, ok := setting.Value.(float64); ok {
+				m.config.Audio.PlaybackGain = floatVal
+			}
 		case "ai.enabled":
-			m.config.AI.Enabled = setting.Value.(bool)
+			if boolVal, ok := setting.Value.(bool); ok {
+				m.config.AI.Enabled = boolVal
+			}
 		case "ai.temperature":
-			m.config.AI.Temperature = setting.Value.(float64)
+			if floatVal, ok := setting.Value.(float64); ok {
+				m.config.AI.Temperature = floatVal
+			}
 		case "dev.debug":
-			m.config.Dev.Debug = setting.Value.(bool)
+			if boolVal, ok := setting.Value.(bool); ok {
+				m.config.Dev.Debug = boolVal
+			}
 		// Editor settings
 		case "editor.tab_size":
 			// Store in a way that can be accessed by editor components

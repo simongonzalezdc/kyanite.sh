@@ -27,6 +27,12 @@ type Dictionary struct {
 	mutex    sync.RWMutex
 	loaded   bool
 	loadTime time.Time
+
+	// Cached compiled regexes for performance
+	nonAlphaRegex    *regexp.Regexp
+	nonWordRegex     *regexp.Regexp
+	regexOnce        sync.Once
+	searchRegexCache sync.Map // pattern -> *regexp.Regexp
 }
 
 // DictionaryStats provides statistics about the dictionary
@@ -42,10 +48,21 @@ type DictionaryStats struct {
 
 // NewDictionary creates a new dictionary service
 func NewDictionary() *Dictionary {
-	return &Dictionary{
+	d := &Dictionary{
 		words:    make(map[string]WordEntry),
 		rhymeMap: make(map[string][]string),
 	}
+	// Initialize cached regexes
+	d.initRegexes()
+	return d
+}
+
+// initRegexes initializes cached compiled regexes
+func (d *Dictionary) initRegexes() {
+	d.regexOnce.Do(func() {
+		d.nonAlphaRegex = regexp.MustCompile(`[^a-z]`)
+		d.nonWordRegex = regexp.MustCompile(`[^\w']`)
+	})
 }
 
 // LoadDictionary loads the dictionary from the JSON file
@@ -164,9 +181,9 @@ func (d *Dictionary) countSyllablesHeuristic(word string) int {
 		return syllables
 	}
 
-	// Remove non-alphabetic characters
-	re := regexp.MustCompile(`[^a-z]`)
-	word = re.ReplaceAllString(word, "")
+	// Remove non-alphabetic characters using cached regex
+	d.initRegexes() // Ensure regexes are initialized
+	word = d.nonAlphaRegex.ReplaceAllString(word, "")
 
 	// Handle empty string after cleaning
 	if word == "" {
@@ -311,9 +328,9 @@ func (d *Dictionary) CountSyllablesInText(text string) (int, error) {
 	totalSyllables := 0
 
 	for _, word := range words {
-		// Clean the word of punctuation
-		re := regexp.MustCompile(`[^\w']`)
-		cleanWord := re.ReplaceAllString(word, "")
+		// Clean the word of punctuation using cached regex
+		d.initRegexes() // Ensure regexes are initialized
+		cleanWord := d.nonWordRegex.ReplaceAllString(word, "")
 
 		if cleanWord != "" {
 			syllables, err := d.CountSyllables(cleanWord)
@@ -402,9 +419,19 @@ func (d *Dictionary) SearchWords(pattern string, limit int) ([]string, error) {
 		regexPattern = "^" + regexp.QuoteMeta(pattern) + "$"
 	}
 
-	regex, err := regexp.Compile("(?i)" + regexPattern)
-	if err != nil {
-		return nil, errutil.Wrap(err, "invalid search pattern")
+	// Check cache for compiled regex
+	fullPattern := "(?i)" + regexPattern
+	var regex *regexp.Regexp
+	if cached, ok := d.searchRegexCache.Load(fullPattern); ok {
+		regex = cached.(*regexp.Regexp)
+	} else {
+		// Compile and cache
+		var err error
+		regex, err = regexp.Compile(fullPattern)
+		if err != nil {
+			return nil, errutil.Wrap(err, "invalid search pattern")
+		}
+		d.searchRegexCache.Store(fullPattern, regex)
 	}
 
 	for word := range d.words {

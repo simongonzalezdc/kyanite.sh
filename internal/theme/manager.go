@@ -2,10 +2,10 @@ package theme
 
 import (
 	"encoding/json"
+	"github.com/Kyanite/noise/internal/config"
 	"os"
 	"path/filepath"
 	"sync"
-	"github.com/Kyanite/noise/internal/config"
 )
 
 var (
@@ -25,7 +25,7 @@ type Manager struct {
 func GetManager() *Manager {
 	once.Do(func() {
 		globalManager = &Manager{
-			current: Default(),
+			current:         Default(),
 			themeChangeChan: make(chan Theme, 10), // Buffered channel for theme changes
 		}
 		// Load saved theme preference
@@ -49,9 +49,10 @@ func (m *Manager) SetTheme(id string) {
 		// Channel is full, drop the notification
 	}
 
-	// Save preference asynchronously
+	// Save preference asynchronously with a copy of the current theme name
+	currentThemeName := m.current.Name
 	go func() {
-		if err := m.SaveThemePreference(); err != nil {
+		if err := m.saveThemePreferenceByName(currentThemeName); err != nil {
 			// Log error but don't fail the theme change
 			// In a real app, you'd use proper logging
 		}
@@ -97,9 +98,10 @@ func (m *Manager) Next() Theme {
 		// Channel is full, drop the notification
 	}
 
-	// Save preference asynchronously
+	// Save preference asynchronously with a copy of the current theme name
+	currentThemeName := m.current.Name
 	go func() {
-		if err := m.SaveThemePreference(); err != nil {
+		if err := m.saveThemePreferenceByName(currentThemeName); err != nil {
 			// Log error but don't fail the theme change
 		}
 	}()
@@ -139,9 +141,10 @@ func (m *Manager) Previous() Theme {
 		// Channel is full, drop the notification
 	}
 
-	// Save preference asynchronously
+	// Save preference asynchronously with a copy of the current theme name
+	currentThemeName := m.current.Name
 	go func() {
-		if err := m.SaveThemePreference(); err != nil {
+		if err := m.saveThemePreferenceByName(currentThemeName); err != nil {
 			// Log error but don't fail the theme change
 		}
 	}()
@@ -172,6 +175,14 @@ type ThemePreference struct {
 
 // SaveThemePreference saves the current theme preference to file
 func (m *Manager) SaveThemePreference() error {
+	m.mu.RLock()
+	themeName := m.current.Name
+	m.mu.RUnlock()
+	return m.saveThemePreferenceByName(themeName)
+}
+
+// saveThemePreferenceByName saves a theme preference by theme name (thread-safe helper)
+func (m *Manager) saveThemePreferenceByName(themeName string) error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return err
@@ -184,10 +195,10 @@ func (m *Manager) SaveThemePreference() error {
 
 	configFile := filepath.Join(configDir, "theme.json")
 
-	// Find current theme ID
+	// Find theme ID by name
 	currentID := ""
 	for id, theme := range Registry {
-		if theme.Name == m.current.Name {
+		if theme.Name == themeName {
 			currentID = id
 			break
 		}

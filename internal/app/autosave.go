@@ -719,10 +719,7 @@ func (s *AutoSaveService) setStatus(status AutoSaveStatus) {
 
 // getLastSavedContent returns the last content that was successfully saved
 func (s *AutoSaveService) getLastSavedContent() string {
-	// Return the raw content from the most recent version if available
-	versions, err := s.db.GetVersions(0, 1) // Get latest version for song ID 0 (general auto-save)
-	if err != nil || len(versions) == 0 {
-		return ""
-	}
-	return versions[0].Content
+	s.contentMutex.RLock()
+	defer s.contentMutex.RUnlock()
+	return s.lastContent
 }

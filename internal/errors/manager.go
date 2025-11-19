@@ -344,6 +344,10 @@ func (em *ErrorManager) attemptRecovery(ctx context.Context, err *AppError, reco
 	ctx, cancel := context.WithTimeout(ctx, em.config.MaxRecoveryTime)
 	defer cancel()
 
+	// Create a reusable timer for retry delays
+	retryTimer := time.NewTimer(em.config.RetryDelay)
+	defer retryTimer.Stop()
+
 	for attempt.Attempts < attempt.MaxAttempts {
 		attempt.Attempts++
 
@@ -369,12 +373,13 @@ func (em *ErrorManager) attemptRecovery(ctx context.Context, err *AppError, reco
 
 		// Wait before retry (except on last attempt)
 		if attempt.Attempts < attempt.MaxAttempts {
+			retryTimer.Reset(em.config.RetryDelay)
 			select {
 			case <-ctx.Done():
 				attempt.Result = "Recovery timeout during retry delay"
 				attempt.Duration = time.Since(start)
 				return attempt
-			case <-time.After(em.config.RetryDelay):
+			case <-retryTimer.C:
 			}
 		}
 	}
@@ -441,9 +446,13 @@ func (em *ErrorManager) GetErrorStats() map[string]interface{} {
 	}
 
 	for category, count := range em.errorStats {
-		stats["total_errors"] = stats["total_errors"].(int) + count
+		if totalErrors, ok := stats["total_errors"].(int); ok {
+			stats["total_errors"] = totalErrors + count
+		}
 		categoryCounts[string(category)] = count
-		stats["error_categories"].(map[string]int)[string(category)] = count
+		if errorCategories, ok := stats["error_categories"].(map[string]int); ok {
+			errorCategories[string(category)] = count
+		}
 	}
 
 	// Count recent errors (last hour)
@@ -460,16 +469,24 @@ func (em *ErrorManager) GetErrorStats() map[string]interface{} {
 			switch report.Error.Severity {
 			case SeverityCritical:
 				severityCounts["critical"]++
-				stats["critical_errors"] = stats["critical_errors"].(int) + 1
+				if criticalErrors, ok := stats["critical_errors"].(int); ok {
+					stats["critical_errors"] = criticalErrors + 1
+				}
 			case SeverityHigh:
 				severityCounts["high"]++
-				stats["high_errors"] = stats["high_errors"].(int) + 1
+				if highErrors, ok := stats["high_errors"].(int); ok {
+					stats["high_errors"] = highErrors + 1
+				}
 			case SeverityMedium:
 				severityCounts["medium"]++
-				stats["medium_errors"] = stats["medium_errors"].(int) + 1
+				if mediumErrors, ok := stats["medium_errors"].(int); ok {
+					stats["medium_errors"] = mediumErrors + 1
+				}
 			case SeverityLow:
 				severityCounts["low"]++
-				stats["low_errors"] = stats["low_errors"].(int) + 1
+				if lowErrors, ok := stats["low_errors"].(int); ok {
+					stats["low_errors"] = lowErrors + 1
+				}
 			}
 		}
 	}
@@ -487,13 +504,19 @@ func (em *ErrorManager) GetErrorStats() map[string]interface{} {
 	}
 
 	if hours > 0 {
-		stats["error_rate"] = float64(stats["total_errors"].(int)) / hours
+		if totalErrors, ok := stats["total_errors"].(int); ok {
+			stats["error_rate"] = float64(totalErrors) / hours
+		}
 	}
 
 	// Add recovery statistics
 	for _, recStats := range em.recoveryStats {
-		stats["recovery_success"] = stats["recovery_success"].(int) + recStats.SuccessCount
-		stats["recovery_failures"] = stats["recovery_failures"].(int) + recStats.FailureCount
+		if recoverySuccess, ok := stats["recovery_success"].(int); ok {
+			stats["recovery_success"] = recoverySuccess + recStats.SuccessCount
+		}
+		if recoveryFailures, ok := stats["recovery_failures"].(int); ok {
+			stats["recovery_failures"] = recoveryFailures + recStats.FailureCount
+		}
 	}
 
 	return stats

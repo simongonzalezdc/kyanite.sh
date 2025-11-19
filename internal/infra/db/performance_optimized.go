@@ -15,17 +15,17 @@ import (
 // PerformanceOptimizedDB extends the base DB with performance optimizations
 type PerformanceOptimizedDB struct {
 	*DB
-	
+
 	// Connection pool management
 	poolConfig PoolConfig
-	
+
 	// Query optimization
 	preparedStatements map[string]*sql.Stmt
 	stmtMutex          sync.RWMutex
-	
+
 	// Performance monitoring
 	metrics *PerformanceMetrics
-	
+
 	// Connection health monitoring
 	healthChecker *ConnectionHealthChecker
 }
@@ -40,11 +40,11 @@ type PoolConfig struct {
 
 // PerformanceMetrics tracks database performance
 type PerformanceMetrics struct {
-	QueryCount     int64
-	TotalQueryTime time.Duration
-	SlowQueries    int64
+	QueryCount       int64
+	TotalQueryTime   time.Duration
+	SlowQueries      int64
 	ConnectionErrors int64
-	mutex          sync.RWMutex
+	mutex            sync.RWMutex
 }
 
 // ConnectionHealthChecker monitors connection health
@@ -66,8 +66,8 @@ func NewPerformanceOptimizedDB(cfg Config) (*PerformanceOptimizedDB, error) {
 
 	// Default performance configuration
 	poolConfig := PoolConfig{
-		MaxOpenConns:    25, // Increased from 10
-		MaxIdleConns:    10, // Increased from 5
+		MaxOpenConns:    25,               // Increased from 10
+		MaxIdleConns:    10,               // Increased from 5
 		ConnMaxLifetime: 30 * time.Minute, // Reduced from 1 hour
 		ConnMaxIdleTime: 5 * time.Minute,  // New: connection idle timeout
 	}
@@ -97,7 +97,7 @@ func NewPerformanceOptimizedDB(cfg Config) (*PerformanceOptimizedDB, error) {
 		logging.GetDefaultLogger().Warn("Failed to create some performance indexes", "error", err)
 	}
 
-	logging.GetDefaultLogger().Info("Performance-optimized database initialized", 
+	logging.GetDefaultLogger().Info("Performance-optimized database initialized",
 		"max_open_conns", poolConfig.MaxOpenConns,
 		"max_idle_conns", poolConfig.MaxIdleConns)
 
@@ -126,14 +126,14 @@ func (db *PerformanceOptimizedDB) prepareCommonStatements() error {
 	}
 
 	statements := map[string]string{
-		"get_song":         `SELECT id, filepath, title, artist, key, tempo, time_signature, structure, tags, created_at, updated_at FROM songs WHERE id = ?`,
-		"list_songs":       `SELECT id, filepath, title, artist, key, tempo, time_signature, structure, tags, created_at, updated_at FROM songs ORDER BY updated_at DESC LIMIT ? OFFSET ?`,
-		"search_songs":     `SELECT id, filepath, title, artist, key, tempo, time_signature, structure, tags, created_at, updated_at FROM songs WHERE title LIKE ? OR artist LIKE ? OR tags LIKE ? ORDER BY updated_at DESC LIMIT ?`,
-		"get_versions":     `SELECT id, song_id, content, is_milestone, milestone_name, created_at FROM versions WHERE song_id = ? ORDER BY created_at DESC LIMIT ?`,
-		"get_project":      `SELECT id, name, description, song_ids, created_at, updated_at FROM projects WHERE id = ?`,
-		"list_projects":    `SELECT id, name, description, song_ids, created_at, updated_at FROM projects ORDER BY updated_at DESC`,
-		"record_stats":     `INSERT OR REPLACE INTO writing_stats (date, words_written, songs_created, songs_edited, ai_requests, time_spent_minutes) VALUES (?, ?, ?, ?, ?, ?)`,
-		"get_stats":        `SELECT id, date, words_written, songs_created, songs_edited, ai_requests, time_spent_minutes FROM writing_stats WHERE date = ?`,
+		"get_song":      `SELECT id, filepath, title, artist, key, tempo, time_signature, structure, tags, created_at, updated_at FROM songs WHERE id = ?`,
+		"list_songs":    `SELECT id, filepath, title, artist, key, tempo, time_signature, structure, tags, created_at, updated_at FROM songs ORDER BY updated_at DESC LIMIT ? OFFSET ?`,
+		"search_songs":  `SELECT id, filepath, title, artist, key, tempo, time_signature, structure, tags, created_at, updated_at FROM songs WHERE title LIKE ? OR artist LIKE ? OR tags LIKE ? ORDER BY updated_at DESC LIMIT ?`,
+		"get_versions":  `SELECT id, song_id, content, is_milestone, milestone_name, created_at FROM versions WHERE song_id = ? ORDER BY created_at DESC LIMIT ?`,
+		"get_project":   `SELECT id, name, description, song_ids, created_at, updated_at FROM projects WHERE id = ?`,
+		"list_projects": `SELECT id, name, description, song_ids, created_at, updated_at FROM projects ORDER BY updated_at DESC`,
+		"record_stats":  `INSERT OR REPLACE INTO writing_stats (date, words_written, songs_created, songs_edited, ai_requests, time_spent_minutes) VALUES (?, ?, ?, ?, ?, ?)`,
+		"get_stats":     `SELECT id, date, words_written, songs_created, songs_edited, ai_requests, time_spent_minutes FROM writing_stats WHERE date = ?`,
 	}
 
 	db.stmtMutex.Lock()
@@ -159,38 +159,53 @@ func (db *PerformanceOptimizedDB) createPerformanceIndexes() error {
 	}
 
 	indexes := []struct {
-		name    string
-		query   string
+		name     string
+		query    string
 		critical bool
 	}{
 		{
-			name:  "idx_songs_title",
-			query: "CREATE INDEX IF NOT EXISTS idx_songs_title ON songs(title)",
+			name:     "idx_songs_title",
+			query:    "CREATE INDEX IF NOT EXISTS idx_songs_title ON songs(title)",
 			critical: true,
 		},
 		{
-			name:  "idx_songs_artist",
-			query: "CREATE INDEX IF NOT EXISTS idx_songs_artist ON songs(artist)",
+			name:     "idx_songs_artist",
+			query:    "CREATE INDEX IF NOT EXISTS idx_songs_artist ON songs(artist)",
 			critical: true,
 		},
 		{
-			name:  "idx_songs_updated_at",
-			query: "CREATE INDEX IF NOT EXISTS idx_songs_updated_at ON songs(updated_at DESC)",
+			name:     "idx_songs_filepath",
+			query:    "CREATE INDEX IF NOT EXISTS idx_songs_filepath ON songs(filepath)",
 			critical: true,
 		},
 		{
-			name:  "idx_versions_song_id_created",
-			query: "CREATE INDEX IF NOT EXISTS idx_versions_song_id_created ON versions(song_id, created_at DESC)",
-			critical: true,
-		},
-		{
-			name:  "idx_projects_updated_at",
-			query: "CREATE INDEX IF NOT EXISTS idx_projects_updated_at ON projects(updated_at DESC)",
+			name:     "idx_songs_tags",
+			query:    "CREATE INDEX IF NOT EXISTS idx_songs_tags ON songs(tags)",
 			critical: false,
 		},
 		{
-			name:  "idx_writing_stats_date",
-			query: "CREATE INDEX IF NOT EXISTS idx_writing_stats_date ON writing_stats(date)",
+			name:     "idx_songs_updated_at",
+			query:    "CREATE INDEX IF NOT EXISTS idx_songs_updated_at ON songs(updated_at DESC)",
+			critical: true,
+		},
+		{
+			name:     "idx_versions_song_id_created",
+			query:    "CREATE INDEX IF NOT EXISTS idx_versions_song_id_created ON versions(song_id, created_at DESC)",
+			critical: true,
+		},
+		{
+			name:     "idx_versions_song_milestone",
+			query:    "CREATE INDEX IF NOT EXISTS idx_versions_song_milestone ON versions(song_id, is_milestone, created_at DESC)",
+			critical: true,
+		},
+		{
+			name:     "idx_projects_updated_at",
+			query:    "CREATE INDEX IF NOT EXISTS idx_projects_updated_at ON projects(updated_at DESC)",
+			critical: false,
+		},
+		{
+			name:     "idx_writing_stats_date",
+			query:    "CREATE INDEX IF NOT EXISTS idx_writing_stats_date ON writing_stats(date)",
 			critical: false,
 		},
 	}
@@ -460,16 +475,16 @@ func (db *PerformanceOptimizedDB) recordQueryMetrics(queryType string, duration 
 	// Track slow queries (>100ms)
 	if duration > 100*time.Millisecond {
 		db.metrics.SlowQueries++
-		logging.GetDefaultLogger().Warn("Slow query detected", 
-			"type", queryType, 
+		logging.GetDefaultLogger().Warn("Slow query detected",
+			"type", queryType,
 			"duration", duration,
 			"threshold", "100ms")
 	}
 
 	// Log performance warnings for very slow queries
 	if duration > 500*time.Millisecond {
-		logging.GetDefaultLogger().Error("Very slow query detected", 
-			"type", queryType, 
+		logging.GetDefaultLogger().Error("Very slow query detected",
+			"type", queryType,
 			"duration", duration,
 			"threshold", "500ms")
 	}
@@ -547,14 +562,14 @@ func (hc *ConnectionHealthChecker) checkHealth() {
 	defer cancel()
 
 	err := hc.db.conn.PingContext(ctx)
-	
+
 	hc.mutex.Lock()
 	hc.healthStatus = err == nil
 	hc.mutex.Unlock()
 
 	if err != nil {
 		logging.GetDefaultLogger().Warn("Database health check failed", "error", err)
-		
+
 		// Attempt to re-establish connection
 		if recoveryErr := hc.db.optimizeConnectionPool(); recoveryErr != nil {
 			logging.GetDefaultLogger().Error("Failed to recover database connection", "error", recoveryErr)

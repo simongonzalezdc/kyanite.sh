@@ -578,13 +578,16 @@ func (cm *CollaborationManager) broadcastMessage(msg CollaborationMessage) {
 }
 
 func (cm *CollaborationManager) processEvents() {
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case <-cm.ctx.Done():
 			return
 		case event := <-cm.events:
 			cm.handleEvent(event)
-		case <-time.After(100 * time.Millisecond):
+		case <-ticker.C:
 			// Timeout to prevent blocking
 			continue
 		}
@@ -592,13 +595,16 @@ func (cm *CollaborationManager) processEvents() {
 }
 
 func (cm *CollaborationManager) processBroadcasts() {
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case <-cm.ctx.Done():
 			return
 		case msg := <-cm.broadcast:
 			cm.handleBroadcast(msg)
-		case <-time.After(100 * time.Millisecond):
+		case <-ticker.C:
 			// Timeout to prevent blocking
 			continue
 		}
