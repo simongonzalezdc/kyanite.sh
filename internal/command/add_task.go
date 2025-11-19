@@ -16,6 +16,15 @@ func NewAddTaskCommand(engine TaskEngine, parsedTask models.ParsedTask) *AddTask
 
 // Execute adds the task
 func (c *AddTaskCommand) Execute() error {
+	// If we already have a created task, we're redoing - restore it instead
+	if c.createdTask != nil {
+		if err := c.engine.RestoreTask(*c.createdTask); err != nil {
+			return fmt.Errorf("failed to restore task: %w", err)
+		}
+		return nil
+	}
+
+	// First time execution - create new task
 	task, err := c.engine.AddTask(c.parsedTask)
 	if err != nil {
 		return fmt.Errorf("failed to add task: %w", err)

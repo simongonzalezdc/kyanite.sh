@@ -13,20 +13,19 @@ import (
 
 // TestEngineRepositoryIntegration tests that engine and repository work together correctly
 func TestEngineRepositoryIntegration(t *testing.T) {
-	// Create a temporary directory for test storage
-	tmpDir, err := os.MkdirTemp("", "focus-integration-test-*")
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
-
-	storePath := filepath.Join(tmpDir, "tasks.json")
-
-	// Initialize repository and engine
-	repo := repository.NewStoreRepository(storePath)
-	eng := engine.New(repo)
-
 	t.Run("complete_task_lifecycle", func(t *testing.T) {
+		// Create a temporary directory for test storage
+		tmpDir, err := os.MkdirTemp("", "focus-integration-test-*")
+		if err != nil {
+			t.Fatalf("Failed to create temp dir: %v", err)
+		}
+		defer os.RemoveAll(tmpDir)
+
+		storePath := filepath.Join(tmpDir, "tasks.json")
+
+		// Initialize repository and engine
+		repo := repository.NewStoreRepository(storePath)
+		eng := engine.New(repo)
 		// Add a task
 		task1 := models.ParsedTask{
 			Description: "Integration test task",
@@ -87,6 +86,19 @@ func TestEngineRepositoryIntegration(t *testing.T) {
 	})
 
 	t.Run("persistence_across_instances", func(t *testing.T) {
+		// Create a temporary directory for test storage
+		tmpDir, err := os.MkdirTemp("", "focus-integration-test-*")
+		if err != nil {
+			t.Fatalf("Failed to create temp dir: %v", err)
+		}
+		defer os.RemoveAll(tmpDir)
+
+		storePath := filepath.Join(tmpDir, "tasks.json")
+
+		// Initialize repository and engine
+		repo := repository.NewStoreRepository(storePath)
+		eng := engine.New(repo)
+
 		// Add tasks with first engine instance
 		task1 := models.ParsedTask{
 			Description: "Persistent task 1",
@@ -97,7 +109,7 @@ func TestEngineRepositoryIntegration(t *testing.T) {
 			Priority:    "low",
 		}
 
-		_, err := eng.AddTask(task1)
+		_, err = eng.AddTask(task1)
 		if err != nil {
 			t.Fatalf("Failed to add task1: %v", err)
 		}
@@ -128,6 +140,19 @@ func TestEngineRepositoryIntegration(t *testing.T) {
 	})
 
 	t.Run("concurrent_operations", func(t *testing.T) {
+		// Create a temporary directory for test storage
+		tmpDir, err := os.MkdirTemp("", "focus-integration-test-*")
+		if err != nil {
+			t.Fatalf("Failed to create temp dir: %v", err)
+		}
+		defer os.RemoveAll(tmpDir)
+
+		storePath := filepath.Join(tmpDir, "tasks.json")
+
+		// Initialize repository and engine
+		repo := repository.NewStoreRepository(storePath)
+		eng := engine.New(repo)
+
 		// Add multiple tasks concurrently
 		done := make(chan bool)
 		for i := 0; i < 5; i++ {
@@ -199,15 +224,10 @@ func TestRecurringTaskIntegration(t *testing.T) {
 		addedTask.RecurrenceInterval = 1
 		addedTask.RecurrenceEndDate = endDate
 
-		// Update the task in storage
-		tasks, _ := eng.ListTasks("")
-		for i, task := range tasks {
-			if task.ID == addedTask.ID {
-				tasks[i] = addedTask
-				// Save directly through repository
-				repo.Save(tasks)
-				break
-			}
+		// Update the task through engine (so cache is updated)
+		err = eng.UpdateTask(addedTask)
+		if err != nil {
+			t.Fatalf("Failed to update task with recurrence: %v", err)
 		}
 
 		// Verify the task has recurrence set

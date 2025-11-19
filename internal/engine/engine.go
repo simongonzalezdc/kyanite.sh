@@ -215,7 +215,7 @@ func (e *Engine) ListTasks(filter string) ([]models.Task, error) {
 	// Pre-allocate with estimated capacity
 	filtered := make([]models.Task, 0, len(e.cache)/2)
 	for _, task := range e.cache {
-		if filter == "active" && task.Status == "pending" {
+		if (filter == "active" || filter == "pending") && task.Status == "pending" {
 			filtered = append(filtered, task)
 		} else if filter == "completed" && task.Status == "completed" {
 			filtered = append(filtered, task)
@@ -250,6 +250,26 @@ func (e *Engine) DeleteTask(id string) error {
 		e.cacheIndex[e.cache[i].ID] = i
 	}
 
+	e.cacheDirty = true
+	e.mu.Unlock()
+
+	// Persist to disk
+	return e.flushCache()
+}
+
+// RestoreTask restores a previously deleted task with its original ID and all fields
+func (e *Engine) RestoreTask(task models.Task) error {
+	e.mu.Lock()
+
+	// Check if task with this ID already exists
+	if _, exists := e.cacheIndex[task.ID]; exists {
+		e.mu.Unlock()
+		return fmt.Errorf("task with ID %s already exists", task.ID)
+	}
+
+	// Add to cache
+	e.cache = append(e.cache, task)
+	e.cacheIndex[task.ID] = len(e.cache) - 1
 	e.cacheDirty = true
 	e.mu.Unlock()
 

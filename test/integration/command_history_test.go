@@ -13,18 +13,17 @@ import (
 
 // TestCommandHistoryIntegration tests undo/redo with actual task operations
 func TestCommandHistoryIntegration(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "focus-command-test-*")
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
-
-	storePath := filepath.Join(tmpDir, "tasks.json")
-	repo := repository.NewStoreRepository(storePath)
-	eng := engine.New(repo)
-	history := command.NewHistory()
-
 	t.Run("add_task_undo_redo", func(t *testing.T) {
+		tmpDir, err := os.MkdirTemp("", "focus-command-test-*")
+		if err != nil {
+			t.Fatalf("Failed to create temp dir: %v", err)
+		}
+		defer os.RemoveAll(tmpDir)
+
+		storePath := filepath.Join(tmpDir, "tasks.json")
+		repo := repository.NewStoreRepository(storePath)
+		eng := engine.New(repo)
+		history := command.NewHistory()
 		parsedTask := models.ParsedTask{
 			Description: "Test task for undo/redo",
 			Priority:    "high",
@@ -32,7 +31,7 @@ func TestCommandHistoryIntegration(t *testing.T) {
 
 		// Execute add command
 		addCmd := command.NewAddTaskCommand(eng, parsedTask)
-		err := history.Execute(addCmd)
+		err = history.Execute(addCmd)
 		if err != nil {
 			t.Fatalf("Failed to execute add command: %v", err)
 		}
@@ -90,6 +89,17 @@ func TestCommandHistoryIntegration(t *testing.T) {
 	})
 
 	t.Run("complete_task_undo_redo", func(t *testing.T) {
+		tmpDir, err := os.MkdirTemp("", "focus-command-test-*")
+		if err != nil {
+			t.Fatalf("Failed to create temp dir: %v", err)
+		}
+		defer os.RemoveAll(tmpDir)
+
+		storePath := filepath.Join(tmpDir, "tasks.json")
+		repo := repository.NewStoreRepository(storePath)
+		eng := engine.New(repo)
+		history := command.NewHistory()
+
 		// Add a task first
 		parsedTask := models.ParsedTask{
 			Description: "Task to complete",
@@ -139,6 +149,17 @@ func TestCommandHistoryIntegration(t *testing.T) {
 	})
 
 	t.Run("delete_task_undo_redo", func(t *testing.T) {
+		tmpDir, err := os.MkdirTemp("", "focus-command-test-*")
+		if err != nil {
+			t.Fatalf("Failed to create temp dir: %v", err)
+		}
+		defer os.RemoveAll(tmpDir)
+
+		storePath := filepath.Join(tmpDir, "tasks.json")
+		repo := repository.NewStoreRepository(storePath)
+		eng := engine.New(repo)
+		history := command.NewHistory()
+
 		// Add a task first
 		parsedTask := models.ParsedTask{
 			Description: "Task to delete",
@@ -191,6 +212,17 @@ func TestCommandHistoryIntegration(t *testing.T) {
 	})
 
 	t.Run("multiple_operations_workflow", func(t *testing.T) {
+		tmpDir, err := os.MkdirTemp("", "focus-command-test-*")
+		if err != nil {
+			t.Fatalf("Failed to create temp dir: %v", err)
+		}
+		defer os.RemoveAll(tmpDir)
+
+		storePath := filepath.Join(tmpDir, "tasks.json")
+		repo := repository.NewStoreRepository(storePath)
+		eng := engine.New(repo)
+		history := command.NewHistory()
+
 		// Add three tasks
 		task1 := models.ParsedTask{Description: "Task 1", Priority: "high"}
 		task2 := models.ParsedTask{Description: "Task 2", Priority: "medium"}
@@ -236,6 +268,17 @@ func TestCommandHistoryIntegration(t *testing.T) {
 	})
 
 	t.Run("update_task_undo_redo", func(t *testing.T) {
+		tmpDir, err := os.MkdirTemp("", "focus-command-test-*")
+		if err != nil {
+			t.Fatalf("Failed to create temp dir: %v", err)
+		}
+		defer os.RemoveAll(tmpDir)
+
+		storePath := filepath.Join(tmpDir, "tasks.json")
+		repo := repository.NewStoreRepository(storePath)
+		eng := engine.New(repo)
+		history := command.NewHistory()
+
 		// Add a task
 		originalTask := models.ParsedTask{
 			Description: "Original description",

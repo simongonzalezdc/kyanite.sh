@@ -138,6 +138,7 @@ type UpdateTaskCommand struct {
 type TaskEngine interface {
 	AddTask(parsedTask models.ParsedTask) (models.Task, error)
 	DeleteTask(id string) error
+	RestoreTask(task models.Task) error
 	GetTask(id string) (models.Task, error)
 	UpdateTask(task models.Task) error
 	UpdateTaskStatus(id, status string) error

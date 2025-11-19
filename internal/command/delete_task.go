@@ -2,8 +2,6 @@ package command
 
 import (
 	"fmt"
-
-	"github.com/kyanite/focus/pkg/models"
 )
 
 // NewDeleteTaskCommand creates a new delete task command
@@ -35,22 +33,8 @@ func (c *DeleteTaskCommand) Undo() error {
 		return fmt.Errorf("no task to restore")
 	}
 
-	// Convert Task back to ParsedTask for AddTask
-	parsedTask := models.ParsedTask{
-		Description:        c.deletedTask.Description,
-		Deadline:           c.deletedTask.Deadline,
-		Priority:           c.deletedTask.Priority,
-		Categories:         c.deletedTask.Categories,
-		Notes:              c.deletedTask.Notes,
-		RecurrencePattern:  c.deletedTask.RecurrencePattern,
-		RecurrenceInterval: c.deletedTask.RecurrenceInterval,
-		RecurrenceEndDate:  c.deletedTask.RecurrenceEndDate,
-	}
-
-	// This won't preserve the original ID, timestamps, or status,
-	// but it's the best we can do without a direct restore operation
-	_, err := c.engine.AddTask(parsedTask)
-	if err != nil {
+	// Use RestoreTask to preserve the original task ID and all fields
+	if err := c.engine.RestoreTask(*c.deletedTask); err != nil {
 		return fmt.Errorf("failed to restore task: %w", err)
 	}
 
