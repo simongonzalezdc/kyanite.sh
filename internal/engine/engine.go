@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kyanite/focus/internal/repository"
+	pkgerrors "github.com/kyanite/focus/pkg/errors"
 	"github.com/kyanite/focus/pkg/models"
 )
 
@@ -83,7 +84,7 @@ func (e *Engine) invalidateCache() {
 func (e *Engine) AddTask(parsedTask models.ParsedTask) (models.Task, error) {
 	// Validate input
 	if parsedTask.Description == "" {
-		return models.Task{}, fmt.Errorf("task description cannot be empty")
+		return models.Task{}, pkgerrors.ErrEmptyDescription
 	}
 
 	now := time.Now()
@@ -264,7 +265,7 @@ func (e *Engine) GetTask(id string) (models.Task, error) {
 	// O(1) lookup using index
 	idx, exists := e.cacheIndex[id]
 	if !exists {
-		return models.Task{}, fmt.Errorf("task with ID %s not found", id)
+		return models.Task{}, pkgerrors.NewTaskError("GetTask", id, pkgerrors.ErrTaskNotFound)
 	}
 
 	return e.cache[idx], nil
@@ -278,7 +279,7 @@ func (e *Engine) updateTaskStatus(id, status string) error {
 	idx, exists := e.cacheIndex[id]
 	if !exists {
 		e.mu.Unlock()
-		return fmt.Errorf("task with ID %s not found", id)
+		return pkgerrors.NewTaskError("updateTaskStatus", id, pkgerrors.ErrTaskNotFound)
 	}
 
 	e.cache[idx].Status = status

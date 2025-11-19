@@ -3,10 +3,14 @@ package cli
 import (
 	"fmt"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/focus/internal/command"
 	"github.com/kyanite/focus/internal/tui"
 	pterm "github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
+
+// Global command history for undo/redo
+var globalHistory = command.NewHistory()
 
 var (
 	focusBlue   = lipgloss.Color("#00FFFF")
