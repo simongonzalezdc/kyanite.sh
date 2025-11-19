@@ -25,6 +25,10 @@ type Task struct {
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 
+	// Hierarchy fields
+	ParentID string   `json:"parent_id,omitempty"` // for subtasks
+	SubtaskIDs []string `json:"subtask_ids,omitempty"` // IDs of child tasks
+
 	// Recurrence fields
 	RecurrencePattern  RecurrencePattern `json:"recurrence_pattern,omitempty"`  // daily, weekly, monthly, yearly
 	RecurrenceInterval int               `json:"recurrence_interval,omitempty"` // e.g., every 2 days, every 3 weeks
@@ -40,6 +44,37 @@ func (t *Task) IsRecurring() bool {
 // IsRecurringInstance returns true if this task was generated from a recurring parent
 func (t *Task) IsRecurringInstance() bool {
 	return t.ParentTaskID != ""
+}
+
+// IsSubtask returns true if this task has a parent (is a subtask)
+func (t *Task) IsSubtask() bool {
+	return t.ParentID != ""
+}
+
+// HasSubtasks returns true if this task has any subtasks
+func (t *Task) HasSubtasks() bool {
+	return len(t.SubtaskIDs) > 0
+}
+
+// AddSubtask adds a subtask ID to this task
+func (t *Task) AddSubtask(subtaskID string) {
+	if t.SubtaskIDs == nil {
+		t.SubtaskIDs = []string{}
+	}
+	t.SubtaskIDs = append(t.SubtaskIDs, subtaskID)
+}
+
+// RemoveSubtask removes a subtask ID from this task
+func (t *Task) RemoveSubtask(subtaskID string) {
+	if t.SubtaskIDs == nil {
+		return
+	}
+	for i, id := range t.SubtaskIDs {
+		if id == subtaskID {
+			t.SubtaskIDs = append(t.SubtaskIDs[:i], t.SubtaskIDs[i+1:]...)
+			return
+		}
+	}
 }
 
 // ParsedTask represents the output from AI parsing

@@ -132,6 +132,73 @@ func (e *Engine) AddTask(parsedTask models.ParsedTask) (models.Task, error) {
 	return task, nil
 }
 
+// AddSubtask creates a new task as a subtask of an existing parent task
+func (e *Engine) AddSubtask(parentID, description, priority string, categories []string, deadline string) (string, error) {
+	if description == "" {
+		return "", fmt.Errorf("subtask description cannot be empty")
+	}
+
+	// Get parent task
+	parent, err := e.GetTask(parentID)
+	if err != nil {
+		return "", fmt.Errorf("parent task not found: %w", err)
+	}
+
+	// Create subtask
+	now := time.Now()
+	subtask := models.Task{
+		ID:          generateID(),
+		Description: description,
+		Status:      "pending",
+		Priority:    priority,
+		Categories:  categories,
+		CreatedAt:   now,
+		UpdatedAt:   now,
+		ParentID:    parentID,
+	}
+
+	// Parse deadline if provided
+	if deadline != "" {
+		deadlineTime, err := time.Parse("2006-01-02", deadline)
+		if err == nil {
+			subtask.Deadline = deadlineTime
+		}
+	}
+
+	// Validate and normalize priority
+	if subtask.Priority == "" {
+		subtask.Priority = parent.Priority // Inherit from parent if not specified
+	}
+	validPriorities := map[string]bool{
+		"low":    true,
+		"medium": true,
+		"high":   true,
+	}
+	if !validPriorities[subtask.Priority] {
+		subtask.Priority = "medium"
+	}
+
+	// Add subtask to cache
+	e.mu.Lock()
+	e.cache = append(e.cache, subtask)
+	e.cacheIndex[subtask.ID] = len(e.cache) - 1
+
+	// Update parent task to include this subtask
+	if parentIdx, exists := e.cacheIndex[parentID]; exists {
+		e.cache[parentIdx].AddSubtask(subtask.ID)
+		e.cache[parentIdx].UpdatedAt = now
+	}
+	e.cacheDirty = true
+	e.mu.Unlock()
+
+	// Persist to disk
+	if err := e.flushCache(); err != nil {
+		return "", fmt.Errorf("failed to save subtask: %w", err)
+	}
+
+	return subtask.ID, nil
+}
+
 // ListTasks returns all tasks, optionally filtered
 func (e *Engine) ListTasks(filter string) ([]models.Task, error) {
 	e.mu.RLock()
