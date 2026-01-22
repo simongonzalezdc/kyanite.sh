@@ -353,6 +353,7 @@ type ValidationRule interface {
 
 // PerformanceMetrics tracks parsing performance
 type PerformanceMetrics struct {
+	LexerTime      time.Duration
 	ParseTime      time.Duration
 	ValidationTime time.Duration
 	TotalTime      time.Duration

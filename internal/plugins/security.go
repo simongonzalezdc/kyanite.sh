@@ -365,6 +365,7 @@ func (sm *SecurityManager) validateDescription(description string) error {
 		"<script", "</script>", "javascript:", "vbscript:", "onload=", "onerror=",
 		"eval(", "exec(", "system(", "popen(", "fopen(", "file_get_contents(",
 		"<iframe", "<object", "<embed", "<form",
+		"settimeout(", "setinterval(", // JavaScript timed execution
 	}
 
 	descLower := strings.ToLower(description)
@@ -1189,7 +1190,15 @@ func (sm *SecurityManager) CleanupStalePlugins(maxAge time.Duration) error {
 	return nil
 }
 
-// GetSecurityReport returns a security report for all loaded plugins
+// SecurityIssue represents a security concern found during validation
+type SecurityIssue struct {
+	PluginID string `json:"plugin_id"`
+	Severity string `json:"severity"` // "critical", "high", "medium", "low", "info"
+	Category string `json:"category"` // "metadata", "capability", "config", "pattern"
+	Message  string `json:"message"`
+}
+
+// GetSecurityReport returns a comprehensive security report for all loaded plugins
 func (sm *SecurityManager) GetSecurityReport(manager PluginManager) map[string]interface{} {
 	report := make(map[string]interface{})
 
@@ -1198,38 +1207,254 @@ func (sm *SecurityManager) GetSecurityReport(manager PluginManager) map[string]i
 
 	var securePlugins, insecurePlugins []string
 	var totalSize int64
+	var allIssues []SecurityIssue
+
+	// Define allowed capabilities (high-risk capabilities require more scrutiny)
+	highRiskCapabilities := map[Capability]bool{
+		CapabilityHook:         true,
+		CapabilityConfig:       true,
+		CapabilityDataProvider: true,
+	}
+
+	// Define acceptable licenses
+	acceptableLicenses := map[string]bool{
+		"MIT":        true,
+		"Apache-2.0": true,
+		"BSD-3":      true,
+		"BSD-2":      true,
+		"GPL-3.0":    true,
+		"LGPL-3.0":   true,
+		"ISC":        true,
+		"MPL-2.0":    true,
+		"":           true, // Empty is allowed but generates info-level issue
+	}
+
+	// Suspicious patterns in descriptions
+	suspiciousPatterns := []string{
+		"eval", "exec", "shell", "system",
+		"password", "credential", "secret",
+		"network", "http", "download", "upload",
+		"sudo", "root", "admin",
+		"setTimeout", "setInterval", // XSS-related
+		"<script", "javascript:", "onload=", // Script injection
+	}
+
+	// Sensitive config keys
+	sensitiveConfigKeys := []string{
+		"password", "secret", "token", "key", "credential",
+		"api_key", "private", "auth",
+	}
 
 	for _, plugin := range plugins {
 		metadata := plugin.Metadata()
+		pluginIssues := sm.validatePluginSecurity(metadata, highRiskCapabilities, acceptableLicenses, suspiciousPatterns, sensitiveConfigKeys)
 
-		// Basic security checks
-		isSecure := true
+		allIssues = append(allIssues, pluginIssues...)
 
-		if metadata.Author == "" {
-			isSecure = false
+		// Determine if plugin is secure based on critical/high issues
+		hasCriticalIssues := false
+		for _, issue := range pluginIssues {
+			if issue.Severity == "critical" || issue.Severity == "high" {
+				hasCriticalIssues = true
+				break
+			}
 		}
 
-		if strings.Contains(metadata.Description, "test") || strings.Contains(metadata.Description, "debug") {
-			// This is a simple heuristic - in practice you'd want more sophisticated checks
-			// TODO: Implement more comprehensive security validation
-			sm.logger.Debugf("Plugin description contains test/debug keywords: %s", metadata.Description)
-		}
-
-		if isSecure {
-			securePlugins = append(securePlugins, metadata.ID)
-		} else {
+		if hasCriticalIssues {
 			insecurePlugins = append(insecurePlugins, metadata.ID)
+		} else {
+			securePlugins = append(securePlugins, metadata.ID)
 		}
 
-		// This is a placeholder for size calculation
-		// In a real implementation, you'd calculate the actual plugin size
-		totalSize += 1024 // Assume 1KB per plugin for demo
+		// Estimate size based on config complexity
+		configSize := len(metadata.Config) * 256 // ~256 bytes per config entry
+		totalSize += int64(1024 + configSize)    // Base 1KB + config
 	}
 
 	report["secure_plugins"] = securePlugins
 	report["insecure_plugins"] = insecurePlugins
 	report["total_size_bytes"] = totalSize
 	report["scan_timestamp"] = time.Now()
+	report["security_issues"] = allIssues
+	report["issues_by_severity"] = sm.countIssuesBySeverity(allIssues)
 
 	return report
+}
+
+// validatePluginSecurity performs comprehensive security validation on a plugin
+func (sm *SecurityManager) validatePluginSecurity(
+	metadata *PluginMetadata,
+	highRiskCapabilities map[Capability]bool,
+	acceptableLicenses map[string]bool,
+	suspiciousPatterns []string,
+	sensitiveConfigKeys []string,
+) []SecurityIssue {
+	var issues []SecurityIssue
+
+	// 1. Validate author (required)
+	if metadata.Author == "" {
+		issues = append(issues, SecurityIssue{
+			PluginID: metadata.ID,
+			Severity: "high",
+			Category: "metadata",
+			Message:  "Plugin has no author specified - cannot verify source",
+		})
+	}
+
+	// 2. Validate plugin ID format (should be lowercase with hyphens/underscores)
+	if !sm.isValidPluginID(metadata.ID) {
+		issues = append(issues, SecurityIssue{
+			PluginID: metadata.ID,
+			Severity: "medium",
+			Category: "metadata",
+			Message:  "Plugin ID does not follow naming convention (lowercase, alphanumeric, hyphens)",
+		})
+	}
+
+	// 3. Validate version follows semver pattern
+	if !sm.isValidSemver(metadata.Version) {
+		issues = append(issues, SecurityIssue{
+			PluginID: metadata.ID,
+			Severity: "low",
+			Category: "metadata",
+			Message:  "Plugin version does not follow semantic versioning",
+		})
+	}
+
+	// 4. Validate license
+	if metadata.License == "" {
+		issues = append(issues, SecurityIssue{
+			PluginID: metadata.ID,
+			Severity: "info",
+			Category: "metadata",
+			Message:  "Plugin has no license specified",
+		})
+	} else if !acceptableLicenses[metadata.License] {
+		issues = append(issues, SecurityIssue{
+			PluginID: metadata.ID,
+			Severity: "medium",
+			Category: "metadata",
+			Message:  "Plugin uses non-standard license: " + metadata.License,
+		})
+	}
+
+	// 5. Check for high-risk capabilities
+	for _, cap := range metadata.Capabilities {
+		if highRiskCapabilities[cap] {
+			issues = append(issues, SecurityIssue{
+				PluginID: metadata.ID,
+				Severity: "medium",
+				Category: "capability",
+				Message:  "Plugin requests high-risk capability: " + string(cap),
+			})
+		}
+	}
+
+	// 6. Check description for suspicious patterns
+	descLower := strings.ToLower(metadata.Description)
+	for _, pattern := range suspiciousPatterns {
+		if strings.Contains(descLower, strings.ToLower(pattern)) {
+			issues = append(issues, SecurityIssue{
+				PluginID: metadata.ID,
+				Severity: "info",
+				Category: "pattern",
+				Message:  "Plugin description contains potentially concerning keyword: " + pattern,
+			})
+			sm.logger.Debugf("Plugin %s description contains keyword: %s", metadata.ID, pattern)
+		}
+	}
+
+	// 7. Check config for sensitive keys
+	for key := range metadata.Config {
+		keyLower := strings.ToLower(key)
+		for _, sensitiveKey := range sensitiveConfigKeys {
+			if strings.Contains(keyLower, sensitiveKey) {
+				issues = append(issues, SecurityIssue{
+					PluginID: metadata.ID,
+					Severity: "high",
+					Category: "config",
+					Message:  "Plugin config contains potentially sensitive key: " + key,
+				})
+			}
+		}
+	}
+
+	// 8. Check for empty name (suspicious)
+	if metadata.Name == "" {
+		issues = append(issues, SecurityIssue{
+			PluginID: metadata.ID,
+			Severity: "medium",
+			Category: "metadata",
+			Message:  "Plugin has no name specified",
+		})
+	}
+
+	return issues
+}
+
+// isValidPluginID checks if a plugin ID follows naming conventions
+func (sm *SecurityManager) isValidPluginID(id string) bool {
+	if id == "" {
+		return false
+	}
+
+	// Allow lowercase letters, numbers, hyphens, underscores, and dots
+	for _, r := range id {
+		if !((r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' || r == '_' || r == '.') {
+			return false
+		}
+	}
+
+	// Must start with a letter
+	if id[0] < 'a' || id[0] > 'z' {
+		return false
+	}
+
+	return true
+}
+
+// isValidSemver performs a basic check for semantic versioning
+func (sm *SecurityManager) isValidSemver(version string) bool {
+	if version == "" {
+		return false
+	}
+
+	// Strip leading 'v' if present (TrimPrefix handles absence gracefully)
+	version = strings.TrimPrefix(version, "v")
+
+	// Basic pattern: major.minor.patch with optional pre-release
+	parts := strings.Split(version, ".")
+	if len(parts) < 2 || len(parts) > 4 {
+		return false
+	}
+
+	// Check that first two parts are numeric
+	for i := 0; i < 2 && i < len(parts); i++ {
+		// Remove any pre-release suffix from the last part
+		part := strings.Split(parts[i], "-")[0]
+		for _, r := range part {
+			if r < '0' || r > '9' {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+// countIssuesBySeverity counts issues grouped by severity
+func (sm *SecurityManager) countIssuesBySeverity(issues []SecurityIssue) map[string]int {
+	counts := map[string]int{
+		"critical": 0,
+		"high":     0,
+		"medium":   0,
+		"low":      0,
+		"info":     0,
+	}
+
+	for _, issue := range issues {
+		counts[issue.Severity]++
+	}
+
+	return counts
 }

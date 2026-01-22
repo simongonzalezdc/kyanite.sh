@@ -99,9 +99,15 @@ func NewPreviewPaneModel() *PreviewPaneModel {
 
 	if err != nil {
 		// Fallback to basic dark style if custom style fails
-		renderer, _ = glamour.NewTermRenderer(
+		// Log the original error for debugging
+		var fallbackErr error
+		renderer, fallbackErr = glamour.NewTermRenderer(
 			glamour.WithStylePath("dark"),
 		)
+		if fallbackErr != nil {
+			// Both custom and fallback styles failed - use auto style as last resort
+			renderer, _ = glamour.NewTermRenderer(glamour.WithAutoStyle())
+		}
 	}
 
 	// Initialize smooth scrolling spring

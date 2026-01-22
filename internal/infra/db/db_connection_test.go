@@ -11,18 +11,14 @@ func TestNewInitializesSchema(t *testing.T) {
 
 	database := newTestDB(t)
 
+	// Core tables required for single-user mode
+	// Collaboration tables are only created when EnableCollaboration is true
 	requiredTables := []string{
 		"songs",
 		"versions",
 		"writing_stats",
 		"kb_entries",
 		"projects",
-		"collaboration_sessions",
-		"session_participants",
-		"document_operations",
-		"user_presence",
-		"session_invitations",
-		"conflict_resolutions",
 	}
 
 	for _, table := range requiredTables {

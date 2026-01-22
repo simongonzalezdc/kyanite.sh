@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/spf13/viper"
@@ -32,6 +33,16 @@ type Config struct {
 
 	// Development settings
 	Dev DevConfig `mapstructure:"dev"`
+
+	// Feature flags for experimental/future features
+	Features FeaturesConfig `mapstructure:"features"`
+}
+
+// FeaturesConfig contains feature flags for experimental/future features
+type FeaturesConfig struct {
+	// EnableCollaboration enables multi-user collaboration features (future feature)
+	// When false (default), collaboration managers are not initialized and related tests are skipped
+	EnableCollaboration bool `mapstructure:"enable_collaboration"`
 }
 
 // AppConfig contains general application settings
@@ -210,6 +221,9 @@ func DefaultConfig() *Config {
 			MockAI:       false,
 			SkipDatabase: false,
 		},
+		Features: FeaturesConfig{
+			EnableCollaboration: false, // Disabled by default - future feature
+		},
 	}
 }
 
@@ -351,6 +365,9 @@ func (c *Config) Save() error {
 			"mock_ai":       c.Dev.MockAI,
 			"skip_database": c.Dev.SkipDatabase,
 		},
+		"features": map[string]interface{}{
+			"enable_collaboration": c.Features.EnableCollaboration,
+		},
 	}
 
 	configPath := filepath.Join(configDir, "noise.yaml")
@@ -407,8 +424,10 @@ func (c *Config) overrideFromEnv() {
 	}
 
 	if val := os.Getenv("NOISE_DATABASE_PORT"); val != "" {
-		// TODO: Parse port from environment variable
-		_ = val // Suppress unused variable warning
+		if port, err := strconv.Atoi(val); err == nil && port > 0 && port <= 65535 {
+			c.Database.Port = port
+		}
+		// Invalid port values are silently ignored - defaults will be used
 	}
 
 	// AI settings
@@ -478,4 +497,10 @@ func (c *Config) IsDebug() bool {
 // IsDevMode returns whether development mode is enabled
 func (c *Config) IsDevMode() bool {
 	return c.Dev.Debug || c.Dev.Profile || c.Dev.Trace
+}
+
+// IsCollaborationEnabled returns whether collaboration features are enabled
+// Collaboration is a future feature and is disabled by default
+func (c *Config) IsCollaborationEnabled() bool {
+	return c.Features.EnableCollaboration
 }

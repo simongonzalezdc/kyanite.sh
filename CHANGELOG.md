@@ -1,10 +1,79 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. Release entries are generated automatically during the release workflow using the release tooling under `tools/release`.
+All notable changes to noise.sh will be documented in this file.
 
-<!--
-Release sections will be appended below in the following format:
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [vX.Y.Z] - YYYY-MM-DD
-Summary of changes...
--->
+## [Unreleased]
+
+### Added
+- Comprehensive stress detection in prosody engine with syllable splitting
+- Harmony normalization with enharmonic and chord type standardization
+- SQLite WAL mode and performance PRAGMAs for improved database performance
+- Retry logic with exponential backoff for AI requests
+- `UnwrapOrElse` and `UnwrapOrZero` methods for Result/Option types
+- Security validation framework for plugins
+
+### Changed
+- Updated PROJECT_SNAPSHOT.md to reflect Active Development status
+- Improved menu tests with proper dimension setup and model capturing
+
+### Fixed
+- Menu tests now properly capture returned model from Update()
+- Suppressed noisy schema migration warnings during test runs
+
+## [0.1.0] - 2026-01-22
+
+### Added
+- Initial project structure following Go best practices
+- Bubble Tea TUI framework with Elm Architecture pattern
+- Lipgloss styling system with gradient support
+- Multiple theme support (Midnight Jazz, Sunset Glow, etc.)
+- QuickIdeaAgent for AI-assisted songwriting
+  - Unstick mode for continuation suggestions
+  - Spark mode for inspiration
+  - Tweak mode for variations
+  - Check mode for quality feedback
+  - Harmony mode for chord progressions
+- Context-aware prompts based on content type detection
+- Knowledge base integration with stub provider
+- SQLite database layer with repository pattern
+- Domain models (Song, Section, Line, Version, Project)
+- Music theory library
+  - ProsodyEngine for syllable counting and meter analysis
+  - HarmonyLib for chord validation and scale suggestions
+  - Rhyme analysis tools
+- Comprehensive test suite
+  - Unit tests for core components
+  - Integration tests for workflows
+  - E2E testing framework
+  - Load testing infrastructure
+- GitHub Actions CI/CD pipeline
+  - Automated testing across platforms
+  - Security scanning with gosec and govulncheck
+  - Dependency management with Dependabot
+- Project documentation
+  - Product Requirements Document (PRD)
+  - Technical Design Document (TDD)
+  - Development Roadmap
+  - Design System Reference
+  - Architecture documentation
+
+### Technical Stack
+- Go 1.25.3
+- Bubble Tea v1.3.10 (TUI framework)
+- Lipgloss v1.1.1 (styling)
+- modernc.org/sqlite v1.27.0 (pure Go SQLite)
+- Ollama (local LLM integration)
+
+---
+
+## Version History Summary
+
+| Version | Date | Highlights |
+|---------|------|------------|
+| 0.1.0 | 2026-01-22 | Initial release with core TUI, AI integration, and music theory tools |
+
+[Unreleased]: https://github.com/Kyanite/noise/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/Kyanite/noise/releases/tag/v0.1.0

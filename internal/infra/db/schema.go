@@ -1,6 +1,7 @@
 package db
 
-// Schema contains all database table creation statements
+// Schema contains the core database table creation statements for single-user mode.
+// This is always executed during database initialization.
 const Schema = `
 -- Songs table (metadata index)
 CREATE TABLE IF NOT EXISTS songs (
@@ -63,7 +64,22 @@ CREATE TABLE IF NOT EXISTS projects (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Collaboration system tables
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_songs_updated ON songs(updated_at);
+CREATE INDEX IF NOT EXISTS idx_songs_title ON songs(title);
+CREATE INDEX IF NOT EXISTS idx_songs_artist ON songs(artist);
+CREATE INDEX IF NOT EXISTS idx_versions_song ON versions(song_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_stats_date ON writing_stats(date);
+CREATE INDEX IF NOT EXISTS idx_kb_topic ON kb_entries(topic);
+CREATE INDEX IF NOT EXISTS idx_projects_name ON projects(name);
+`
+
+// CollaborationSchema contains database tables for multi-user collaboration features.
+// This is only executed when collaboration is enabled via config.Features.EnableCollaboration.
+// These tables are a FUTURE FEATURE and are not used in single-user mode.
+const CollaborationSchema = `
+-- Collaboration system tables (FUTURE FEATURE)
+-- These tables are only created when collaboration is enabled.
 
 -- Collaboration sessions
 CREATE TABLE IF NOT EXISTS collaboration_sessions (
@@ -148,15 +164,6 @@ CREATE TABLE IF NOT EXISTS conflict_resolutions (
     metadata TEXT, -- JSON
     FOREIGN KEY (session_id) REFERENCES collaboration_sessions(id) ON DELETE CASCADE
 );
-
--- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_songs_updated ON songs(updated_at);
-CREATE INDEX IF NOT EXISTS idx_songs_title ON songs(title);
-CREATE INDEX IF NOT EXISTS idx_songs_artist ON songs(artist);
-CREATE INDEX IF NOT EXISTS idx_versions_song ON versions(song_id, created_at);
-CREATE INDEX IF NOT EXISTS idx_stats_date ON writing_stats(date);
-CREATE INDEX IF NOT EXISTS idx_kb_topic ON kb_entries(topic);
-CREATE INDEX IF NOT EXISTS idx_projects_name ON projects(name);
 
 -- Collaboration indexes
 CREATE INDEX IF NOT EXISTS idx_collab_sessions_active ON collaboration_sessions(is_active, created_at);

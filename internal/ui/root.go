@@ -114,17 +114,14 @@ func NewRootModel(pluginManager *plugins.DefaultManager) *RootModel {
 	s.Style = lipgloss.NewStyle().Foreground(theme.GetManager().Current().Primary)
 
 	return &RootModel{
-		currentScreen:        screenSplash,
-		loading:              true,
-		spinner:              s,
-		animation:            NewAnimationManager(),
-		responsiveManager:    NewResponsiveLayoutManager(),
-		collaborationManager: collaboration.NewCollaborationManager(nil), // Database will be set after initialization
-		presenceManager:      collaboration.NewPresenceManager(),
-		sessionManager:       collaboration.NewSessionManager(),
-		invitationManager:    collaboration.NewInvitationManager(),
-		conflictResolver:     collaboration.NewConflictResolver(),
-		pluginManager:        pluginManager,
+		currentScreen:     screenSplash,
+		loading:           true,
+		spinner:           s,
+		animation:         NewAnimationManager(),
+		responsiveManager: NewResponsiveLayoutManager(),
+		// Collaboration managers are initialized in initializeCollaborationSystem
+		// only when the feature flag is enabled (config.Features.EnableCollaboration)
+		pluginManager: pluginManager,
 	}
 }
 
@@ -316,9 +313,21 @@ func (m *RootModel) initializeChildModels() {
 }
 
 // initializeCollaborationSystem initializes the collaboration system
+// Only initializes if collaboration feature is enabled in config
 func (m *RootModel) initializeCollaborationSystem() {
-	// Set database for collaboration manager
+	// Check if collaboration feature is enabled
+	if m.config == nil || !m.config.IsCollaborationEnabled() {
+		// Collaboration is disabled - skip initialization
+		// This is the default for single-user mode
+		return
+	}
+
+	// Initialize collaboration managers
 	m.collaborationManager = collaboration.NewCollaborationManager(m.database)
+	m.presenceManager = collaboration.NewPresenceManager()
+	m.sessionManager = collaboration.NewSessionManager()
+	m.invitationManager = collaboration.NewInvitationManager()
+	m.conflictResolver = collaboration.NewConflictResolver()
 
 	// Set up UI callbacks for collaboration events
 	m.collaborationManager.SetUICallbacks(

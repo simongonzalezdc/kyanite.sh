@@ -267,21 +267,31 @@ func (cd *ContextDetector) AnalyzeContent(content string) ContentType {
 	}
 
 	// 2. Strong dominance check (significant lead even if both types present)
-	// If one type is more than 4x the other, it dominates unless it's very sparse
-	if lyricRatio >= 4.0*patternRatio && lyricRatio >= 0.5 {
+	// If one type is more than 3x the other, it dominates unless it's very sparse
+	if lyricRatio >= 3.0*patternRatio && lyricRatio >= 0.4 {
 		return ContentTypeLyrics
 	}
-	if patternRatio >= 4.0*lyricRatio && patternRatio >= 0.5 {
+	if patternRatio >= 3.0*lyricRatio && patternRatio >= 0.4 {
 		return ContentTypePatterns
 	}
 
-	// 3. Balanced mixed detection (both have meaningful presence)
-	if lyricRatio >= 0.2 && patternRatio >= 0.2 {
+	// 2b. Strong pattern lines indicate pure pattern content
+	// When most lines are strong pattern matches and there are few strong lyric indicators
+	if strongPatternLines >= 3 && strongLyricLines == 0 && patternRatio > lyricRatio {
+		return ContentTypePatterns
+	}
+	if strongLyricLines >= 3 && strongPatternLines == 0 && lyricRatio > patternRatio {
+		return ContentTypeLyrics
+	}
+
+	// 3. Balanced mixed detection (both have meaningful presence with strong indicators)
+	// Only classify as mixed if both types have substantial strong matches
+	if lyricRatio >= 0.25 && patternRatio >= 0.25 && strongLyricLines > 0 && strongPatternLines > 0 {
 		return ContentTypeMixed
 	}
 
-	// 4. Strong mixed detection (overriding low-presence single types)
-	if lyricRatio >= 0.15 && patternRatio >= 0.15 {
+	// 4. Weaker mixed detection for cases with clear presence of both
+	if lyricRatio >= 0.3 && patternRatio >= 0.3 {
 		return ContentTypeMixed
 	}
 

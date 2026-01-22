@@ -4,12 +4,22 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/Kyanite/noise/internal/config"
 )
+
+// homeEnvKey returns the environment variable key for the home directory
+// based on the current operating system.
+func homeEnvKey() string {
+	if runtime.GOOS == "windows" {
+		return "USERPROFILE"
+	}
+	return "HOME"
+}
 
 func TestDefaultConfigValues(t *testing.T) {
 	c := config.DefaultConfig()
@@ -74,9 +84,10 @@ func TestValidateErrors(t *testing.T) {
 func TestSaveAndLoadRoundTrip(t *testing.T) {
 	tmp := t.TempDir()
 	// Ensure UserHomeDir points to tmp
-	prevHome := os.Getenv("USERPROFILE")
-	defer os.Setenv("USERPROFILE", prevHome)
-	if err := os.Setenv("USERPROFILE", tmp); err != nil {
+	envKey := homeEnvKey()
+	prevHome := os.Getenv(envKey)
+	defer os.Setenv(envKey, prevHome)
+	if err := os.Setenv(envKey, tmp); err != nil {
 		t.Fatal(err)
 	}
 
@@ -110,9 +121,10 @@ func TestSaveAndLoadRoundTrip(t *testing.T) {
 
 func TestLoadWithEnvOverrides(t *testing.T) {
 	tmp := t.TempDir()
-	prevHome := os.Getenv("USERPROFILE")
-	defer os.Setenv("USERPROFILE", prevHome)
-	if err := os.Setenv("USERPROFILE", tmp); err != nil {
+	envKey := homeEnvKey()
+	prevHome := os.Getenv(envKey)
+	defer os.Setenv(envKey, prevHome)
+	if err := os.Setenv(envKey, tmp); err != nil {
 		t.Fatal(err)
 	}
 
@@ -148,9 +160,10 @@ func TestLoadWithEnvOverrides(t *testing.T) {
 
 func TestLoadInvalidConfigFileReturnsError(t *testing.T) {
 	tmp := t.TempDir()
-	prevHome := os.Getenv("USERPROFILE")
-	defer os.Setenv("USERPROFILE", prevHome)
-	if err := os.Setenv("USERPROFILE", tmp); err != nil {
+	envKey := homeEnvKey()
+	prevHome := os.Getenv(envKey)
+	defer os.Setenv(envKey, prevHome)
+	if err := os.Setenv(envKey, tmp); err != nil {
 		t.Fatal(err)
 	}
 
@@ -207,14 +220,15 @@ func TestIsDebugAndIsDevMode(t *testing.T) {
 
 func TestSaveFailsWhenHomeIsFile(t *testing.T) {
 	tmp := t.TempDir()
-	// create a file and point USERPROFILE to it
+	// create a file and point HOME/USERPROFILE to it
 	file := filepath.Join(tmp, "afile")
 	if err := ioutil.WriteFile(file, []byte("hello"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	prevHome := os.Getenv("USERPROFILE")
-	defer os.Setenv("USERPROFILE", prevHome)
-	if err := os.Setenv("USERPROFILE", file); err != nil {
+	envKey := homeEnvKey()
+	prevHome := os.Getenv(envKey)
+	defer os.Setenv(envKey, prevHome)
+	if err := os.Setenv(envKey, file); err != nil {
 		t.Fatal(err)
 	}
 

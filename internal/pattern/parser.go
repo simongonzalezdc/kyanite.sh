@@ -682,14 +682,12 @@ func ParseWithMetrics(input string) (*Program, []PatternError, PerformanceMetric
 	}
 
 	metrics := PerformanceMetrics{
+		LexerTime:  lexerTime,
 		ParseTime:  parserTime,
 		TotalTime:  totalTime,
 		TokenCount: len(tokens),
 		NodeCount:  countNodes(program),
 	}
-
-	// Use lexerTime to avoid unused variable warning
-	_ = lexerTime
 
 	return program, parser.Errors(), metrics
 }

@@ -43,6 +43,23 @@ func (r Result[T]) UnwrapOr(defaultValue T) T {
 	return r.value
 }
 
+// UnwrapOrElse returns the value or calls the provided function if error
+func (r Result[T]) UnwrapOrElse(f func() T) T {
+	if r.err != nil {
+		return f()
+	}
+	return r.value
+}
+
+// UnwrapOrZero returns the value or the zero value of type T if error
+func (r Result[T]) UnwrapOrZero() T {
+	if r.err != nil {
+		var zero T
+		return zero
+	}
+	return r.value
+}
+
 // Expect returns the value or panics with message if error
 func (r Result[T]) Expect(message string) T {
 	if r.err != nil {
@@ -119,6 +136,23 @@ func (o Option[T]) Unwrap() T {
 func (o Option[T]) UnwrapOr(defaultValue T) T {
 	if !o.present {
 		return defaultValue
+	}
+	return o.value
+}
+
+// UnwrapOrElse returns the value or calls the provided function if none
+func (o Option[T]) UnwrapOrElse(f func() T) T {
+	if !o.present {
+		return f()
+	}
+	return o.value
+}
+
+// UnwrapOrZero returns the value or the zero value of type T if none
+func (o Option[T]) UnwrapOrZero() T {
+	if !o.present {
+		var zero T
+		return zero
 	}
 	return o.value
 }

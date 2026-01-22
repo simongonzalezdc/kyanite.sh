@@ -329,9 +329,10 @@ func TestErrorRecoveryUIConcurrentOperations(t *testing.T) {
 		<-done
 	}
 
-	// Final state should be consistent (panel should be shown since we started with hidden and toggled 10 times)
-	if !errorRecoveryUI.showRecoveryPanel {
-		t.Error("Expected recovery panel to be shown after even number of toggles")
+	// Final state should be consistent (panel should be hidden since we started with hidden and toggled 10 times)
+	// Starting hidden, 10 toggles: hidden -> shown -> hidden -> ... -> hidden (even number = back to original state)
+	if errorRecoveryUI.showRecoveryPanel {
+		t.Error("Expected recovery panel to be hidden after even number of toggles starting from hidden")
 	}
 
 	// Get operations concurrently

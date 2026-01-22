@@ -26,6 +26,13 @@ func CreateTestPluginManager(t *testing.T) *DefaultManager {
 	return NewManager(cfg, logger)
 }
 
+// RegisterTestPlugin adds a plugin directly to the manager for testing purposes
+func RegisterTestPlugin(m *DefaultManager, p Plugin) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	m.plugins[p.Metadata().ID] = p
+}
+
 // TestSecurityManager creates a security manager for testing
 func TestSecurityManager(t *testing.T) *SecurityManager {
 	logger, err := logging.NewFromConfig(config.DefaultConfig())
@@ -74,12 +81,35 @@ func CreateTestPluginManifest(t *testing.T, dir string, metadata *PluginMetadata
 		t.Fatalf("Failed to marshal plugin metadata: %v", err)
 	}
 
-	manifestPath := filepath.Join(dir, metadata.ID+".json")
+	// Sanitize the filename to prevent path traversal in test infrastructure
+	// The actual security check happens when the plugin manager loads the manifest
+	safeFilename := sanitizeFilename(metadata.ID) + ".json"
+	manifestPath := filepath.Join(dir, safeFilename)
 	if err := os.WriteFile(manifestPath, data, 0600); err != nil {
 		t.Fatalf("Failed to write plugin manifest: %v", err)
 	}
 
 	return manifestPath
+}
+
+// sanitizeFilename removes path separators and other dangerous characters from filenames
+func sanitizeFilename(name string) string {
+	// Replace null bytes first (they become spaces in JSON and cause issues)
+	safe := strings.ReplaceAll(name, "\x00", "_")
+	// Replace path separators and other dangerous characters
+	safe = strings.ReplaceAll(safe, "/", "_")
+	safe = strings.ReplaceAll(safe, "\\", "_")
+	safe = strings.ReplaceAll(safe, "..", "_")
+	safe = strings.ReplaceAll(safe, ":", "_")
+	safe = strings.ReplaceAll(safe, " ", "_") // Spaces can cause issues on some systems
+	if safe == "" {
+		safe = "unnamed"
+	}
+	// Truncate to max 200 characters to avoid filesystem issues
+	if len(safe) > 200 {
+		safe = safe[:200]
+	}
+	return safe
 }
 
 // CreateMaliciousPluginManifest creates a malicious plugin manifest for security testing

@@ -1,3 +1,8 @@
+//go:build collaboration
+
+// Test utilities for collaboration UI tests.
+// Only compiled when the collaboration build tag is specified.
+
 package collaboration
 
 // Helper function to check if a string contains a substring

@@ -15,18 +15,21 @@ import (
 
 // TestLogger provides a logger for testing that captures log messages
 type TestLogger struct {
-	messages []string
-	mu       sync.RWMutex
-	t        *testing.T
+	writer *testLogWriter
+	mu     sync.RWMutex
+	t      *testing.T
 	*logging.Logger
 }
 
 // NewTestLogger creates a new test logger
 func NewTestLogger(t *testing.T) *TestLogger {
-	// Create a real logger that writes to a buffer
+	// Create a writer that will capture all log messages
+	writer := &testLogWriter{messages: make([]string, 0)}
+
+	// Create a real logger that writes to the buffer
 	config := &logging.Config{
 		Level:      logging.DEBUG,
-		Output:     &testLogWriter{messages: make([]string, 0)},
+		Output:     writer,
 		ShowCaller: false,
 	}
 
@@ -35,13 +38,18 @@ func NewTestLogger(t *testing.T) *TestLogger {
 		t.Fatalf("Failed to create test logger: %v", err)
 	}
 
-	writer := config.Output.(*testLogWriter)
-
 	return &TestLogger{
-		messages: writer.messages,
-		t:        t,
-		Logger:   logger,
+		writer: writer,
+		t:      t,
+		Logger: logger,
 	}
+}
+
+// messages provides access to the captured log messages
+func (tl *TestLogger) messages() []string {
+	tl.writer.mu.RLock()
+	defer tl.writer.mu.RUnlock()
+	return tl.writer.messages
 }
 
 // testLogWriter is a writer that captures log messages
@@ -62,27 +70,24 @@ func (tlw *testLogWriter) Write(p []byte) (n int, err error) {
 
 // GetMessages returns all logged messages
 func (tl *TestLogger) GetMessages() []string {
-	tl.mu.RLock()
-	defer tl.mu.RUnlock()
+	tl.writer.mu.RLock()
+	defer tl.writer.mu.RUnlock()
 
-	messages := make([]string, len(tl.messages))
-	copy(messages, tl.messages)
+	messages := make([]string, len(tl.writer.messages))
+	copy(messages, tl.writer.messages)
 	return messages
 }
 
 // Clear clears all logged messages
 func (tl *TestLogger) Clear() {
-	tl.mu.Lock()
-	defer tl.mu.Unlock()
-	tl.messages = make([]string, 0)
+	tl.writer.mu.Lock()
+	defer tl.writer.mu.Unlock()
+	tl.writer.messages = make([]string, 0)
 }
 
 // ContainsMessage checks if a message containing the given text was logged
 func (tl *TestLogger) ContainsMessage(text string) bool {
-	tl.mu.RLock()
-	defer tl.mu.RUnlock()
-
-	for _, msg := range tl.messages {
+	for _, msg := range tl.GetMessages() {
 		if contains(msg, text) {
 			return true
 		}
@@ -222,6 +227,7 @@ func NewTestSetup(t *testing.T) *TestSetup {
 	// Create error manager
 	config := DefaultErrorConfig()
 	config.LogDirectory = tempDir
+	config.EnableReporting = true // Enable reporting for tests
 	manager := NewErrorManager(logger.Logger, config)
 
 	// Create test reporter
@@ -281,11 +287,23 @@ func CreateTestFile(t *testing.T, dir, filename, content string) string {
 // CreateCorruptedTestFile creates a corrupted test file
 func CreateCorruptedTestFile(t *testing.T, dir, filename string) string {
 	filePath := filepath.Join(dir, filename)
+	ext := filepath.Ext(filename)
 
-	// Create invalid JSON for corruption
-	invalidJSON := `{"invalid": json content}`
+	var corruptedContent []byte
 
-	err := os.WriteFile(filePath, []byte(invalidJSON), 0644)
+	switch ext {
+	case ".json":
+		// Create invalid JSON for JSON files
+		corruptedContent = []byte(`{"invalid": json content}`)
+	case ".txt", ".md":
+		// Create text with null bytes to trigger binary corruption detection
+		corruptedContent = []byte("text with \x00 null byte corruption")
+	default:
+		// Default to invalid JSON
+		corruptedContent = []byte(`{"invalid": json content}`)
+	}
+
+	err := os.WriteFile(filePath, corruptedContent, 0644)
 	if err != nil {
 		t.Fatalf("Failed to create corrupted test file %s: %v", filePath, err)
 	}

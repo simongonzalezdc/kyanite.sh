@@ -1,3 +1,8 @@
+//go:build collaboration
+
+// Collaboration tests are only run when the collaboration build tag is specified.
+// Run with: go test -tags collaboration ./internal/collaboration/...
+
 package collaboration
 
 import (

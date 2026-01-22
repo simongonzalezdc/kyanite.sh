@@ -93,11 +93,13 @@ func NewErrorRecoveryUI(logger *logging.Logger) *ErrorRecoveryUI {
 		Margin(0, 1)
 
 	ui := &ErrorRecoveryUI{
-		logger:             logger,
-		showRecoveryPanel:  false,
-		selectedRecovery:   0,
-		recoveryOperations: make([]RecoveryOperation, 0),
-		spinner:            s,
+		logger:              logger,
+		corruptionDetector:  NewFileCorruptionDetector(logger),
+		gracefulDegradation: NewEnhancedGracefulDegradation(logger),
+		showRecoveryPanel:   false,
+		selectedRecovery:    0,
+		recoveryOperations:  make([]RecoveryOperation, 0),
+		spinner:             s,
 		progressBar: &ProgressBar{
 			Width:    50,
 			Progress: 0.0,
@@ -421,6 +423,7 @@ func (eru *ErrorRecoveryUI) Update(msg tea.Msg) (*ErrorRecoveryUI, tea.Cmd) {
 			}
 		case "ctrl+r":
 			eru.refreshRecoveryOperations()
+			cmd = eru.spinner.Tick // Return spinner tick to indicate refresh
 		case "enter":
 			if eru.showRecoveryPanel && eru.selectedRecovery < len(eru.recoveryOperations) {
 				operation := eru.recoveryOperations[eru.selectedRecovery]

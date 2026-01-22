@@ -13,12 +13,19 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"testing"
 	"time"
 
 	"github.com/Kyanite/noise/internal/domain"
 	errutil "github.com/Kyanite/noise/internal/errutil"
 	"github.com/Kyanite/noise/internal/logging"
 )
+
+// isTestMode returns true if running in test mode.
+// Checks both testing.Testing() and the GO_TEST_MODE environment variable.
+func isTestMode() bool {
+	return testing.Testing() || os.Getenv("GO_TEST_MODE") != ""
+}
 
 // DB wraps the database connection with helper methods
 type DB struct {
@@ -36,7 +43,8 @@ type DB struct {
 
 // Config holds database configuration
 type Config struct {
-	DataDir string
+	DataDir             string
+	EnableCollaboration bool // When true, collaboration tables are created
 }
 
 // New creates a new database connection and initializes the schema
@@ -81,8 +89,30 @@ func New(cfg Config) (*DB, error) {
 		return nil, errutil.Wrap(err, "enable foreign keys")
 	}
 
-	// Create schema
-	if err := initializeSchema(conn); err != nil {
+	// Performance PRAGMAs for SQLite optimization (2026 best practices)
+	// WAL mode: Better concurrent read performance, crash recovery
+	if _, err := conn.Exec("PRAGMA journal_mode = WAL"); err != nil {
+		// WAL mode failure is non-fatal, log and continue
+		logging.GetDefaultLogger().Warn("Failed to enable WAL mode", "error", err)
+	}
+
+	// Synchronous NORMAL: Good balance of safety and performance with WAL
+	if _, err := conn.Exec("PRAGMA synchronous = NORMAL"); err != nil {
+		logging.GetDefaultLogger().Warn("Failed to set synchronous mode", "error", err)
+	}
+
+	// Cache size: 64MB (negative value = KB)
+	if _, err := conn.Exec("PRAGMA cache_size = -65536"); err != nil {
+		logging.GetDefaultLogger().Warn("Failed to set cache size", "error", err)
+	}
+
+	// Busy timeout: 5 seconds for lock acquisition
+	if _, err := conn.Exec("PRAGMA busy_timeout = 5000"); err != nil {
+		logging.GetDefaultLogger().Warn("Failed to set busy timeout", "error", err)
+	}
+
+	// Create schema (collaboration tables only if feature is enabled)
+	if err := initializeSchema(conn, cfg.EnableCollaboration); err != nil {
 		conn.Close()
 		return nil, errutil.Wrap(err, "initialize schema")
 	}
@@ -101,16 +131,19 @@ func New(cfg Config) (*DB, error) {
 		userVersion = -1
 	}
 
-	var migrationTableCount int
-	if err := conn.QueryRow(`SELECT COUNT(1) FROM sqlite_master WHERE type='table' AND name='schema_migrations'`).Scan(&migrationTableCount); err != nil {
-		logger.Warn("Failed to inspect schema_migrations table", "path", dbPath, "error", err)
-	} else if migrationTableCount == 0 {
-		logger.Warn("Schema migrations table missing", "path", dbPath)
-	} else {
-		logger.Info("Schema migrations table detected", "path", dbPath, "entries", migrationTableCount)
-	}
+	// Only log migration table warnings when not in test mode to reduce noise
+	if !isTestMode() {
+		var migrationTableCount int
+		if err := conn.QueryRow(`SELECT COUNT(1) FROM sqlite_master WHERE type='table' AND name='schema_migrations'`).Scan(&migrationTableCount); err != nil {
+			logger.Warn("Failed to inspect schema_migrations table", "path", dbPath, "error", err)
+		} else if migrationTableCount == 0 {
+			logger.Warn("Schema migrations table missing", "path", dbPath)
+		} else {
+			logger.Info("Schema migrations table detected", "path", dbPath, "entries", migrationTableCount)
+		}
 
-	logger.Info("Database schema initialized", "path", dbPath, "fingerprint", fingerprint, "user_version", userVersion)
+		logger.Info("Database schema initialized", "path", dbPath, "fingerprint", fingerprint, "user_version", userVersion)
+	}
 
 	return &DB{
 		conn:            conn,
@@ -187,10 +220,19 @@ func (db *DB) Ping() error {
 }
 
 // initializeSchema creates all tables if they don't exist
-func initializeSchema(conn *sql.DB) error {
+func initializeSchema(conn *sql.DB, enableCollaboration bool) error {
+	// Always execute the core schema
 	if _, err := conn.Exec(Schema); err != nil {
-		return errutil.Wrap(err, "execute schema")
+		return errutil.Wrap(err, "execute core schema")
 	}
+
+	// Only execute collaboration schema when the feature is enabled
+	if enableCollaboration {
+		if _, err := conn.Exec(CollaborationSchema); err != nil {
+			return errutil.Wrap(err, "execute collaboration schema")
+		}
+	}
+
 	return nil
 }
 

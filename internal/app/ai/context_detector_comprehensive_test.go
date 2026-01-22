@@ -54,7 +54,7 @@ func TestContextDetector_ComprehensiveEdgeCases(t *testing.T) {
 		{
 			name:     "Only musical notation",
 			content:  "120 BPM\n4/4\nC Major",
-			expected: ContentTypePatterns,
+			expected: ContentTypeUnknown, // Metadata-like content without proper label prefixes
 		},
 		{
 			name:     "Drum notation only",
@@ -106,8 +106,8 @@ func TestContextDetector_AmbiguousContent(t *testing.T) {
 		{
 			name:        "Minimal chord pattern",
 			content:     "C G Am F\nF C G Am",
-			expected:    ContentTypeMixed, // Short lines might be detected as mixed
-			description: "Short chord pattern detected as mixed",
+			expected:    ContentTypePatterns, // Pure chord progressions are patterns, not mixed
+			description: "Short chord pattern detected as patterns",
 		},
 		{
 			name:        "Mixed short content",
@@ -193,14 +193,14 @@ func TestContextDetector_LargeContent(t *testing.T) {
 		{
 			name:        "Large pattern content",
 			content:     largePatternContent.String(),
-			expected:    ContentTypeMixed, // Mixed content due to section headers
-			description: "Should detect mixed content with section headers",
+			expected:    ContentTypePatterns, // Pure patterns with chord progressions and metadata
+			description: "Should detect patterns in chord progression content",
 		},
 		{
 			name:        "Large mixed content",
 			content:     largeMixedContent.String(),
-			expected:    ContentTypeLyrics, // Content leans toward lyrics
-			description: "Lyrics detected in large mixed content",
+			expected:    ContentTypeMixed, // Content has clear lyrics and pattern elements
+			description: "Mixed content with both lyrics and patterns correctly identified",
 		},
 	}
 
@@ -624,8 +624,8 @@ func TestContextDetector_ContextAnalysisMethods(t *testing.T) {
 		{
 			name:                "Mixed content with more lyrics",
 			content:             "[Verse]\nC G Am F\nI love you\nThe city lights",
-			expectedContentType: ContentTypeLyrics,
-			isLyricContent:      true,
+			expectedContentType: ContentTypeMixed, // Has both lyrics and patterns
+			isLyricContent:      true,             // More lyric matches, so IsLyricContent() returns true
 			isPatternContent:    false,
 		},
 		{

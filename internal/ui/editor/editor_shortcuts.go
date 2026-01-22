@@ -2,7 +2,6 @@ package editor
 
 import (
 	"path/filepath"
-	"strings"
 
 	"github.com/Kyanite/noise/internal/logging"
 	tea "github.com/charmbracelet/bubbletea"
@@ -284,28 +283,13 @@ func (s *EditorShortcuts) saveAs(state StateManagerInterface) {
 }
 
 func (s *EditorShortcuts) exportContent(state StateManagerInterface) {
-	// This would need access to the export service
-	// For now, this is a placeholder implementation
-	// In a full implementation, this would:
+	// TODO: Implement export functionality
+	// This requires access to the export service from the main model.
+	// For now, this is a no-op placeholder.
+	//
+	// Future implementation:
 	// 1. Get the export service from the main model
-	// 2. Get the current content from the state
-	// 3. Create a title from the filename or use "Untitled"
-	// 4. Call the export service's QuickExport method
-
-	// Placeholder implementation
-	content := state.GetText()
-	title := "Untitled"
-	if state.GetCurrentFilePath() != "" {
-		title = filepath.Base(state.GetCurrentFilePath())
-		title = strings.TrimSuffix(title, filepath.Ext(title))
-	}
-
-	// In a full implementation, this would use the export service
-	// For now, we'll just log what would happen
-	_ = content
-	_ = title
-	// _, err := exportService.QuickExport(content, title)
-	// if err != nil {
-	//     // Use proper error handling
-	// }
+	// 2. Get the current content: state.GetText()
+	// 3. Create a title from filepath: state.GetCurrentFilePath()
+	// 4. Call exportService.QuickExport(content, title)
 }

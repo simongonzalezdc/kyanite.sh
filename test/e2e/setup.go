@@ -1,3 +1,8 @@
+//go:build collaboration
+
+// E2E tests require collaboration feature to be enabled.
+// Run with: go test -tags collaboration ./test/e2e/...
+
 package e2e
 
 import (

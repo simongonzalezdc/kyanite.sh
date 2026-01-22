@@ -1,3 +1,5 @@
+//go:build collaboration
+
 package e2e
 
 import (

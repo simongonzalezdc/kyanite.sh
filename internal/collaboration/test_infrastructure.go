@@ -1,3 +1,8 @@
+//go:build collaboration
+
+// Test infrastructure for collaboration tests.
+// Only compiled when the collaboration build tag is specified.
+
 package collaboration
 
 import (

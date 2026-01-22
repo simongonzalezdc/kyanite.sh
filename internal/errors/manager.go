@@ -254,6 +254,11 @@ func (em *ErrorManager) categorizeError(err error) *AppError {
 		return nil
 	}
 
+	// If it's already an AppError with a category, preserve it
+	if appErr, ok := err.(*AppError); ok && appErr.Category != "" {
+		return appErr
+	}
+
 	msg := err.Error()
 
 	// Categorize based on error message patterns

@@ -1,3 +1,8 @@
+//go:build collaboration
+
+// Collaboration framework tests are only run when the collaboration build tag is specified.
+// Run with: go test -tags collaboration ./test/...
+
 package noise
 
 import (

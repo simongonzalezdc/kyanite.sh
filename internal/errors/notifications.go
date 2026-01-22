@@ -151,7 +151,9 @@ func (nm *NotificationManager) ShowNotification(notification *Notification) stri
 	defer nm.mu.Unlock()
 
 	// Set default duration if not specified
-	if notification.Duration == 0 {
+	// Note: Duration of 0 is valid for critical errors (never auto-dismiss),
+	// so we only apply the default if no error is attached or it's not critical
+	if notification.Duration == 0 && (notification.Error == nil || notification.Error.Severity != SeverityCritical) {
 		notification.Duration = nm.defaultDuration
 	}
 

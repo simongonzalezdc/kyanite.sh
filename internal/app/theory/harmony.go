@@ -97,10 +97,164 @@ func (h *HarmonyLib) GetScaleSuggestion(mood string) Scale {
 	}
 }
 
-// FormatChord ensures a chord string is in a standard format
+// FormatChord ensures a chord string is in a standard format.
+// Normalizes chord notation to a consistent, widely-recognized format.
 func (h *HarmonyLib) FormatChord(chordStr string) string {
-	// TODO: Implement normalization logic
-	return strings.Title(chordStr)
+	if chordStr == "" {
+		return ""
+	}
+
+	// Trim whitespace
+	chordStr = strings.TrimSpace(chordStr)
+
+	// Handle slash chords (e.g., "Am/E")
+	var bassNote string
+	if slashIdx := strings.Index(chordStr, "/"); slashIdx > 0 {
+		bassNote = chordStr[slashIdx+1:]
+		chordStr = chordStr[:slashIdx]
+	}
+
+	// Extract root note
+	root := h.extractRoot(chordStr)
+	if root == "" {
+		return chordStr // Return original if we can't parse it
+	}
+
+	// Normalize the root note
+	root = h.normalizeRoot(root)
+
+	// Get the suffix (chord type)
+	suffix := strings.TrimPrefix(chordStr, h.extractRoot(chordStr))
+	suffix = h.normalizeSuffix(suffix)
+
+	// Reconstruct chord
+	result := root + suffix
+
+	// Add bass note if present
+	if bassNote != "" {
+		bassNote = h.normalizeRoot(strings.TrimSpace(bassNote))
+		result += "/" + bassNote
+	}
+
+	return result
+}
+
+// extractRoot extracts the root note from a chord string
+func (h *HarmonyLib) extractRoot(chordStr string) string {
+	if len(chordStr) == 0 {
+		return ""
+	}
+
+	// Check for notes with accidentals first (e.g., "C#", "Bb")
+	if len(chordStr) >= 2 {
+		twoChar := strings.ToUpper(string(chordStr[0])) + string(chordStr[1])
+		for _, r := range h.validRoots {
+			if twoChar == r {
+				return twoChar
+			}
+		}
+	}
+
+	// Check single character roots
+	oneChar := strings.ToUpper(string(chordStr[0]))
+	for _, r := range h.validRoots {
+		if oneChar == r {
+			return oneChar
+		}
+	}
+
+	return ""
+}
+
+// normalizeRoot normalizes a root note to a consistent format
+func (h *HarmonyLib) normalizeRoot(root string) string {
+	if len(root) == 0 {
+		return ""
+	}
+
+	// Capitalize the letter
+	root = strings.ToUpper(string(root[0])) + root[1:]
+
+	// Normalize accidentals: prefer sharps in some keys, flats in others
+	// Standard convention: use sharps for C, G, D, A, E keys; flats for F, Bb, Eb, Ab, Db keys
+	// For simplicity, we'll normalize to the more common enharmonic spelling
+
+	// Common enharmonic normalizations
+	enharmonicMap := map[string]string{
+		"Cb": "B",
+		"E#": "F",
+		"Fb": "E",
+		"B#": "C",
+		// Keep Db, Eb, Ab, Bb, Gb as flats (common in jazz/pop)
+		// Keep C#, F#, G# as sharps
+	}
+
+	if normalized, ok := enharmonicMap[root]; ok {
+		return normalized
+	}
+
+	return root
+}
+
+// normalizeSuffix normalizes chord type suffixes to standard notation
+func (h *HarmonyLib) normalizeSuffix(suffix string) string {
+	// Handle empty suffix (major chord)
+	if suffix == "" {
+		return ""
+	}
+
+	// Normalize common variations to standard notation
+	normalizations := []struct {
+		patterns []string
+		standard string
+	}{
+		// Minor variations
+		{[]string{"minor", "MIN", "Min", "-"}, "m"},
+		// Major 7 variations
+		{[]string{"major7", "MAJOR7", "Major7", "maj7", "Maj7", "MAJ7", "Δ7", "M7"}, "maj7"},
+		// Major variations (for explicit major notation)
+		{[]string{"major", "MAJOR", "Major", "maj", "MAJ", "Maj", "M", "Δ"}, ""},
+		// Minor 7 variations
+		{[]string{"minor7", "MINOR7", "Minor7", "min7", "Min7", "MIN7", "-7"}, "m7"},
+		// Diminished variations
+		{[]string{"diminished", "DIMINISHED", "Diminished", "dim", "DIM", "Dim", "°", "o"}, "dim"},
+		// Augmented variations
+		{[]string{"augmented", "AUGMENTED", "Augmented", "aug", "AUG", "Aug", "+"}, "aug"},
+		// Suspended variations
+		{[]string{"sus2", "SUS2", "Sus2", "suspended2"}, "sus2"},
+		{[]string{"sus4", "SUS4", "Sus4", "suspended4", "sus"}, "sus4"},
+		// 7th variations
+		{[]string{"dom7", "DOM7", "Dom7"}, "7"},
+		// 9th variations
+		{[]string{"major9", "MAJOR9", "Major9"}, "maj9"},
+		{[]string{"minor9", "MINOR9", "Minor9", "min9", "Min9"}, "m9"},
+		// 6th
+		{[]string{"major6", "MAJOR6", "Major6", "maj6"}, "6"},
+		{[]string{"minor6", "MINOR6", "Minor6", "min6"}, "m6"},
+		// Add9
+		{[]string{"add9", "ADD9", "Add9", "add2"}, "add9"},
+		// 11th and 13th
+		{[]string{"11th", "11TH"}, "11"},
+		{[]string{"13th", "13TH"}, "13"},
+		// Half-diminished (minor 7 flat 5)
+		{[]string{"m7b5", "m7♭5", "ø", "ø7", "half-dim", "halfdim"}, "m7b5"},
+		// Diminished 7
+		{[]string{"dim7", "°7", "o7"}, "dim7"},
+	}
+
+	result := suffix
+	for _, n := range normalizations {
+		for _, pattern := range n.patterns {
+			if strings.EqualFold(result, pattern) || strings.HasPrefix(strings.ToLower(result), strings.ToLower(pattern)) {
+				// Replace the pattern with standard notation
+				remainder := result[len(pattern):]
+				result = n.standard + remainder
+				break
+			}
+		}
+	}
+
+	return result
 }
 
 // SuggestProgression returns a progression based on mood and logic

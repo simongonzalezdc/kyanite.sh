@@ -29,6 +29,11 @@ const (
 	defaultQuickIdeaTimeout = 1700 * time.Millisecond
 	// defaultQuickIdeaModel documents the preferred lightweight model for this agent.
 	defaultQuickIdeaModel = "qwen2.5:3b"
+
+	// Retry configuration
+	defaultMaxRetries     = 3
+	defaultBaseRetryDelay = 100 * time.Millisecond
+	defaultMaxRetryDelay  = 1000 * time.Millisecond
 )
 
 var supportedQuickIdeaModes = map[QuickIdeaMode]struct{}{
@@ -54,6 +59,24 @@ type QuickResponse struct {
 	ResponseTime time.Duration
 }
 
+// RetryConfig configures the retry behavior for AI requests.
+type RetryConfig struct {
+	MaxRetries     int
+	BaseDelay      time.Duration
+	MaxDelay       time.Duration
+	RetryableCheck func(error) bool
+}
+
+// DefaultRetryConfig returns the default retry configuration.
+func DefaultRetryConfig() RetryConfig {
+	return RetryConfig{
+		MaxRetries:     defaultMaxRetries,
+		BaseDelay:      defaultBaseRetryDelay,
+		MaxDelay:       defaultMaxRetryDelay,
+		RetryableCheck: isRetryableError,
+	}
+}
+
 // QuickIdeaAgent consolidates previously distinct AI helpers into a single entry point.
 // By default it uses a stubbed client so the application can run without Ollama,
 // while providing hooks to integrate the real qwen2.5:3b model when available.
@@ -65,6 +88,7 @@ type QuickIdeaAgent struct {
 	contextDetector *ContextDetector
 	contextPrompts  *ContextAwarePrompts
 	knowledgeBase   knowledge.EnhancementProvider
+	retryConfig     RetryConfig
 }
 
 // QuickLLMClient is a minimal interface that can be satisfied by the Ollama or GLM client.
@@ -88,6 +112,7 @@ func NewQuickIdeaAgent() *QuickIdeaAgent {
 		contextDetector: contextDetector,
 		contextPrompts:  contextPrompts,
 		knowledgeBase:   kbProvider,
+		retryConfig:     DefaultRetryConfig(),
 	}
 }
 
@@ -109,6 +134,7 @@ func (a *QuickIdeaAgent) WithClient(client QuickLLMClient, timeout time.Duration
 		contextDetector: a.contextDetector,
 		contextPrompts:  a.contextPrompts,
 		knowledgeBase:   a.knowledgeBase,
+		retryConfig:     a.retryConfig,
 	}
 }
 
@@ -126,6 +152,7 @@ func (a *QuickIdeaAgent) WithModel(model string) *QuickIdeaAgent {
 		contextDetector: a.contextDetector,
 		contextPrompts:  a.contextPrompts,
 		knowledgeBase:   a.knowledgeBase,
+		retryConfig:     a.retryConfig,
 	}
 }
 
@@ -143,6 +170,21 @@ func (a *QuickIdeaAgent) WithKnowledgeBase(kb knowledge.EnhancementProvider) *Qu
 		contextDetector: a.contextDetector,
 		contextPrompts:  a.contextPrompts,
 		knowledgeBase:   kb,
+		retryConfig:     a.retryConfig,
+	}
+}
+
+// WithRetryConfig returns a copy of the agent configured with the provided retry settings.
+func (a *QuickIdeaAgent) WithRetryConfig(cfg RetryConfig) *QuickIdeaAgent {
+	return &QuickIdeaAgent{
+		client:          a.client,
+		model:           a.model,
+		timeout:         a.timeout,
+		prompts:         a.prompts,
+		contextDetector: a.contextDetector,
+		contextPrompts:  a.contextPrompts,
+		knowledgeBase:   a.knowledgeBase,
+		retryConfig:     cfg,
 	}
 }
 
@@ -197,17 +239,122 @@ func (a *QuickIdeaAgent) Generate(ctx context.Context, req QuickRequest) (*Quick
 	return resp, nil
 }
 
-// invoke delegates prompt generation to the configured client.
+// invoke delegates prompt generation to the configured client with retry logic.
 func (a *QuickIdeaAgent) invoke(ctx context.Context, prompt string) (string, error) {
 	if a.client == nil {
 		return "", errors.New("no llm client configured")
 	}
 
-	return a.client.Generate(ctx, a.model, prompt, map[string]any{
+	return a.invokeWithRetry(ctx, prompt)
+}
+
+// invokeWithRetry implements exponential backoff retry logic for AI requests.
+// This follows 2026 best practices for resilient LLM client interactions.
+func (a *QuickIdeaAgent) invokeWithRetry(ctx context.Context, prompt string) (string, error) {
+	opts := map[string]any{
 		"temperature": 0.7,
 		"top_p":       0.9,
 		"num_predict": 120,
-	})
+	}
+
+	var lastErr error
+	maxRetries := a.retryConfig.MaxRetries
+	if maxRetries <= 0 {
+		maxRetries = 1 // At least one attempt
+	}
+
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		// Check context before attempt
+		if ctx.Err() != nil {
+			return "", ctx.Err()
+		}
+
+		result, err := a.client.Generate(ctx, a.model, prompt, opts)
+		if err == nil {
+			return result, nil
+		}
+
+		lastErr = err
+
+		// Check if error is retryable
+		retryable := true
+		if a.retryConfig.RetryableCheck != nil {
+			retryable = a.retryConfig.RetryableCheck(err)
+		}
+
+		if !retryable {
+			return "", err
+		}
+
+		// Don't sleep after the last attempt
+		if attempt < maxRetries-1 {
+			delay := a.calculateBackoff(attempt)
+			select {
+			case <-ctx.Done():
+				return "", ctx.Err()
+			case <-time.After(delay):
+				// Continue to next attempt
+			}
+		}
+	}
+
+	return "", fmt.Errorf("max retries (%d) exceeded: %w", maxRetries, lastErr)
+}
+
+// calculateBackoff computes the exponential backoff delay for a given attempt.
+func (a *QuickIdeaAgent) calculateBackoff(attempt int) time.Duration {
+	// Exponential backoff: baseDelay * 2^attempt
+	delay := a.retryConfig.BaseDelay * time.Duration(1<<uint(attempt))
+
+	// Cap at maxDelay
+	if delay > a.retryConfig.MaxDelay {
+		delay = a.retryConfig.MaxDelay
+	}
+
+	return delay
+}
+
+// isRetryableError determines if an error should trigger a retry.
+// Returns true for transient errors like timeouts and connection issues.
+func isRetryableError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errMsg := strings.ToLower(err.Error())
+
+	// Non-retryable: stub client, model not found, invalid request
+	if strings.Contains(errMsg, "stub") ||
+		strings.Contains(errMsg, "not found") ||
+		strings.Contains(errMsg, "invalid") ||
+		strings.Contains(errMsg, "unsupported") {
+		return false
+	}
+
+	// Retryable: timeouts, connection errors, server errors
+	retryablePatterns := []string{
+		"timeout",
+		"deadline exceeded",
+		"connection refused",
+		"connection reset",
+		"temporary failure",
+		"service unavailable",
+		"503",
+		"502",
+		"500",
+		"rate limit",
+		"too many requests",
+		"429",
+	}
+
+	for _, pattern := range retryablePatterns {
+		if strings.Contains(errMsg, pattern) {
+			return true
+		}
+	}
+
+	// Default: retry on unknown errors (conservative approach)
+	return false
 }
 
 func (a *QuickIdeaAgent) generateFallback(req QuickRequest) *QuickResponse {

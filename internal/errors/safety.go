@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -70,7 +71,8 @@ func (bm *BackupManager) CreateBackup(song *domain.Song, backupType string) (*Ba
 	}
 
 	// Create backup file with secure permissions
-	backupPath := bm.getBackupPath(backupInfo.ID)
+	// Format: backup_{songID}_{backupID}.json
+	backupPath := bm.getBackupPathWithSongID(backupInfo.ID, backupInfo.SongID)
 	if err := os.WriteFile(backupPath, content, 0600); err != nil {
 		return nil, NewFileError("write_backup", backupPath, err).WithOperation("CreateBackup").WithComponent("backup_manager")
 	}
@@ -99,16 +101,15 @@ func (bm *BackupManager) RestoreBackup(backupID string) (*domain.Song, error) {
 	bm.mu.RLock()
 	defer bm.mu.RUnlock()
 
-	backupPath := bm.getBackupPath(backupID)
+	// Try to find the backup file - it could be old format (backup_{id}.json) or new format (backup_{songID}_{id}.json)
+	backupPath := bm.findBackupFile(backupID)
+	if backupPath == "" {
+		return nil, NewFileError("backup_not_found", backupID, fmt.Errorf("backup not found")).WithOperation("RestoreBackup").WithComponent("backup_manager")
+	}
 
 	// Validate backup path for security
 	if err := bm.validateBackupPath(backupPath); err != nil {
 		return nil, NewValidationError("invalid backup path", err).WithOperation("RestoreBackup").WithComponent("backup_manager")
-	}
-
-	// Check if backup exists
-	if _, err := os.Stat(backupPath); os.IsNotExist(err) {
-		return nil, NewFileError("backup_not_found", backupPath, err).WithOperation("RestoreBackup").WithComponent("backup_manager")
 	}
 
 	// Read backup content
@@ -175,7 +176,11 @@ func (bm *BackupManager) DeleteBackup(backupID string) error {
 	bm.mu.Lock()
 	defer bm.mu.Unlock()
 
-	backupPath := bm.getBackupPath(backupID)
+	// Find the backup file - could be old or new format
+	backupPath := bm.findBackupFile(backupID)
+	if backupPath == "" {
+		return NewFileError("delete_backup", backupID, fmt.Errorf("backup not found")).WithOperation("DeleteBackup").WithComponent("backup_manager")
+	}
 
 	// Validate backup path for security
 	if err := bm.validateBackupPath(backupPath); err != nil {
@@ -210,22 +215,74 @@ func (bm *BackupManager) getBackupPath(backupID string) string {
 	return filepath.Join(bm.backupDir, fmt.Sprintf("backup_%s.json", sanitizedID))
 }
 
+// getBackupPathWithSongID returns the path for a backup file including the song ID
+func (bm *BackupManager) getBackupPathWithSongID(backupID string, songID int) string {
+	// Validate and sanitize backup ID to prevent directory traversal
+	sanitizedID := bm.sanitizeBackupID(backupID)
+	return filepath.Join(bm.backupDir, fmt.Sprintf("backup_%d_%s.json", songID, sanitizedID))
+}
+
+// findBackupFile searches for a backup file by ID, handling both old and new filename formats
+func (bm *BackupManager) findBackupFile(backupID string) string {
+	sanitizedID := bm.sanitizeBackupID(backupID)
+
+	// First try old format: backup_{id}.json
+	oldPath := filepath.Join(bm.backupDir, fmt.Sprintf("backup_%s.json", sanitizedID))
+	if _, err := os.Stat(oldPath); err == nil {
+		return oldPath
+	}
+
+	// Search for new format: backup_{songID}_{id}.json
+	entries, err := os.ReadDir(bm.backupDir)
+	if err != nil {
+		return ""
+	}
+
+	suffix := fmt.Sprintf("_%s.json", sanitizedID)
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if strings.HasPrefix(name, "backup_") && strings.HasSuffix(name, suffix) {
+			return filepath.Join(bm.backupDir, name)
+		}
+	}
+
+	return ""
+}
+
 func (bm *BackupManager) parseBackupFilename(filename string) (*BackupInfo, error) {
-	// Expected format: backup_{backupID}.json
-	if len(filename) < 20 || filename[:7] != "backup_" || filename[len(filename)-5:] != ".json" {
+	// Validate basic format requirements
+	if !strings.HasPrefix(filename, "backup_") || !strings.HasSuffix(filename, ".json") {
 		return nil, fmt.Errorf("invalid backup filename format")
 	}
 
-	backupID := filename[7 : len(filename)-5]
+	// Remove prefix and suffix to get the middle part
+	middle := filename[7 : len(filename)-5]
 
-	// For now, return basic info - in a full implementation, this would parse more metadata
-	backupInfo := &BackupInfo{
-		ID: backupID,
-		// SongID and other fields would need to be stored in the backup file or filename
+	// Try to parse new format: backup_{songID}_{backupID}.json
+	// Look for the first underscore which separates songID from backupID
+	parts := strings.SplitN(middle, "_", 2)
+	if len(parts) == 2 {
+		songID, err := strconv.Atoi(parts[0])
+		if err == nil && songID > 0 {
+			// Successfully parsed new format
+			backupInfo := &BackupInfo{
+				ID:     parts[1],
+				SongID: songID,
+			}
+			bm.logger.Debug("Parsed backup filename (new format)", "filename", filename, "backup_id", parts[1], "song_id", songID)
+			return backupInfo, nil
+		}
 	}
 
-	// Log backup metadata for integrity tracking
-	bm.logger.Debug("Parsed backup filename", "filename", filename, "backup_id", backupID)
+	// Fall back to old format: backup_{backupID}.json (no song ID)
+	backupInfo := &BackupInfo{
+		ID:     middle,
+		SongID: 0, // Unknown song ID for legacy backups
+	}
+	bm.logger.Debug("Parsed backup filename (legacy format)", "filename", filename, "backup_id", middle)
 
 	return backupInfo, nil
 }

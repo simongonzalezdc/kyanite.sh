@@ -54,8 +54,8 @@ func TestPluginSettingsModel_Update_KeyMessages(t *testing.T) {
 	plugin1 := CreateMockPlugin("plugin1", "Plugin 1", true)
 	plugin2 := CreateMockPlugin("plugin2", "Plugin 2", false)
 
-	manager.GetPlugins()["plugin1"] = plugin1
-	manager.GetPlugins()["plugin2"] = plugin2
+	RegisterTestPlugin(manager, plugin1)
+	RegisterTestPlugin(manager, plugin2)
 
 	tests := []struct {
 		name          string
@@ -196,8 +196,8 @@ func TestPluginSettingsModel_View_PluginList(t *testing.T) {
 	plugin1 := CreateMockPlugin("plugin1", "Plugin 1", true)
 	plugin2 := CreateMockPlugin("plugin2", "Plugin 2", false)
 
-	manager.GetPlugins()["plugin1"] = plugin1
-	manager.GetPlugins()["plugin2"] = plugin2
+	RegisterTestPlugin(manager, plugin1)
+	RegisterTestPlugin(manager, plugin2)
 
 	view := model.View()
 	if view == "" {
@@ -236,7 +236,7 @@ func TestPluginSettingsModel_View_PluginDetails(t *testing.T) {
 	plugin.metadata.License = "MIT"
 	plugin.metadata.Description = "A test plugin for testing"
 
-	manager.GetPlugins()["test_plugin"] = plugin
+	RegisterTestPlugin(manager, plugin)
 
 	// Show details for the plugin
 	model.showDetails = true
@@ -296,8 +296,8 @@ func TestPluginSettingsModel_renderPluginList(t *testing.T) {
 	plugin1 := CreateMockPlugin("plugin1", "Plugin 1", true)
 	plugin2 := CreateMockPlugin("plugin2", "Plugin 2", false)
 
-	manager.GetPlugins()["plugin1"] = plugin1
-	manager.GetPlugins()["plugin2"] = plugin2
+	RegisterTestPlugin(manager, plugin1)
+	RegisterTestPlugin(manager, plugin2)
 
 	view := model.renderPluginList()
 	if view == "" {
@@ -332,7 +332,7 @@ func TestPluginSettingsModel_renderPluginDetails(t *testing.T) {
 		CapabilityEditorTool,
 	}
 
-	manager.GetPlugins()["test_plugin"] = plugin
+	RegisterTestPlugin(manager, plugin)
 
 	model.detailsPlugin = "test_plugin"
 
@@ -415,9 +415,9 @@ func TestPluginSettingsModel_getPluginIDs(t *testing.T) {
 	plugin2 := CreateMockPlugin("plugin2", "Plugin 2", false)
 	plugin3 := CreateMockPlugin("plugin3", "Plugin 3", true)
 
-	manager.GetPlugins()["plugin1"] = plugin1
-	manager.GetPlugins()["plugin2"] = plugin2
-	manager.GetPlugins()["plugin3"] = plugin3
+	RegisterTestPlugin(manager, plugin1)
+	RegisterTestPlugin(manager, plugin2)
+	RegisterTestPlugin(manager, plugin3)
 
 	ids := model.getPluginIDs()
 
@@ -475,7 +475,7 @@ func TestPluginSettingsModel_TogglePlugin(t *testing.T) {
 
 	// Add test plugin
 	plugin := CreateMockPlugin("toggle_plugin", "Toggle Plugin", true)
-	manager.GetPlugins()["toggle_plugin"] = plugin
+	RegisterTestPlugin(manager, plugin)
 
 	// Show details for the plugin
 	model.showDetails = true
@@ -524,30 +524,31 @@ func TestPluginSettingsModel_Scrolling(t *testing.T) {
 			fmt.Sprintf("Plugin %d", i),
 			true,
 		)
-		manager.GetPlugins()[fmt.Sprintf("plugin%d", i)] = plugin
+		RegisterTestPlugin(manager, plugin)
 	}
 
-	// Test scrolling down
-	initialOffset := model.scrollOffset
+	// Test navigation down - selectedPlugin should increase
+	initialSelected := model.selectedPlugin
 	for i := 0; i < 15; i++ {
 		msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("j")}
 		newModel, _ := model.Update(msg)
 		model = newModel.(*PluginSettingsModel)
 	}
 
-	if model.scrollOffset <= initialOffset {
-		t.Error("Scroll offset should have increased")
+	if model.selectedPlugin <= initialSelected {
+		t.Error("Selected plugin index should have increased")
 	}
 
-	// Test scrolling up
+	// Test navigation up - selectedPlugin should decrease
+	highSelected := model.selectedPlugin
 	for i := 0; i < 10; i++ {
 		msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("k")}
 		newModel, _ := model.Update(msg)
 		model = newModel.(*PluginSettingsModel)
 	}
 
-	if model.scrollOffset >= initialOffset+15 {
-		t.Error("Scroll offset should have decreased")
+	if model.selectedPlugin >= highSelected {
+		t.Error("Selected plugin index should have decreased")
 	}
 }
 
