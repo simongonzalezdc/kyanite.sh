@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/config"
 	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/bubbles/textarea"
 )
@@ -87,7 +88,8 @@ func TestThemeShortcutCycling(t *testing.T) {
 
 	themeManager.SetTheme(themeIDs[0])
 
-	model := NewSplitPaneModel(nil)
+	aiService := app.NewAIService(config.DefaultConfig())
+	model := NewSplitPaneModel(nil, aiService)
 	defer model.Cleanup()
 
 	if _, cmd := model.handleShortcutAction(ShortcutAction{Type: ActionNextTheme}); cmd != nil {

@@ -356,7 +356,7 @@ type mockQuickClient struct {
 	err      bool
 }
 
-func (m *mockQuickClient) Generate(ctx context.Context, prompt string, options map[string]any) (string, error) {
+func (m *mockQuickClient) Generate(ctx context.Context, _, prompt string, options map[string]any) (string, error) {
 	if m.err {
 		return "", errors.New("mock client error")
 	}

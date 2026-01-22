@@ -1,6 +1,10 @@
 package ui
 
-import "time"
+import (
+	"time"
+
+	"github.com/Kyanite/noise/internal/ui/dimension"
+)
 
 // UI timing constants
 const (
@@ -19,8 +23,8 @@ const (
 // Preview pane constants
 const (
 	// Content thresholds
-	DefaultContentThreshold = 50000 // 50KB
-	SmallContentThreshold   = 30000 // 30KB
+	DefaultContentThreshold = 50000  // 50KB
+	SmallContentThreshold   = 30000  // 30KB
 	MaxContentLength        = 100000 // 100KB
 
 	// Cache configuration
@@ -28,17 +32,17 @@ const (
 	CacheEvictionCount = 20
 
 	// Scroll configuration
-	ScrollStepSize      = 3
-	PageScrollMultiplier = 10
+	ScrollStepSize       = dimension.ScrollStepSize
+	PageScrollMultiplier = dimension.PageScrollMultiplier
 )
 
 // Editor pane constants
 const (
 	// Line number padding
-	LineNumberPadding = 4
+	LineNumberPadding = dimension.LineNumberPadding
 
 	// Cursor blink rate
-	CursorBlinkRate = 500 * time.Millisecond
+	CursorBlinkRate = dimension.CursorBlinkRate
 )
 
 // Status bar constants
@@ -47,6 +51,6 @@ const (
 	StatusBarUpdateInterval = 100 * time.Millisecond
 
 	// Display widths
-	MinStatusBarWidth = 40
-	MaxShortcutDisplay = 5
+	MinStatusBarWidth  = dimension.MinStatusBarWidth
+	MaxShortcutDisplay = dimension.MaxShortcutDisplay
 )

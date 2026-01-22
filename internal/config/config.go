@@ -24,6 +24,9 @@ type Config struct {
 	// AI settings
 	AI AIConfig `mapstructure:"ai"`
 
+	// GLM settings (International Coding Plan)
+	GLM GLMConfig `mapstructure:"glm"`
+
 	// Audio settings
 	Audio AudioConfig `mapstructure:"audio"`
 
@@ -63,7 +66,7 @@ type UIConfig struct {
 
 // AIConfig contains AI service settings
 type AIConfig struct {
-	Provider      string            `mapstructure:"provider"`
+	Provider      string            `mapstructure:"provider"` // "ollama", "glm", or "hybrid"
 	Model         string            `mapstructure:"model"`
 	APIKey        string            `mapstructure:"api_key"`
 	BaseURL       string            `mapstructure:"base_url"`
@@ -79,6 +82,14 @@ type AIConfig struct {
 	RapidBrainstorm RapidBrainstormConfig `mapstructure:"rapid_brainstorm"`
 	Continuation    ContinuationConfig    `mapstructure:"continuation"`
 	Variation       VariationConfig       `mapstructure:"variation"`
+}
+
+// GLMConfig contains Zhipu AI GLM-4.7 settings
+type GLMConfig struct {
+	APIKey      string  `mapstructure:"api_key"`
+	Model       string  `mapstructure:"model"` // e.g., "glm-4.7-plus"
+	Temperature float64 `mapstructure:"temperature"`
+	MaxTokens   int     `mapstructure:"max_tokens"`
 }
 
 // RapidBrainstormConfig contains settings for rapid brainstorming
@@ -176,6 +187,12 @@ func DefaultConfig() *Config {
 				Variations:        3,
 				DefaultConstraint: "more concrete",
 			},
+		},
+		GLM: GLMConfig{
+			APIKey:      "",
+			Model:       "glm-4.7-plus",
+			Temperature: 0.7,
+			MaxTokens:   4096,
 		},
 		Audio: AudioConfig{
 			Enabled:         true,
@@ -289,6 +306,13 @@ func (c *Config) Save() error {
 		},
 	}
 
+	glmConfig := map[string]interface{}{
+		"api_key":     c.GLM.APIKey,
+		"model":       c.GLM.Model,
+		"temperature": c.GLM.Temperature,
+		"max_tokens":  c.GLM.MaxTokens,
+	}
+
 	audioConfig := map[string]interface{}{
 		"enabled":           c.Audio.Enabled,
 		"metronome_sound":   c.Audio.MetronomeSound,
@@ -317,6 +341,7 @@ func (c *Config) Save() error {
 			"animations":        c.UI.Animations,
 		},
 		"ai":    aiConfig,
+		"glm":   glmConfig,
 		"audio": audioConfig,
 		"dev": map[string]interface{}{
 			"debug":         c.Dev.Debug,
@@ -397,6 +422,15 @@ func (c *Config) overrideFromEnv() {
 
 	if val := os.Getenv("NOISE_AI_ENABLED"); val != "" {
 		c.AI.Enabled = val == "true"
+	}
+
+	// GLM settings
+	if val := os.Getenv("NOISE_GLM_API_KEY"); val != "" {
+		c.GLM.APIKey = val
+	}
+
+	if val := os.Getenv("NOISE_GLM_MODEL"); val != "" {
+		c.GLM.Model = val
 	}
 
 	// Dev settings

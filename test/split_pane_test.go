@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/config"
 	"github.com/Kyanite/noise/internal/infra/db"
 	"github.com/Kyanite/noise/internal/ui/editor"
 	tea "github.com/charmbracelet/bubbletea"
@@ -19,8 +21,9 @@ func TestSplitPaneModelCreation(t *testing.T) {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
 
+	aiService := app.NewAIService(config.DefaultConfig())
 	// Create split-pane model
-	model := editor.NewSplitPaneModel(database)
+	model := editor.NewSplitPaneModel(database, aiService)
 
 	// Verify model was created successfully
 	if model == nil {
@@ -69,7 +72,8 @@ func TestSplitPaneLayoutDimensions(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
-	model := editor.NewSplitPaneModel(database)
+	aiService := app.NewAIService(config.DefaultConfig())
+	model := editor.NewSplitPaneModel(database, aiService)
 
 	// Test with different terminal sizes
 	testCases := []struct {
@@ -109,7 +113,8 @@ func TestSplitPaneContentManagement(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
-	model := editor.NewSplitPaneModel(database)
+	aiService := app.NewAIService(config.DefaultConfig())
+	model := editor.NewSplitPaneModel(database, aiService)
 
 	// Test setting content
 	testContent := "# Test Song\n\n[Verse 1]\nThis is a test verse.\n\n[Chorus]\nThis is the chorus."
@@ -134,7 +139,8 @@ func TestSplitPaneResponsiveBreakpoints(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
-	model := editor.NewSplitPaneModel(database)
+	aiService := app.NewAIService(config.DefaultConfig())
+	model := editor.NewSplitPaneModel(database, aiService)
 
 	breakpointTests := []struct {
 		width int
@@ -171,7 +177,8 @@ func TestSplitPaneKeyboardShortcuts(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
-	model := editor.NewSplitPaneModel(database)
+	aiService := app.NewAIService(config.DefaultConfig())
+	model := editor.NewSplitPaneModel(database, aiService)
 
 	// Test tab key for focus switching
 	model.SetShortcutContext(editor.ContextEditor)
@@ -194,7 +201,8 @@ func TestSplitPaneAutoSaveIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
-	model := editor.NewSplitPaneModel(database)
+	aiService := app.NewAIService(config.DefaultConfig())
+	model := editor.NewSplitPaneModel(database, aiService)
 
 	// Test that auto-save service is properly configured
 	// Since we can't directly access the service, we'll test through behavior
@@ -219,7 +227,8 @@ func TestSplitPaneCleanup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
-	model := editor.NewSplitPaneModel(database)
+	aiService := app.NewAIService(config.DefaultConfig())
+	model := editor.NewSplitPaneModel(database, aiService)
 
 	// Verify cleanup doesn't panic
 	model.Cleanup()
@@ -237,7 +246,8 @@ func TestSplitPaneViewRendering(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
-	model := editor.NewSplitPaneModel(database)
+	aiService := app.NewAIService(config.DefaultConfig())
+	model := editor.NewSplitPaneModel(database, aiService)
 
 	// Set dimensions for testing
 	model, _ = model.Update(tea.WindowSizeMsg{Width: 120, Height: 30})
@@ -273,7 +283,8 @@ func TestSplitPaneWindowResize(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
-	model := editor.NewSplitPaneModel(database)
+	aiService := app.NewAIService(config.DefaultConfig())
+	model := editor.NewSplitPaneModel(database, aiService)
 
 	// Initial dimensions
 	initialWidth, initialHeight := 100, 24
@@ -295,7 +306,7 @@ func TestSplitPaneWindowResize(t *testing.T) {
 // TestSplitPaneErrorHandling tests error handling in split-pane operations
 func TestSplitPaneErrorHandling(t *testing.T) {
 	// Test with nil database (should handle gracefully)
-	model := editor.NewSplitPaneModel(nil)
+	model := editor.NewSplitPaneModel(nil, nil)
 
 	if model == nil {
 		t.Error("Expected model to handle nil database gracefully")
@@ -315,7 +326,8 @@ func BenchmarkSplitPaneRendering(b *testing.B) {
 	if err != nil {
 		b.Fatalf("Failed to create test database: %v", err)
 	}
-	model := editor.NewSplitPaneModel(database)
+	aiService := app.NewAIService(config.DefaultConfig())
+	model := editor.NewSplitPaneModel(database, aiService)
 	model, _ = model.Update(tea.WindowSizeMsg{Width: 120, Height: 30})
 
 	// Add test content
@@ -351,7 +363,7 @@ func BenchmarkSplitPaneContentUpdate(b *testing.B) {
 	if err != nil {
 		b.Fatalf("Failed to create test database: %v", err)
 	}
-	model := editor.NewSplitPaneModel(database)
+	model := editor.NewSplitPaneModel(database, nil)
 
 	// Create large content for benchmarking
 	var largeContent strings.Builder

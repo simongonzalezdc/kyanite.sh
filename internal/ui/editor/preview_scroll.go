@@ -1,6 +1,6 @@
 package editor
 
-import "github.com/Kyanite/noise/internal/ui"
+import "github.com/Kyanite/noise/internal/ui/dimension"
 
 // PreviewScroll manages scroll state for preview pane
 type PreviewScroll struct {
@@ -21,7 +21,7 @@ func NewPreviewScroll() *PreviewScroll {
 // ScrollUp scrolls up by the given number of lines
 func (s *PreviewScroll) ScrollUp(lines int) {
 	if lines <= 0 {
-		lines = ui.ScrollStepSize
+		lines = dimension.ScrollStepSize
 	}
 
 	s.offset -= lines
@@ -33,7 +33,7 @@ func (s *PreviewScroll) ScrollUp(lines int) {
 // ScrollDown scrolls down by the given number of lines
 func (s *PreviewScroll) ScrollDown(lines int) {
 	if lines <= 0 {
-		lines = ui.ScrollStepSize
+		lines = dimension.ScrollStepSize
 	}
 
 	maxOffset := s.totalLines - s.visibleLines

@@ -499,6 +499,11 @@ func (m *EditorPaneModel) SetAIAgent(agent *ai.QuickIdeaAgent) {
 	}
 }
 
+// SetAIService sets the AI service
+func (m *EditorPaneModel) SetAIService(service *app.AIService) {
+	m.ai.SetAIService(service)
+}
+
 // GetAIAgent returns the current AI agent
 func (m *EditorPaneModel) GetAIAgent() *ai.QuickIdeaAgent {
 	return m.ai.GetAIAgent()

@@ -3,6 +3,7 @@ package ui
 import (
 	"time"
 
+	"github.com/Kyanite/noise/internal/app"
 	"github.com/Kyanite/noise/internal/collaboration"
 	"github.com/Kyanite/noise/internal/config"
 	errutil "github.com/Kyanite/noise/internal/errutil"
@@ -101,6 +102,9 @@ type RootModel struct {
 
 	// Quick start configuration
 	quickStartConfig *QuickStartConfig
+
+	// AI Service
+	aiService *app.AIService
 }
 
 // NewRootModel creates a new root model with initialized state
@@ -137,7 +141,7 @@ func (m *RootModel) Init() tea.Cmd {
 	)
 }
 
-// initializeApp initializes the application (database, etc.)
+// initializeApp initializes the application (database, secrets, AI service)
 func (m *RootModel) initializeApp() tea.Cmd {
 	return func() tea.Msg {
 		// Initialize database
@@ -146,7 +150,15 @@ func (m *RootModel) initializeApp() tea.Cmd {
 			return initErrorMsg{err: errutil.Wrap(err, "initialize database")}
 		}
 
-		return initSuccessMsg{database: database}
+		// Initialize AI Service
+		cfg, loadErr := config.Load()
+		if loadErr != nil {
+			logging.Warnf("Failed to load config for AI service initialization: %v", loadErr)
+			cfg = config.DefaultConfig()
+		}
+		aiService := app.NewAIService(cfg)
+
+		return initSuccessMsg{database: database, aiService: aiService}
 	}
 }
 
@@ -210,6 +222,7 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case initSuccessMsg:
 		m.database = msg.database
+		m.aiService = msg.aiService
 		m.loading = false
 
 		// If quick start is configured, go directly to editor
@@ -288,7 +301,7 @@ func (m *RootModel) initializeChildModels() {
 
 	m.splash = NewSplashModel()
 	m.menu = NewMenuModel()
-	m.editor = NewEditorModel(m.database)
+	m.editor = NewEditorModel(m.database, m.aiService)
 	m.export = NewExportModel("") // Content will be set when entering export screen
 	m.theory = NewTheoryModel()
 	m.audio = NewAudioModel()
@@ -507,7 +520,8 @@ func (m *RootModel) renderHelp() string {
 
 // Message types for initialization
 type initSuccessMsg struct {
-	database *db.DB
+	database  *db.DB
+	aiService *app.AIService
 }
 
 type initErrorMsg struct {

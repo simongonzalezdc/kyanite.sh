@@ -35,7 +35,7 @@ func TestEditorWorkflow(t *testing.T) {
 		t.Logf("Warning: Failed to stop auto-save service: %v", err)
 	}
 
-	sp := editor.NewSplitPaneModel(database)
+	sp := editor.NewSplitPaneModel(database, nil)
 	// send a window size to initialize dimensions
 	sp.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 
@@ -73,7 +73,7 @@ func TestPreviewSync(t *testing.T) {
 		}
 	}()
 
-	sp := editor.NewSplitPaneModel(database)
+	sp := editor.NewSplitPaneModel(database, nil)
 	sp.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
 
 	md := "# Sync Test\n\n[Verse]\nHello\nWorld"

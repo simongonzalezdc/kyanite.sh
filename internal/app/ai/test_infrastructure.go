@@ -59,7 +59,7 @@ func (m *MockLLMClient) SetTimeout(shouldTimeout bool) {
 }
 
 // Generate implements QuickLLMClient
-func (m *MockLLMClient) Generate(ctx context.Context, prompt string, options map[string]any) (string, error) {
+func (m *MockLLMClient) Generate(ctx context.Context, _, prompt string, options map[string]any) (string, error) {
 	if m.shouldFail {
 		return "", errors.New("mock client error")
 	}

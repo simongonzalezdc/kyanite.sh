@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Kyanite/noise/internal/app"
 	"github.com/Kyanite/noise/internal/app/ai"
 	"github.com/Kyanite/noise/internal/logging"
 	"github.com/Kyanite/noise/internal/theme"
@@ -409,6 +410,15 @@ func (a *EditorAI) UpdateKnowledgeBaseStatus(metrics *EditorMetrics) {
 		} else {
 			metrics.UpdateKnowledgeBaseStatus(false, "KB: Error")
 		}
+	}
+}
+
+// SetAIService sets the AI service for this editor component
+func (a *EditorAI) SetAIService(service *app.AIService) {
+	a.aiService = service
+	// Also sync the underlying agent from the service
+	if service != nil {
+		a.aiAgent = service.GetQuickAgent()
 	}
 }
 

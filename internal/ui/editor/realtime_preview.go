@@ -109,17 +109,6 @@ type RealTimePreviewManager struct {
 	onStatsUpdate     func(PreviewStats)
 }
 
-// PreviewStats holds statistics about the preview
-type PreviewStats struct {
-	WordCount      int
-	ReadingTime    time.Duration
-	CharacterCount int
-	LineCount      int
-	UpdateCount    int64
-	AvgUpdateTime  time.Duration
-	LastUpdateTime time.Time
-}
-
 // UpdateIndicator manages visual feedback during updates
 type UpdateIndicator struct {
 	isVisible bool

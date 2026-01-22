@@ -47,6 +47,7 @@ type SplitPaneModel struct {
 	// State
 	focusedPane     FocusedPane
 	database        *db.DB
+	aiService       *app.AIService
 	autoSaveService *app.AutoSaveService
 	fileService     *files.Service
 	ctx             context.Context
@@ -76,7 +77,7 @@ const (
 )
 
 // NewSplitPaneModel creates a new split-pane editor model
-func NewSplitPaneModel(database *db.DB) *SplitPaneModel {
+func NewSplitPaneModel(database *db.DB, aiService *app.AIService) *SplitPaneModel {
 	// Initialize text area for editor pane
 	editorTA := textarea.New()
 	editorTA.Placeholder = "Start writing your lyrics..."
@@ -108,6 +109,7 @@ func NewSplitPaneModel(database *db.DB) *SplitPaneModel {
 		fileDialog:      NewFileDialogModel(DialogOpen, "Open File", "./songs", []string{".md", ".txt"}),
 		focusedPane:     EditorPane,
 		database:        database,
+		aiService:       aiService,
 		autoSaveService: autoSaveService,
 		fileService:     fileService,
 		ctx:             ctx,
@@ -123,6 +125,7 @@ func NewSplitPaneModel(database *db.DB) *SplitPaneModel {
 	// Set up services for editor pane
 	model.editorPane.SetAutoSaveService(autoSaveService)
 	model.editorPane.SetFileService(fileService)
+	model.editorPane.SetAIService(aiService)
 
 	// Start the auto-save service
 	if err := autoSaveService.Start(ctx); err != nil {

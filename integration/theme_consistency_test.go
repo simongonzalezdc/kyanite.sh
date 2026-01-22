@@ -15,7 +15,7 @@ import (
 // and runs without a database to avoid cgo/sqlite issues.
 func TestThemeConsistencyAcrossComponents(t *testing.T) {
 	// Create a split pane without DB (UI-only)
-	sp := editor.NewSplitPaneModel(nil)
+	sp := editor.NewSplitPaneModel(nil, nil)
 
 	// Initialize dimensions via WindowSizeMsg
 	_, _ = sp.Update(tea.WindowSizeMsg{Width: 120, Height: 40})

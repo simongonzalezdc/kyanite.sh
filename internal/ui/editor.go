@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"github.com/Kyanite/noise/internal/app"
 	"github.com/Kyanite/noise/internal/infra/db"
 	"github.com/Kyanite/noise/internal/ui/editor"
 	tea "github.com/charmbracelet/bubbletea"
@@ -18,9 +19,9 @@ type EditorModel struct {
 }
 
 // NewEditorModel creates a new editor model with split-pane layout
-func NewEditorModel(database *db.DB) *EditorModel {
+func NewEditorModel(database *db.DB, aiService *app.AIService) *EditorModel {
 	return &EditorModel{
-		splitPane: editor.NewSplitPaneModel(database),
+		splitPane: editor.NewSplitPaneModel(database, aiService),
 		database:  database,
 	}
 }

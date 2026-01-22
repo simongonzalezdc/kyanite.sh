@@ -2,6 +2,7 @@ package editor
 
 import (
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -12,6 +13,15 @@ type PreviewStats struct {
 	Characters int
 	Syllables  int
 	Sentences  int
+
+	// Compatibility fields for RealTimePreviewManager
+	WordCount      int
+	ReadingTime    time.Duration
+	CharacterCount int
+	LineCount      int
+	UpdateCount    int64
+	AvgUpdateTime  time.Duration
+	LastUpdateTime time.Time
 }
 
 // CalculateStats computes statistics for the given content
@@ -78,13 +88,17 @@ func estimateSyllables(content string) int {
 	return syllableCount
 }
 
-// ReadingTime estimates reading time in minutes
-func (s PreviewStats) ReadingTime() float64 {
+// ReadingTimeMinutes estimates reading time in minutes
+func (s PreviewStats) ReadingTimeMinutes() float64 {
 	// Average reading speed: 200 words per minute
-	if s.Words == 0 {
+	words := s.Words
+	if words == 0 {
+		words = s.WordCount
+	}
+	if words == 0 {
 		return 0
 	}
-	return float64(s.Words) / 200.0
+	return float64(words) / 200.0
 }
 
 // SpeakingTime estimates speaking time in minutes

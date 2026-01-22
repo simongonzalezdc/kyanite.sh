@@ -12,7 +12,7 @@ type mockLLMClient struct {
 	shouldFail bool
 }
 
-func (m *mockLLMClient) Generate(ctx context.Context, prompt string, options map[string]any) (string, error) {
+func (m *mockLLMClient) Generate(ctx context.Context, _, prompt string, options map[string]any) (string, error) {
 	if m.shouldFail {
 		return "", nil // Simulate failure with empty response
 	}

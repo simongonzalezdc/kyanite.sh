@@ -1,1 +1,0 @@
-mkdir internal\domain internal\infra internal\infra\db internal\infra\files internal\infra\git internal\infra\ollama internal\ui internal\ui\common internal\ui\editor internal\ui\theory internal\ui\audio internal\ui\manager internal\ui\settings pkg\kb pkg\prompts scripts testdata\songs testdata\golden 

@@ -120,6 +120,7 @@ func NewEditorShortcuts() *EditorShortcuts {
 type EditorAI struct {
 	contextDetector     *ai.ContextDetector
 	lastContentType     string
+	aiService           *app.AIService
 	aiAgent             *ai.QuickIdeaAgent
 	rapidBrainstorm     bool
 	brainstormTheme     string
@@ -238,6 +239,7 @@ type AIInterface interface {
 	CancelVariationMode()
 	PerformQualityCheck(state StateManagerInterface)
 	UpdateKnowledgeBaseStatus(metrics *EditorMetrics)
+	SetAIService(service *app.AIService)
 	SetAIAgent(agent *ai.QuickIdeaAgent)
 	GetAIAgent() *ai.QuickIdeaAgent
 	AnalyzeContentType(content string) string

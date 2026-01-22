@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/config"
 	"github.com/Kyanite/noise/internal/infra/db"
 	"github.com/Kyanite/noise/internal/ui/editor"
 	tea "github.com/charmbracelet/bubbletea"
@@ -35,7 +36,8 @@ func TestEditorWorkflow(t *testing.T) {
 		t.Logf("Warning: Failed to stop auto-save service: %v", err)
 	}
 
-	sp := editor.NewSplitPaneModel(database)
+	aiService := app.NewAIService(config.DefaultConfig())
+	sp := editor.NewSplitPaneModel(database, aiService)
 	// send a window size to initialize dimensions
 	sp.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 
@@ -73,7 +75,7 @@ func TestPreviewSync(t *testing.T) {
 		}
 	})
 
-	sp := editor.NewSplitPaneModel(database)
+	sp := editor.NewSplitPaneModel(database, nil)
 	sp.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
 
 	md := "# Sync Test\n\n[Verse]\nHello\nWorld"

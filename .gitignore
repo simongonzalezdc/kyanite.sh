@@ -17,3 +17,22 @@ venv/
 
 # Logs
 *.log
+
+# Binaries
+*.exe
+noise
+noise-app
+noise-new
+noise-test
+noise-dashboard-v2.exe
+noise-dashboard.exe
+performance
+bin/
+
+# Test coverage
+*.out
+autosave_coverage.out
+combined_coverage.out
+coverage.out
+final_coverage.out
+full_coverage.out

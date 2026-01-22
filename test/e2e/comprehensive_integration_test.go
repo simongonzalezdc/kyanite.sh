@@ -15,118 +15,10 @@ import (
 	"github.com/Kyanite/noise/internal/collaboration"
 	"github.com/Kyanite/noise/internal/domain"
 	"github.com/Kyanite/noise/internal/errors"
-	"github.com/Kyanite/noise/internal/infra/db"
-	"github.com/Kyanite/noise/internal/logging"
 	"github.com/Kyanite/noise/internal/theme"
-	"github.com/Kyanite/noise/internal/ui/dashboard"
 	"github.com/Kyanite/noise/internal/ui/editor"
 	tea "github.com/charmbracelet/bubbletea"
 )
-
-// E2ETestSetup provides a comprehensive test environment for end-to-end testing
-type E2ETestSetup struct {
-	T              *testing.T
-	TempDir        string
-	Database       *db.DB
-	ErrorManager   *errors.ErrorManager
-	ThemeManager   *theme.Manager
-	AIAgent        *ai.QuickIdeaAgent
-	SessionManager *collaboration.SessionManager
-	EditorModel    *editor.SplitPaneModel
-	DashboardModel *dashboard.DashboardModel
-	Cleanup        func()
-}
-
-// NewE2ETestSetup creates a comprehensive test environment
-func NewE2ETestSetup(t *testing.T) *E2ETestSetup {
-	tempDir := t.TempDir()
-	
-	// Initialize database
-	database, err := db.New(db.Config{DataDir: tempDir})
-	if err != nil {
-		t.Fatalf("Failed to create database: %v", err)
-	}
-
-	// Initialize error manager
-	logger := NewTestLogger(t)
-	errorConfig := errors.DefaultErrorConfig()
-	errorManager := errors.NewErrorManager(logger.Logger, errorConfig)
-
-	// Initialize theme manager
-	themeManager := theme.GetManager()
-
-	// Initialize AI agent with mock provider
-	mockProvider := ai.NewMockEnhancementProvider()
-	aiAgent := ai.NewQuickIdeaAgent()
-	aiAgent = aiAgent.WithKnowledgeBase(mockProvider)
-
-	// Initialize session manager
-	sessionManager := collaboration.NewMockSessionManager()
-
-	// Initialize editor model
-	editorModel := editor.NewSplitPaneModel(database)
-	editorModel.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
-
-	// Initialize dashboard model
-	dashboardModel := dashboard.NewDashboardModel()
-
-	cleanup := func() {
-		if err := database.Close(); err != nil {
-			t.Logf("Warning: Failed to close database: %v", err)
-		}
-		if err := errorManager.Close(); err != nil {
-			t.Logf("Warning: Failed to close error manager: %v", err)
-		}
-		editorModel.Cleanup()
-	}
-
-	return &E2ETestSetup{
-		T:              t,
-		TempDir:        tempDir,
-		Database:       database,
-		ErrorManager:   errorManager,
-		ThemeManager:   themeManager,
-		AIAgent:        aiAgent,
-		SessionManager: sessionManager.SessionManager,
-		EditorModel:    editorModel,
-		DashboardModel: dashboardModel,
-		Cleanup:        cleanup,
-	}
-}
-
-// TestLogger is a simple test logger for error manager
-type TestLogger struct {
-	t      *testing.T
-	Logger *logging.Logger
-}
-
-func NewTestLogger(t *testing.T) *TestLogger {
-	logger, _ := logging.New(logging.DefaultConfig())
-	return &TestLogger{
-		t:      t,
-		Logger: logger,
-	}
-}
-
-func (tl *TestLogger) Error(msg string) {
-	tl.t.Error(msg)
-	tl.Logger.Error(msg)
-}
-
-func (tl *TestLogger) Warn(msg string) {
-	tl.t.Log("WARN:", msg)
-	tl.Logger.Warn(msg)
-}
-
-func (tl *TestLogger) Info(msg string) {
-	tl.t.Log("INFO:", msg)
-	tl.Logger.Info(msg)
-}
-
-func (tl *TestLogger) Debug(msg string) {
-	tl.t.Log("DEBUG:", msg)
-	tl.Logger.Debug(msg)
-}
 
 // MockEditorState implements a minimal StateManagerInterface for testing
 type MockEditorState struct {
@@ -150,54 +42,54 @@ func (m *MockEditorState) BracketMatchingEnabled() bool {
 }
 
 // Add other required methods from StateManagerInterface as needed
-func (m *MockEditorState) GetSong() *domain.Song { return nil }
-func (m *MockEditorState) SetSong(song *domain.Song) {}
-func (m *MockEditorState) IsFocused() bool { return false }
-func (m *MockEditorState) Focus() {}
-func (m *MockEditorState) Blur() {}
-func (m *MockEditorState) GetEditorMode() editor.EditorMode { return editor.ModeSketch }
-func (m *MockEditorState) SetEditorMode(mode editor.EditorMode) {}
-func (m *MockEditorState) IsScratchMode() bool { return false }
-func (m *MockEditorState) SetScratchMode(scratch bool) {}
-func (m *MockEditorState) GetCurrentFilePath() string { return "" }
-func (m *MockEditorState) GetFileService() interface{} { return nil }
-func (m *MockEditorState) SetCurrentFilePath(path string) {}
-func (m *MockEditorState) UpdateCursorPosition() {}
-func (m *MockEditorState) HandleAutoSave() {}
-func (m *MockEditorState) ForceSave() error { return nil }
-func (m *MockEditorState) GetAutoSaveStatus() app.AutoSaveStatus { return app.AutoSaveIdle }
-func (m *MockEditorState) GetLastSaveTime() time.Time { return time.Now() }
+func (m *MockEditorState) GetSong() *domain.Song                        { return nil }
+func (m *MockEditorState) SetSong(song *domain.Song)                    {}
+func (m *MockEditorState) IsFocused() bool                              { return false }
+func (m *MockEditorState) Focus()                                       {}
+func (m *MockEditorState) Blur()                                        {}
+func (m *MockEditorState) GetEditorMode() editor.EditorMode             { return editor.ModeSketch }
+func (m *MockEditorState) SetEditorMode(mode editor.EditorMode)         {}
+func (m *MockEditorState) IsScratchMode() bool                          { return false }
+func (m *MockEditorState) SetScratchMode(scratch bool)                  {}
+func (m *MockEditorState) GetCurrentFilePath() string                   { return "" }
+func (m *MockEditorState) GetFileService() interface{}                  { return nil }
+func (m *MockEditorState) SetCurrentFilePath(path string)               {}
+func (m *MockEditorState) UpdateCursorPosition()                        {}
+func (m *MockEditorState) HandleAutoSave()                              {}
+func (m *MockEditorState) ForceSave() error                             { return nil }
+func (m *MockEditorState) GetAutoSaveStatus() app.AutoSaveStatus        { return app.AutoSaveIdle }
+func (m *MockEditorState) GetLastSaveTime() time.Time                   { return time.Now() }
 func (m *MockEditorState) SaveSong(isMilestone bool, name string) error { return nil }
-func (m *MockEditorState) CreateMilestone(name string) error { return nil }
-func (m *MockEditorState) RecoverFromLastSave() error { return nil }
-func (m *MockEditorState) ToggleLineNumbers() {}
-func (m *MockEditorState) ToggleWordWrap() {}
-func (m *MockEditorState) ToggleAutoIndent() {}
-func (m *MockEditorState) ToggleBracketMatching() {}
-func (m *MockEditorState) SetSearchMode(enabled bool) {}
-func (m *MockEditorState) IsSearchMode() bool { return false }
-func (m *MockEditorState) SetSearchQuery(query string) {}
-func (m *MockEditorState) GetSearchQuery() string { return "" }
-func (m *MockEditorState) SetReplaceQuery(query string) {}
-func (m *MockEditorState) GetReplaceQuery() string { return "" }
-func (m *MockEditorState) NextSearchMatch() {}
-func (m *MockEditorState) PreviousSearchMatch() {}
-func (m *MockEditorState) NewFile() {}
-func (m *MockEditorState) OpenFile(filename string) error { return nil }
-func (m *MockEditorState) SaveAs(filename string) error { return nil }
-func (m *MockEditorState) CloseFile() {}
-func (m *MockEditorState) GetCursorLine() int { return 0 }
-func (m *MockEditorState) GetCursorColumn() int { return 0 }
-func (m *MockEditorState) ShowLineNumbers() bool { return true }
-func (m *MockEditorState) WordWrapEnabled() bool { return true }
-func (m *MockEditorState) SelectAll() {}
-func (m *MockEditorState) CopySelectedText() error { return nil }
-func (m *MockEditorState) PasteFromClipboard() error { return nil }
-func (m *MockEditorState) CutSelectedText() error { return nil }
-func (m *MockEditorState) Undo() error { return nil }
-func (m *MockEditorState) Redo() error { return nil }
-func (m *MockEditorState) GetSelectedText() string { return "" }
-func (m *MockEditorState) HasSelection() bool { return false }
+func (m *MockEditorState) CreateMilestone(name string) error            { return nil }
+func (m *MockEditorState) RecoverFromLastSave() error                   { return nil }
+func (m *MockEditorState) ToggleLineNumbers()                           {}
+func (m *MockEditorState) ToggleWordWrap()                              {}
+func (m *MockEditorState) ToggleAutoIndent()                            {}
+func (m *MockEditorState) ToggleBracketMatching()                       {}
+func (m *MockEditorState) SetSearchMode(enabled bool)                   {}
+func (m *MockEditorState) IsSearchMode() bool                           { return false }
+func (m *MockEditorState) SetSearchQuery(query string)                  {}
+func (m *MockEditorState) GetSearchQuery() string                       { return "" }
+func (m *MockEditorState) SetReplaceQuery(query string)                 {}
+func (m *MockEditorState) GetReplaceQuery() string                      { return "" }
+func (m *MockEditorState) NextSearchMatch()                             {}
+func (m *MockEditorState) PreviousSearchMatch()                         {}
+func (m *MockEditorState) NewFile()                                     {}
+func (m *MockEditorState) OpenFile(filename string) error               { return nil }
+func (m *MockEditorState) SaveAs(filename string) error                 { return nil }
+func (m *MockEditorState) CloseFile()                                   {}
+func (m *MockEditorState) GetCursorLine() int                           { return 0 }
+func (m *MockEditorState) GetCursorColumn() int                         { return 0 }
+func (m *MockEditorState) ShowLineNumbers() bool                        { return true }
+func (m *MockEditorState) WordWrapEnabled() bool                        { return true }
+func (m *MockEditorState) SelectAll()                                   {}
+func (m *MockEditorState) CopySelectedText() error                      { return nil }
+func (m *MockEditorState) PasteFromClipboard() error                    { return nil }
+func (m *MockEditorState) CutSelectedText() error                       { return nil }
+func (m *MockEditorState) Undo() error                                  { return nil }
+func (m *MockEditorState) Redo() error                                  { return nil }
+func (m *MockEditorState) GetSelectedText() string                      { return "" }
+func (m *MockEditorState) HasSelection() bool                           { return false }
 
 // TestCompleteSongCreationWorkflow tests the entire song creation workflow
 func TestCompleteSongCreationWorkflow(t *testing.T) {
@@ -411,7 +303,7 @@ func TestCollaborationWorkflow(t *testing.T) {
 		wg.Add(1)
 		go func(userID, username string, index int) {
 			defer wg.Done()
-			
+
 			// Simulate cursor position updates
 			err := setup.SessionManager.UpdateParticipant(session.ID, userID, func(participant *collaboration.Participant) {
 				participant.Cursor = collaboration.CursorPosition{
@@ -748,7 +640,7 @@ func TestDataPersistenceAndBackup(t *testing.T) {
 		if strings.TrimSpace(versionContent) == "" {
 			continue
 		}
-		
+
 		_, err := setup.Database.SaveVersion(song.ID, strings.TrimSpace(versionContent), false, fmt.Sprintf("Recovered version %d", i+1))
 		if err != nil {
 			t.Fatalf("Failed to save recovered version %d: %v", i+1, err)
@@ -777,11 +669,11 @@ func TestPerformanceUnderLoad(t *testing.T) {
 
 	// Performance targets (reduced for test environment)
 	const (
-		maxOperationTime     = 500 * time.Millisecond
-		maxConcurrentUsers   = 3
-		operationsPerUser    = 3
-		maxMemoryUsage       = 50 * 1024 * 1024 // 50MB
-		targetSuccessRate    = 0.60 // 60% (reduced for test environment)
+		maxOperationTime   = 500 * time.Millisecond
+		maxConcurrentUsers = 3
+		operationsPerUser  = 3
+		maxMemoryUsage     = 50 * 1024 * 1024 // 50MB
+		targetSuccessRate  = 0.60             // 60% (reduced for test environment)
 	)
 
 	// Step 1: Test concurrent song creation and editing
@@ -796,9 +688,9 @@ func TestPerformanceUnderLoad(t *testing.T) {
 		wg.Add(1)
 		go func(userID int) {
 			defer wg.Done()
-			
+
 			editorSvc := app.NewEditorService(setup.Database, setup.Database)
-			
+
 			for j := 0; j < operationsPerUser; j++ {
 				// Create song with unique filepath to avoid constraint violations
 				uniqueFilepath := fmt.Sprintf("/tmp/load_test_song_%d_%d.txt", userID, j)
@@ -810,7 +702,7 @@ func TestPerformanceUnderLoad(t *testing.T) {
 					t.Logf("Warning: Failed to create song %d-%d: %v", userID, j, err)
 					continue
 				}
-				
+
 				// Set a unique filepath to avoid UNIQUE constraint violations
 				song.Filepath = uniqueFilepath
 				err = setup.Database.UpdateSong(song)
@@ -848,7 +740,7 @@ Load test chorus for song %d-%d
 				ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 				_, err = setup.AIAgent.Generate(ctx, req)
 				cancel()
-				
+
 				if err != nil {
 					t.Logf("Warning: AI generation failed %d-%d: %v", userID, j, err)
 					// Continue anyway - AI failures shouldn't stop the test
@@ -878,14 +770,14 @@ Load test chorus for song %d-%d
 	// Step 3: Test memory usage
 	// Memory usage tracking would be implemented with runtime.ReadMemStats()
 	// For this test, we'll simulate the check
-	
+
 	// Note: In a real implementation, you'd use runtime.ReadMemStats()
 	// For this test, we'll simulate memory checking
 	t.Logf("Memory usage check (simulated)")
-	
+
 	// Step 4: Test database performance under load
 	dbStartTime := time.Now()
-	
+
 	// Create many versions quickly
 	loadTestEditorSvc := app.NewEditorService(setup.Database, setup.Database)
 	testSong, err := loadTestEditorSvc.CreateSong("DB Load Test", "Load Tester")
@@ -914,7 +806,7 @@ Load test chorus for song %d-%d
 		errorWg.Add(1)
 		go func(userID int) {
 			defer errorWg.Done()
-			
+
 			for j := 0; j < operationsPerUser; j++ {
 				err := errors.NewAppError(
 					fmt.Sprintf("LOAD_TEST_ERROR_%d_%d", userID, j),

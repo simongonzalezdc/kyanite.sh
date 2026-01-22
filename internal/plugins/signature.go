@@ -9,16 +9,18 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/Kyanite/noise/internal/logging"
 )
 
 // SignatureVerifier handles plugin signature verification
 type SignatureVerifier struct {
 	trustedKeys map[string]*rsa.PublicKey
-	logger      Logger
+	logger      *logging.Logger
 }
 
 // NewSignatureVerifier creates a new signature verifier
-func NewSignatureVerifier(logger Logger) *SignatureVerifier {
+func NewSignatureVerifier(logger *logging.Logger) *SignatureVerifier {
 	return &SignatureVerifier{
 		trustedKeys: make(map[string]*rsa.PublicKey),
 		logger:      logger,
@@ -151,32 +153,4 @@ func (v *SignatureVerifier) loadSignature(path string) ([]byte, string, error) {
 // verifySignature verifies RSA signature
 func (v *SignatureVerifier) verifySignature(pubKey *rsa.PublicKey, hash, signature []byte) error {
 	return rsa.VerifyPKCS1v15(pubKey, crypto.SHA256, hash, signature)
-}
-
-// Helper to update SecurityManager.VerifyPluginSignature
-func (sm *SecurityManager) VerifyPluginSignature(path string) error {
-	// Initialize verifier if not already done
-	verifier := NewSignatureVerifier(sm.logger)
-
-	// Load trusted keys from config directory
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		sm.logger.Warnf("Cannot get home directory: %v", err)
-		return fmt.Errorf("cannot verify signature: %w", err)
-	}
-
-	keysDir := filepath.Join(homeDir, ".config", "noise", "plugin-keys")
-	if err := verifier.LoadTrustedKeysFromDir(keysDir); err != nil {
-		sm.logger.Warnf("Cannot load trusted keys: %v", err)
-	}
-
-	// If no trusted keys, skip verification but log warning
-	if len(verifier.trustedKeys) == 0 {
-		sm.logger.Warnf("No trusted keys found - skipping signature verification for: %s", path)
-		sm.logger.Info("To enable signature verification, add public keys to: " + keysDir)
-		return nil
-	}
-
-	// Verify signature
-	return verifier.VerifyPlugin(path)
 }

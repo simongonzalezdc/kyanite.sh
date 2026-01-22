@@ -3,8 +3,10 @@ package e2e
 import (
 	"testing"
 
+	"github.com/Kyanite/noise/internal/app"
 	"github.com/Kyanite/noise/internal/app/ai"
 	"github.com/Kyanite/noise/internal/collaboration"
+	"github.com/Kyanite/noise/internal/config"
 	"github.com/Kyanite/noise/internal/errors"
 	"github.com/Kyanite/noise/internal/infra/db"
 	"github.com/Kyanite/noise/internal/logging"
@@ -46,7 +48,7 @@ type E2ETestSetup struct {
 // NewE2ETestSetup creates a comprehensive test environment
 func NewE2ETestSetup(t *testing.T) *E2ETestSetup {
 	tempDir := t.TempDir()
-	
+
 	// Initialize database
 	database, err := db.New(db.Config{DataDir: tempDir})
 	if err != nil {
@@ -69,8 +71,11 @@ func NewE2ETestSetup(t *testing.T) *E2ETestSetup {
 	// Initialize session manager
 	mockSessionManager := collaboration.NewMockSessionManager()
 
+	// Initialize AI service
+	aiService := app.NewAIService(config.DefaultConfig())
+
 	// Initialize editor model
-	editorModel := editor.NewSplitPaneModel(database)
+	editorModel := editor.NewSplitPaneModel(database, aiService)
 	editorModel.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 
 	// Initialize dashboard model
@@ -99,4 +104,3 @@ func NewE2ETestSetup(t *testing.T) *E2ETestSetup {
 		Cleanup:        cleanup,
 	}
 }
-

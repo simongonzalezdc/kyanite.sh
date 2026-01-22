@@ -14,7 +14,7 @@ import (
 // These tests exercise rendering, split-pane behavior, keyboard shortcuts, and responsive layout.
 func TestE2E_UI_Workflow(t *testing.T) {
 	// Create split pane with nil database to avoid DB/cgo dependencies for UI E2E tests
-	sp := editor.NewSplitPaneModel(nil)
+	sp := editor.NewSplitPaneModel(nil, nil)
 
 	// Initialize dimensions via WindowSizeMsg
 	_, _ = sp.Update(tea.WindowSizeMsg{Width: 140, Height: 48})

@@ -64,10 +64,9 @@ type QuickIdeaAgent struct {
 	knowledgeBase   knowledge.EnhancementProvider
 }
 
-// QuickLLMClient is a minimal interface that can be satisfied by the Ollama client.
-// It deliberately mirrors the subset we need, making it simple to replace or mock.
+// QuickLLMClient is a minimal interface that can be satisfied by the Ollama or GLM client.
 type QuickLLMClient interface {
-	Generate(ctx context.Context, prompt string, options map[string]any) (string, error)
+	Generate(ctx context.Context, model, prompt string, options map[string]any) (string, error)
 }
 
 // NewQuickIdeaAgent constructs an agent with a fallback stub client.
@@ -103,6 +102,23 @@ func (a *QuickIdeaAgent) WithClient(client QuickLLMClient, timeout time.Duration
 		client:          client,
 		model:           a.model,
 		timeout:         timeout,
+		prompts:         a.prompts,
+		contextDetector: a.contextDetector,
+		contextPrompts:  a.contextPrompts,
+		knowledgeBase:   a.knowledgeBase,
+	}
+}
+
+// WithModel returns a copy of the agent configured to use the provided model string.
+func (a *QuickIdeaAgent) WithModel(model string) *QuickIdeaAgent {
+	if model == "" {
+		return a
+	}
+
+	return &QuickIdeaAgent{
+		client:          a.client,
+		model:           model,
+		timeout:         a.timeout,
 		prompts:         a.prompts,
 		contextDetector: a.contextDetector,
 		contextPrompts:  a.contextPrompts,
@@ -184,8 +200,7 @@ func (a *QuickIdeaAgent) invoke(ctx context.Context, prompt string) (string, err
 		return "", errors.New("no llm client configured")
 	}
 
-	return a.client.Generate(ctx, prompt, map[string]any{
-		"model":       a.model,
+	return a.client.Generate(ctx, a.model, prompt, map[string]any{
 		"temperature": 0.7,
 		"top_p":       0.9,
 		"num_predict": 120,
@@ -529,6 +544,6 @@ func (a *QuickIdeaAgent) IsKnowledgeBaseAvailable(ctx context.Context) bool {
 	return kb.IsAvailable(ctx)
 }
 
-func (s *stubQuickClient) Generate(context.Context, string, map[string]any) (string, error) {
+func (s *stubQuickClient) Generate(_ context.Context, _, _ string, _ map[string]any) (string, error) {
 	return "", errors.New("stub quick idea client has no external backend")
 }

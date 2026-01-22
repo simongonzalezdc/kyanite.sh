@@ -119,7 +119,7 @@ func TestExportAndFileIO(t *testing.T) {
 // to validate component interactions (editor <-> preview) and keyboard handling.
 func TestEditorUIAndStateInteraction(t *testing.T) {
 	// Use nil DB to avoid cgo / sqlite issues; this exercises UI-only integration
-	sp := editor.NewSplitPaneModel(nil)
+	sp := editor.NewSplitPaneModel(nil, nil)
 	// initialize dimensions
 	_, _ = sp.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	// set content and verify view updates
