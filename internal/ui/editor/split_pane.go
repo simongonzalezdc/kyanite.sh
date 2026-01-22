@@ -373,6 +373,11 @@ func (m *SplitPaneModel) SetEditorText(text string) {
 	m.editorPane.SetText(text)
 }
 
+// InsertText inserts text at the current cursor position in the editor
+func (m *SplitPaneModel) InsertText(text string) {
+	m.editorPane.InsertText(text)
+}
+
 // SetCurrentSong sets the given song into the editor pane and updates editor text.
 // This is an exported helper so callers in other packages (e.g., root UI) can open a song.
 func (m *SplitPaneModel) SetCurrentSong(song *domain.Song) {

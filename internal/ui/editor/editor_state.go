@@ -43,6 +43,52 @@ func (s *EditorState) SetText(text string) {
 	(*s.textarea).SetValue(text)
 }
 
+// InsertText inserts text at the current cursor position
+func (s *EditorState) InsertText(text string) {
+	if s.textarea == nil || text == "" {
+		return
+	}
+	
+	// Get current content
+	currentText := (*s.textarea).Value()
+	
+	// Calculate approximate insertion point based on tracked cursor position
+	lines := strings.Split(currentText, "\n")
+	var offset int
+	for i := 0; i < s.cursorLine && i < len(lines); i++ {
+		offset += len(lines[i]) + 1 // +1 for newline
+	}
+	if s.cursorLine < len(lines) {
+		// Add column offset, but clamp to line length
+		col := s.cursorColumn
+		if col > len(lines[s.cursorLine]) {
+			col = len(lines[s.cursorLine])
+		}
+		offset += col
+	}
+	
+	// Clamp offset to valid range
+	if offset > len(currentText) {
+		offset = len(currentText)
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	
+	// Insert text at calculated position
+	newText := currentText[:offset] + text + currentText[offset:]
+	(*s.textarea).SetValue(newText)
+	
+	// Update tracked cursor position
+	insertedLines := strings.Split(text, "\n")
+	if len(insertedLines) > 1 {
+		s.cursorLine += len(insertedLines) - 1
+		s.cursorColumn = len(insertedLines[len(insertedLines)-1])
+	} else {
+		s.cursorColumn += len(text)
+	}
+}
+
 // GetCurrentFilePath returns the current file path
 func (s *EditorState) GetCurrentFilePath() string {
 	return s.currentFilePath

@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Voice-to-Text Dictation** - Push-to-talk transcription with whisper.cpp
+  - `Ctrl+D` shortcut for start/stop recording
+  - Automatic model download on first use (~142MB base English model)
+  - Multiple model support: tiny (fast), base (balanced), small (accurate)
+  - Real-time audio level feedback and recording duration display
+  - Voice settings screen for model management and microphone testing
+- **PWA Sync Infrastructure** - Local-first sync for companion mobile app
+  - Embedded HTTP/WebSocket server on configurable port
+  - Secure device pairing with 6-digit codes
+  - Media storage for voice memos and photos
+  - Idea inbox for reviewing captured ideas
+  - Real-time sync status display
+  - Database schema for `captured_ideas` and `paired_devices`
 - Comprehensive stress detection in prosody engine with syllable splitting
 - Harmony normalization with enharmonic and chord type standardization
 - SQLite WAL mode and performance PRAGMAs for improved database performance
@@ -16,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Security validation framework for plugins
 
 ### Changed
+- Voice and sync services auto-initialize on startup (no manual setup required)
+- Makefile targets for voice/sync are now optional (for advanced users only)
+- Updated all documentation to reflect Go 1.25+ requirement
 - Updated PROJECT_SNAPSHOT.md to reflect Active Development status
 - Improved menu tests with proper dimension setup and model capturing
 

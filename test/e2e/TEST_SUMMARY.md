@@ -125,8 +125,8 @@ The end-to-end test suite consists of 8 comprehensive tests that validate all ma
 - **Cleanup**: Automatic cleanup of all resources
 
 ### Dependencies
-- Go 1.19+
-- SQLite 3.x
+- Go 1.25+
+- SQLite (modernc.org/sqlite - pure Go)
 - Tea UI Framework
 - Mock AI Providers
 

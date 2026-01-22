@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/Kyanite/noise/internal/app"
@@ -8,6 +9,7 @@ import (
 	"github.com/Kyanite/noise/internal/config"
 	errutil "github.com/Kyanite/noise/internal/errutil"
 	"github.com/Kyanite/noise/internal/infra/db"
+	"github.com/Kyanite/noise/internal/infra/sync"
 	"github.com/Kyanite/noise/internal/logging"
 	"github.com/Kyanite/noise/internal/plugins"
 	"github.com/Kyanite/noise/internal/theme"
@@ -46,6 +48,13 @@ type ForceRefreshMsg struct{}
 
 // RefreshTimerMsg triggers periodic refresh
 type RefreshTimerMsg struct{}
+
+// VoiceTranscriptionMsg carries the result of voice-to-text transcription
+type VoiceTranscriptionMsg struct {
+	Text      string
+	Cancelled bool
+	Error     error
+}
 
 // RootModel is the main application model that handles routing between screens
 type RootModel struct {
@@ -105,6 +114,14 @@ type RootModel struct {
 
 	// AI Service
 	aiService *app.AIService
+
+	// Voice-to-text service
+	voiceService   *app.VoiceService
+	voiceIndicator *VoiceIndicatorModel
+
+	// PWA sync service
+	syncServer *sync.SyncServer
+	syncStatus *SyncStatusModel
 }
 
 // NewRootModel creates a new root model with initialized state
@@ -195,8 +212,26 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.animation != nil {
 				m.animation.Close()
 			}
+			// Clean up voice service
+			if m.voiceService != nil {
+				m.voiceService.Close()
+			}
+			// Clean up sync server
+			if m.syncServer != nil {
+				m.syncServer.Stop()
+			}
 			return m, tea.Quit
+		case "ctrl+d":
+			// Global voice dictation toggle
+			if m.voiceService != nil && m.voiceService.IsAvailable() {
+				return m, m.handleVoiceDictation()
+			}
 		case "esc":
+			// Cancel voice dictation if active
+			if m.voiceService != nil && m.voiceService.GetState() == app.VoiceStateRecording {
+				m.voiceService.CancelDictation()
+				return m, nil
+			}
 			if m.helpMode {
 				m.helpMode = false
 				// Start fade out animation for help
@@ -215,6 +250,16 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		default:
 			// After any key press, ensure we refresh
 			cmds = append(cmds, func() tea.Msg { return ForceRefreshMsg{} })
+		}
+
+	case VoiceTranscriptionMsg:
+		// Handle voice transcription result
+		if msg.Text != "" && m.editor != nil && m.currentScreen == screenEditor {
+			// Insert transcribed text at cursor in editor
+			m.editor.InsertText(msg.Text)
+		}
+		if m.voiceIndicator != nil {
+			m.voiceIndicator.SetState(app.VoiceStateIdle)
 		}
 
 	case initSuccessMsg:
@@ -310,6 +355,109 @@ func (m *RootModel) initializeChildModels() {
 
 	// Initialize help system
 	m.helpPane = editor.NewHelpPaneModel(nil)
+
+	// Initialize voice service if enabled
+	m.initializeVoiceService(cfg)
+
+	// Initialize sync service if enabled (auto-creates directories)
+	m.initializeSyncService(cfg)
+}
+
+// initializeVoiceService initializes the voice-to-text service
+// Automatically downloads the whisper model on first run if needed
+func (m *RootModel) initializeVoiceService(cfg *config.Config) {
+	if !cfg.Voice.Enabled {
+		logging.Debug("Voice service disabled in config")
+		return
+	}
+
+	// Create voice indicator
+	m.voiceIndicator = NewVoiceIndicatorModel()
+
+	// Create voice service with auto-setup (downloads model if needed)
+	// This runs in background to avoid blocking app startup
+	go func() {
+		voiceService, err := app.NewVoiceServiceWithAutoSetup(cfg, logging.GetDefaultLogger(),
+			func(status string, progress float64) {
+				// Update indicator with download status
+				if m.voiceIndicator != nil {
+					if progress < 1.0 && progress > 0 {
+						m.voiceIndicator.SetError(fmt.Sprintf("%.0f%% %s", progress*100, status))
+					} else if progress >= 1.0 {
+						m.voiceIndicator.ClearError()
+					}
+				}
+				logging.Debugf("Voice setup: %s (%.0f%%)", status, progress*100)
+			})
+
+		if err != nil {
+			logging.Warnf("Failed to create voice service: %v", err)
+			if m.voiceIndicator != nil {
+				m.voiceIndicator.SetError("Voice unavailable")
+			}
+			return
+		}
+
+		// Set up callbacks
+		voiceService.OnStateChange(func(state app.VoiceState) {
+			if m.voiceIndicator != nil {
+				m.voiceIndicator.SetState(state)
+			}
+		})
+
+		voiceService.OnLevelChange(func(level float32) {
+			if m.voiceIndicator != nil {
+				m.voiceIndicator.SetLevel(level)
+			}
+		})
+
+		m.voiceService = voiceService
+
+		// Initialize whisper engine (loads model)
+		if err := voiceService.Initialize(); err != nil {
+			logging.Warnf("Failed to initialize voice service: %v", err)
+			if m.voiceIndicator != nil {
+				m.voiceIndicator.SetError("Voice unavailable")
+			}
+		} else {
+			logging.Info("Voice service ready")
+			if m.voiceIndicator != nil {
+				m.voiceIndicator.ClearError()
+			}
+		}
+	}()
+}
+
+// initializeSyncService initializes the PWA sync service
+// Automatically creates necessary directories
+func (m *RootModel) initializeSyncService(cfg *config.Config) {
+	if !cfg.Sync.Enabled {
+		logging.Debug("Sync service disabled in config")
+		return
+	}
+
+	// Create sync server with auto-setup (creates directories automatically)
+	syncServer, err := sync.NewSyncServerWithAutoSetup(
+		cfg.GetDataDir(),
+		cfg.Sync.Port,
+		logging.GetDefaultLogger(),
+	)
+	if err != nil {
+		logging.Warnf("Failed to create sync server: %v", err)
+		return
+	}
+
+	m.syncServer = syncServer
+	m.syncStatus = NewSyncStatusModel(syncServer)
+
+	// Auto-start if configured
+	if cfg.Sync.AutoStart {
+		if err := syncServer.Start(); err != nil {
+			logging.Warnf("Failed to auto-start sync server: %v", err)
+		} else {
+			logging.Infof("Sync server started at %s", syncServer.GetLocalURL())
+		}
+	}
 }
 
 // initializeCollaborationSystem initializes the collaboration system
@@ -667,6 +815,76 @@ func (m *RootModel) onSessionCreated(session *collaboration.Session) {
 
 func (m *RootModel) onSessionEnded(session *collaboration.Session) {
 	// Handle session ending
+}
+
+// handleVoiceDictation toggles voice dictation recording
+func (m *RootModel) handleVoiceDictation() tea.Cmd {
+	if m.voiceService == nil {
+		return nil
+	}
+
+	state := m.voiceService.GetState()
+
+	switch state {
+	case app.VoiceStateIdle:
+		// Start recording
+		if err := m.voiceService.StartDictation(); err != nil {
+			logging.Errorf("Failed to start dictation: %v", err)
+			if m.voiceIndicator != nil {
+				m.voiceIndicator.SetError("Mic error")
+			}
+			return nil
+		}
+		if m.voiceIndicator != nil {
+			m.voiceIndicator.SetState(app.VoiceStateRecording)
+		}
+		// Return a command that updates the duration periodically
+		return m.voiceDurationTick()
+
+	case app.VoiceStateRecording:
+		// Stop recording and transcribe
+		if m.voiceIndicator != nil {
+			m.voiceIndicator.SetState(app.VoiceStateProcessing)
+		}
+		return func() tea.Msg {
+			text, err := m.voiceService.StopDictation()
+			if err != nil {
+				logging.Errorf("Failed to stop dictation: %v", err)
+				return VoiceTranscriptionMsg{Error: err}
+			}
+			return VoiceTranscriptionMsg{Text: text}
+		}
+
+	default:
+		return nil
+	}
+}
+
+// voiceDurationTick returns a command that updates the voice indicator duration
+func (m *RootModel) voiceDurationTick() tea.Cmd {
+	return tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+		if m.voiceService != nil && m.voiceService.GetState() == app.VoiceStateRecording {
+			if m.voiceIndicator != nil {
+				m.voiceIndicator.SetDuration(m.voiceService.GetDuration())
+			}
+			// Check max duration
+			if m.voiceService.CheckMaxDuration() {
+				// Auto-stop at max duration
+				return tea.KeyMsg{Type: tea.KeyCtrlD}
+			}
+		}
+		return nil
+	})
+}
+
+// GetVoiceService returns the voice service for external access
+func (m *RootModel) GetVoiceService() *app.VoiceService {
+	return m.voiceService
+}
+
+// IsVoiceAvailable returns whether voice-to-text is available
+func (m *RootModel) IsVoiceAvailable() bool {
+	return m.voiceService != nil && m.voiceService.IsAvailable()
 }
 
 // SetQuickStart configures the application for quick start mode

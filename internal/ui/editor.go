@@ -52,3 +52,8 @@ func (m *EditorModel) GetEditorText() string {
 func (m *EditorModel) SetEditorText(text string) {
 	m.splitPane.SetEditorText(text)
 }
+
+// InsertText inserts text at the current cursor position
+func (m *EditorModel) InsertText(text string) {
+	m.splitPane.InsertText(text)
+}

@@ -37,7 +37,7 @@ Simply double-click the `Launch noise.sh.command` file on your Desktop. The scri
 ## Troubleshooting
 
 ### "Go is not installed" error
-Install Go 1.21+ from https://go.dev
+Install Go 1.25+ from https://go.dev
 
 ### "Could not find noise.sh directory" error
 Make sure the launcher file is in the project root directory, or update the script path.

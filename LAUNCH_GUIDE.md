@@ -5,9 +5,10 @@ This guide provides comprehensive instructions for building, launching, and test
 ## Quick Start
 
 ### Prerequisites
-- Go 1.21+ installed
+- Go 1.25+ installed
 - Terminal/Command Prompt
 - (Optional) Ollama running locally for AI features
+- Voice models download automatically on first use (no manual setup needed)
 
 ### Building the Application
 
@@ -72,6 +73,57 @@ powershell -ExecutionPolicy Bypass -File .\launch_noise.ps1 --debug
 # Open with debug mode
 ./noise.exe --debug song.md
 ```
+
+## Voice-to-Text (Dictation)
+
+noise.sh includes built-in voice dictation powered by whisper.cpp. Everything sets up automatically on first use.
+
+### How It Works
+1. **First Use**: When you press `Ctrl+D` for the first time, the app downloads the whisper model (~142MB)
+2. **Recording**: Hold `Ctrl+D` to start recording, release or press again to stop
+3. **Transcription**: Your speech is transcribed locally and inserted at the cursor
+
+### Voice Shortcuts
+| Action | Shortcut |
+|--------|----------|
+| Start/Stop Dictation | `Ctrl+D` |
+| Cancel Recording | `Esc` |
+
+### Voice Settings
+Access voice settings through the settings menu to:
+- Change the whisper model (tiny, base, small)
+- Test microphone levels
+- Download additional models
+
+### Troubleshooting Voice
+- **No microphone detected**: Check system permissions for microphone access
+- **Model download fails**: Check internet connection; models can be pre-downloaded with `make download-model`
+- **Poor transcription**: Try the "small" model for better accuracy (larger download)
+
+## PWA Sync (Mobile Companion)
+
+noise.sh includes an embedded sync server for capturing ideas from your phone.
+
+### Enabling Sync
+Add to your config (`~/.config/noise/noise.yaml`):
+```yaml
+sync:
+  enabled: true
+  port: 8765
+  auto_start: true
+```
+
+### Pairing Your Phone
+1. Enable sync in noise.sh settings
+2. Generate a pairing code
+3. Open the PWA on your phone and enter the code
+4. Start capturing voice memos, photos, and tempo ideas
+
+### Sync Features
+- **Voice memos**: Quick audio recordings synced to your inbox
+- **Photos**: Snap lyric ideas, setlists, or inspiration
+- **Tap tempo**: Capture BPM ideas on the go
+- **Text ideas**: Quick text notes
 
 ## Kyanite Theme System Testing
 

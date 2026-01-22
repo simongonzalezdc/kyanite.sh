@@ -151,7 +151,7 @@ make comprehensive-test
 ## Troubleshooting
 
 ### Build Issues
-- Ensure Go 1.21+ is installed
+- Ensure Go 1.25+ is installed
 - Check that all dependencies are available
 - Run `go mod tidy` to update dependencies
 

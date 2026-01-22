@@ -443,6 +443,12 @@ func (m *EditorPaneModel) SetText(text string) {
 	m.updateSyntaxHighlighting()
 }
 
+// InsertText inserts text at the current cursor position
+func (m *EditorPaneModel) InsertText(text string) {
+	m.state.InsertText(text)
+	m.updateSyntaxHighlighting()
+}
+
 // GetSong returns the current song being edited
 func (m *EditorPaneModel) GetSong() *domain.Song {
 	return m.state.GetSong()

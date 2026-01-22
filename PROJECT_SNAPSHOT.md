@@ -39,12 +39,22 @@ The project has progressed beyond planning into active implementation. Core infr
 ### Core Technology Stack
 
 **Primary Framework & UI:**
-- **Language:** Go 1.21+
+- **Language:** Go 1.25+
 - **TUI Framework:** Bubble Tea (Elm Architecture pattern)
 - **Styling:** Lipgloss (CSS-like terminal styling with gradients and animations)
 - **Components:** Bubbles (pre-built textarea, viewport, list components)
 - **Forms:** Huh (accessible forms with validation)
 - **Animations:** Harmonica (spring-physics animations)
+
+**Voice-to-Text:**
+- **Speech Recognition:** whisper.cpp via Go bindings (local, privacy-preserving)
+- **Audio Capture:** malgo (cross-platform audio input)
+- **Model Management:** Auto-download from Hugging Face on first use
+
+**PWA Sync:**
+- **HTTP Server:** net/http (embedded REST API)
+- **WebSocket:** gorilla/websocket (real-time sync)
+- **Media Storage:** Local file system with structured directories
 
 **Music & Audio:**
 - **Music Theory:** go-music-theory (scales, chords, Circle of Fifths)
@@ -60,7 +70,7 @@ The project has progressed beyond planning into active implementation. Core infr
 - **Primary Models:** Qwen 2.5 7B + Llama 3.1 8B (creativity + structured thinking)
 
 **Data & Persistence:**
-- **Database:** SQLite (version history, statistics, knowledge base)
+- **Database:** SQLite (version history, statistics, knowledge base, sync data)
 - **File Format:** Markdown with YAML frontmatter (Git-friendly)
 - **Git Integration:** go-git (automatic commits and version control)
 
@@ -105,7 +115,19 @@ The system follows a **modular monolith** architecture with clear separation of 
 
 ## Project Structure
 
-The planned project structure follows Go best practices with clear separation of concerns:
+The project structure follows Go best practices with clear separation of concerns.
+
+**Key additions for voice and sync:**
+- `internal/infra/voice/` - Audio capture (malgo), whisper.cpp integration, model management
+- `internal/infra/sync/` - HTTP/WebSocket server, device pairing, media storage
+- `internal/app/voice_service.go` - Voice-to-text business logic
+- `internal/ui/voice_*.go` - Voice recording indicator and settings
+- `internal/ui/sync_*.go` - Sync status and settings screens
+- `internal/ui/idea_inbox.go` - Review captured ideas from PWA
+- `data/models/` - Auto-downloaded whisper models
+- `data/sync/media/` - Synced voice memos and photos
+
+Project layout:
 
 ```
 noise.sh/
@@ -239,6 +261,20 @@ noise.sh/
 - **Distraction-Free Mode:** Fullscreen, centered text with focus animations
 - **Auto-Save:** Every 30 seconds with subtle visual feedback
 
+### ðŸŽ¤ Voice-to-Text Dictation
+- **Push-to-Talk:** Press `Ctrl+D` to start/stop voice recording
+- **Local Processing:** whisper.cpp runs entirely on your machine - no cloud
+- **Auto-Setup:** Models download automatically on first use (~142MB base model)
+- **Multiple Models:** Choose tiny (fast), base (balanced), or small (accurate)
+- **Real-Time Feedback:** Audio level meter and recording duration display
+
+### ðŸ"± PWA Companion Sync
+- **Mobile Capture:** Voice memos, photos, text notes, tap tempo from your phone
+- **Local-First:** Syncs over your local network - no cloud required
+- **Idea Inbox:** Review and organize captured ideas in the desktop app
+- **Device Pairing:** Secure 6-digit code pairing system
+- **Media Storage:** Voice memos and photos stored locally
+
 ### ðŸŽµ Music Theory Tools
 - **Circle of Fifths:** Interactive visualization with color-coded relationships
 - **Chord Progressions:** Common patterns with visual timeline and playback
@@ -267,57 +303,26 @@ noise.sh/
 - **Export Formats:** Markdown, PDF, HTML, plain text
 - **Statistics Dashboard:** Writing streaks and productivity insights
 
-## Next Steps
+## Current Focus
 
-### Immediate Actions (Week 1)
+### Recently Completed
+- Voice-to-text integration with whisper.cpp (auto-downloads models on first use)
+- PWA sync infrastructure (HTTP/WebSocket server, device pairing, media storage)
+- Database schema extensions for sync data
+- UI components for voice recording and sync status
 
-1. **Environment Setup**
-   ```bash
-   # Create project structure
-   mkdir noise.sh && cd noise.sh
-   git init
+### Next Steps
+1. **PWA Companion Development** - Build the mobile Progressive Web App for idea capture
+2. **Voice Settings Polish** - Model selection UI, microphone testing
+3. **Sync Workflow Refinement** - Idea inbox actions, media preview
 
-   # Initialize Go module
-   go mod init github.com/Kyanite/noise.sh
-
-   # Install core dependencies (Bubble Tea ecosystem)
-   go get github.com/charmbracelet/bubbletea@latest
-   go get github.com/charmbracelet/lipgloss@latest
-   go get github.com/charmbracelet/bubbles@latest
-   go get github.com/charmbracelet/glamour@latest
-   go get github.com/charmbracelet/huh@latest
-   go get github.com/charmbracelet/harmonica@latest
-   ```
-
-2. **Create Initial Code Structure**
-   - Implement `cmd/noise.sh/main.go` entry point
-   - Create `internal/ui/root.go` with basic Bubble Tea setup
-   - Set up `internal/domain/` with core data models
-   - Initialize `internal/infra/` for file operations
-
-3. **Development Environment**
-   - Configure VS Code with Go extensions
-   - Set up `golangci-lint` for code quality
-   - Create initial test structure
-   - Establish Git workflow and commit patterns
-
-### Success Criteria for Phase 1
-- âœ… Project compiles and runs without errors
-- âœ… Basic TUI displays (splash screen, menu navigation)
-- âœ… Core data models implemented with validation
-- âœ… File I/O operations functional (load/save markdown)
-- âœ… SQLite database operational with schema
-
-### Portfolio Impact
-This project is designed as a **portfolio showcase piece** with:
-- **GitHub Star Potential:** 500+ stars within 6 months
-- **Visual Impact:** Beautiful terminal interface with gradients and animations
-- **Technical Excellence:** Production-grade Go with comprehensive testing
-- **Innovation:** Novel combination of AI assistance with creative workflows
-- **Documentation Quality:** Comprehensive technical documentation
+### Success Criteria
+- Voice dictation works out of the box with zero setup
+- PWA syncs ideas seamlessly over local network
+- No cloud dependencies for core functionality
 
 ---
 
 **Document Status:** Active Development
 **Last Updated:** January 22, 2026
-**Version:** 1.1
+**Version:** 1.2

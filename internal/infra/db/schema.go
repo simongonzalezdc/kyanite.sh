@@ -177,3 +177,35 @@ CREATE INDEX IF NOT EXISTS idx_presence_session ON user_presence(current_session
 CREATE INDEX IF NOT EXISTS idx_invitations_to_user ON session_invitations(to_user, accepted, expires_at);
 CREATE INDEX IF NOT EXISTS idx_invitations_session ON session_invitations(session_id, expires_at);
 `
+
+// SyncSchema contains database tables for PWA synchronization.
+// This stores captured ideas from companion devices.
+const SyncSchema = `
+-- Captured ideas from PWA companion
+CREATE TABLE IF NOT EXISTS captured_ideas (
+    id TEXT PRIMARY KEY,
+    type TEXT NOT NULL, -- text, voice_memo, photo, tempo
+    content TEXT,
+    media_path TEXT,
+    bpm INTEGER,
+    device_id TEXT NOT NULL,
+    song_id INTEGER, -- Optional association with a song
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    synced_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE SET NULL
+);
+
+-- Paired devices
+CREATE TABLE IF NOT EXISTS paired_devices (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    paired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Sync indexes
+CREATE INDEX IF NOT EXISTS idx_ideas_device ON captured_ideas(device_id, synced_at);
+CREATE INDEX IF NOT EXISTS idx_ideas_song ON captured_ideas(song_id);
+CREATE INDEX IF NOT EXISTS idx_ideas_type ON captured_ideas(type, created_at);
+CREATE INDEX IF NOT EXISTS idx_devices_last_seen ON paired_devices(last_seen);
+`

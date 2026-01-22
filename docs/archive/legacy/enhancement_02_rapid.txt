@@ -1,0 +1,1148 @@
+# Enhancement #2: Rapid Prototyping Mode
+**LyricForge - First Draft Speed Optimization**
+
+**Version:** 2.0  
+**Date:** October 17, 2025  
+**Owner:** Simon (Kyanite)  
+**For:** Kilocode AI-assisted implementation  
+**Purpose:** "Make your first draft almost type" - eliminate friction between idea and lyrics
+
+---
+
+## Executive Summary
+
+Transform LyricForge from a comprehensive songwriting suite into a **speed-first rapid prototyping tool** by adding a dedicated "Sketch Mode" that prioritizes momentum over completeness. Users should go from idea to first draft in <60 seconds.
+
+**Core Principle:** Get words on screen fast, polish later.
+
+---
+
+## User Stories
+
+### Story 1: Instant Start
+**As a** songwriter with sudden inspiration  
+**I want** to start writing within 30 seconds of having an idea  
+**So that** I don't lose momentum or creative flow
+
+**Acceptance Criteria:**
+- [ ] Launch app and be writing within 30 seconds
+- [ ] No required metadata/forms before writing
+- [ ] Theme-based quick start available
+- [ ] First line suggested by AI instantly
+
+### Story 2: Continuous Flow
+**As a** songwriter in the middle of writing  
+**I want** to get unstuck instantly when ideas dry up  
+**So that** I maintain creative momentum
+
+**Acceptance Criteria:**
+- [ ] Single hotkey generates next line
+- [ ] Multiple variations available to choose from
+- [ ] Suggestions match context and style
+- [ ] Response time <2 seconds
+
+### Story 3: Low-Commitment Experimentation
+**As a** songwriter trying rough ideas  
+**I want** to write without saving everything  
+**So that** I can experiment freely without cluttering my library
+
+**Acceptance Criteria:**
+- [ ] Default to unsaved "scratch pad"
+- [ ] Explicit action required to save
+- [ ] Can discard drafts easily
+- [ ] No guilt or friction around deletion
+
+---
+
+## Feature Specifications
+
+### 1. Quick Start Command
+**Priority:** P0 (Critical)  
+**Effort:** Medium (3-5 days)
+
+**CLI Addition:**
+```bash
+# Launch directly into editor with AI brainstorm
+$ lyricforge quick "lost my dog"
+
+# Or just start blank
+$ lyricforge quick
+```
+
+**Behavior:**
+1. Skip main menu entirely
+2. Open editor in scratch mode (unsaved)
+3. If theme provided:
+   - Stream 3 angle suggestions to AI panel
+   - User picks with 1/2/3 key
+   - AI generates opening line in editor
+4. If no theme:
+   - Blank editor, cursor ready
+   - Type theme inline, AI watches
+
+**Implementation Notes:**
+```go
+// cmd/lyricforge/main.go
+var quickCmd = &cobra.Command{
+    Use:   "quick [theme]",
+    Short: "Start writing immediately",
+    Args:  cobra.MaximumNArgs(1),
+    Run: func(cmd *cobra.Command, args []string) {
+        theme := ""
+        if len(args) > 0 {
+            theme = args[0]
+        }
+        
+        // Skip menu, launch editor directly
+        model := ui.NewEditorModel(ui.EditorConfig{
+            ScratchMode: true,
+            Theme: theme,
+            AutoBrainstorm: theme != "",
+        })
+        
+        p := tea.NewProgram(model, tea.WithAltScreen())
+        p.Run()
+    },
+}
+```
+
+**AI Prompt for Kilocode:**
+```
+Create the `lyricforge quick [theme]` command that:
+1. Adds a new Cobra command in cmd/lyricforge/main.go
+2. Bypasses the main menu entirely
+3. Opens the editor in "scratch mode" (unsaved by default)
+4. If theme is provided, automatically triggers AI brainstorming
+5. Displays 3 angles inline in the editor
+6. Allows user to pick with number keys
+7. Generates opening line when angle selected
+
+Use the existing EditorModel but add a QuickStartConfig struct.
+Test with: lyricforge quick "heartbreak song"
+```
+
+---
+
+### 2. Streamlined Brainstorm Flow
+**Priority:** P0 (Critical)  
+**Effort:** Medium (4-6 days)
+
+**Current Flow:**
+```
+Ctrl+B â†’ View 5-10 angles â†’ Select â†’ Generate structure â†’ Start writing
+Time: ~90 seconds
+Steps: 4
+```
+
+**New Flow:**
+```
+Auto-trigger on theme â†’ View 3 angles inline â†’ Select â†’ AI writes first line â†’ You continue
+Time: ~15 seconds
+Steps: 2
+```
+
+**UI Changes:**
+```
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ðŸŽµ LyricForge - Sketch Mode                    â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚                                                 â”‚
+â”‚  Theme: "lost my dog"                          â”‚
+â”‚                                                 â”‚
+â”‚  Pick an angle:                                â”‚
+â”‚  [1] Grief through sensory memories            â”‚
+â”‚  [2] Flashbacks to happy moments               â”‚
+â”‚  [3] Empty spaces in daily routine             â”‚
+â”‚                                                 â”‚
+â”‚  Press 1-3 to start, or Esc to skip           â”‚
+â”‚                                                 â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+
+// After selection:
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                      â”‚                          â”‚
+â”‚ The scent of cedar   â”‚  ## Verse 1             â”‚
+â”‚ still haunts her bed â”‚                          â”‚
+â”‚ [cursor here]        â”‚  The scent of cedar     â”‚
+â”‚                      â”‚  still haunts her bed    â”‚
+â”‚                      â”‚                          â”‚
+â”‚                      â”‚                          â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+```
+
+**Implementation:**
+- Reduce angle count: 3 max (not 5-10)
+- Skip structure generation step
+- AI generates first line only
+- User continues from there
+
+**AI Prompt for Brainstorm Agent:**
+```go
+// pkg/prompts/brainstorm.go
+const RapidBrainstormPrompt = `You are helping a songwriter start writing quickly.
+
+Theme: {{.Theme}}
+
+Generate EXACTLY 3 specific, concrete angles for this song. Each angle should:
+- Be ONE sentence only
+- Include a specific sensory detail or image
+- Avoid abstractions and clichÃ©s
+- Suggest a clear emotional direction
+
+Format as JSON:
+{
+  "angles": [
+    "Grief through the smell of her cedar bed and empty food bowl",
+    "Flashbacks triggered by her leash still hanging by the door",
+    "The silence where her paws used to click on hardwood"
+  ]
+}
+
+Be FAST. No explanations. Just the angles.`
+```
+
+**Kilocode Implementation Task:**
+```
+Refactor the BrainstormView to support "rapid mode":
+1. Limit to 3 angles (hardcoded max)
+2. Display angles inline in editor viewport (not separate panel)
+3. Number keys 1-3 select angle
+4. On selection, immediately call GenerateOpeningLine(angle)
+5. Stream AI response directly into editor textarea
+6. Hide angle selector once line is generated
+
+Files to modify:
+- internal/ui/editor/brainstorm.go
+- internal/app/ai/brainstorm_agent.go
+- pkg/prompts/brainstorm.go
+
+Add unit tests for rapid brainstorm flow.
+```
+
+---
+
+### 3. Continue Writing Hotkey (Ctrl+G)
+**Priority:** P0 (Critical)  
+**Effort:** Medium (3-4 days)
+
+**Behavior:**
+- Cursor anywhere in editor
+- Press `Ctrl+G`
+- AI generates next logical line based on context
+- Shows 3 variations inline
+- Press 1/2/3 to accept or Esc to cancel
+
+**UI Mockup:**
+```
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ The scent of cedar still haunts her bed â”‚
+â”‚ I can't bring myself to wash the sheets â”‚
+â”‚ [cursor]                                 â”‚
+â”‚                                          â”‚
+â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”â”‚
+â”‚ â”‚ Continue with:                       â”‚â”‚
+â”‚ â”‚ [1] Her collar jingles in my dreams  â”‚â”‚
+â”‚ â”‚ [2] The house feels too quiet now    â”‚â”‚
+â”‚ â”‚ [3] I see her shadow in every corner â”‚â”‚
+â”‚ â”‚                                      â”‚â”‚
+â”‚ â”‚ Press 1-3 or Esc to write manually  â”‚â”‚
+â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+```
+
+**Implementation:**
+```go
+// internal/ui/editor/model.go
+type EditorModel struct {
+    // ... existing fields
+    continueMode    bool
+    suggestions     []string
+    suggestionIndex int
+}
+
+// Update function
+func (m EditorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+    switch msg := msg.(type) {
+    case tea.KeyMsg:
+        if msg.String() == "ctrl+g" {
+            return m, m.generateContinuation()
+        }
+        
+        if m.continueMode {
+            switch msg.String() {
+            case "1", "2", "3":
+                idx, _ := strconv.Atoi(msg.String())
+                return m.acceptSuggestion(idx - 1)
+            case "esc":
+                m.continueMode = false
+                return m, nil
+            }
+        }
+    
+    case ContinuationMsg:
+        m.continueMode = true
+        m.suggestions = msg.Lines
+        return m, nil
+    }
+    // ... rest of update
+}
+```
+
+**AI Prompt:**
+```go
+const ContinuationPrompt = `Continue this lyric with ONE natural next line.
+
+Context:
+{{.PreviousLines}}
+
+Current section: {{.SectionType}}
+Rhyme scheme: {{.RhymeScheme}}
+Style: Conversational, concrete imagery, no clichÃ©s
+
+Generate 3 variations. Each must:
+- Flow naturally from the last line
+- Match the meter ({{.Syllables}} syllables Â±1)
+- Include specific, sensory detail
+- Avoid abstract language
+
+Return only JSON:
+{
+  "lines": [
+    "Her collar jingles in my dreams at night",
+    "The house feels empty since she's been gone",
+    "I see her shadow by the kitchen door"
+  ]
+}
+
+No explanations. Just the lines.`
+```
+
+**Kilocode Task:**
+```
+Implement "Continue Writing" feature:
+1. Add Ctrl+G keybinding to EditorModel
+2. Create ContinuationAgent in internal/app/ai/
+3. Agent analyzes last 3-5 lines for context
+4. Calls Ollama with ContinuationPrompt
+5. Returns 3 line variations
+6. Display inline overlay (not sidebar)
+7. Number keys select, Esc cancels
+8. Accepted line inserts at cursor + newline
+
+Files:
+- internal/ui/editor/model.go (keybinding)
+- internal/ui/editor/continuation_view.go (new)
+- internal/app/ai/continuation_agent.go (new)
+- pkg/prompts/continuation.go (new)
+
+Test with various contexts (verse, chorus, mid-section).
+```
+
+---
+
+### 4. Line Variation Generator (Ctrl+V)
+**Priority:** P1 (High)  
+**Effort:** Medium (3-4 days)
+
+**Behavior:**
+- Select one or more lines
+- Press `Ctrl+V`
+- AI generates 3 alternative phrasings
+- Side-by-side comparison
+- Accept or keep original
+
+**UI Mockup:**
+```
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Original:                                       â”‚
+â”‚ The house feels empty since she's been gone     â”‚
+â”‚                                                 â”‚
+â”‚ Variations:                                     â”‚
+â”‚ [1] These rooms echo with her memory            â”‚
+â”‚ [2] Silence fills the spaces where she played  â”‚
+â”‚ [3] Every corner holds a ghost of her           â”‚
+â”‚                                                 â”‚
+â”‚ [Enter] Keep original  [1-3] Replace  [R] Regenâ”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+```
+
+**Implementation:**
+```go
+type VariationMode struct {
+    active      bool
+    original    string
+    variations  []string
+    startLine   int
+    endLine     int
+}
+
+// In Update()
+case tea.KeyMsg:
+    if msg.String() == "ctrl+v" && m.hasSelection() {
+        return m, m.generateVariations()
+    }
+```
+
+**AI Prompt:**
+```go
+const VariationPrompt = `Rewrite this line in 3 different ways.
+
+Original: {{.Line}}
+Section: {{.Section}}
+Constraint: {{.Constraint}}
+
+Each variation must:
+- Convey the same core emotion/meaning
+- Use different words/structure
+- Maintain meter ({{.Syllables}} syllables Â±1)
+- Include concrete, sensory details
+- Avoid the original phrasing
+
+If constraint is "more concrete": Add specific sensory details
+If constraint is "less abstract": Replace abstractions with images
+If constraint is "different POV": Change perspective (1st/2nd/3rd person)
+
+Return JSON:
+{
+  "variations": [
+    "variation 1",
+    "variation 2",
+    "variation 3"
+  ],
+  "reasoning": "brief explanation of approach"
+}
+```
+
+**Kilocode Task:**
+```
+Implement Line Variation Generator:
+1. Add text selection to textarea (if not present)
+2. Ctrl+V triggers variation generation
+3. Create VariationAgent 
+4. Display modal overlay with original + 3 variations
+5. Arrow keys navigate, Enter accepts, Esc cancels
+6. Support single line or multi-line selection
+7. Add "constraint" parameter for future:
+   - More concrete
+   - Less abstract  
+   - Different POV
+   - Stronger verb
+
+Files:
+- internal/ui/editor/selection.go (if needed)
+- internal/ui/editor/variation_view.go (new)
+- internal/app/ai/variation_agent.go (new)
+- pkg/prompts/variation.go (new)
+```
+
+---
+
+### 5. Scratch Pad Mode
+**Priority:** P0 (Critical)  
+**Effort:** Small (2-3 days)
+
+**Behavior:**
+- Default mode for `lyricforge quick`
+- Not saved to database/filesystem automatically
+- Indicator in status bar: "SCRATCH - Unsaved"
+- `Ctrl+K` to "keep" (saves to library)
+- Closing app discards unless kept
+
+**UI Indicator:**
+```
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ðŸŽµ LyricForge                  [SCRATCH MODE]   â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚                                                 â”‚
+â”‚ (editor content)                                â”‚
+â”‚                                                 â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ SCRATCH - Not Saved | Ctrl+K to Keep | Ctrl+Q â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+```
+
+**State Management:**
+```go
+type EditorModel struct {
+    // ... existing
+    scratchMode bool
+    saved       bool
+}
+
+// On Ctrl+K
+func (m EditorModel) keepDraft() (EditorModel, tea.Cmd) {
+    // Prompt for title if empty
+    if m.song.Metadata.Title == "" {
+        return m.showTitlePrompt()
+    }
+    
+    // Save to database + filesystem
+    err := m.editorService.SaveSong(m.song)
+    if err != nil {
+        return m.showError(err)
+    }
+    
+    m.scratchMode = false
+    m.saved = true
+    
+    return m, m.showNotification("Saved to library!")
+}
+
+// On quit
+func (m EditorModel) onQuit() tea.Cmd {
+    if m.scratchMode && !m.isEmpty() {
+        // Show confirmation
+        return m.showDiscardConfirmation()
+    }
+    return tea.Quit
+}
+```
+
+**Kilocode Task:**
+```
+Implement Scratch Mode:
+1. Add scratchMode bool to EditorModel
+2. `lyricforge quick` sets scratchMode=true by default
+3. Disable auto-save when in scratch mode
+4. Add "SCRATCH" indicator to status bar
+5. Ctrl+K triggers "Keep Draft" flow:
+   - Show title prompt if empty
+   - Save to database + create markdown file
+   - Switch scratchMode=false
+6. On quit, check if scratchMode && hasContent:
+   - Show confirmation: "Discard draft? Y/N"
+   - Y = quit, N = return to editor
+7. Add SaveDraft command to editor service
+
+Files:
+- internal/ui/editor/model.go
+- internal/ui/editor/statusbar.go
+- internal/app/editor/service.go
+
+Test closing app with unsaved scratch content.
+```
+
+---
+
+### 6. Mode Toggle (Sketch/Draft/Polish)
+**Priority:** P1 (High)  
+**Effort:** Large (5-7 days)
+
+**Three Distinct Modes:**
+
+| Mode | UI State | AI Behavior | Tools Visible |
+|------|----------|-------------|---------------|
+| **Sketch** | Minimal, editor + AI panel only | High creativity (temp 0.9), aggressive suggestions | None |
+| **Draft** | Add rhyme lookup sidebar | Balanced (temp 0.7) | Rhyme dictionary, syllable counter |
+| **Polish** | Full suite | Conservative (temp 0.5), quality-focused | All theory tools, critique panel |
+
+**UI State Transitions:**
+```
+Ctrl+1 â†’ Sketch Mode
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                      â”‚  AI Panel       â”‚
+â”‚  Editor              â”‚  â€¢ Brainstorm   â”‚
+â”‚  (full width)        â”‚  â€¢ Continue     â”‚
+â”‚                      â”‚  â€¢ Variations   â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+
+Ctrl+2 â†’ Draft Mode
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚            â”‚         â”‚  AI + Theory    â”‚
+â”‚  Editor    â”‚ Preview â”‚  â€¢ Suggestions  â”‚
+â”‚            â”‚         â”‚  â€¢ Rhyme lookup â”‚
+â”‚            â”‚         â”‚  â€¢ Syllables    â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+
+Ctrl+3 â†’ Polish Mode
+â”Œâ”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚      â”‚        â”‚  Full Tools             â”‚
+â”‚ Edit â”‚Preview â”‚  â€¢ AI Critique          â”‚
+â”‚      â”‚        â”‚  â€¢ Circle of Fifths     â”‚
+â”‚      â”‚        â”‚  â€¢ Chord progressions   â”‚
+â”‚      â”‚        â”‚  â€¢ Quality scoring      â”‚
+â””â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+```
+
+**Implementation:**
+```go
+type EditorMode int
+
+const (
+    ModeSketch EditorMode = iota
+    ModeDraft
+    ModePolish
+)
+
+type EditorModel struct {
+    // ...
+    mode          EditorMode
+    aiTemperature float64
+}
+
+func (m EditorModel) setMode(mode EditorMode) EditorModel {
+    m.mode = mode
+    
+    switch mode {
+    case ModeSketch:
+        m.aiTemperature = 0.9
+        m.showTheoryTools = false
+        m.showCritique = false
+        m.editorWidth = "80%"
+        
+    case ModeDraft:
+        m.aiTemperature = 0.7
+        m.showTheoryTools = true  // Just rhyme/syllable
+        m.showCritique = false
+        m.editorWidth = "50%"
+        
+    case ModePolish:
+        m.aiTemperature = 0.5
+        m.showTheoryTools = true  // All tools
+        m.showCritique = true
+        m.editorWidth = "40%"
+    }
+    
+    return m
+}
+
+// In Update()
+case tea.KeyMsg:
+    switch msg.String() {
+    case "ctrl+1":
+        return m.setMode(ModeSketch), nil
+    case "ctrl+2":
+        return m.setMode(ModeDraft), nil
+    case "ctrl+3":
+        return m.setMode(ModePolish), nil
+    }
+```
+
+**Kilocode Task:**
+```
+Implement Mode Toggle System:
+1. Add EditorMode enum (Sketch/Draft/Polish)
+2. Add mode field to EditorModel
+3. Implement setMode() method that:
+   - Adjusts AI temperature
+   - Shows/hides panels
+   - Resizes editor width
+   - Changes status bar indicator
+4. Add Ctrl+1/2/3 keybindings
+5. Persist mode preference in config
+6. Default `lyricforge quick` to Sketch mode
+7. Default `lyricforge` (normal) to Draft mode
+
+Create mode-specific layouts:
+- internal/ui/editor/layout_sketch.go
+- internal/ui/editor/layout_draft.go
+- internal/ui/editor/layout_polish.go
+
+Each layout returns different Lipgloss composition.
+Test mode switching preserves content.
+```
+
+---
+
+### 7. Fast Quality Check
+**Priority:** P1 (High)  
+**Effort:** Medium (3-4 days)
+
+**Current:** 7-dimension quality rubric (detailed)
+**New:** 3-tier quality system
+
+**Sketch Mode - Red Flags Only:**
+- [ ] >10 clichÃ©s
+- [ ] No concrete imagery (all abstract)
+- [ ] Major rhyme scheme breaks
+
+**Draft Mode - Basic Quality:**
+- [ ] ClichÃ© count
+- [ ] Imagery ratio
+- [ ] Meter consistency
+- [ ] Rhyme accuracy
+
+**Polish Mode - Full Critique:**
+- [ ] All 7 dimensions
+- [ ] Line-by-line feedback
+- [ ] Actionable suggestions
+
+**Implementation:**
+```go
+type QualityCheckMode int
+
+const (
+    CheckRedFlags QualityCheckMode = iota  // Sketch
+    CheckBasic                              // Draft
+    CheckFull                               // Polish
+)
+
+// In quality agent
+func (a *QualityAgent) RunCheck(song *domain.Song, mode QualityCheckMode) (*QualityReport, error) {
+    switch mode {
+    case CheckRedFlags:
+        return a.checkRedFlags(song)
+    case CheckBasic:
+        return a.checkBasic(song)
+    case CheckFull:
+        return a.checkFull(song)
+    }
+}
+
+func (a *QualityAgent) checkRedFlags(song *domain.Song) (*QualityReport, error) {
+    report := &QualityReport{}
+    
+    // 1. ClichÃ© count
+    cliches := a.detectCliches(song)
+    if len(cliches) > 10 {
+        report.AddFlag("Too many clichÃ©s detected", High)
+    }
+    
+    // 2. Imagery check
+    imageryRatio := a.calculateImageryRatio(song)
+    if imageryRatio < 0.3 {
+        report.AddFlag("Needs more concrete imagery", High)
+    }
+    
+    // 3. Rhyme breaks
+    breaks := a.detectRhymeBreaks(song)
+    if len(breaks) > 3 {
+        report.AddFlag("Rhyme scheme inconsistent", Medium)
+    }
+    
+    return report, nil
+}
+```
+
+**Kilocode Task:**
+```
+Implement Tiered Quality System:
+1. Refactor QualityAgent to support 3 modes
+2. Create checkRedFlags() - 3 checks max
+3. Create checkBasic() - 4-5 checks
+4. Keep checkFull() - existing 7 dimensions
+5. Mode determines which check runs automatically
+6. UI shows different feedback based on mode:
+   - Sketch: Just emoji indicators (ðŸš© = flag)
+   - Draft: Brief text summary
+   - Polish: Full detailed report
+7. Add manual "Run Full Critique" button in any mode
+
+Files:
+- internal/app/ai/quality_agent.go
+- internal/ui/editor/quality_view.go
+- pkg/prompts/quality.go
+
+Test each mode with sample songs.
+```
+
+---
+
+### 8. One-Key Export
+**Priority:** P2 (Medium)  
+**Effort:** Small (1-2 days)
+
+**Hotkeys:**
+- `Ctrl+Shift+C` = Copy entire song to clipboard
+- `Ctrl+Shift+E` = Export to file (prompt for format)
+- `Ctrl+Shift+O` = Open in external editor
+
+**Implementation:**
+```go
+// In Update()
+case tea.KeyMsg:
+    if msg.String() == "ctrl+shift+c" {
+        content := m.song.ToMarkdown()
+        clipboard.WriteAll(content)
+        return m, m.showNotification("Copied to clipboard!")
+    }
+    
+    if msg.String() == "ctrl+shift+e" {
+        return m.showExportDialog()
+    }
+    
+    if msg.String() == "ctrl+shift+o" {
+        editor := os.Getenv("EDITOR")
+        if editor == "" {
+            editor = "vim"
+        }
+        
+        // Save to temp file
+        tempFile := filepath.Join(os.TempDir(), m.song.Metadata.Title+".md")
+        m.song.SaveToFile(tempFile)
+        
+        // Open in editor
+        cmd := exec.Command(editor, tempFile)
+        return m, tea.ExecProcess(cmd, func(err error) tea.Msg {
+            return ExternalEditCompleteMsg{err: err}
+        })
+    }
+```
+
+**Kilocode Task:**
+```
+Implement Quick Export:
+1. Add Ctrl+Shift+C keybinding
+2. Use atotto/clipboard library for cross-platform copy
+3. Song.ToMarkdown() method with frontmatter
+4. Add Ctrl+Shift+O to open in $EDITOR
+5. On external edit complete, reload file if changed
+
+Files:
+- internal/ui/editor/export.go (new)
+- internal/domain/song.go (add ToMarkdown method)
+
+Test on macOS/Linux/Windows.
+```
+
+---
+
+## Technical Architecture Changes
+
+### New Components
+
+```
+internal/
+â”œâ”€â”€ app/
+â”‚   â”œâ”€â”€ ai/
+â”‚   â”‚   â”œâ”€â”€ continuation_agent.go      # NEW - Ctrl+G
+â”‚   â”‚   â”œâ”€â”€ variation_agent.go         # NEW - Ctrl+V  
+â”‚   â”‚   â”œâ”€â”€ rapid_brainstorm_agent.go  # NEW - Quick mode
+â”‚   â”‚   â””â”€â”€ quality_agent.go           # MODIFY - Add tiered checks
+â”‚   â””â”€â”€ editor/
+â”‚       â””â”€â”€ service.go                 # MODIFY - Scratch mode
+â”œâ”€â”€ ui/
+â”‚   â”œâ”€â”€ editor/
+â”‚   â”‚   â”œâ”€â”€ model.go                   # MODIFY - Add modes, scratch
+â”‚   â”‚   â”œâ”€â”€ continuation_view.go       # NEW
+â”‚   â”‚   â”œâ”€â”€ variation_view.go          # NEW
+â”‚   â”‚   â”œâ”€â”€ layout_sketch.go           # NEW
+â”‚   â”‚   â”œâ”€â”€ layout_draft.go            # NEW
+â”‚   â”‚   â”œâ”€â”€ layout_polish.go           # NEW
+â”‚   â”‚   â””â”€â”€ export.go                  # NEW
+â”‚   â””â”€â”€ common/
+â”‚       â””â”€â”€ mode_indicator.go          # NEW - Show current mode
+â””â”€â”€ pkg/
+    â””â”€â”€ prompts/
+        â”œâ”€â”€ continuation.go            # NEW
+        â”œâ”€â”€ variation.go               # NEW
+        â””â”€â”€ rapid_brainstorm.go        # NEW
+```
+
+### Modified Models
+
+```go
+// internal/domain/song.go
+type Song struct {
+    // ... existing fields
+    IsScr atch    bool      `json:"is_scratch"`
+    Mode          string    `json:"mode"` // sketch, draft, polish
+    QuickStarted  bool      `json:"quick_started"`
+}
+
+// Add methods
+func (s *Song) ToMarkdown() string { }
+func (s *Song) FromMarkdown(content string) error { }
+```
+
+### Configuration
+
+```yaml
+# ~/.config/lyricforge/config.yaml
+defaults:
+  mode: draft              # sketch, draft, polish
+  scratch_mode: true       # Default for `quick` command
+  
+ai:
+  temperatures:
+    sketch: 0.9
+    draft: 0.7
+    polish: 0.5
+  
+  rapid_brainstorm:
+    max_angles: 3
+    generate_first_line: true
+    
+  continuation:
+    variations: 3
+    max_context_lines: 5
+    
+quality:
+  sketch_checks:
+    - cliche_count
+    - imagery_ratio
+    - rhyme_breaks
+  
+keybindings:
+  continue: "ctrl+g"
+  variations: "ctrl+v"
+  keep_draft: "ctrl+k"
+  mode_sketch: "ctrl+1"
+  mode_draft: "ctrl+2"
+  mode_polish: "ctrl+3"
+```
+
+---
+
+## Implementation Roadmap
+
+### Phase 1: Core Speed Features (Week 1-2)
+**Goal:** Get to <60 second first draft
+
+- [ ] Quick start command (`lyricforge quick`)
+- [ ] Scratch mode (unsaved by default)
+- [ ] Streamlined brainstorm (3 angles)
+- [ ] Continue writing (Ctrl+G)
+
+**Deliverable:** Can go from `lyricforge quick "theme"` to writing in 30s
+
+### Phase 2: Iteration Tools (Week 3)
+**Goal:** Make iteration fast
+
+- [ ] Variation generator (Ctrl+V)
+- [ ] Fast quality check (red flags only)
+- [ ] One-key export (Ctrl+Shift+C)
+
+**Deliverable:** Can try alternatives and export quickly
+
+### Phase 3: Mode System (Week 4)
+**Goal:** Polish the experience
+
+- [ ] Mode toggle (Sketch/Draft/Polish)
+- [ ] Mode-specific layouts
+- [ ] Tiered quality checks
+- [ ] Polish existing flows
+
+**Deliverable:** Complete rapid prototyping experience
+
+---
+
+## Testing Strategy
+
+### Unit Tests
+```go
+// Test rapid brainstorm
+func TestRapidBrainstorm(t *testing.T) {
+    agent := ai.NewRapidBrainstormAgent(ollama)
+    
+    angles, err := agent.Generate("lost my dog", 3)
+    assert.NoError(t, err)
+    assert.Len(t, angles, 3)
+    
+    for _, angle := range angles {
+        assert.NotEmpty(t, angle)
+        assert.Contains(t, angle, "concrete detail check")
+    }
+}
+
+// Test continuation
+func TestContinuation(t *testing.T) {
+    agent := ai.NewContinuationAgent(ollama)
+    
+    context := []string{
+        "The scent of cedar still haunts her bed",
+        "I can't bring myself to wash the sheets",
+    }
+    
+    lines, err := agent.Generate(context, 3)
+    assert.NoError(t, err)
+    assert.Len(t, lines, 3)
+}
+
+// Test scratch mode
+func TestScratchMode(t *testing.T) {
+    model := editor.NewEditorModel(editor.Config{
+        ScratchMode: true,
+    })
+    
+    assert.True(t, model.IsScratch())
+    assert.False(t, model.IsSaved())
+    
+    // Simulate content
+    model.SetContent("test lyrics")
+    
+    // Should prompt on quit
+    quitMsg := model.HandleQuit()
+    assert.IsType(t, ConfirmationMsg{}, quitMsg)
+}
+```
+
+### Integration Tests
+```bash
+# Test quick start
+$ lyricforge quick "test theme"
+# Should open editor with brainstorm
+
+# Test scratch mode save
+$ lyricforge quick
+# Type content
+# Ctrl+K to save
+# Should prompt for title
+# Should save to library
+
+# Test mode toggle
+# Ctrl+1/2/3 should change layout
+# AI temperature should adjust
+```
+
+### User Acceptance Testing
+1. **Speed Test:**
+   - Time from `lyricforge quick` to first lyric written
+   - Target: <30 seconds
+   
+2. **Flow Test:**
+   - Can user write a complete verse without leaving keyboard?
+   - Can user iterate on a line without breaking flow?
+   
+3. **Discard Test:**
+   - Can user easily throw away bad ideas?
+   - Is there friction or guilt around deletion?
+
+---
+
+## Success Metrics
+
+### Quantitative
+- [ ] Quick start to first word: <30 seconds
+- [ ] Continuation response time: <2 seconds
+- [ ] Variation response time: <3 seconds
+- [ ] Mode switch time: <200ms
+- [ ] Draft completion (verse + chorus): <10 minutes
+
+### Qualitative
+- [ ] User reports "feels fast"
+- [ ] No complaints about friction
+- [ ] Positive feedback on scratch mode
+- [ ] Users complete more drafts (vs old flow)
+
+---
+
+## Rollout Plan
+
+### Alpha (Internal Testing)
+- [ ] Simon tests on real songwriting sessions
+- [ ] Gather feedback on speed and friction points
+- [ ] Iterate on hotkeys and flows
+
+### Beta (Limited Release)
+- [ ] Ship to 5-10 trusted users
+- [ ] Collect usage analytics (if opted in)
+- [ ] Fix critical bugs
+- [ ] Polish rough edges
+
+### v2.0 Release
+- [ ] Announce "Rapid Prototyping Mode"
+- [ ] Update docs and demos
+- [ ] Create tutorial video
+- [ ] Ship to broader audience
+
+---
+
+## Future Enhancements (Post-v2.0)
+
+### Templates
+- Common song structures as starting points
+- "Just start writing" template (blank)
+- Genre-specific templates (blues, folk, pop)
+
+### Auto-Complete Section
+- Hit Ctrl+Shift+G to finish entire section
+- Useful when you have opening but stuck on rest
+
+### Voice Notes
+- Record melody idea
+- AI transcribes + suggests lyrics matching melody rhythm
+
+### Collaboration
+- Share draft link
+- Co-write in real-time
+- Requires web UI (see Enhancement #3)
+
+---
+
+## Open Questions
+
+1. **Should scratch mode have a time limit?**
+   - Auto-discard after 24 hours?
+   - Or keep forever until explicit delete?
+
+2. **Should we save scratch history?**
+   - Keep last 10 discarded drafts?
+   - Or truly ephemeral?
+
+3. **Variation generator constraints:**
+   - Let user specify constraint ("more concrete", "different POV")?
+   - Or always auto-detect what's needed?
+
+4. **Mode switching mid-session:**
+   - Should it be easy to switch modes?
+   - Or lock into one mode per session?
+
+---
+
+## Appendix: AI Prompts Reference
+
+### Rapid Brainstorm Prompt
+```
+You are helping a songwriter start writing FAST.
+
+Theme: {{.Theme}}
+
+Generate EXACTLY 3 specific angles. Each must:
+- Be one sentence
+- Include a concrete sensory detail
+- Avoid clichÃ©s
+- Suggest emotional direction
+
+JSON format only:
+{
+  "angles": ["angle1", "angle2", "angle3"]
+}
+```
+
+### Continuation Prompt
+```
+Continue this lyric with ONE line.
+
+Previous lines:
+{{.Context}}
+
+Section: {{.Section}}
+Meter: {{.Syllables}} syllables Â±1
+
+Generate 3 variations that:
+- Flow naturally
+- Match meter
+- Include sensory detail
+- Avoid abstraction
+
+JSON only:
+{
+  "lines": ["line1", "line2", "line3"]
+}
+```
+
+### Variation Prompt
+```
+Rewrite this line 3 ways.
+
+Original: {{.Line}}
+Section: {{.Section}}
+
+Each variation must:
+- Convey same core emotion
+- Use different words/structure
+- Maintain meter
+- Add concrete details
+
+JSON only:
+{
+  "variations": ["var1", "var2", "var3"]
+}
+```
+
+---
+
+**End of Enhancement #2**
+
+Ready for Kilocode implementation with AI-assisted coding.

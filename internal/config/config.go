@@ -31,6 +31,12 @@ type Config struct {
 	// Audio settings
 	Audio AudioConfig `mapstructure:"audio"`
 
+	// Voice-to-text settings
+	Voice VoiceConfig `mapstructure:"voice"`
+
+	// PWA sync settings
+	Sync SyncConfig `mapstructure:"sync"`
+
 	// Development settings
 	Dev DevConfig `mapstructure:"dev"`
 
@@ -131,6 +137,24 @@ type AudioConfig struct {
 	PlaybackGain    float64 `mapstructure:"playback_gain"`
 }
 
+// VoiceConfig contains voice-to-text settings
+type VoiceConfig struct {
+	Enabled       bool   `mapstructure:"enabled"`
+	Model         string `mapstructure:"model"`          // Whisper model name (e.g., "ggml-base.en.bin")
+	Language      string `mapstructure:"language"`       // Language code (e.g., "en", "auto")
+	PushToTalkKey string `mapstructure:"push_to_talk"`   // Key binding for push-to-talk (default: "ctrl+d")
+	SampleRate    int    `mapstructure:"sample_rate"`    // Audio sample rate (default: 16000)
+	MaxDuration   int    `mapstructure:"max_duration"`   // Maximum recording duration in seconds
+}
+
+// SyncConfig contains PWA synchronization settings
+type SyncConfig struct {
+	Enabled   bool   `mapstructure:"enabled"`
+	Port      int    `mapstructure:"port"`       // HTTP server port (default: 8765)
+	AutoStart bool   `mapstructure:"auto_start"` // Start sync server on launch
+	MediaPath string `mapstructure:"media_path"` // Path for synced media files
+}
+
 // DevConfig contains development settings
 type DevConfig struct {
 	Debug        bool   `mapstructure:"debug"`
@@ -212,6 +236,20 @@ func DefaultConfig() *Config {
 			AudioBufferSize: 1024,
 			MIDIDevice:      "default",
 			PlaybackGain:    0.8,
+		},
+		Voice: VoiceConfig{
+			Enabled:       true,
+			Model:         "ggml-base.en.bin",
+			Language:      "en",
+			PushToTalkKey: "ctrl+d",
+			SampleRate:    16000,
+			MaxDuration:   60, // 60 seconds max
+		},
+		Sync: SyncConfig{
+			Enabled:   true,
+			Port:      8765,
+			AutoStart: false,
+			MediaPath: "data/sync/media",
 		},
 		Dev: DevConfig{
 			Debug:        false,
@@ -336,6 +374,22 @@ func (c *Config) Save() error {
 		"playback_gain":     c.Audio.PlaybackGain,
 	}
 
+	voiceConfig := map[string]interface{}{
+		"enabled":       c.Voice.Enabled,
+		"model":         c.Voice.Model,
+		"language":      c.Voice.Language,
+		"push_to_talk":  c.Voice.PushToTalkKey,
+		"sample_rate":   c.Voice.SampleRate,
+		"max_duration":  c.Voice.MaxDuration,
+	}
+
+	syncConfig := map[string]interface{}{
+		"enabled":    c.Sync.Enabled,
+		"port":       c.Sync.Port,
+		"auto_start": c.Sync.AutoStart,
+		"media_path": c.Sync.MediaPath,
+	}
+
 	data := map[string]interface{}{
 		"app": appConfig,
 		"database": map[string]interface{}{
@@ -357,6 +411,8 @@ func (c *Config) Save() error {
 		"ai":    aiConfig,
 		"glm":   glmConfig,
 		"audio": audioConfig,
+		"voice": voiceConfig,
+		"sync":  syncConfig,
 		"dev": map[string]interface{}{
 			"debug":         c.Dev.Debug,
 			"log_level":     c.Dev.LogLevel,

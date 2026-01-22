@@ -118,3 +118,93 @@ launch-unix:
 		echo "Unix launch script not found. Using default launch..."; \
 		make run; \
 	fi
+
+# =============================================================================
+# Voice-to-text dependencies (OPTIONAL - for advanced users)
+# =============================================================================
+# NOTE: Voice models are downloaded AUTOMATICALLY on first use.
+# These commands are only needed if you want to:
+# - Pre-download models before first run
+# - Use a different model than the default (base.en)
+# - Build with native whisper.cpp support (requires CGO)
+
+WHISPER_DIR := deps/whisper.cpp
+MODELS_DIR := data/models
+
+.PHONY: whisper-deps whisper-clean download-model init-voice
+
+# Clone and build whisper.cpp library (ADVANCED: only needed for CGO build)
+whisper-deps:
+	@echo "Setting up whisper.cpp dependencies..."
+	@if [ ! -d "$(WHISPER_DIR)" ]; then \
+		mkdir -p deps && \
+		git clone https://github.com/ggerganov/whisper.cpp $(WHISPER_DIR); \
+	fi
+	@echo "Building whisper.cpp library..."
+	cd $(WHISPER_DIR) && make libwhisper.a
+	@echo "whisper.cpp library built successfully"
+
+# Clean whisper.cpp build artifacts
+whisper-clean:
+	@if [ -d "$(WHISPER_DIR)" ]; then \
+		cd $(WHISPER_DIR) && make clean; \
+	fi
+
+# Pre-download whisper model (OPTIONAL - downloads automatically on first use)
+download-model:
+	@echo "Pre-downloading whisper model..."
+	@mkdir -p $(MODELS_DIR)
+	@if [ ! -f "$(MODELS_DIR)/ggml-base.en.bin" ]; then \
+		curl -L -o $(MODELS_DIR)/ggml-base.en.bin \
+			https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin; \
+		echo "Model downloaded to $(MODELS_DIR)/ggml-base.en.bin"; \
+	else \
+		echo "Model already exists at $(MODELS_DIR)/ggml-base.en.bin"; \
+	fi
+
+# Download tiny model (faster, less accurate)
+download-model-tiny:
+	@mkdir -p $(MODELS_DIR)
+	@if [ ! -f "$(MODELS_DIR)/ggml-tiny.en.bin" ]; then \
+		curl -L -o $(MODELS_DIR)/ggml-tiny.en.bin \
+			https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin; \
+	fi
+
+# Download small model (better accuracy, slower)
+download-model-small:
+	@mkdir -p $(MODELS_DIR)
+	@if [ ! -f "$(MODELS_DIR)/ggml-small.en.bin" ]; then \
+		curl -L -o $(MODELS_DIR)/ggml-small.en.bin \
+			https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin; \
+	fi
+
+# Initialize voice-to-text (ADVANCED: for CGO builds)
+init-voice: whisper-deps download-model
+	@echo "Voice-to-text initialization complete"
+
+# =============================================================================
+# PWA Sync directories (OPTIONAL - created automatically)
+# =============================================================================
+# NOTE: Sync directories are created AUTOMATICALLY when the app starts.
+# This command is only for manual setup if needed.
+
+.PHONY: init-sync
+
+init-sync:
+	@echo "Creating sync directories..."
+	@mkdir -p data/sync/media/voice
+	@mkdir -p data/sync/media/photos
+	@echo "Sync directories created"
+
+# =============================================================================
+# Build variants
+# =============================================================================
+
+# Standard build (voice support via Go bindings, no CGO required)
+# Models download automatically on first use
+build: $(BUILD_DIR)
+	$(GO) build -trimpath -ldflags "$(LD_FLAGS)" -o $(BINARY) ./cmd/noise
+
+# Build with native whisper.cpp (ADVANCED: requires whisper-deps first)
+build-native-voice: $(BUILD_DIR)
+	CGO_ENABLED=1 $(GO) build -tags whisper -trimpath -ldflags "$(LD_FLAGS)" -o $(BINARY) ./cmd/noise
