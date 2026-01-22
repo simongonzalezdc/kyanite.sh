@@ -108,7 +108,7 @@ func TestMenuModelResponsiveMode(t *testing.T) {
 	}
 
 	// Verify full mode content
-	if !contains(view, "ðŸŽµ noise.sh") {
+	if !contains(view, "noise.sh") {
 		t.Error("Expected full mode title")
 	}
 
@@ -129,7 +129,7 @@ func TestMenuModelResponsiveMode(t *testing.T) {
 	}
 
 	// Verify minimal mode content
-	if !contains(view, "ðŸŽµ LF") {
+	if !contains(view, "LF") {
 		t.Error("Expected minimal mode title")
 	}
 }
@@ -171,7 +171,7 @@ func TestMenuModelMenuItems(t *testing.T) {
 	model := ui.NewMenuModel()
 
 	// Set dimensions
-	model.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
+	model.Update(tea.WindowSizeMsg{Width: 100, Height: 50})
 
 	// Get view
 	view := model.View()
@@ -181,12 +181,15 @@ func TestMenuModelMenuItems(t *testing.T) {
 
 	// Verify expected menu items are present
 	expectedItems := []string{
+		"Dashboard",
 		"New Song",
 		"Open Song",
+		"Export",
 		"Theory Tools",
 		"Audio Tools",
 		"Project Manager",
 		"Settings",
+		"Help",
 		"Exit",
 	}
 
@@ -202,7 +205,7 @@ func TestMenuModelDescriptions(t *testing.T) {
 	model := ui.NewMenuModel()
 
 	// Set dimensions
-	model.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
+	model.Update(tea.WindowSizeMsg{Width: 100, Height: 50})
 
 	// Get view
 	view := model.View()
@@ -212,12 +215,15 @@ func TestMenuModelDescriptions(t *testing.T) {
 
 	// Verify expected descriptions are present
 	expectedDescs := []string{
+		"Main dashboard with quick access",
 		"Create a new song",
 		"Open an existing song",
+		"Export current song to various formats",
 		"Music theory and rhyme tools",
 		"Metronome and chord playback",
 		"Manage songs and projects",
 		"Application settings",
+		"Show help and keyboard shortcuts",
 		"Exit noise.sh",
 	}
 
@@ -404,7 +410,8 @@ func TestMenuModelStyling(t *testing.T) {
 	}
 
 	// Verify view contains styled elements
-	if !contains(view, "ðŸŽµ") {
+	// Title contains styles, so stripping ANSI should work but checking just the text is safer
+	if !contains(view, "noise.sh") {
 		t.Error("Expected view to contain styled elements")
 	}
 }

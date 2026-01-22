@@ -12,7 +12,7 @@ func TestEditorPane_AIUnstickShortcut(t *testing.T) {
 	// Create editor pane
 	ta := textarea.New()
 	ta.SetValue("First line\nSecond line")
-	model := NewEditorPaneModel(ta)
+	model := NewEditorPaneModel(ta, nil)
 
 	// Create AI unstick key message
 	keyMsg := tea.KeyMsg{Type: tea.KeyRunes, Alt: true, Runes: []rune{'g'}}
@@ -42,7 +42,7 @@ func TestEditorPane_AISparkShortcut(t *testing.T) {
 	// Create editor pane
 	ta := textarea.New()
 	ta.SetValue("Some content")
-	model := NewEditorPaneModel(ta)
+	model := NewEditorPaneModel(ta, nil)
 
 	// Create AI spark key message
 	keyMsg := tea.KeyMsg{Type: tea.KeyRunes, Alt: true, Runes: []rune{'r'}}
@@ -72,7 +72,7 @@ func TestEditorPane_AITweakShortcut(t *testing.T) {
 	// Create editor pane with content
 	ta := textarea.New()
 	ta.SetValue("First line\nSecond line to tweak")
-	model := NewEditorPaneModel(ta)
+	model := NewEditorPaneModel(ta, nil)
 
 	// Create AI tweak key message
 	keyMsg := tea.KeyMsg{Type: tea.KeyRunes, Alt: true, Runes: []rune{'v'}}
@@ -106,7 +106,7 @@ func TestEditorPane_AICheckShortcut(t *testing.T) {
 	// Create editor pane with content
 	ta := textarea.New()
 	ta.SetValue("Line to check for quality")
-	model := NewEditorPaneModel(ta)
+	model := NewEditorPaneModel(ta, nil)
 
 	// Create AI check key message
 	keyMsg := tea.KeyMsg{Type: tea.KeyRunes, Alt: true, Runes: []rune{'c'}}
@@ -142,7 +142,7 @@ func TestEditorPane_AIUnstickWithEmptyContent(t *testing.T) {
 	// Create editor pane with empty content
 	ta := textarea.New()
 	ta.SetValue("")
-	model := NewEditorPaneModel(ta)
+	model := NewEditorPaneModel(ta, nil)
 
 	// Create AI unstick key message
 	keyMsg := tea.KeyMsg{Type: tea.KeyRunes, Alt: true, Runes: []rune{'g'}}
@@ -168,7 +168,7 @@ func TestEditorPane_AITweakWithEmptyContent(t *testing.T) {
 	// Create editor pane with empty content
 	ta := textarea.New()
 	ta.SetValue("")
-	model := NewEditorPaneModel(ta)
+	model := NewEditorPaneModel(ta, nil)
 
 	// Create AI tweak key message
 	keyMsg := tea.KeyMsg{Type: tea.KeyRunes, Alt: true, Runes: []rune{'v'}}
@@ -195,7 +195,7 @@ func TestEditorPane_AICheckWithEmptyContent(t *testing.T) {
 	// Create editor pane with empty content
 	ta := textarea.New()
 	ta.SetValue("")
-	model := NewEditorPaneModel(ta)
+	model := NewEditorPaneModel(ta, nil)
 
 	// Create AI check key message
 	keyMsg := tea.KeyMsg{Type: tea.KeyRunes, Alt: true, Runes: []rune{'c'}}
@@ -224,7 +224,7 @@ func TestEditorPane_ContinueModeSelection(t *testing.T) {
 	// Create editor pane
 	ta := textarea.New()
 	ta.SetValue("First line")
-	model := NewEditorPaneModel(ta)
+	model := NewEditorPaneModel(ta, nil)
 
 	// Start continue mode
 	model.StartContinueMode()
@@ -264,7 +264,7 @@ func TestEditorPane_VariationModeSelection(t *testing.T) {
 	// Create editor pane
 	ta := textarea.New()
 	ta.SetValue("Original line")
-	model := NewEditorPaneModel(ta)
+	model := NewEditorPaneModel(ta, nil)
 
 	// Start variation mode
 	model.StartVariationMode("Original line")
@@ -304,7 +304,7 @@ func TestEditorPane_BrainstormModeSelection(t *testing.T) {
 	// Create editor pane
 	ta := textarea.New()
 	ta.SetValue("Some content")
-	model := NewEditorPaneModel(ta)
+	model := NewEditorPaneModel(ta, nil)
 
 	// Start brainstorm mode
 	model.StartRapidBrainstorm("love")
@@ -344,7 +344,7 @@ func TestEditorPane_CancelAIModes(t *testing.T) {
 	// Test cancelling continue mode
 	ta := textarea.New()
 	ta.SetValue("Some content")
-	model := NewEditorPaneModel(ta)
+	model := NewEditorPaneModel(ta, nil)
 
 	// Start continue mode
 	model.StartContinueMode()
@@ -413,7 +413,7 @@ func TestEditorPane_AIResponseTime(t *testing.T) {
 	// Test that AI operations complete quickly
 	ta := textarea.New()
 	ta.SetValue("Test content")
-	model := NewEditorPaneModel(ta)
+	model := NewEditorPaneModel(ta, nil)
 
 	start := time.Now()
 

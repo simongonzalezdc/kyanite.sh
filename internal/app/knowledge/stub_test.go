@@ -19,14 +19,16 @@ func TestStubKnowledgeBase_Search(t *testing.T) {
 			name:     "Search for rhyme schemes",
 			query:    "rhyme",
 			options:  SearchOptions{Limit: 5},
-			expected: 2, // Should find AABB and ABAB rhyme schemes
+			expected: 1, // Should find mosaic rhyme card
 		},
+
 		{
 			name:     "Search for chord progressions",
 			query:    "chord",
 			options:  SearchOptions{Limit: 5},
-			expected: 2, // Should find 50s and four-chord progressions
+			expected: 4, // Should find Royal Road, Andalusian, Modal Interchange, and Tritone Sub
 		},
+
 		{
 			name:     "Search for lyrical techniques",
 			query:    "imagery",
@@ -37,14 +39,15 @@ func TestStubKnowledgeBase_Search(t *testing.T) {
 			name:     "Search with category filter",
 			query:    "",
 			options:  SearchOptions{Limit: 10, Categories: []string{"inspiration"}},
-			expected: 2, // Should find love and adversity cards
+			expected: 3, // Should find surveillance, industrial decay, and digital connection cards
 		},
 		{
 			name:     "Search with tag filter",
 			query:    "",
-			options:  SearchOptions{Limit: 10, Tags: []string{"pop"}},
-			expected: 5, // Matches current stub dataset containing multiple 'pop' items
+			options:  SearchOptions{Limit: 10, Tags: []string{"modern"}},
+			expected: 2, // Matches modern rhythm and modern theme
 		},
+
 		{
 			name:     "Search with no results",
 			query:    "nonexistent",
@@ -149,10 +152,10 @@ func TestStubKnowledgeBase_CategoriesAndTags(t *testing.T) {
 	}
 
 	expectedCategories := []string{
-		"rhyme-schemes",
-		"chord-progressions",
+		"theory-harmony",
 		"lyrical-techniques",
 		"song-structure",
+		"theory-rhythm",
 		"inspiration",
 	}
 
@@ -184,7 +187,8 @@ func TestStubKnowledgeBase_CategoriesAndTags(t *testing.T) {
 	}
 
 	// Check for some expected tags
-	expectedTags := []string{"rhyme", "chords", "imagery", "love"}
+	expectedTags := []string{"rhyme", "chords", "harmony", "modern"}
+
 	for _, expected := range expectedTags {
 		found := false
 		for _, actual := range tags {
@@ -248,15 +252,15 @@ func TestStubEnhancementProvider_EnhanceLyrics(t *testing.T) {
 	}{
 		{
 			name:     "Enhance simple lyrics",
-			lyrics:   "I love you so much",
+			lyrics:   "I want to feel the rain",
 			options:  SearchOptions{Limit: 3},
-			expected: "", // Accept any non-empty suggestion (stub behavior can vary)
+			expected: "", // Accept any non-empty suggestion
 		},
 		{
-			name:     "Enhance with imagery technique",
-			lyrics:   "The rain falls down",
+			name:     "Enhance with lyrical technique",
+			lyrics:   "Rhyme density",
 			options:  SearchOptions{Limit: 3, Categories: []string{"lyrical-techniques"}},
-			expected: "Imagery",
+			expected: "Mosaic",
 		},
 	}
 
@@ -304,15 +308,15 @@ func TestStubEnhancementProvider_EnhancePatterns(t *testing.T) {
 	}{
 		{
 			name:     "Enhance simple pattern",
-			pattern:  "C - G - Am",
+			pattern:  "Fmaj7 - G - Em7 - Am",
 			options:  SearchOptions{Limit: 3},
-			expected: "", // Accept any non-empty suggestion (stub may return various matches)
+			expected: "", // Accept any non-empty suggestion
 		},
 		{
 			name:     "Enhance with chord progression",
-			pattern:  "Simple progression",
-			options:  SearchOptions{Limit: 3, Categories: []string{"chord-progressions"}},
-			expected: "C - G - Am - F", // Should return the four-chord progression
+			pattern:  "Royal",
+			options:  SearchOptions{Limit: 3, Categories: []string{"theory-harmony"}},
+			expected: "Fmaj7 - G - Em7 - Am",
 		},
 	}
 
@@ -356,7 +360,8 @@ func TestStubEnhancementProvider_GetInspirationCards(t *testing.T) {
 	provider := NewStubEnhancementProvider()
 	ctx := context.Background()
 
-	result, err := provider.GetInspirationCards(ctx, "love", SearchOptions{Limit: 5})
+	result, err := provider.GetInspirationCards(ctx, "surveillance", SearchOptions{Limit: 5})
+
 	if err != nil {
 		t.Errorf("GetInspirationCards() error = %v", err)
 		return

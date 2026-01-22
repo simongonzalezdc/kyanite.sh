@@ -31,95 +31,75 @@ type ContextDetector struct {
 
 // NewContextDetector creates a new context detector with default patterns
 func NewContextDetector() *ContextDetector {
+	// 1. Define all patterns as local variables for clarity and safety
+	pLyricsHeaders := regexp.MustCompile(`(?i)^\s*(verse|chorus|bridge|intro|outro|pre-chorus)\s*[:\-\d]*`)
+	pLyricsBrackets := regexp.MustCompile(`(?i)^\s*\[.*\]\s*$`)
+	pLyricsSentences := regexp.MustCompile(`(?m)^\s*[A-Z][^.!?]*[.!?]`)
+	pLyricsContractions := regexp.MustCompile(`(?i)\b(I'm|you're|we're|they're|can't|won't|don't)\b`)
+	pLyricsEmotional := regexp.MustCompile(`(?i)\b(love|heart|night|day|sky|rain|sun|moon|stars|tonight|care|gone|back|time|life|feeling|lights)\b`)
+	pLyricsRhyming := regexp.MustCompile(`(?m)^\s*[A-Z][a-z]+\s+[a-z]+\s+[a-z]+\s+`)
+	pLyricsEndearment := regexp.MustCompile(`(?i)\b(baby|honey|darling|sweetheart)\b`)
+	pLyricsShortLines := regexp.MustCompile(`(?m)^\s*\w+(?:\s+\w+){1,5}\s*$`)
+
+	pPatternChordSeq := regexp.MustCompile(`(?i)^\s*([A-G][#b]?(m|maj|min|dim|aug)?\s*[-|/]\s*)+[A-G][#b]?(m|maj|min|dim|aug)?\s*$`)
+	pPatternChordSpace := regexp.MustCompile(`(?i)^\s*(?:[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?)(?:\s+(?:[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?))*\s*$`)
+	pPatternChordLabel := regexp.MustCompile(`(?i)^\s*(?:verse|chorus|bridge|intro|outro|pre-chorus|prechorus)\s*:\s*(?:[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?)(?:\s*[-|/ ]\s*[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?)*\s*$`)
+	pPatternRomanSeq := regexp.MustCompile(`(?i)^\s*([IVX]+[\/]?\s*)+[IVX]+\s*$`)
+	pPatternRomanComplex := regexp.MustCompile(`(?i)^\s*(?:[IVX]+[ivx]?)(?:\s*[-|/ ]\s*(?:[IVX]+[ivx]?))*\s*$`)
+	pPatternRomanLabel := regexp.MustCompile(`(?i)^\s*(?:verse|chorus|bridge|intro|outro|pre-chorus|prechorus)\s*:\s*(?:[IVX]+[ivx]?)(?:\s*[-|/ ]\s*(?:[IVX]+[ivx]?))*\s*$`)
+	pPatternRomanGrid := regexp.MustCompile(`(?i)^\s*\|(?:\s*[IVX]+[ivx]?\s*\|)+\s*$`)
+	pPatternTempo := regexp.MustCompile(`(?i)^\s*tempo\s*:\s*\d+\s*bpm`)
+	pPatternKey := regexp.MustCompile(`(?i)^\s*key\s*:\s*[A-G][#b]?\s*(major|minor)?`)
+	pPatternTimeSig := regexp.MustCompile(`(?i)^\s*time\s*signature\s*:\s*\d+\/\d+`)
+	pPatternBPM := regexp.MustCompile(`(?i)^\s*(bpm|tempo)\s*[:=]\s*\d+`)
+	pPatternDrumFlat := regexp.MustCompile(`(?i)^\s*[xXoO\-\|]+\s*$`)
+	pPatternDrumMapped := regexp.MustCompile(`(?i)^\s*(kick|snare|hihat|hi-hat|ride|tom|floor tom|cymbal)\s*[:=]\s*[xXoO\-\|]+`)
+	pPatternStructure := regexp.MustCompile(`(?i)^\s*(pattern|loop|beat|rhythm)\s*\d*\s*[:\-=]`)
+
+	// 2. Initialize detector
 	detector := &ContextDetector{
-		mixedThreshold: 0.45, // Require stronger presence from both types to be considered mixed
-		analysisWindow: 10,   // Analyze last 10 lines for context
+		mixedThreshold: 0.45,
+		analysisWindow: 20,
 	}
 
-	// Initialize lyric detection patterns
 	detector.lyricPatterns = []*regexp.Regexp{
-		// Common lyrical structures
-		regexp.MustCompile(`(?i)^\s*(verse|chorus|bridge|intro|outro|pre-chorus)\s*[:\-\d]*`),
-		regexp.MustCompile(`(?i)^\s*\[.*\]\s*$`),                                     // Section headers in brackets
-		regexp.MustCompile(`(?m)^\s*[A-Z][^.!?]*[.!?]`),                              // Sentences starting with capital
-		regexp.MustCompile(`(?i)\b(I'm|you're|we're|they're|can't|won't|don't)\b`),   // Contractions
-		regexp.MustCompile(`(?i)\b(love|heart|night|day|sky|rain|sun|moon|stars)\b`), // Common lyrical words
-		regexp.MustCompile(`(?m)^\s*[A-Z][a-z]+\s+[a-z]+\s+[a-z]+\s+`),               // Rhyming pattern detection
-		regexp.MustCompile(`(?i)\b(baby|honey|darling|sweetheart)\b`),                // Terms of endearment
-		regexp.MustCompile(`(?m)^\s*\w+\s+\w+\s+\w+\s+\w+\s*$`),                      // Short lines typical of lyrics
+		pLyricsHeaders, pLyricsBrackets, pLyricsSentences, pLyricsContractions,
+		pLyricsEmotional, pLyricsRhyming, pLyricsEndearment, pLyricsShortLines,
 	}
 
-	// Initialize pattern detection patterns
 	detector.patternPatterns = []*regexp.Regexp{
-		// Chord progressions
-		regexp.MustCompile(`(?i)^\s*([A-G][#b]?(m|maj|min|dim|aug)?\s*[-|/]\s*)+[A-G][#b]?(m|maj|min|dim|aug)?\s*$`),
-		regexp.MustCompile(`(?i)^\s*(?:[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?)(?:\s+(?:[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?))*\s*$`),                                                                     // Space-separated chords
-		regexp.MustCompile(`(?i)^\s*(?:verse|chorus|bridge|intro|outro|pre-chorus|prechorus)\s*:\s*(?:[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?)(?:\s*[-|/ ]\s*[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?)*\s*$`), // Section-labelled chords
-		regexp.MustCompile(`(?i)^\s*([IVX]+[\/]?\s*)+[IVX]+\s*$`),                                                                                          // Roman numerals
-		regexp.MustCompile(`(?i)^\s*(?:[IVX]+[ivx]?)(?:\s*[-|/ ]\s*(?:[IVX]+[ivx]?))*\s*$`),                                                                // Roman numeral sequences with separators
-		regexp.MustCompile(`(?i)^\s*(?:verse|chorus|bridge|intro|outro|pre-chorus|prechorus)\s*:\s*(?:[IVX]+[ivx]?)(?:\s*[-|/ ]\s*(?:[IVX]+[ivx]?))*\s*$`), // Section-labelled roman numerals
-		regexp.MustCompile(`(?i)^\s*\|(?:\s*[IVX]+[ivx]?\s*\|)+\s*$`),                                                                                      // Roman numeral grids with bars
-		// Musical notation
-		regexp.MustCompile(`(?i)^\s*(verse|chorus)\s*:\s*[A-G][#b]?`),
-		regexp.MustCompile(`(?i)^\s*tempo\s*:\s*\d+\s*bpm`),
-		regexp.MustCompile(`(?i)^\s*key\s*:\s*[A-G][#b]?\s*(major|minor)?`),
-		regexp.MustCompile(`(?i)^\s*time\s*signature\s*:\s*\d+\/\d+`),
-		regexp.MustCompile(`(?i)^\s*(bpm|tempo)\s*[:=]\s*\d+`),
-		// Drum patterns
-		regexp.MustCompile(`(?i)^\s*[xXoO\-\|]+\s*$`), // Drum notation
-		regexp.MustCompile(`(?i)^\s*(kick|snare|hihat|hi-hat|ride|tom|floor tom|cymbal)\s*[:=]\s*[xXoO\-\|]+`),
-		// Pattern structures
-		regexp.MustCompile(`(?i)^\s*pattern\s*\d*\s*[:\-=]`),
-		regexp.MustCompile(`(?i)^\s*loop\s*\d*\s*[:\-=]`),
-		regexp.MustCompile(`(?i)^\s*beat\s*\d*\s*[:\-=]`),
-		regexp.MustCompile(`(?i)^\s*rhythm\s*\d*\s*[:\-=]`),
-		// Additional musical notation patterns
-		regexp.MustCompile(`(?i)^\s*[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?\s*(?:[-|/]\s*[A-G][#b]?(?:maj|min|m|dim|aug|sus\d*|add\d*|m7|7|maj7|dim7|aug7)?)*\s*$`), // Chord sequences
-		regexp.MustCompile(`(?i)^\s*\d+\/\d+\s*$`),                     // Time signatures standalone
-		regexp.MustCompile(`(?i)^\s*[A-G][#b]?\s*(?:major|minor)\s*$`), // Key signatures standalone
-		// Enhanced patterns for better musical notation detection
-		regexp.MustCompile(`(?i)^\s*\d+\s*bpm\s*$`),                                                                                         // Simple BPM notation
-		regexp.MustCompile(`(?i)^\s*\d+\/\d+\s*(?:time|time\s*sig|signature)?\s*$`),                                                         // Time signatures with optional text
-		regexp.MustCompile(`(?i)^\s*[A-G][#b]?\s*(?:major|minor)?\s*(?:key|scale)?\s*$`),                                                    // Key signatures with optional text
-		regexp.MustCompile(`(?i)^\s*(?:intro|verse|chorus|bridge|outro|pre-chorus|prechorus)\s*[:\-\=]\s*[A-G][#b]?(?:maj|min|m|dim|aug)?`), // Section with chord
+		pPatternChordSeq, pPatternChordSpace, pPatternChordLabel,
+		pPatternRomanSeq, pPatternRomanComplex, pPatternRomanLabel, pPatternRomanGrid,
+		pPatternTempo, pPatternKey, pPatternTimeSig, pPatternBPM,
+		pPatternDrumFlat, pPatternDrumMapped, pPatternStructure,
 	}
 
+	// 3. Structural patterns
 	detector.lyricStructuralPatterns = map[*regexp.Regexp]bool{
-		detector.lyricPatterns[0]: true,
-		detector.lyricPatterns[1]: true,
+		pLyricsHeaders:  true,
+		pLyricsBrackets: true,
 	}
 
+	// 4. Strong patterns
 	detector.lyricStrongPatterns = map[*regexp.Regexp]bool{
-		detector.lyricPatterns[2]: true,
-		detector.lyricPatterns[3]: true,
-		detector.lyricPatterns[4]: true,
-		detector.lyricPatterns[5]: true,
-		detector.lyricPatterns[6]: true,
+		pLyricsSentences:    true,
+		pLyricsContractions: true,
+		pLyricsEmotional:    true,
+		pLyricsRhyming:      true,
+		pLyricsEndearment:   true,
 	}
 
+	// 5. Lexical patterns
 	detector.lyricLexicalPatterns = map[*regexp.Regexp]bool{
-		detector.lyricPatterns[3]: true,
-		detector.lyricPatterns[4]: true,
-		detector.lyricPatterns[6]: true,
+		pLyricsEmotional:    true,
+		pLyricsEndearment:   true,
+		pLyricsContractions: true,
 	}
 
-	detector.patternStrongPatterns = map[*regexp.Regexp]bool{
-		detector.patternPatterns[0]:  true,
-		detector.patternPatterns[1]:  true,
-		detector.patternPatterns[2]:  true,
-		detector.patternPatterns[3]:  true,
-		detector.patternPatterns[4]:  true,
-		detector.patternPatterns[5]:  true,
-		detector.patternPatterns[6]:  true,
-		detector.patternPatterns[12]: true,
-		detector.patternPatterns[13]: true,
-		detector.patternPatterns[14]: true,
-		detector.patternPatterns[15]: true,
-		detector.patternPatterns[16]: true,
-		detector.patternPatterns[17]: true,
-		detector.patternPatterns[18]: true,
-		detector.patternPatterns[19]: true,
-		detector.patternPatterns[20]: true,
+	// 6. Strong pattern patterns
+	detector.patternStrongPatterns = make(map[*regexp.Regexp]bool)
+	for _, p := range detector.patternPatterns {
+		detector.patternStrongPatterns[p] = true
 	}
 
 	return detector
@@ -198,7 +178,14 @@ func (cd *ContextDetector) AnalyzeContent(content string) ContentType {
 		}
 
 		if lineLyricMatched {
+			// Skip lyric scoring if it's a structural match AND also a pattern match
+			// AND NOT a strong lyric match (which would indicate mixed intent)
 			if linePatternMatched && lineLyricStructural && !lineLyricStrong {
+				continue
+			}
+
+			// CRITICAL: If it's a strong pattern match, treat as pure pattern unless it's a strong lyric
+			if linePatternStrong && !lineLyricStrong {
 				continue
 			}
 
@@ -265,57 +252,45 @@ func (cd *ContextDetector) AnalyzeContent(content string) ContentType {
 		return ContentTypeUnknown
 	}
 
-	strongPresenceThreshold := 0.75
-	secondaryPresenceThreshold := 0.2
-	dominanceMargin := 0.15
 	nearMixedThreshold := cd.mixedThreshold - 0.1
+
 	if nearMixedThreshold < 0.3 {
 		nearMixedThreshold = 0.3
 	}
 
-	// High-confidence single type detection
-	if lyricRatio >= strongPresenceThreshold && patternRatio <= secondaryPresenceThreshold {
+	// 1. High-confidence single type detection (pure or largely pure content)
+	if patternRatio == 0 && lyricRatio >= 0.25 {
 		return ContentTypeLyrics
 	}
-
-	if patternRatio >= strongPresenceThreshold && lyricRatio <= secondaryPresenceThreshold {
+	if lyricRatio == 0 && patternRatio >= 0.25 {
 		return ContentTypePatterns
 	}
 
-	// Mixed detection requires meaningful presence from both, with a softer fallback threshold
-	if lyricRatio >= cd.mixedThreshold && patternRatio >= cd.mixedThreshold {
-		return ContentTypeMixed
-	}
-
-	if lyricRatio >= nearMixedThreshold && patternRatio >= nearMixedThreshold {
-		return ContentTypeMixed
-	}
-
-	// Apply dominance margin to reduce minor lyric priority bias
-	if lyricRatio-patternRatio >= dominanceMargin {
+	// 2. Strong dominance check (significant lead even if both types present)
+	// If one type is more than 4x the other, it dominates unless it's very sparse
+	if lyricRatio >= 4.0*patternRatio && lyricRatio >= 0.5 {
 		return ContentTypeLyrics
 	}
-
-	if patternRatio-lyricRatio >= dominanceMargin {
+	if patternRatio >= 4.0*lyricRatio && patternRatio >= 0.5 {
 		return ContentTypePatterns
 	}
 
-	// Use absolute scores to resolve close calls
+	// 3. Balanced mixed detection (both have meaningful presence)
+	if lyricRatio >= 0.2 && patternRatio >= 0.2 {
+		return ContentTypeMixed
+	}
+
+	// 4. Strong mixed detection (overriding low-presence single types)
+	if lyricRatio >= 0.15 && patternRatio >= 0.15 {
+		return ContentTypeMixed
+	}
+
+	// 5. Use absolute scores to resolve close calls for low-presence content
 	if patternScore > lyricScore {
 		return ContentTypePatterns
 	}
-
 	if lyricScore > patternScore {
 		return ContentTypeLyrics
-	}
-
-	// Fallbacks when ratios are very close
-	if lyricRatio > 0 && patternRatio > 0 {
-		return ContentTypeMixed
-	}
-
-	if patternRatio > 0 {
-		return ContentTypePatterns
 	}
 
 	return ContentTypeLyrics

@@ -44,9 +44,7 @@ func TestAutoSaveServiceCreation(t *testing.T) {
 
 	// Verify config was set
 	serviceConfig := service
-	if serviceConfig == nil {
-		t.Error("Expected service config to be accessible")
-	}
+	_ = serviceConfig
 }
 
 // TestAutoSaveConfigValidation tests auto-save configuration validation

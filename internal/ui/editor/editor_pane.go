@@ -54,7 +54,7 @@ type EditorPaneModel struct {
 }
 
 // NewEditorPaneModel creates a new editor pane model with refactored components
-func NewEditorPaneModel(textarea textarea.Model) *EditorPaneModel {
+func NewEditorPaneModel(textarea textarea.Model, aiService *app.AIService) *EditorPaneModel {
 	teaModel := &textarea
 	t := theme.GetManager().Current()
 	model := &EditorPaneModel{
@@ -64,7 +64,7 @@ func NewEditorPaneModel(textarea textarea.Model) *EditorPaneModel {
 		metrics:   NewEditorMetrics(),
 
 		highlighter: NewSyntaxHighlighter(),
-		chordPicker: NewChordPickerModel(),
+		chordPicker: NewChordPickerModel(aiService),
 		bpmTapper:   NewBPMTapperModel(),
 
 		focusedStyle: lipgloss.NewStyle().
@@ -105,73 +105,69 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-	// Handle state component updates
-	stateCmd := m.state.Update(msg)
-	if stateCmd != nil {
-		cmds = append(cmds, stateCmd)
-	}
+	// Identify active overlays
+	chordPickerVisible := m.chordPicker != nil && m.chordPicker.IsVisible()
+	bpmTapperVisible := m.bpmTapper != nil && m.bpmTapper.IsVisible()
+	aiModeActive := m.ai.IsRapidBrainstorm() || m.ai.IsContinueMode() || m.ai.IsVariationMode()
 
-	// Handle chord picker updates
-	if m.chordPicker.IsVisible() {
-		m.chordPicker, cmd = m.chordPicker.Update(msg)
-		if cmd != nil {
-			cmds = append(cmds, cmd)
+	// Handle global non-key messages first (window resize, ticking, etc.)
+	if _, isKey := msg.(tea.KeyMsg); !isKey {
+		stateCmd := m.state.Update(msg)
+		if stateCmd != nil {
+			cmds = append(cmds, stateCmd)
 		}
-	}
 
-	// Handle BPM tapper updates
-	if m.bpmTapper.IsVisible() {
-		m.bpmTapper, cmd = m.bpmTapper.Update(msg)
-		if cmd != nil {
-			cmds = append(cmds, cmd)
-		}
-	}
-
-	// Update cursor position
-	m.state.UpdateCursorPosition()
-
-	// Update status bar with current state
-	m.metrics.UpdateStatusBar(m.state, m.ai)
-
-	// Handle chord picker messages
-	switch msg := msg.(type) {
-	case ShowChordPickerMsg:
-		if m.chordPicker != nil {
-			m.chordPicker.visible = true
-			m.chordPicker.insertCallback = msg.InsertCallback
-			m.chordPicker.selectedIdx = 0
-			m.chordPicker.activeMood = "all"
-			m.chordPicker.showAll = true
-			m.chordPicker.animationTime = time.Now()
-
-			// Load progressions if not already loaded
-			if !m.chordPicker.loaded {
-				if progressions, err := data.GetAllChordProgressions(); err == nil {
-					m.chordPicker.progressions = progressions
-					m.chordPicker.filteredProg = progressions
-					m.chordPicker.loaded = true
-				}
+		if chordPickerVisible {
+			m.chordPicker, cmd = m.chordPicker.Update(msg)
+			if cmd != nil {
+				cmds = append(cmds, cmd)
 			}
 		}
-	case HideChordPickerMsg:
-		if m.chordPicker != nil {
-			m.chordPicker.visible = false
-		}
-	case ShowBPMTapperMsg:
-		if m.bpmTapper != nil {
-			m.bpmTapper.visible = true
-			m.bpmTapper.setBMPCallback = m.setBPM
-			m.bpmTapper.reset()
-		}
-	case HideBPMTapperMsg:
-		if m.bpmTapper != nil {
-			m.bpmTapper.visible = false
-		}
-	}
 
-	// Handle key events for editor features
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
+		if bpmTapperVisible {
+			m.bpmTapper, cmd = m.bpmTapper.Update(msg)
+			if cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
+
+		// Handle overlay show/hide messages
+		switch msg := msg.(type) {
+		case ShowChordPickerMsg:
+			if m.chordPicker != nil {
+				m.chordPicker.visible = true
+				m.chordPicker.insertCallback = msg.InsertCallback
+				m.chordPicker.selectedIdx = 0
+				m.chordPicker.activeMood = "all"
+				m.chordPicker.showAll = true
+				m.chordPicker.animationTime = time.Now()
+				if !m.chordPicker.loaded {
+					if progressions, err := data.GetAllChordProgressions(); err == nil {
+						m.chordPicker.progressions = progressions
+						m.chordPicker.filteredProg = progressions
+						m.chordPicker.loaded = true
+					}
+				}
+			}
+		case HideChordPickerMsg:
+			if m.chordPicker != nil {
+				m.chordPicker.visible = false
+			}
+		case ShowBPMTapperMsg:
+			if m.bpmTapper != nil {
+				m.bpmTapper.visible = true
+				m.bpmTapper.setBMPCallback = m.setBPM
+				m.bpmTapper.reset()
+			}
+		case HideBPMTapperMsg:
+			if m.bpmTapper != nil {
+				m.bpmTapper.visible = false
+			}
+		}
+	} else {
+		// Handle KEY messages with specific priority
+		kmsg := msg.(tea.KeyMsg)
+
 		// Set context for shortcuts
 		if m.state.IsFocused() {
 			m.shortcuts.SetShortcutContext(ContextEditor)
@@ -179,153 +175,143 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 			m.shortcuts.SetShortcutContext(ContextGlobal)
 		}
 
-		// Cancel active AI overlays with Escape even if the shortcut is handled elsewhere
-		if msg.Type == tea.KeyEsc {
-			if m.cancelActiveAIModes() {
-				m.metrics.UpdateStatusBar(m.state, m.ai)
-				return m, tea.Batch(cmds...)
+		// Priority 1: AI Overlays (Selection & Escape)
+		if aiModeActive {
+			// Extract selection index
+			var selectIdx int = -1
+			if len(kmsg.Runes) > 0 && kmsg.Runes[0] >= '1' && kmsg.Runes[0] <= '3' {
+				selectIdx = int(kmsg.Runes[0]-'0') - 1
+			}
+
+			if m.ai.IsRapidBrainstorm() {
+				if selectIdx >= 0 {
+					m.ai.SelectBrainstormAngle(selectIdx, m.state)
+					m.syncAndRefresh()
+					return m, tea.Batch(cmds...)
+				}
+				if kmsg.Type == tea.KeyEsc {
+					m.ai.CancelBrainstormMode()
+					m.syncAndRefresh()
+					return m, tea.Batch(cmds...)
+				}
+			}
+			if m.ai.IsContinueMode() {
+				if selectIdx >= 0 {
+					m.ai.SelectContinueSuggestion(selectIdx, m.state)
+					m.syncAndRefresh()
+					return m, tea.Batch(cmds...)
+				}
+				if kmsg.Type == tea.KeyEsc {
+					m.ai.CancelContinueMode()
+					m.syncAndRefresh()
+					return m, tea.Batch(cmds...)
+				}
+			}
+			if m.ai.IsVariationMode() {
+				if selectIdx >= 0 {
+					m.ai.SelectVariation(selectIdx, m.state)
+					m.syncAndRefresh()
+					return m, tea.Batch(cmds...)
+				}
+				if kmsg.Type == tea.KeyEsc {
+					m.ai.CancelVariationMode()
+					m.syncAndRefresh()
+					return m, tea.Batch(cmds...)
+				}
 			}
 		}
 
-		// Handle shortcuts (but do not let shortcuts intercept numeric selections when AI modes are active)
-		if !m.ai.IsRapidBrainstorm() && !m.ai.IsContinueMode() && !m.ai.IsVariationMode() {
-			if action, handled := m.shortcuts.HandleKey(msg); handled {
-				if m.handleAIShortcut(action) {
-					m.metrics.UpdateStatusBar(m.state, m.ai)
-					return m, tea.Batch(cmds...)
-				}
-
-				cmd = m.shortcuts.HandleShortcutAction(action, m.state)
-				if cmd != nil {
-					cmds = append(cmds, cmd)
-				}
-				return m, tea.Batch(cmds...)
+		// Priority 2: Modal Overlays (Chord Picker, BPM Tapper)
+		if chordPickerVisible {
+			m.chordPicker, cmd = m.chordPicker.Update(kmsg)
+			if cmd != nil {
+				cmds = append(cmds, cmd)
 			}
+			// Swallowed by modal
+			m.syncAndRefresh()
+			return m, tea.Batch(cmds...)
+		}
+		if bpmTapperVisible {
+			m.bpmTapper, cmd = m.bpmTapper.Update(kmsg)
+			if cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+			// Swallowed by modal
+			m.syncAndRefresh()
+			return m, tea.Batch(cmds...)
 		}
 
-		// Handle rapid prototyping key events
-		if m.ai.IsRapidBrainstorm() {
-			// Robust selection parsing: accept Rune-based KeyMsgs, simple single-char strings,
-			// or the Esc key. This covers various ways tests construct KeyMsg values.
-			if len(msg.Runes) > 0 && msg.Runes[0] >= '1' && msg.Runes[0] <= '9' {
-				index := int(msg.Runes[0] - '0')
-				if index >= 1 && index <= 3 {
-					m.ai.SelectBrainstormAngle(index-1, m.state)
-					return m, tea.Batch(cmds...)
-				}
-			}
-			if s := msg.String(); len(s) == 1 && s[0] >= '1' && s[0] <= '9' {
-				index := int(s[0] - '0')
-				if index >= 1 && index <= 3 {
-					m.ai.SelectBrainstormAngle(index-1, m.state)
-					return m, tea.Batch(cmds...)
-				}
-			}
-			if msg.Type == tea.KeyEsc || strings.ToLower(msg.String()) == "esc" {
-				m.ai.CancelBrainstormMode()
+		// Priority 3: Global/Editor Shortcuts
+		if action, handled := m.shortcuts.HandleKey(kmsg); handled {
+			if m.handleAIShortcut(action) {
+				m.syncAndRefresh()
 				return m, tea.Batch(cmds...)
 			}
+			shortcutCmd := m.shortcuts.HandleShortcutAction(action, m.state)
+			if shortcutCmd != nil {
+				cmds = append(cmds, shortcutCmd)
+			}
+			m.syncAndRefresh()
+			return m, tea.Batch(cmds...)
 		}
 
-		if m.ai.IsContinueMode() {
-			// Robust selection parsing for continue suggestions
-			if len(msg.Runes) > 0 && msg.Runes[0] >= '1' && msg.Runes[0] <= '9' {
-				index := int(msg.Runes[0] - '0')
-				if index >= 1 && index <= 3 {
-					m.ai.SelectContinueSuggestion(index-1, m.state)
-					return m, tea.Batch(cmds...)
-				}
-			}
-			if s := msg.String(); len(s) == 1 && s[0] >= '1' && s[0] <= '9' {
-				index := int(s[0] - '0')
-				if index >= 1 && index <= 3 {
-					m.ai.SelectContinueSuggestion(index-1, m.state)
-					return m, tea.Batch(cmds...)
-				}
-			}
-			if msg.Type == tea.KeyEsc || strings.ToLower(msg.String()) == "esc" {
-				m.ai.CancelContinueMode()
-				return m, tea.Batch(cmds...)
-			}
-		}
-
-		if m.ai.IsVariationMode() {
-			// Robust selection parsing for variation options
-			if len(msg.Runes) > 0 && msg.Runes[0] >= '1' && msg.Runes[0] <= '9' {
-				index := int(msg.Runes[0] - '0')
-				if index >= 1 && index <= 3 {
-					m.ai.SelectVariation(index-1, m.state)
-					return m, tea.Batch(cmds...)
-				}
-			}
-			if s := msg.String(); len(s) == 1 && s[0] >= '1' && s[0] <= '9' {
-				index := int(s[0] - '0')
-				if index >= 1 && index <= 3 {
-					m.ai.SelectVariation(index-1, m.state)
-					return m, tea.Batch(cmds...)
-				}
-			}
-			if msg.Type == tea.KeyEsc || strings.ToLower(msg.String()) == "esc" {
-				m.ai.CancelVariationMode()
-				return m, tea.Batch(cmds...)
-			}
-		}
-
-		// Handle rapid prototyping hotkeys
-		switch msg.String() {
+		// Priority 4: Editor Content & Mode Hotkeys
+		switch kmsg.String() {
 		case "ctrl+1":
-			// Switch to Sketch mode
 			m.state.SetEditorMode(ModeSketch)
+			m.syncAndRefresh()
 			return m, tea.Batch(cmds...)
 		case "ctrl+2":
-			// Switch to Draft mode
 			m.state.SetEditorMode(ModeDraft)
+			m.syncAndRefresh()
 			return m, tea.Batch(cmds...)
 		case "ctrl+3":
-			// Switch to Polish mode
 			m.state.SetEditorMode(ModePolish)
+			m.syncAndRefresh()
 			return m, tea.Batch(cmds...)
 		case "ctrl+k":
-			// Keep draft (save from scratch mode)
 			if m.state.IsScratchMode() {
-				// For now, just show a notification
-				// In a full implementation, this would prompt for title and save
 				m.state.SetScratchMode(false)
 			}
+			m.syncAndRefresh()
 			return m, tea.Batch(cmds...)
-		}
-
-		// Handle legacy key events for backward compatibility
-		switch msg.String() {
 		case "enter":
 			if m.state.IsSearchMode() {
-				// Perform search
 				m.state.PerformSearch()
+				m.syncAndRefresh()
+				return m, tea.Batch(cmds...)
 			} else if m.state.AutoIndentEnabled() {
-				// Handle auto-indentation
+				// Handle auto-indent then normal update
+				stateCmd := m.state.Update(kmsg)
+				if stateCmd != nil {
+					cmds = append(cmds, stateCmd)
+				}
 				m.state.HandleAutoIndent()
+				m.syncAndRefresh()
+				return m, tea.Batch(cmds...)
 			}
 		}
 
-		// Forward any unhandled key events to the underlying textarea so that
-		// rune input and editing keystrokes update the buffer as expected by tests.
-		if t := m.state.GetTextarea(); t != nil {
-			updatedTA, taCmd := (*t).Update(msg)
-			// Apply updated textarea state back to the editor state
-			*t = updatedTA
-			if taCmd != nil {
-				cmds = append(cmds, taCmd)
-			}
+		// Normal editor update
+		stateCmd := m.state.Update(kmsg)
+		if stateCmd != nil {
+			cmds = append(cmds, stateCmd)
 		}
 	}
 
-	// Update syntax highlighting
+	// Final sync and refresh
+	m.syncAndRefresh()
 	m.updateSyntaxHighlighting()
-
-	// Handle auto-save on content changes
 	m.state.HandleAutoSave()
-
 	return m, tea.Batch(cmds...)
+}
+
+// syncAndRefresh ensures state metrics and UI elements are synchronized
+func (m *EditorPaneModel) syncAndRefresh() {
+	m.state.UpdateCursorPosition()
+	if m.metrics != nil {
+		m.metrics.UpdateStatusBar(m.state, m.ai)
+	}
 }
 
 // View renders the editor pane with syntax highlighting
@@ -762,6 +748,7 @@ func (m *EditorPaneModel) GetVariationOptions() []string {
 func (m *EditorPaneModel) handleAIShortcut(action ShortcutAction) bool {
 	switch action.Type {
 	case ActionAIUnstick:
+		m.ai.GenerateContinueSuggestions(m.state)
 		m.ai.StartContinueMode()
 		return true
 

@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -130,9 +131,9 @@ func TestClipboardWithSelection(t *testing.T) {
 	state := NewEditorState(&ta)
 
 	t.Run("PartialSelection", func(t *testing.T) {
-		// Set up a partial selection (from position 10 to 20)
-		state.selectionStart = 10
-		state.selectionEnd = 20
+		// Set up a partial selection (from position 0 to 11)
+		state.selectionStart = 0
+		state.selectionEnd = 11
 		state.hasSelection = true
 
 		selected := state.GetSelectedText()
@@ -141,13 +142,17 @@ func TestClipboardWithSelection(t *testing.T) {
 	})
 
 	t.Run("ReplaceSelection", func(t *testing.T) {
-		// Set up a partial selection
-		state.selectionStart = 10
-		state.selectionEnd = 20
+		// Reset state
+		state.SetText("Line 1\nLine 2\nLine 3")
+		state.selectionStart = 0
+		state.selectionEnd = 6 // "Line 1"
 		state.hasSelection = true
 
-		// Set clipboard content
+		// Set both internal and system clipboard to avoid interference
 		state.clipboardContent = "REPLACED"
+		clipboard.WriteAll("REPLACED")
+
+		// Paste content (should replace selection)
 
 		// Paste content (should replace selection)
 		err := state.PasteFromClipboard()

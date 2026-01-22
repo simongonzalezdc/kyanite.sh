@@ -1,10 +1,18 @@
 package noise
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
 
-// Helper function to check if string contains substring
+// Helper function to check if string contains substring, stripping ANSI escape codes
 func contains(s, substr string) bool {
-	return substr == "" || strings.Contains(s, substr)
+	// Simple ANSI escape code stripper
+	re := regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
+	cleanS := re.ReplaceAllString(s, "")
+	cleanSubstr := re.ReplaceAllString(substr, "")
+
+	return cleanSubstr == "" || strings.Contains(cleanS, cleanSubstr)
 }
 
 func containsInMiddle(s, substr string) bool {

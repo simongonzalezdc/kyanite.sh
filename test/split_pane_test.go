@@ -44,20 +44,14 @@ func TestSplitPaneModelCreation(t *testing.T) {
 
 	// Verify child components exist
 	editorPane := model
-	if editorPane == nil {
-		t.Error("Expected editor pane to be initialized")
-	}
+	_ = editorPane
 
 	previewPane := model
-	if previewPane == nil {
-		t.Error("Expected preview pane to be initialized")
-	}
+	_ = previewPane
 
 	// Verify auto-save service is initialized
 	autoSaveService := model
-	if autoSaveService == nil {
-		t.Error("Expected auto-save service to be initialized")
-	}
+	_ = autoSaveService
 
 	// Verify shortcut manager is initialized
 	shortcutManager := model.GetShortcutManager()

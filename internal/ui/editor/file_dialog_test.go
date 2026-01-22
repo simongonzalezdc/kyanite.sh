@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -78,8 +79,10 @@ func TestFileDialogCallbacks(t *testing.T) {
 	})
 
 	// Test cancel callback
-	dialog.Hide()
-	assert.True(t, cancelCalled, "Cancel callback should be called")
+	dialog.Show()
+	dialog.Update(tea.KeyMsg{Type: tea.KeyEsc})
+	assert.True(t, cancelCalled, "Cancel callback should be called after Esc key")
+	assert.False(t, dialog.IsVisible(), "Dialog should be hidden after Esc key")
 }
 
 // TestFileDialogValidation tests file dialog validation
@@ -209,7 +212,7 @@ func TestFileItem(t *testing.T) {
 			modTime: time.Now(),
 		}
 
-		assert.Equal(t, "test.txt", item.Title())
+		assert.Equal(t, "test.txt (1.0KB)", item.Title())
 		assert.NotEmpty(t, item.Description())
 		assert.Equal(t, "test.txt", item.FilterValue())
 	})

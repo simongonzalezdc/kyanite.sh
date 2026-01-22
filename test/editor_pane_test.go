@@ -21,7 +21,7 @@ func TestEditorPaneModelCreation(t *testing.T) {
 	ta.Placeholder = "Start writing your lyrics..."
 
 	// Create editor pane model
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Verify model was created successfully
 	if model == nil {
@@ -41,9 +41,7 @@ func TestEditorPaneModelCreation(t *testing.T) {
 
 	// Verify status bar is initialized
 	statusBar := model
-	if statusBar == nil {
-		t.Error("Expected status bar to be initialized")
-	}
+	_ = statusBar
 
 	// Verify shortcut manager is initialized
 	shortcutManager := model.GetShortcutManager()
@@ -55,7 +53,7 @@ func TestEditorPaneModelCreation(t *testing.T) {
 // TestEditorPaneSyntaxHighlighting tests syntax highlighting functionality
 func TestEditorPaneSyntaxHighlighting(t *testing.T) {
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Test markdown content with various elements
 	testContent := `# Header 1
@@ -99,7 +97,7 @@ More lyrics here.`
 // TestEditorPaneFeatures tests editor feature toggles
 func TestEditorPaneFeatures(t *testing.T) {
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Test line numbers toggle (using shortcut action)
 	model, _ = model.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
@@ -114,7 +112,7 @@ func TestEditorPaneFeatures(t *testing.T) {
 // TestEditorPaneSearchFunctionality tests search and replace functionality
 func TestEditorPaneSearchFunctionality(t *testing.T) {
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Set content for searching
 	testContent := `Line 1: Hello world
@@ -148,7 +146,7 @@ func TestEditorPaneAutoSaveIntegration(t *testing.T) {
 	autoSaveService := app.NewAutoSaveService(database, nil)
 
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Set auto-save service
 	model.SetAutoSaveService(autoSaveService)
@@ -173,7 +171,7 @@ func TestEditorPaneAutoSaveIntegration(t *testing.T) {
 // TestEditorPaneStatusBarIntegration tests status bar integration
 func TestEditorPaneStatusBarIntegration(t *testing.T) {
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Set dimensions to trigger status bar updates
 	model, _ = model.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
@@ -205,7 +203,7 @@ More lyrics here`
 // TestEditorPaneKeyboardShortcuts tests keyboard shortcut handling
 func TestEditorPaneKeyboardShortcuts(t *testing.T) {
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Set dimensions
 	model, _ = model.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
@@ -232,7 +230,7 @@ func TestEditorPaneKeyboardShortcuts(t *testing.T) {
 // TestEditorPaneContentOperations tests content manipulation operations
 func TestEditorPaneContentOperations(t *testing.T) {
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Test setting and getting text
 	testContent := "Initial content"
@@ -255,7 +253,7 @@ func TestEditorPaneContentOperations(t *testing.T) {
 // TestEditorPaneSongIntegration tests song integration functionality
 func TestEditorPaneSongIntegration(t *testing.T) {
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Create test song
 	testSong := &domain.Song{
@@ -291,7 +289,7 @@ func TestEditorPaneSongIntegration(t *testing.T) {
 // TestEditorPaneViewRendering tests view rendering with different content types
 func TestEditorPaneViewRendering(t *testing.T) {
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Set dimensions
 	model, _ = model.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
@@ -338,7 +336,7 @@ Final content here.`
 // TestEditorPaneResponsiveBehavior tests responsive behavior
 func TestEditorPaneResponsiveBehavior(t *testing.T) {
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Test different terminal sizes
 	sizes := []struct {
@@ -366,7 +364,7 @@ func TestEditorPaneResponsiveBehavior(t *testing.T) {
 func TestEditorPaneErrorHandling(t *testing.T) {
 	// Test with valid textarea (error handling is tested through other means)
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	if model == nil {
 		t.Error("Expected model to be created successfully")
@@ -383,7 +381,7 @@ func TestEditorPaneErrorHandling(t *testing.T) {
 // TestEditorPanePerformance tests performance with large content
 func TestEditorPanePerformance(t *testing.T) {
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Create large content for performance testing
 	var largeContent strings.Builder
@@ -430,7 +428,7 @@ Should maintain smooth operation even with large documents.
 // BenchmarkEditorPaneRendering benchmarks editor pane rendering performance
 func BenchmarkEditorPaneRendering(b *testing.B) {
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 	model, _ = model.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 
 	// Create test content
@@ -470,7 +468,7 @@ Performance is important`
 // BenchmarkEditorPaneSyntaxHighlighting benchmarks syntax highlighting performance
 func BenchmarkEditorPaneSyntaxHighlighting(b *testing.B) {
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Create content with various markdown elements
 	content := `# Header
@@ -496,7 +494,7 @@ func BenchmarkEditorPaneSyntaxHighlighting(b *testing.B) {
 // TestEditorPaneWordWrap tests word wrapping functionality
 func TestEditorPaneWordWrap(t *testing.T) {
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Set narrow width to test word wrapping
 	model, _ = model.Update(tea.WindowSizeMsg{Width: 40, Height: 10})
@@ -516,7 +514,7 @@ func TestEditorPaneWordWrap(t *testing.T) {
 // TestEditorPaneLineNumbers tests line number display
 func TestEditorPaneLineNumbers(t *testing.T) {
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Set dimensions
 	model, _ = model.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
@@ -545,7 +543,7 @@ Line 5`
 // TestEditorPaneBracketMatching tests bracket matching functionality
 func TestEditorPaneBracketMatching(t *testing.T) {
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Test content with brackets
 	bracketContent := `Function call: function()
@@ -564,7 +562,7 @@ Object property: object.property`
 // TestEditorPaneAutoIndent tests auto-indentation functionality
 func TestEditorPaneAutoIndent(t *testing.T) {
 	ta := textarea.New()
-	model := editor.NewEditorPaneModel(ta)
+	model := editor.NewEditorPaneModel(ta, nil)
 
 	// Create indented content
 	indentedContent := `function test() {

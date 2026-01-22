@@ -20,10 +20,10 @@ func TestPerformanceTargets(t *testing.T) {
 	// Performance targets to validate
 	targets := map[string]time.Duration{
 		"database_query_time": 100 * time.Millisecond, // <100ms for 95% of queries
-		"ai_response_time":    2 * time.Second,       // <2 seconds for all modes
-		"ui_render_time":      16 * time.Millisecond, // <16ms (60fps) for all operations
-		"theme_switch_time":   50 * time.Millisecond, // <50ms
-		"application_startup": 3 * time.Second,       // <3 seconds
+		"ai_response_time":    2 * time.Second,        // <2 seconds for all modes
+		"ui_render_time":      16 * time.Millisecond,  // <16ms (60fps) for all operations
+		"theme_switch_time":   50 * time.Millisecond,  // <50ms
+		"application_startup": 3 * time.Second,        // <3 seconds
 	}
 
 	t.Run("DatabasePerformance", func(t *testing.T) {
@@ -61,7 +61,7 @@ func testDatabasePerformance(t *testing.T, target time.Duration) {
 	config := db.Config{
 		DataDir: "./test_data",
 	}
-	
+
 	start := time.Now()
 	optimizedDB, err := db.NewPerformanceOptimizedDB(config)
 	if err != nil {
@@ -82,7 +82,7 @@ func testDatabasePerformance(t *testing.T, target time.Duration) {
 
 	for i := 0; i < totalQueries; i++ {
 		start := time.Now()
-		
+
 		// Test various query types
 		switch i % 4 {
 		case 0:
@@ -98,15 +98,15 @@ func testDatabasePerformance(t *testing.T, target time.Duration) {
 				t.Error("Database health check failed")
 			}
 		}
-		
+
 		queryTime := time.Since(start)
 		queryTimes = append(queryTimes, queryTime)
-		
+
 		if err != nil {
 			// Some queries might fail due to no data, that's okay for performance testing
 			continue
 		}
-		
+
 		if queryTime > target {
 			slowQueries++
 		}
@@ -118,11 +118,11 @@ func testDatabasePerformance(t *testing.T, target time.Duration) {
 		totalTime += qt
 	}
 	avgTime := totalTime / time.Duration(len(queryTimes))
-	
+
 	// Calculate 95th percentile
 	sortedTimes := make([]time.Duration, len(queryTimes))
 	copy(sortedTimes, queryTimes)
-	
+
 	// Simple sort (not optimal but sufficient for testing)
 	for i := 0; i < len(sortedTimes); i++ {
 		for j := i + 1; j < len(sortedTimes); j++ {
@@ -131,7 +131,7 @@ func testDatabasePerformance(t *testing.T, target time.Duration) {
 			}
 		}
 	}
-	
+
 	p95Index := int(float64(len(sortedTimes)) * 0.95)
 	if p95Index >= len(sortedTimes) {
 		p95Index = len(sortedTimes) - 1
@@ -177,7 +177,7 @@ func testAIPerformance(t *testing.T, target time.Duration) {
 		RequestTimeout:        10 * time.Second,
 		EnableMetrics:         true,
 	}
-	
+
 	aiService := ai.NewPerformanceOptimizedAI(config)
 	defer aiService.Close()
 
@@ -187,10 +187,10 @@ func testAIPerformance(t *testing.T, target time.Duration) {
 	responseTimes := make([]time.Duration, 0, totalRequests)
 
 	ctx := context.Background()
-	
+
 	for i := 0; i < totalRequests; i++ {
 		start := time.Now()
-		
+
 		// Test different AI modes
 		mode := ai.QuickIdeaModeSpark
 		switch i % 4 {
@@ -203,7 +203,7 @@ func testAIPerformance(t *testing.T, target time.Duration) {
 		case 3:
 			mode = ai.QuickIdeaModeCheck
 		}
-		
+
 		_, err := aiService.GenerateWithContextOptimized(
 			ctx,
 			ai.ContentTypeLyrics,
@@ -211,15 +211,15 @@ func testAIPerformance(t *testing.T, target time.Duration) {
 			"test content for performance testing",
 			map[string]string{"test": "performance"},
 		)
-		
+
 		responseTime := time.Since(start)
 		responseTimes = append(responseTimes, responseTime)
-		
+
 		if err != nil {
 			// Some requests might fail due to mock implementation, that's okay
 			continue
 		}
-		
+
 		if responseTime > target {
 			slowResponses++
 		}
@@ -267,16 +267,16 @@ func testAIPerformance(t *testing.T, target time.Duration) {
 func testUIPerformance(t *testing.T, target time.Duration) {
 	// Initialize performance-optimized UI
 	config := ui.UIPerformanceConfig{
-		MaxFrameRate:       60,
-		EnableRenderCache:  true,
-		CacheMaxSize:       1000,
-		EnableLazyLoading:  true,
-		AnimationPoolSize:  50,
+		MaxFrameRate:      60,
+		EnableRenderCache: true,
+		CacheMaxSize:      1000,
+		EnableLazyLoading: true,
+		AnimationPoolSize: 50,
 		ThemePreloadCount: 3,
-		EnableMetrics:      true,
-		RenderTimeout:      16 * time.Millisecond,
+		EnableMetrics:     true,
+		RenderTimeout:     16 * time.Millisecond,
 	}
-	
+
 	uiService := ui.NewPerformanceOptimizedUI(config)
 	defer uiService.Close()
 
@@ -287,7 +287,7 @@ func testUIPerformance(t *testing.T, target time.Duration) {
 
 	for i := 0; i < totalRenders; i++ {
 		start := time.Now()
-		
+
 		// Test different UI components
 		component := "status"
 		switch i % 4 {
@@ -300,16 +300,16 @@ func testUIPerformance(t *testing.T, target time.Duration) {
 		case 3:
 			component = "footer"
 		}
-		
+
 		rendered := uiService.RenderOptimized(component, 80, 24, "default")
 		renderTime := time.Since(start)
 		renderTimes = append(renderTimes, renderTime)
-		
+
 		if rendered == "" {
 			// Frame was dropped due to rate limiting
 			continue
 		}
-		
+
 		if renderTime > target {
 			slowRenders++
 		}
@@ -337,13 +337,15 @@ func testUIPerformance(t *testing.T, target time.Duration) {
 	t.Logf("  Cache hit rate: %.2f%%", cacheStats["hit_rate"].(float64)*100)
 
 	// Calculate FPS
-	if avgTime > 0 {
+	if avgTime >= time.Millisecond {
 		fps := 1000 / avgTime.Milliseconds()
 		t.Logf("  Estimated FPS: %d", fps)
-		
+
 		if fps < 55 { // Allow some tolerance below 60fps
 			t.Errorf("UI frame rate below target: %d < 55 FPS", fps)
 		}
+	} else if avgTime > 0 {
+		t.Logf("  Estimated FPS: >1000 (ultra-fast)")
 	}
 
 	// Validate targets
@@ -354,7 +356,7 @@ func testUIPerformance(t *testing.T, target time.Duration) {
 	// Test theme switching performance
 	themeSwitchTime := uiService.SwitchThemeOptimized("dark")
 	t.Logf("  Theme switch time: %v", themeSwitchTime)
-	
+
 	if themeSwitchTime > 50*time.Millisecond {
 		t.Errorf("Theme switch time exceeded target: %v > 50ms", themeSwitchTime)
 	}
@@ -368,16 +370,16 @@ func testUIPerformance(t *testing.T, target time.Duration) {
 func testThemePerformance(t *testing.T, target time.Duration) {
 	// Initialize performance-optimized theme manager
 	config := theme.ThemePerformanceConfig{
-		PreloadThemes:      []string{"default", "dark", "light"},
-		CacheSize:          100,
-		EnableAsyncSave:    true,
-		SaveBatchSize:      5,
-		SaveInterval:       1 * time.Second,
-		EnableRenderCache:  true,
-		RenderCacheSize:    200,
-		EnableMetrics:      true,
+		PreloadThemes:     []string{"default", "dark", "light"},
+		CacheSize:         100,
+		EnableAsyncSave:   true,
+		SaveBatchSize:     5,
+		SaveInterval:      1 * time.Second,
+		EnableRenderCache: true,
+		RenderCacheSize:   200,
+		EnableMetrics:     true,
 	}
-	
+
 	themeManager := theme.NewPerformanceOptimizedManager(config)
 	defer themeManager.Close()
 
@@ -388,9 +390,9 @@ func testThemePerformance(t *testing.T, target time.Duration) {
 	for i := 0; i < 20; i++ {
 		themeName := themes[i%len(themes)]
 		start := time.Now()
-		
+
 		themeManager.SetThemeOptimized(themeName)
-		
+
 		switchTime := time.Since(start)
 		switchTimes = append(switchTimes, switchTime)
 	}
@@ -429,17 +431,17 @@ func testCollaborationPerformance(t *testing.T) {
 	// Initialize performance-optimized collaboration manager
 	mockDB := &db.DB{}
 	config := collaboration.CollaborationPerformanceConfig{
-		SessionCacheSize:     100,
-		OperationPoolSize:    50,
-		BatchSize:            10,
-		BatchTimeout:         100 * time.Millisecond,
-		ConnectionPoolSize:   20,
-		ConnectionTimeout:    30 * time.Second,
-		EnableMetrics:        true,
-		EnableCompression:    false,
-		MaxConcurrentUsers:   50,
+		SessionCacheSize:   100,
+		OperationPoolSize:  50,
+		BatchSize:          10,
+		BatchTimeout:       100 * time.Millisecond,
+		ConnectionPoolSize: 20,
+		ConnectionTimeout:  30 * time.Second,
+		EnableMetrics:      true,
+		EnableCompression:  false,
+		MaxConcurrentUsers: 50,
 	}
-	
+
 	collabManager := collaboration.NewPerformanceOptimizedCollaborationManager(mockDB, config)
 	defer collabManager.Close()
 
@@ -450,17 +452,17 @@ func testCollaborationPerformance(t *testing.T) {
 	// Test session creation
 	for i := 0; i < 10; i++ {
 		start := time.Now()
-		
+
 		_, err := collabManager.CreateSessionOptimized(
 			i,
 			fmt.Sprintf("test-session-%d", i),
 			"test-user",
 			collaboration.SessionSettings{},
 		)
-		
+
 		creationTime := time.Since(start)
 		sessionCreationTimes = append(sessionCreationTimes, creationTime)
-		
+
 		if err != nil {
 			// Some operations might fail due to mock implementation
 			continue
@@ -470,18 +472,18 @@ func testCollaborationPerformance(t *testing.T) {
 	// Test operations
 	for i := 0; i < 50; i++ {
 		start := time.Now()
-		
+
 		op := collaboration.Operation{
 			Type:     "insert",
 			Position: i,
 			Content:  fmt.Sprintf("test operation %d", i),
 		}
-		
+
 		err := collabManager.ApplyOperationOptimized("test-session", "test-user", op)
-		
+
 		operationTime := time.Since(start)
 		operationTimes = append(operationTimes, operationTime)
-		
+
 		if err != nil {
 			// Some operations might fail due to mock implementation
 			continue
@@ -496,12 +498,12 @@ func testCollaborationPerformance(t *testing.T) {
 	for _, ot := range operationTimes {
 		totalOperationTime += ot
 	}
-	
+
 	avgSessionTime := time.Duration(0)
 	if len(sessionCreationTimes) > 0 {
 		avgSessionTime = totalSessionTime / time.Duration(len(sessionCreationTimes))
 	}
-	
+
 	avgOperationTime := time.Duration(0)
 	if len(operationTimes) > 0 {
 		avgOperationTime = totalOperationTime / time.Duration(len(operationTimes))
@@ -530,19 +532,19 @@ func testCollaborationPerformance(t *testing.T) {
 func testMemoryPerformance(t *testing.T) {
 	// Initialize memory optimizer
 	config := performance.MemoryOptimizerConfig{
-		EnableMonitoring:       true,
-		EnableGCOptimization:   true,
-		EnableObjectPooling:    true,
-		MemoryCheckInterval:    5 * time.Second,
-		GCThreshold:           0.8,
-		PressureThreshold:     0.9,
-		MaxHistorySize:        100,
-		StringPoolSize:        1000,
-		BufferPoolSize:        100,
-		EnableAdaptiveGC:      true,
-		TargetMemoryUsage:     100 * 1024 * 1024, // 100MB
+		EnableMonitoring:     true,
+		EnableGCOptimization: true,
+		EnableObjectPooling:  true,
+		MemoryCheckInterval:  5 * time.Second,
+		GCThreshold:          0.8,
+		PressureThreshold:    0.9,
+		MaxHistorySize:       100,
+		StringPoolSize:       1000,
+		BufferPoolSize:       100,
+		EnableAdaptiveGC:     true,
+		TargetMemoryUsage:    100 * 1024 * 1024, // 100MB
 	}
-	
+
 	memOptimizer := performance.NewMemoryOptimizer(config)
 	defer memOptimizer.Stop()
 
@@ -551,39 +553,39 @@ func testMemoryPerformance(t *testing.T) {
 
 	// Test memory usage under load
 	initialMemory := memOptimizer.GetMemoryMetrics()
-	
+
 	// Simulate memory usage
 	for i := 0; i < 1000; i++ {
 		// Get strings from pool
 		s := memOptimizer.GetString()
 		memOptimizer.PutString(s)
-		
+
 		// Get buffers from pool
 		buf := memOptimizer.GetBuffer()
 		memOptimizer.PutBuffer(buf)
 	}
-	
+
 	// Force garbage collection to see effect
 	start := time.Now()
 	// Force garbage collection manually since triggerGC is private
 	runtime.GC()
 	gcTime := time.Since(start)
-	
+
 	finalMemory := memOptimizer.GetMemoryMetrics()
 	peakMemory := memOptimizer.GetPeakMemoryMetrics()
-	
+
 	t.Logf("Memory Performance Results:")
 	t.Logf("  Initial heap alloc: %d bytes", initialMemory.HeapAlloc)
 	t.Logf("  Final heap alloc: %d bytes", finalMemory.HeapAlloc)
 	t.Logf("  Peak heap alloc: %d bytes", peakMemory.HeapAlloc)
 	t.Logf("  Target memory usage: %d bytes", config.TargetMemoryUsage)
 	t.Logf("  GC time: %v", gcTime)
-	
+
 	// Validate memory targets
 	if finalMemory.HeapAlloc > config.TargetMemoryUsage {
 		t.Errorf("Memory usage exceeds target: %d > %d bytes", finalMemory.HeapAlloc, config.TargetMemoryUsage)
 	}
-	
+
 	// Get memory report
 	report := memOptimizer.GetMemoryReport()
 	t.Logf("Memory performance report: %+v", report)
@@ -593,23 +595,23 @@ func testMemoryPerformance(t *testing.T) {
 func testIntegratedPerformance(t *testing.T, targets map[string]time.Duration) {
 	// Initialize performance manager
 	config := performance.PerformanceManagerConfig{
-		EnableDBOptimization:       true,
-		EnableAIOptimization:       true,
-		EnableUIOptimization:       true,
-		EnableThemeOptimization:    true,
-		EnableCollabOptimization:   true,
-		EnableMemoryOptimization:   true,
-		EnableMonitoring:           true,
-		MetricsCollectionInterval:  1 * time.Second,
-		PerformanceReportInterval:  2 * time.Second,
-		EnableAutoTuning:           true,
-		TargetResponseTime:         targets["ai_response_time"],
-		TargetMemoryUsage:          100 * 1024 * 1024, // 100MB
-		EnableRegressionDetection:  true,
+		EnableDBOptimization:      true,
+		EnableAIOptimization:      true,
+		EnableUIOptimization:      true,
+		EnableThemeOptimization:   true,
+		EnableCollabOptimization:  true,
+		EnableMemoryOptimization:  true,
+		EnableMonitoring:          true,
+		MetricsCollectionInterval: 1 * time.Second,
+		PerformanceReportInterval: 2 * time.Second,
+		EnableAutoTuning:          true,
+		TargetResponseTime:        targets["ai_response_time"],
+		TargetMemoryUsage:         100 * 1024 * 1024, // 100MB
+		EnableRegressionDetection: true,
 	}
-	
+
 	perfManager := performance.NewPerformanceManager(config)
-	
+
 	// Initialize all components
 	start := time.Now()
 	err := perfManager.Initialize()
@@ -617,29 +619,29 @@ func testIntegratedPerformance(t *testing.T, targets map[string]time.Duration) {
 		t.Fatalf("Failed to initialize performance manager: %v", err)
 	}
 	initTime := time.Since(start)
-	
+
 	t.Logf("Performance manager initialization time: %v", initTime)
 	if initTime > targets["application_startup"] {
 		t.Errorf("Performance manager initialization exceeded target: %v > %v", initTime, targets["application_startup"])
 	}
-	
+
 	// Start performance monitoring
 	err = perfManager.Start()
 	if err != nil {
 		t.Fatalf("Failed to start performance manager: %v", err)
 	}
 	defer perfManager.Stop()
-	
+
 	// Let it run for a bit to collect metrics
 	time.Sleep(3 * time.Second)
-	
+
 	// Get comprehensive performance report
 	report := perfManager.GetPerformanceReport()
 	targetsReport := perfManager.GetPerformanceTargets()
-	
+
 	t.Logf("Integrated Performance Report:")
 	t.Logf("  Performance targets: %+v", targetsReport)
-	
+
 	// Validate that all components are reporting
 	if _, ok := report["database"]; !ok {
 		t.Error("Database metrics missing from integrated report")
@@ -659,11 +661,11 @@ func testIntegratedPerformance(t *testing.T, targets map[string]time.Duration) {
 	if _, ok := report["aggregated"]; !ok {
 		t.Error("Aggregated metrics missing from integrated report")
 	}
-	
+
 	// Check aggregated metrics
 	if aggregated, ok := report["aggregated"].(map[string]interface{}); ok {
 		t.Logf("Aggregated metrics: %+v", aggregated)
-		
+
 		// Validate database performance in aggregated metrics
 		if dbMetrics, ok := aggregated["database"].(map[string]interface{}); ok {
 			if queryTime, ok := dbMetrics["total_query_time"].(int64); ok {
@@ -673,7 +675,7 @@ func testIntegratedPerformance(t *testing.T, targets map[string]time.Duration) {
 				}
 			}
 		}
-		
+
 		// Validate AI performance in aggregated metrics
 		if aiMetrics, ok := aggregated["ai"].(map[string]interface{}); ok {
 			if responseTime, ok := aiMetrics["average_response_time"].(float64); ok {
@@ -683,7 +685,7 @@ func testIntegratedPerformance(t *testing.T, targets map[string]time.Duration) {
 				}
 			}
 		}
-		
+
 		// Validate UI performance in aggregated metrics
 		if uiMetrics, ok := aggregated["ui"].(map[string]interface{}); ok {
 			if renderTime, ok := uiMetrics["average_render_time"].(float64); ok {
@@ -693,7 +695,7 @@ func testIntegratedPerformance(t *testing.T, targets map[string]time.Duration) {
 				}
 			}
 		}
-		
+
 		// Validate memory performance in aggregated metrics
 		if memMetrics, ok := aggregated["memory"].(map[string]interface{}); ok {
 			if heapAlloc, ok := memMetrics["average_heap_alloc"].(float64); ok {
@@ -704,20 +706,20 @@ func testIntegratedPerformance(t *testing.T, targets map[string]time.Duration) {
 			}
 		}
 	}
-	
+
 	t.Log("Integrated performance validation completed successfully")
 }
 
 // Helper function to get database performance report
 func getDatabasePerformanceReport(db *db.PerformanceOptimizedDB) map[string]interface{} {
 	metrics := db.GetPerformanceMetrics()
-	
+
 	return map[string]interface{}{
-		"query_count":      metrics.QueryCount,
-		"total_query_time": metrics.TotalQueryTime,
-		"slow_queries":     metrics.SlowQueries,
+		"query_count":       metrics.QueryCount,
+		"total_query_time":  metrics.TotalQueryTime,
+		"slow_queries":      metrics.SlowQueries,
 		"connection_errors": metrics.ConnectionErrors,
-		"healthy":          db.IsHealthy(),
+		"healthy":           db.IsHealthy(),
 	}
 }
 
@@ -726,15 +728,15 @@ func BenchmarkDatabaseQueries(b *testing.B) {
 	config := db.Config{
 		DataDir: "./test_data",
 	}
-	
+
 	optimizedDB, err := db.NewPerformanceOptimizedDB(config)
 	if err != nil {
 		b.Fatalf("Failed to create performance-optimized database: %v", err)
 	}
 	defer optimizedDB.Close()
-	
+
 	b.ResetTimer()
-	
+
 	for i := 0; i < b.N; i++ {
 		switch i % 3 {
 		case 0:
@@ -758,14 +760,14 @@ func BenchmarkAIResponses(b *testing.B) {
 		RequestTimeout:        10 * time.Second,
 		EnableMetrics:         true,
 	}
-	
+
 	aiService := ai.NewPerformanceOptimizedAI(config)
 	defer aiService.Close()
-	
+
 	ctx := context.Background()
-	
+
 	b.ResetTimer()
-	
+
 	for i := 0; i < b.N; i++ {
 		aiService.GenerateWithContextOptimized(
 			ctx,
@@ -780,21 +782,21 @@ func BenchmarkAIResponses(b *testing.B) {
 // BenchmarkUIRendering benchmarks UI rendering performance
 func BenchmarkUIRendering(b *testing.B) {
 	config := ui.UIPerformanceConfig{
-		MaxFrameRate:       60,
-		EnableRenderCache:  true,
-		CacheMaxSize:       1000,
-		EnableLazyLoading:  true,
-		AnimationPoolSize:  50,
+		MaxFrameRate:      60,
+		EnableRenderCache: true,
+		CacheMaxSize:      1000,
+		EnableLazyLoading: true,
+		AnimationPoolSize: 50,
 		ThemePreloadCount: 3,
-		EnableMetrics:      true,
-		RenderTimeout:      16 * time.Millisecond,
+		EnableMetrics:     true,
+		RenderTimeout:     16 * time.Millisecond,
 	}
-	
+
 	uiService := ui.NewPerformanceOptimizedUI(config)
 	defer uiService.Close()
-	
+
 	b.ResetTimer()
-	
+
 	for i := 0; i < b.N; i++ {
 		component := "status"
 		switch i % 3 {
@@ -805,7 +807,7 @@ func BenchmarkUIRendering(b *testing.B) {
 		case 2:
 			component = "header"
 		}
-		
+
 		uiService.RenderOptimized(component, 80, 24, "default")
 	}
 }

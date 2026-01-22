@@ -78,14 +78,18 @@ func (cpl *ChordProgressionLoader) LoadProgressions() error {
 // GetAllProgressions returns all chord progressions
 func (cpl *ChordProgressionLoader) GetAllProgressions() ([]ChordProgression, error) {
 	cpl.mu.RLock()
-	defer cpl.mu.RUnlock()
+	if cpl.initialized {
+		defer cpl.mu.RUnlock()
+		return cpl.data.Progressions, nil
+	}
+	cpl.mu.RUnlock()
 
-	if !cpl.initialized {
-		if err := cpl.LoadProgressions(); err != nil {
-			return nil, err
-		}
+	if err := cpl.LoadProgressions(); err != nil {
+		return nil, err
 	}
 
+	cpl.mu.RLock()
+	defer cpl.mu.RUnlock()
 	return cpl.data.Progressions, nil
 }
 

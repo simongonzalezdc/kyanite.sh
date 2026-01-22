@@ -1,6 +1,7 @@
 package editor
 
 import (
+	"sort"
 	"strings"
 	"testing"
 
@@ -52,7 +53,7 @@ func TestThemeIntegrationWithLyricFeatures(t *testing.T) {
 		}
 
 		textArea := textarea.New()
-		editorModel := NewEditorPaneModel(textArea)
+		editorModel := NewEditorPaneModel(textArea, nil)
 		chords := []string{"Cmaj7", "Am7", "Fmaj7", "G7"}
 
 		editorModel.insertChords(chords)
@@ -82,6 +83,7 @@ func TestThemeShortcutCycling(t *testing.T) {
 	}()
 
 	themeIDs := theme.ListThemes()
+	sort.Strings(themeIDs)
 	if len(themeIDs) < 2 {
 		t.Skip("not enough themes registered to test cycling")
 	}

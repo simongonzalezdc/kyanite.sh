@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Kyanite/noise/internal/app/theory"
 	"github.com/Kyanite/noise/internal/theme"
 	"github.com/Kyanite/noise/internal/ui/dimension"
 	tea "github.com/charmbracelet/bubbletea"
@@ -56,8 +57,10 @@ type PreviewPaneModel struct {
 	showWordCount   bool
 	showReadingTime bool
 	showTOC         bool
+	showProsody     bool
 	previewStats    PreviewStats
 	tocEntries      []TOCEntry
+	prosodyEngine   *theory.ProsodyEngine
 
 	// Performance tracking
 	renderCache     map[string]string
@@ -121,6 +124,8 @@ func NewPreviewPaneModel() *PreviewPaneModel {
 		currentScroll:   0.0,
 		isScrolling:     false,
 		shortcutManager: NewShortcutManager(),
+		prosodyEngine:   theory.NewProsodyEngine(),
+		showProsody:     false,
 	}
 
 	t := theme.GetManager().Current()
@@ -378,6 +383,10 @@ func (m *PreviewPaneModel) Update(msg tea.Msg) (*PreviewPaneModel, tea.Cmd) {
 			if m.focused {
 				m.resetZoom()
 			}
+		case "ctrl+p":
+			if m.focused {
+				m.showProsody = !m.showProsody
+			}
 		}
 	}
 
@@ -424,6 +433,11 @@ func (m *PreviewPaneModel) View() string {
 	if lyricLines := m.generateLyricFallback(m.content); len(lyricLines) > 0 {
 		lyricSummary := strings.Join(lyricLines, "\n") + "\n\n"
 		renderedContent = lyricSummary + renderedContent
+	}
+
+	// Apply Prosody Overlay if enabled
+	if m.showProsody && m.prosodyEngine != nil {
+		renderedContent = m.renderProsodyOverlay(renderedContent)
 	}
 
 	// Split content into lines once so we can reuse them below.
@@ -796,6 +810,45 @@ func (m *PreviewPaneModel) renderBasicContent() string {
 }
 
 // renderError renders an error message
+// renderProsodyOverlay annotates lines with syllable counts and stress patterns
+func (m *PreviewPaneModel) renderProsodyOverlay(content string) string {
+	lines := strings.Split(content, "\n")
+	t := theme.GetManager().Current()
+
+	syllableStyle := lipgloss.NewStyle().Foreground(t.Accent).Italic(true)
+
+	var annotated []string
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") || strings.HasPrefix(trimmed, "[") {
+			annotated = append(annotated, line)
+			continue
+		}
+
+		count := m.prosodyEngine.CountSyllables(trimmed)
+		if count > 0 {
+			analysis := m.prosodyEngine.AnalyzeLine(trimmed)
+
+			// Build stress pattern visualization
+			var stress string
+			for _, s := range analysis.Syllables {
+				if s.Stress == theory.Stressed {
+					stress += "/"
+				} else {
+					stress += "."
+				}
+			}
+
+			annotation := syllableStyle.Render(fmt.Sprintf("[%d syg | %s]", count, stress))
+			annotated = append(annotated, line+"  "+annotation)
+		} else {
+			annotated = append(annotated, line)
+		}
+	}
+
+	return strings.Join(annotated, "\n")
+}
+
 func (m *PreviewPaneModel) renderError(err error) string {
 	errorMsg := fmt.Sprintf("Error rendering markdown: %s", err.Error())
 	t := theme.GetManager().Current()

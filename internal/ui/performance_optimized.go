@@ -12,30 +12,31 @@ import (
 // PerformanceOptimizedUI provides UI components with performance optimizations
 type PerformanceOptimizedUI struct {
 	// Rendering optimization
-	renderCache    *RenderCache
+	renderCache      *RenderCache
 	frameRateLimiter *FrameRateLimiter
-	animationPool  *AnimationPool
-	
+	animationPool    *AnimationPool
+
 	// Theme optimization
 	themeOptimizer *ThemeOptimizer
-	
+
 	// Performance monitoring
-	uiMetrics      *UIMetrics
-	
+	uiMetrics      UIMetrics
+	uiMetricsMutex sync.RWMutex
+
 	// Configuration
 	config UIPerformanceConfig
 }
 
 // UIPerformanceConfig defines UI performance optimization settings
 type UIPerformanceConfig struct {
-	MaxFrameRate       int           `json:"max_frame_rate"`
-	EnableRenderCache  bool          `json:"enable_render_cache"`
-	CacheMaxSize       int           `json:"cache_max_size"`
-	EnableLazyLoading  bool          `json:"enable_lazy_loading"`
-	AnimationPoolSize  int           `json:"animation_pool_size"`
+	MaxFrameRate      int           `json:"max_frame_rate"`
+	EnableRenderCache bool          `json:"enable_render_cache"`
+	CacheMaxSize      int           `json:"cache_max_size"`
+	EnableLazyLoading bool          `json:"enable_lazy_loading"`
+	AnimationPoolSize int           `json:"animation_pool_size"`
 	ThemePreloadCount int           `json:"theme_preload_count"`
-	EnableMetrics      bool          `json:"enable_metrics"`
-	RenderTimeout      time.Duration `json:"render_timeout"`
+	EnableMetrics     bool          `json:"enable_metrics"`
+	RenderTimeout     time.Duration `json:"render_timeout"`
 }
 
 // RenderCache provides intelligent caching for rendered UI components
@@ -43,7 +44,7 @@ type RenderCache struct {
 	entries map[string]*RenderEntry
 	mutex   sync.RWMutex
 	maxSize int
-	
+
 	// Cache statistics
 	hits   int64
 	misses int64
@@ -51,11 +52,11 @@ type RenderCache struct {
 
 // RenderEntry represents a cached rendered component
 type RenderEntry struct {
-	Rendered string
-	Width    int
-	Height   int
-	Theme    string
-	Timestamp time.Time
+	Rendered    string
+	Width       int
+	Height      int
+	Theme       string
+	Timestamp   time.Time
 	AccessCount int
 }
 
@@ -69,13 +70,13 @@ type FrameRateLimiter struct {
 
 // AnimationPool provides reusable animation components
 type AnimationPool struct {
-	spinners    []*AnimatedLoadingSpinner
-	statusBars  []*AnimatedStatusBar
+	spinners      []*AnimatedLoadingSpinner
+	statusBars    []*AnimatedStatusBar
 	notifications []*AnimatedNotification
-	spinnerMutex sync.Mutex
-	statusMutex  sync.Mutex
-	notifMutex   sync.Mutex
-	nextIndex    int
+	spinnerMutex  sync.Mutex
+	statusMutex   sync.Mutex
+	notifMutex    sync.Mutex
+	nextIndex     int
 }
 
 // ThemeOptimizer provides optimized theme switching and caching
@@ -88,13 +89,12 @@ type ThemeOptimizer struct {
 
 // UIMetrics tracks UI performance metrics
 type UIMetrics struct {
-	RenderCount      int64         `json:"render_count"`
-	CacheHits        int64         `json:"cache_hits"`
-	CacheMisses      int64         `json:"cache_misses"`
+	RenderCount       int64         `json:"render_count"`
+	CacheHits         int64         `json:"cache_hits"`
+	CacheMisses       int64         `json:"cache_misses"`
 	AverageRenderTime time.Duration `json:"average_render_time"`
-	ThemeSwitchTime  time.Duration `json:"theme_switch_time"`
-	FrameDrops       int64         `json:"frame_drops"`
-	mutex            sync.RWMutex
+	ThemeSwitchTime   time.Duration `json:"theme_switch_time"`
+	FrameDrops        int64         `json:"frame_drops"`
 }
 
 // NewPerformanceOptimizedUI creates a new performance-optimized UI manager
@@ -121,7 +121,7 @@ func NewPerformanceOptimizedUI(config UIPerformanceConfig) *PerformanceOptimized
 		frameRateLimiter: NewFrameRateLimiter(config.MaxFrameRate),
 		animationPool:    NewAnimationPool(config.AnimationPoolSize),
 		themeOptimizer:   NewThemeOptimizer(config.ThemePreloadCount),
-		uiMetrics:        &UIMetrics{},
+		uiMetrics:        UIMetrics{},
 		config:           config,
 	}
 
@@ -180,11 +180,11 @@ func NewThemeOptimizer(preloadCount int) *ThemeOptimizer {
 // RenderOptimized renders a UI component with performance optimizations
 func (ui *PerformanceOptimizedUI) RenderOptimized(component string, width, height int, themeName string) string {
 	start := time.Now()
-	
+
 	// Update metrics
-	ui.uiMetrics.mutex.Lock()
+	ui.uiMetricsMutex.Lock()
 	ui.uiMetrics.RenderCount++
-	ui.uiMetrics.mutex.Unlock()
+	ui.uiMetricsMutex.Unlock()
 
 	defer func() {
 		duration := time.Since(start)
@@ -195,24 +195,24 @@ func (ui *PerformanceOptimizedUI) RenderOptimized(component string, width, heigh
 	if ui.config.EnableRenderCache {
 		cacheKey := ui.generateRenderCacheKey(component, width, height, themeName)
 		if cached, found := ui.renderCache.Get(cacheKey, width, height, themeName); found {
-			ui.uiMetrics.mutex.Lock()
+			ui.uiMetricsMutex.Lock()
 			ui.uiMetrics.CacheHits++
-			ui.uiMetrics.mutex.Unlock()
-			
+			ui.uiMetricsMutex.Unlock()
+
 			return cached
 		}
-		
-		ui.uiMetrics.mutex.Lock()
+
+		ui.uiMetricsMutex.Lock()
 		ui.uiMetrics.CacheMisses++
-		ui.uiMetrics.mutex.Unlock()
+		ui.uiMetricsMutex.Unlock()
 	}
 
 	// Apply frame rate limiting
 	if !ui.frameRateLimiter.CanRender() {
-		ui.uiMetrics.mutex.Lock()
+		ui.uiMetricsMutex.Lock()
 		ui.uiMetrics.FrameDrops++
-		ui.uiMetrics.mutex.Unlock()
-		
+		ui.uiMetricsMutex.Unlock()
+
 		return "" // Skip this frame
 	}
 
@@ -290,11 +290,11 @@ func (ui *PerformanceOptimizedUI) SwitchThemeOptimized(themeName string) time.Du
 	}
 
 	duration := time.Since(start)
-	
+
 	// Update metrics
-	ui.uiMetrics.mutex.Lock()
+	ui.uiMetricsMutex.Lock()
 	ui.uiMetrics.ThemeSwitchTime = duration
-	ui.uiMetrics.mutex.Unlock()
+	ui.uiMetricsMutex.Unlock()
 
 	return duration
 }
@@ -316,7 +316,7 @@ func (rc *RenderCache) Get(key string, width, height int, themeName string) (str
 
 	// Update access statistics
 	entry.AccessCount++
-	
+
 	rc.hits++
 	return entry.Rendered, true
 }
@@ -362,8 +362,8 @@ func (rc *RenderCache) evictLRU() {
 	first := true
 
 	for key, entry := range rc.entries {
-		if first || entry.AccessCount < lowestAccess || 
-		   (entry.AccessCount == lowestAccess && entry.Timestamp.Before(oldestTime)) {
+		if first || entry.AccessCount < lowestAccess ||
+			(entry.AccessCount == lowestAccess && entry.Timestamp.Before(oldestTime)) {
 			oldestKey = key
 			oldestTime = entry.Timestamp
 			lowestAccess = entry.AccessCount
@@ -403,7 +403,7 @@ func (to *ThemeOptimizer) preloadCommonThemes() {
 
 	// Preload common themes
 	commonThemes := []string{"default", "dark", "light"}
-	
+
 	for _, themeName := range commonThemes {
 		if themeValue := theme.GetTheme(themeName); themeValue.Name != "" {
 			to.preloadedThemes[themeName] = themeValue
@@ -456,7 +456,7 @@ func (ui *PerformanceOptimizedUI) generateRenderCacheKey(component string, width
 func (ui *PerformanceOptimizedUI) renderComponent(component string, width, height int, themeName string) string {
 	// This is a simplified implementation
 	// In a real application, this would render the actual component
-	
+
 	t := theme.GetManager().Current()
 	if themeName != "" {
 		if optTheme := ui.themeOptimizer.GetTheme(themeName); optTheme != nil {
@@ -482,8 +482,8 @@ func (ui *PerformanceOptimizedUI) renderComponent(component string, width, heigh
 
 // updateAverageRenderTime updates the rolling average render time
 func (ui *PerformanceOptimizedUI) updateAverageRenderTime(duration time.Duration) {
-	ui.uiMetrics.mutex.Lock()
-	defer ui.uiMetrics.mutex.Unlock()
+	ui.uiMetricsMutex.Lock()
+	defer ui.uiMetricsMutex.Unlock()
 
 	// Simple rolling average calculation
 	if ui.uiMetrics.AverageRenderTime == 0 {
@@ -498,16 +498,16 @@ func (ui *PerformanceOptimizedUI) updateAverageRenderTime(duration time.Duration
 
 // GetMetrics returns current UI performance metrics
 func (ui *PerformanceOptimizedUI) GetMetrics() UIMetrics {
-	ui.uiMetrics.mutex.RLock()
-	defer ui.uiMetrics.mutex.RUnlock()
+	ui.uiMetricsMutex.RLock()
+	defer ui.uiMetricsMutex.RUnlock()
 
-	return *ui.uiMetrics
+	return ui.uiMetrics
 }
 
 // GetPerformanceReport returns a comprehensive performance report
 func (ui *PerformanceOptimizedUI) GetPerformanceReport() map[string]interface{} {
 	metrics := ui.GetMetrics()
-	
+
 	report := map[string]interface{}{
 		"metrics": metrics,
 		"config":  ui.config,
@@ -519,8 +519,10 @@ func (ui *PerformanceOptimizedUI) GetPerformanceReport() map[string]interface{} 
 	}
 
 	// Calculate current FPS if we have render data
-	if metrics.AverageRenderTime > 0 {
+	if metrics.AverageRenderTime >= time.Millisecond {
 		report["current_fps"] = 1000 / metrics.AverageRenderTime.Milliseconds()
+	} else if metrics.AverageRenderTime > 0 {
+		report["current_fps"] = 1000 // Cap at 1000 for ultra-fast renders
 	}
 
 	return report
@@ -538,11 +540,11 @@ func (ui *PerformanceOptimizedUI) GetCacheStats() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"entries":    len(ui.renderCache.entries),
-		"max_size":   ui.renderCache.maxSize,
-		"hits":       ui.renderCache.hits,
-		"misses":     ui.renderCache.misses,
-		"hit_rate":   hitRate,
+		"entries":  len(ui.renderCache.entries),
+		"max_size": ui.renderCache.maxSize,
+		"hits":     ui.renderCache.hits,
+		"misses":   ui.renderCache.misses,
+		"hit_rate": hitRate,
 	}
 }
 
@@ -552,6 +554,6 @@ func (ui *PerformanceOptimizedUI) Close() error {
 	if ui.renderCache != nil {
 		ui.renderCache.Clear()
 	}
-	
+
 	return nil
 }

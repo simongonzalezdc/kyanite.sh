@@ -95,6 +95,22 @@ STRONG
 Add vivid sensory image
 `
 
+	cap.lyricPrompts[QuickIdeaModeHarmony] = `You generate musical chord progressions that complement specific lyrics.
+Lyrics Context:
+%s
+
+[GUARDRAILS]
+- Use standard chord symbols (e.g., Cmaj7, Am9).
+- Chords must match the emotional weight of the lyrics.
+- No conversational filler.
+
+Return three distinct progressions.
+Format:
+1. Chord - Chord - Chord - Chord
+2. Chord - Chord - Chord - Chord
+3. Chord - Chord - Chord - Chord
+`
+
 	// Pattern-specific prompts
 	cap.patternPrompts[QuickIdeaModeUnstick] = `You help musicians and producers develop musical patterns and progressions.
 Context (recent patterns):
@@ -165,6 +181,21 @@ STRONG
 Strengthen harmonic resolution
 `
 
+	cap.patternPrompts[QuickIdeaModeHarmony] = `You generate musical chord progressions based on a musical theme.
+Theme: %s
+
+[GUARDRAILS]
+- Use only standard chord symbols.
+- Ensure harmonic logic and voice leading.
+- No conversational filler.
+
+Return three distinct progressions.
+Format:
+1. Chord - Chord - Chord - Chord
+2. Chord - Chord - Chord - Chord
+3. Chord - Chord - Chord - Chord
+`
+
 	// Mixed content prompts
 	cap.mixedPrompts[QuickIdeaModeUnstick] = `You help songwriters develop both lyrics and musical patterns.
 Context (recent content):
@@ -231,6 +262,21 @@ Focus on:
 Example:
 OKAY
 Strengthen musical-rhythmic connection
+`
+
+	cap.mixedPrompts[QuickIdeaModeHarmony] = `You help songwriters develop chord progressions for mixed content.
+Context: %s
+
+[GUARDRAILS]
+- Use standard chord symbols.
+- Resolve tension effectively.
+- No conversational filler.
+
+Return three distinct progressions.
+Format:
+1. Chord - Chord - Chord - Chord
+2. Chord - Chord - Chord - Chord
+3. Chord - Chord - Chord - Chord
 `
 }
 
@@ -313,13 +359,19 @@ func (cap *ContextAwarePrompts) RenderPrompt(contentType ContentType, mode Quick
 	}
 
 	switch mode {
-	case QuickIdeaModeSpark:
+	case QuickIdeaModeSpark, QuickIdeaModeHarmony:
 		theme := strings.TrimSpace(options["theme"])
 		if theme == "" {
 			theme = "creativity"
 		}
 		return fmt.Sprintf(prompt, theme)
 	case QuickIdeaModeTweak, QuickIdeaModeCheck:
+		return fmt.Sprintf(prompt, strings.TrimSpace(context))
+	case QuickIdeaModeUnstick:
+		style := options["style"]
+		if style != "" {
+			return fmt.Sprintf("Style: %s\n", style) + fmt.Sprintf(prompt, strings.TrimSpace(context))
+		}
 		return fmt.Sprintf(prompt, strings.TrimSpace(context))
 	default:
 		return fmt.Sprintf(prompt, strings.TrimSpace(context))

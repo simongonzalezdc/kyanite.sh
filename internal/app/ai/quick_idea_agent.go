@@ -22,6 +22,8 @@ const (
 	QuickIdeaModeTweak QuickIdeaMode = "tweak"
 	// QuickIdeaModeCheck performs a lightweight quality check and returns a rating.
 	QuickIdeaModeCheck QuickIdeaMode = "check"
+	// QuickIdeaModeHarmony generates chord progressions based on a mood keyword.
+	QuickIdeaModeHarmony QuickIdeaMode = "harmony"
 
 	// defaultQuickIdeaTimeout configures the maximum time an AI request may take.
 	defaultQuickIdeaTimeout = 1700 * time.Millisecond
@@ -34,6 +36,7 @@ var supportedQuickIdeaModes = map[QuickIdeaMode]struct{}{
 	QuickIdeaModeSpark:   {},
 	QuickIdeaModeTweak:   {},
 	QuickIdeaModeCheck:   {},
+	QuickIdeaModeHarmony: {},
 }
 
 // QuickRequest encapsulates the data required to run a QuickIdeaAgent interaction.
@@ -256,6 +259,20 @@ func (a *QuickIdeaAgent) generateContextAwareFallback(req QuickRequest, contentT
 					fmt.Sprintf("%s as the skyline flickers", strings.TrimSpace(prefix)),
 				},
 			}
+		}
+
+	case QuickIdeaModeHarmony:
+		theme := strings.TrimSpace(req.Options["theme"])
+		if theme == "" {
+			theme = "all"
+		}
+		return &QuickResponse{
+			Suggestions: []string{
+				"C - F - G - C",
+				"Am - F - C - G",
+				"Dm - G7 - Cmaj7",
+			},
+			Tip: fmt.Sprintf("Fallback harmony for %s mood", theme),
 		}
 
 	case QuickIdeaModeSpark:

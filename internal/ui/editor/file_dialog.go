@@ -500,8 +500,8 @@ func (m *FileDialogModel) validateFilename(filename string) error {
 		return fmt.Errorf("filename must be relative to current directory")
 	}
 
-	// Check file extension for save dialogs
-	if (m.dialogType == DialogSave || m.dialogType == DialogSaveAs) && len(m.allowedExts) > 0 {
+	// Check file extension if allowed extensions are specified
+	if len(m.allowedExts) > 0 {
 		ext := strings.ToLower(filepath.Ext(filename))
 		allowed := false
 		for _, allowedExt := range m.allowedExts {

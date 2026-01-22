@@ -22,7 +22,8 @@ type PerformanceOptimizedAI struct {
 	// Performance optimization
 	responseCache  *ResponseCache
 	batchProcessor *BatchProcessor
-	metrics        *AIMetrics
+	metrics        AIMetrics
+	metricsMutex   sync.RWMutex
 
 	// Configuration
 	config OptimizationConfig
@@ -94,7 +95,6 @@ type AIMetrics struct {
 	AverageResponseTime time.Duration `json:"average_response_time"`
 	FailedRequests      int64         `json:"failed_requests"`
 	ConcurrentRequests  int64         `json:"concurrent_requests"`
-	mutex               sync.RWMutex
 }
 
 // NewPerformanceOptimizedAI creates a new performance-optimized AI service
@@ -118,7 +118,7 @@ func NewPerformanceOptimizedAI(config OptimizationConfig) *PerformanceOptimizedA
 		quickAgent:      NewQuickIdeaAgent(),
 		responseCache:   NewResponseCache(config.CacheMaxSize, config.CacheTTL),
 		batchProcessor:  NewBatchProcessor(config.BatchProcessing),
-		metrics:         &AIMetrics{},
+		metrics:         AIMetrics{},
 		config:          config,
 	}
 
@@ -154,15 +154,15 @@ func (ai *PerformanceOptimizedAI) GenerateWithContextOptimized(ctx context.Conte
 	start := time.Now()
 
 	// Update metrics
-	ai.metrics.mutex.Lock()
+	ai.metricsMutex.Lock()
 	ai.metrics.TotalRequests++
 	ai.metrics.ConcurrentRequests++
-	ai.metrics.mutex.Unlock()
+	ai.metricsMutex.Unlock()
 
 	defer func() {
-		ai.metrics.mutex.Lock()
+		ai.metricsMutex.Lock()
 		ai.metrics.ConcurrentRequests--
-		ai.metrics.mutex.Unlock()
+		ai.metricsMutex.Unlock()
 
 		latency := time.Since(start)
 		ai.updateAverageResponseTime(latency)
@@ -172,17 +172,17 @@ func (ai *PerformanceOptimizedAI) GenerateWithContextOptimized(ctx context.Conte
 	if ai.config.CacheEnabled {
 		cacheKey := ai.generateCacheKey(contentType, mode, contentText, options)
 		if cached, found := ai.responseCache.Get(cacheKey); found {
-			ai.metrics.mutex.Lock()
+			ai.metricsMutex.Lock()
 			ai.metrics.CacheHits++
-			ai.metrics.mutex.Unlock()
+			ai.metricsMutex.Unlock()
 
 			logging.GetDefaultLogger().Debug("AI response cache hit", "key", cacheKey[:16]+"...")
 			return cached, nil
 		}
 
-		ai.metrics.mutex.Lock()
+		ai.metricsMutex.Lock()
 		ai.metrics.CacheMisses++
-		ai.metrics.mutex.Unlock()
+		ai.metricsMutex.Unlock()
 	}
 
 	// Apply request timeout
@@ -214,9 +214,9 @@ func (ai *PerformanceOptimizedAI) GenerateWithContextOptimized(ctx context.Conte
 	}
 
 	if err != nil {
-		ai.metrics.mutex.Lock()
+		ai.metricsMutex.Lock()
 		ai.metrics.FailedRequests++
-		ai.metrics.mutex.Unlock()
+		ai.metricsMutex.Unlock()
 
 		return nil, fmt.Errorf("AI generation failed: %w", err)
 	}
@@ -444,8 +444,8 @@ func (bp *BatchProcessor) processBatch(batch []*BatchRequest) {
 
 // updateAverageResponseTime updates the rolling average response time
 func (ai *PerformanceOptimizedAI) updateAverageResponseTime(latency time.Duration) {
-	ai.metrics.mutex.Lock()
-	defer ai.metrics.mutex.Unlock()
+	ai.metricsMutex.Lock()
+	defer ai.metricsMutex.Unlock()
 
 	// Simple rolling average calculation
 	if ai.metrics.AverageResponseTime == 0 {
@@ -460,10 +460,10 @@ func (ai *PerformanceOptimizedAI) updateAverageResponseTime(latency time.Duratio
 
 // GetMetrics returns current AI performance metrics
 func (ai *PerformanceOptimizedAI) GetMetrics() AIMetrics {
-	ai.metrics.mutex.RLock()
-	defer ai.metrics.mutex.RUnlock()
+	ai.metricsMutex.RLock()
+	defer ai.metricsMutex.RUnlock()
 
-	return *ai.metrics
+	return ai.metrics
 }
 
 // GetPerformanceReport returns a comprehensive performance report

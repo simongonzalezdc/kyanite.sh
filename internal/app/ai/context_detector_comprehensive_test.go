@@ -609,28 +609,28 @@ func TestContextDetector_ContextAnalysisMethods(t *testing.T) {
 	}{
 		{
 			name:                "Clear lyric content",
-			content:             `[Verse]\nI love you more than words can say\nYou are my everything today`,
+			content:             "[Verse]\nI love you more than words can say\nYou are my everything today",
 			expectedContentType: ContentTypeLyrics,
 			isLyricContent:      true,
 			isPatternContent:    false,
 		},
 		{
 			name:                "Clear pattern content",
-			content:             `Verse: C - G - Am - F\nChorus: F - C - G - Am`,
+			content:             "Verse: C - G - Am - F\nChorus: F - C - G - Am",
 			expectedContentType: ContentTypePatterns,
 			isLyricContent:      false,
 			isPatternContent:    true,
 		},
 		{
 			name:                "Mixed content with more lyrics",
-			content:             `[Verse]\nC G Am F\nI love you\nThe city lights`,
+			content:             "[Verse]\nC G Am F\nI love you\nThe city lights",
 			expectedContentType: ContentTypeLyrics,
 			isLyricContent:      true,
 			isPatternContent:    false,
 		},
 		{
 			name:                "Mixed content with more patterns",
-			content:             `[Verse]\nC G Am F\nC - G - Am - F\nI - V - vi - IV`,
+			content:             "[Verse]\nC G Am F\nC - G - Am - F\nI - V - vi - IV",
 			expectedContentType: ContentTypePatterns,
 			isLyricContent:      false,
 			isPatternContent:    true,

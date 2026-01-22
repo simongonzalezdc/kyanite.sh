@@ -228,8 +228,12 @@ func (sm *ShortcutManager) HandleKey(msg tea.KeyMsg) (ShortcutAction, bool) {
 				}
 			}
 
-			// Allow partial contains (e.g., "ctrl+q" vs "ctrl+Q") and common aliases
-			if strings.Contains(bKey, normalizedMsg) || strings.Contains(normalizedMsg, bKey) {
+			// Allow partial contains for multi-character keys only, or exact matches
+			if len(bKey) > 1 && len(normalizedMsg) > 1 {
+				if strings.Contains(bKey, normalizedMsg) || strings.Contains(normalizedMsg, bKey) {
+					return sm.createActionFromBinding(binding, bKey), true
+				}
+			} else if bKey == normalizedMsg {
 				return sm.createActionFromBinding(binding, bKey), true
 			}
 		}

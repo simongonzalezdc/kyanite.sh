@@ -104,7 +104,7 @@ func NewSplitPaneModel(database *db.DB, aiService *app.AIService) *SplitPaneMode
 	t := theme.GetManager().Current()
 	model := &SplitPaneModel{
 		splitRatio:      splitRatio,
-		editorPane:      NewEditorPaneModel(editorTA),
+		editorPane:      NewEditorPaneModel(editorTA, aiService),
 		previewPane:     NewPreviewPaneModel(),
 		fileDialog:      NewFileDialogModel(DialogOpen, "Open File", "./songs", []string{".md", ".txt"}),
 		focusedPane:     EditorPane,

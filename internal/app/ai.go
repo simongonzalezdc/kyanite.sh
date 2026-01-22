@@ -246,3 +246,18 @@ func (s *AIService) CheckQualityByMode(ctx context.Context, content, mode string
 		},
 	})
 }
+
+// GenerateHarmonySuggestions generates chord progressions based on a mood
+func (s *AIService) GenerateHarmonySuggestions(ctx context.Context, mood string) ([]string, error) {
+	resp, err := s.quickAgent.Generate(ctx, ai.QuickRequest{
+		Mode:    ai.QuickIdeaModeHarmony,
+		Context: mood,
+		Options: map[string]string{
+			"theme": mood,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Suggestions, nil
+}

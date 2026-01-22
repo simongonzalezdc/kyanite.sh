@@ -44,15 +44,30 @@ Format:
 3. variation
 `,
 			QuickIdeaModeCheck: `You evaluate a lyric line briefly.
-Line:
-%s
+Original Line: %s
+
+[GUARDRAILS]
+- Do not invent quality metrics; use only the provided scale.
+- Tips must be 5 words maximum.
+- No conversational filler.
 
 Respond with exactly:
 RATING (STRONG, OKAY, or WEAK)
 Tip (5 words, actionable)
-Example:
-STRONG
-Sharpen the central metaphor
+`,
+			QuickIdeaModeHarmony: `You are a music theory assistant. Generate chord progressions for a mood.
+Mood: %s
+
+[GUARDRAILS]
+- Use only standard chord symbols (e.g., Cmaj7, Am9, Gsus4).
+- Do not hallucinate non-existent chord extensions.
+- Group chords into logical 4-bar or 8-bar progressions.
+
+Return three distinct progressions.
+Format:
+1. Chord - Chord - Chord - Chord
+2. Chord - Chord - Chord - Chord
+3. Chord - Chord - Chord - Chord
 `,
 		},
 	}
@@ -66,9 +81,15 @@ func (p quickIdeaPrompts) render(mode QuickIdeaMode, context string, options map
 	}
 
 	switch mode {
-	case QuickIdeaModeSpark:
+	case QuickIdeaModeSpark, QuickIdeaModeHarmony:
 		return fmt.Sprintf(template, strings.TrimSpace(options["theme"]))
 	case QuickIdeaModeTweak, QuickIdeaModeCheck:
+		return fmt.Sprintf(template, strings.TrimSpace(context))
+	case QuickIdeaModeUnstick:
+		style := options["style"]
+		if style != "" {
+			return fmt.Sprintf("Style: %s\n", style) + fmt.Sprintf(template, strings.TrimSpace(context))
+		}
 		return fmt.Sprintf(template, strings.TrimSpace(context))
 	default:
 		return fmt.Sprintf(template, strings.TrimSpace(context))
@@ -85,7 +106,7 @@ func (p quickIdeaPrompts) parse(mode QuickIdeaMode, raw string) *QuickResponse {
 	switch mode {
 	case QuickIdeaModeCheck:
 		return parseCheckResponse(raw)
-	case QuickIdeaModeUnstick, QuickIdeaModeSpark, QuickIdeaModeTweak:
+	case QuickIdeaModeUnstick, QuickIdeaModeSpark, QuickIdeaModeTweak, QuickIdeaModeHarmony:
 		return parseNumberedSuggestions(raw)
 	default:
 		return nil
