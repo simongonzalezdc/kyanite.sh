@@ -36,57 +36,37 @@ func (l *DraftLayout) Render(editorContent string, previewContent string, theory
 	previewWidth := l.width * 25 / 100
 	theoryWidth := l.width - editorWidth - previewWidth - 2 // -2 for dividers
 
-	// Create editor pane (50% width)
+	// Create editor pane (50% width) - NO border since editorContent already has one
 	editorStyle := lipgloss.NewStyle().
 		Width(editorWidth).
-		Height(l.height).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Primary)
+		Height(l.height)
 
 	editorPane := editorStyle.Render(editorContent)
 
-	// Create preview pane (25% width)
+	// Create preview pane (25% width) - NO border since previewContent already has one
 	previewStyle := lipgloss.NewStyle().
 		Width(previewWidth).
-		Height(l.height).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Accent).
-		Background(t.Background)
+		Height(l.height)
 
-	previewTitle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(t.Accent).
-		Align(lipgloss.Center).
-		Width(previewWidth - 2).
-		Render("Preview")
+	previewPane := previewStyle.Render(previewContent)
 
-	previewPaneContent := lipgloss.NewStyle().
-		Width(previewWidth - 2).
-		Height(l.height - 4).
-		Render(previewContent)
-
-	previewPane := previewStyle.Render(
-		lipgloss.JoinVertical(lipgloss.Left, previewTitle, "", previewPaneContent),
-	)
-
-	// Create theory pane (25% width)
+	// Create theory pane (25% width) - this needs a border since it's custom content
 	theoryStyle := lipgloss.NewStyle().
 		Width(theoryWidth).
 		Height(l.height).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Success).
-		Background(t.Background)
+		BorderForeground(t.Success)
 
 	theoryTitle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(t.Success).
 		Align(lipgloss.Center).
-		Width(theoryWidth - 2).
+		Width(theoryWidth - 4).
 		Render("Theory Tools")
 
 	theoryPaneContent := lipgloss.NewStyle().
-		Width(theoryWidth - 2).
-		Height(l.height - 4).
+		Width(theoryWidth - 4).
+		Height(l.height - 6).
 		Render(theoryContent)
 
 	theoryPane := theoryStyle.Render(

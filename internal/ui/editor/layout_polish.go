@@ -37,81 +37,60 @@ func (l *PolishLayout) Render(editorContent string, previewContent string, theor
 	theoryWidth := l.width * 20 / 100
 	critiqueWidth := l.width - editorWidth - previewWidth - theoryWidth - 3 // -3 for dividers
 
-	// Create editor pane (40% width)
+	// Create editor pane (40% width) - NO border since editorContent already has one
 	editorStyle := lipgloss.NewStyle().
 		Width(editorWidth).
-		Height(l.height).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Primary)
+		Height(l.height)
 
 	editorPane := editorStyle.Render(editorContent)
 
-	// Create preview pane (20% width)
+	// Create preview pane (20% width) - NO border since previewContent already has one
 	previewStyle := lipgloss.NewStyle().
 		Width(previewWidth).
-		Height(l.height).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Accent).
-		Background(t.Background)
+		Height(l.height)
 
-	previewTitle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(t.Accent).
-		Align(lipgloss.Center).
-		Width(previewWidth - 2).
-		Render("Preview")
+	previewPane := previewStyle.Render(previewContent)
 
-	previewPaneContent := lipgloss.NewStyle().
-		Width(previewWidth - 2).
-		Height(l.height - 4).
-		Render(previewContent)
-
-	previewPane := previewStyle.Render(
-		lipgloss.JoinVertical(lipgloss.Left, previewTitle, "", previewPaneContent),
-	)
-
-	// Create theory pane (20% width)
+	// Create theory pane (20% width) - needs border since it's custom content
 	theoryStyle := lipgloss.NewStyle().
 		Width(theoryWidth).
 		Height(l.height).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Success).
-		Background(t.Background)
+		BorderForeground(t.Success)
 
 	theoryTitle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(t.Success).
 		Align(lipgloss.Center).
-		Width(theoryWidth - 2).
+		Width(theoryWidth - 4).
 		Render("Theory Tools")
 
 	theoryPaneContent := lipgloss.NewStyle().
-		Width(theoryWidth - 2).
-		Height(l.height - 4).
+		Width(theoryWidth - 4).
+		Height(l.height - 6).
 		Render(theoryContent)
 
 	theoryPane := theoryStyle.Render(
 		lipgloss.JoinVertical(lipgloss.Left, theoryTitle, "", theoryPaneContent),
 	)
 
-	// Create critique pane (20% width)
+	// Create critique pane (20% width) - needs border since it's custom content
 	critiqueStyle := lipgloss.NewStyle().
 		Width(critiqueWidth).
 		Height(l.height).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Warning).
-		Background(t.Background)
+		BorderForeground(t.Warning)
 
 	critiqueTitle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(t.Warning).
 		Align(lipgloss.Center).
-		Width(critiqueWidth - 2).
+		Width(critiqueWidth - 4).
 		Render("AI Critique")
 
 	critiquePaneContent := lipgloss.NewStyle().
-		Width(critiqueWidth - 2).
-		Height(l.height - 4).
+		Width(critiqueWidth - 4).
+		Height(l.height - 6).
 		Render(critiqueContent)
 
 	critiquePane := critiqueStyle.Render(

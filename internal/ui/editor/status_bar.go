@@ -96,7 +96,7 @@ func NewStatusBarModel() *StatusBarModel {
 		editorMode:             "Normal",
 		fileName:               "Untitled",
 		zoomLevel:              100,
-		contentType:            "Unknown",
+		contentType:            "unknown",
 		kbAvailable:            false,
 		kbStatus:               "KB: Unavailable",
 		showLineNumbers:        true,
@@ -311,8 +311,8 @@ func (m *StatusBarModel) renderLeftSection() StatusBarSection {
 		position = fmt.Sprintf("%s | %s", position, m.modeIndicatorStyle.Render(m.editorMode))
 	}
 
-	// Add content type indicator
-	if m.contentType != "" && m.contentType != "Unknown" {
+	// Add content type indicator (skip "unknown" content type)
+	if m.contentType != "" && strings.ToLower(m.contentType) != "unknown" {
 		contentTypeStyle := m.getContentTypeStyle(m.contentType)
 		position = fmt.Sprintf("%s | %s", position, contentTypeStyle.Render(m.contentType))
 	}
@@ -387,8 +387,8 @@ func (m *StatusBarModel) renderRightSection() StatusBarSection {
 			indicators = append(indicators, themeLabel)
 		}
 
-		// Add content type indicator if not already shown in left section
-		if m.contentType != "" && m.contentType != "Unknown" && m.editorMode == "Normal" {
+		// Add content type indicator if not already shown in left section (skip "unknown")
+		if m.contentType != "" && strings.ToLower(m.contentType) != "unknown" && m.editorMode == "Normal" {
 			contentTypeStyle := m.getCompactContentTypeStyle(m.contentType)
 			indicators = append(indicators, contentTypeStyle.Render(m.contentType))
 		}
