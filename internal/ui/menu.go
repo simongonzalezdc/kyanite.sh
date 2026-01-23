@@ -64,7 +64,7 @@ func NewMenuModel() *MenuModel {
 		Foreground(t.Secondary)
 
 	l := list.New(items, delegate, 0, 0)
-	l.Title = titleGradient("🎵 noise.sh", t)
+	l.Title = titleGradient("[~] noise.sh", t)
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.SetShowHelp(false)
@@ -168,7 +168,7 @@ func (m *MenuModel) View() string {
 			return m.list.Title
 		}
 		// Fallback plain title
-		return "🎵 noise.sh"
+		return "[~] noise.sh"
 	}
 
 	// Update responsive mode based on current dimensions
@@ -221,11 +221,11 @@ func (m *MenuModel) applyResponsiveStyling() list.Model {
 
 	// Adjust title based on responsive mode
 	if m.showMinimalMenu {
-		styledList.Title = titleGradient("🎵 LF", t)
+		styledList.Title = titleGradient("[~] LF", t)
 	} else if m.showShortTitles {
-		styledList.Title = titleGradient("🎵 noise.sh", t)
+		styledList.Title = titleGradient("[~] noise.sh", t)
 	} else {
-		styledList.Title = titleGradient("🎵 noise.sh", t)
+		styledList.Title = titleGradient("[~] noise.sh", t)
 	}
 
 	// Adjust list dimensions for responsive layout

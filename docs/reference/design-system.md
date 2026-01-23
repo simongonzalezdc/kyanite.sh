@@ -11,14 +11,15 @@
 
 1. [Selected Theme: Violet Dusk](#selected-theme-violet-dusk)
 2. [Color Palette](#color-palette)
-3. [Lipgloss Style Definitions](#lipgloss-style-definitions)
-4. [Typography System](#typography-system)
-5. [Component Library](#component-library)
-6. [Border & Box Styles](#border--box-styles)
-7. [Animation Patterns](#animation-patterns)
-8. [Layout System](#layout-system)
-9. [Usage Examples](#usage-examples)
-10. [Best Practices](#best-practices)
+3. [Icon System](#icon-system)
+4. [Lipgloss Style Definitions](#lipgloss-style-definitions)
+5. [Typography System](#typography-system)
+6. [Component Library](#component-library)
+7. [Border & Box Styles](#border--box-styles)
+8. [Animation Patterns](#animation-patterns)
+9. [Layout System](#layout-system)
+10. [Usage Examples](#usage-examples)
+11. [Best Practices](#best-practices)
 
 ---
 
@@ -106,6 +107,118 @@ const (
 | **Success (#52D3AA)** | Save confirmations, quality scores >70, completion | Warnings, neutral states |
 | **Background (#0A0E27)** | Main canvas, card backgrounds | Text (invisible) |
 | **TextPrimary (#E8DFF5)** | Body text, lyrics, user content | Backgrounds (too light) |
+
+---
+
+## Icon System
+
+noise.sh uses a configurable icon system (`internal/ui/icons/`) that supports three rendering modes to ensure compatibility across different terminal environments.
+
+### Icon Styles
+
+| Style | Description | Use Case |
+|-------|-------------|----------|
+| **ASCII** (default) | Plain ASCII characters like `[OK]`, `[X]`, `[-]` | Universal compatibility, works everywhere |
+| **Unicode** | Standard Unicode symbols like `✓`, `✗`, `•` | Modern terminals with UTF-8 support |
+| **NerdFont** | Patched font icons using Nerd Fonts | Users with installed Nerd Fonts |
+
+### Usage
+
+```go
+import "github.com/Kyanite/noise/internal/ui/icons"
+
+// Get current icon set (defaults to ASCII)
+i := icons.Current()
+
+// Use icons in your UI
+fmt.Println(i.Success + " Saved!")      // [OK] Saved!
+fmt.Println(i.Bullet + " List item")    // - List item
+
+// Switch styles (typically from user config)
+icons.SetStyle(icons.StyleUnicode)      // Use Unicode symbols
+icons.SetStyle(icons.StyleNerdFont)     // Use Nerd Font icons
+icons.SetStyle(icons.StyleASCII)        // Back to ASCII (default)
+```
+
+### Available Icons
+
+```go
+// Status indicators
+Success, Error, Warning, Info, Recording, Processing
+
+// Selection
+CheckOn, CheckOff, RadioOn, RadioOff
+
+// Navigation  
+ArrowLeft, ArrowRight, ArrowUp, ArrowDown, ChevronL, ChevronR
+
+// Lists
+Bullet, BulletAlt, Separator
+
+// Progress bars
+ProgressFull, ProgressEmpty
+
+// Presence/Status
+Online, Away, Busy, Offline
+
+// Application-specific
+Music, Folder, File, Settings, Help, Search, AI, Mic, Photo, Export, Sync
+Stats, Performance, Storage, Tools, Tip
+```
+
+### Icon Reference Table
+
+| Icon | ASCII | Unicode | NerdFont |
+|------|-------|---------|----------|
+| Success | `[OK]` | `✓` | `` |
+| Error | `[X]` | `✗` | `` |
+| Warning | `[!]` | `⚠` | `` |
+| Bullet | `-` | `•` | `` |
+| CheckOn | `[x]` | `☑` | `` |
+| CheckOff | `[ ]` | `☐` | `` |
+| ArrowRight | `->` | `→` | `` |
+| Music | `[~]` | `♪` | `` |
+
+### String Width Utilities
+
+The icons package includes Unicode-safe string utilities using `rivo/uniseg`:
+
+```go
+import "github.com/Kyanite/noise/internal/ui/icons"
+
+// Get display width (handles emoji, CJK, combining chars)
+width := icons.StringWidth("Hello 世界!")  // Returns 11, not 9
+
+// Safe truncation respecting grapheme clusters
+s := icons.Truncate("Hello 世界!", 8, "...")  // Won't break in middle of 世
+
+// Padding with proper width calculation
+padded := icons.PadRight("名前", 10)  // Correctly pads to 10 columns
+centered := icons.Center("Title", 20) // Centers properly
+```
+
+### Configuration
+
+Users can configure their preferred icon style in `config.yaml`:
+
+```yaml
+ui:
+  icon_style: "ascii"  # Options: "ascii", "unicode", "nerdfonts"
+```
+
+### Best Practices
+
+**DO:**
+- Default to ASCII for maximum compatibility
+- Let users opt-in to Unicode/NerdFont via configuration
+- Use `icons.StringWidth()` instead of `len()` for display calculations
+- Use `icons.Truncate()` instead of `s[:n]` to avoid breaking characters
+
+**DON'T:**
+- Don't hardcode emoji or Unicode symbols directly
+- Don't assume `len(s)` equals display width
+- Don't truncate strings with `s[:n]` (breaks multi-byte characters)
+- Don't auto-detect font support (unreliable)
 
 ---
 

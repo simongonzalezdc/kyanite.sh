@@ -268,13 +268,13 @@ func (m *ToastModel) renderToast(toast Toast) string {
 func (m *ToastModel) getIcon(t ToastType) string {
 	switch t {
 	case ToastSuccess:
-		return "✓"
+		return "[OK]"
 	case ToastWarning:
-		return "⚠"
+		return "[!]"
 	case ToastError:
-		return "✕"
+		return "[X]"
 	default:
-		return "ℹ"
+		return "[i]"
 	}
 }
 

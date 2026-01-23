@@ -51,9 +51,9 @@ func (m *RecentWorkModel) View() string {
 	
 	// Sample recent work items
 	items := []string{
-		"📁 Rock Opera - Last edited: 2h ago",
-		"🎵 Midnight Dreams - Last edited: 1d ago",
-		"🎵 Summer Breeze - Last edited: 3d ago",
+		"[P] Rock Opera - Last edited: 2h ago",
+		"[~] Midnight Dreams - Last edited: 1d ago",
+		"[~] Summer Breeze - Last edited: 3d ago",
 	}
 	
 	var itemViews []string

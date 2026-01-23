@@ -53,12 +53,12 @@ func (m *SystemInfoModel) View() string {
 	statsTitle := lipgloss.NewStyle().
 		Foreground(t.Text).
 		Bold(true).
-		Render("📊 Statistics:")
+		Render("[STATS] Statistics:")
 	
 	stats := []string{
-		"• Songs: 24",
-		"• Projects: 5",
-		"• Hours: 47",
+		"- Songs: 24",
+		"- Projects: 5",
+		"- Hours: 47",
 	}
 	
 	var statViews []string
@@ -72,12 +72,12 @@ func (m *SystemInfoModel) View() string {
 	// Storage info
 	storage := lipgloss.NewStyle().
 		Foreground(t.Text).
-		Render("💾 Storage: 2.3 MB")
-	
+		Render("[DISK] Storage: 2.3 MB")
+
 	// Performance info
 	performance := lipgloss.NewStyle().
 		Foreground(t.Success).
-		Render("⚡ Performance: Good")
+		Render("[PERF] Performance: Good")
 	
 	// Open settings button
 	settingsButton := lipgloss.NewStyle().

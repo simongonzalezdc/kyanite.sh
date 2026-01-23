@@ -51,10 +51,10 @@ func (m *MusicToolsModel) View() string {
 	
 	// Music tools items
 	items := []string{
-		"🎼 Chord Progressions",
-		"🎸 Scale Reference",
-		"📖 Rhyme Dictionary",
-		"🎵 Song Templates",
+		"[C] Chord Progressions",
+		"[S] Scale Reference",
+		"[R] Rhyme Dictionary",
+		"[T] Song Templates",
 	}
 	
 	var itemViews []string

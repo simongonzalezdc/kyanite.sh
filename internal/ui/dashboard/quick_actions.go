@@ -28,12 +28,12 @@ type QuickActionsModel struct {
 // NewQuickActionsModel creates a new quick actions model
 func NewQuickActionsModel() *QuickActionsModel {
 	actions := []Action{
-		{ID: "new", Title: "New Song", Description: "Create a new song", Icon: "🎵", Shortcut: "1", Animated: true},
-		{ID: "open", Title: "Open Project", Description: "Browse existing projects", Icon: "📁", Shortcut: "2", Animated: true},
-		{ID: "ai", Title: "AI Brainstorm", Description: "Get AI assistance", Icon: "🤖", Shortcut: "3", Animated: true},
-		{ID: "export", Title: "Export", Description: "Export your work", Icon: "📤", Shortcut: "4", Animated: true},
-		{ID: "theory", Title: "Theory Tools", Description: "Music theory reference", Icon: "🎼", Shortcut: "5", Animated: true},
-		{ID: "audio", Title: "Audio Tools", Description: "Metronome & playback", Icon: "🎧", Shortcut: "6", Animated: true},
+		{ID: "new", Title: "New Song", Description: "Create a new song", Icon: "[+]", Shortcut: "1", Animated: true},
+		{ID: "open", Title: "Open Project", Description: "Browse existing projects", Icon: "[O]", Shortcut: "2", Animated: true},
+		{ID: "ai", Title: "AI Brainstorm", Description: "Get AI assistance", Icon: "[AI]", Shortcut: "3", Animated: true},
+		{ID: "export", Title: "Export", Description: "Export your work", Icon: "[E]", Shortcut: "4", Animated: true},
+		{ID: "theory", Title: "Theory Tools", Description: "Music theory reference", Icon: "[T]", Shortcut: "5", Animated: true},
+		{ID: "audio", Title: "Audio Tools", Description: "Metronome & playback", Icon: "[A]", Shortcut: "6", Animated: true},
 	}
 	
 	return &QuickActionsModel{

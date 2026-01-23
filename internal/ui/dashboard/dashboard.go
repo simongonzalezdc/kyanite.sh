@@ -348,17 +348,17 @@ func (dm *DashboardModel) renderSimplifiedView() string {
 // GetOnboardingHints returns contextual hints for new users
 func (dm *DashboardModel) GetOnboardingHints() []string {
 	hints := []string{
-		"🎯 Quick tip: Use number keys (1-6) to quickly access actions",
-		"🎨 Press 'T' to cycle through beautiful themes",
-		"📚 Press 'H' or '?' for help and keyboard shortcuts",
-		"🔍 Press 'D' to toggle between simple and detailed views",
+		"[TIP] Use number keys (1-6) to quickly access actions",
+		"[TIP] Press 'T' to cycle through beautiful themes",
+		"[TIP] Press 'H' or '?' for help and keyboard shortcuts",
+		"[TIP] Press 'D' to toggle between simple and detailed views",
 	}
 
 	// Show different hints based on current state
 	if !dm.showAllPanels {
-		hints = append(hints, "💡 Press 'D' to see all dashboard panels")
+		hints = append(hints, "[TIP] Press 'D' to see all dashboard panels")
 	} else {
-		hints = append(hints, "💡 Press 'D' to simplify the dashboard")
+		hints = append(hints, "[TIP] Press 'D' to simplify the dashboard")
 	}
 
 	return hints

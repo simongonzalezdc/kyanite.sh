@@ -52,18 +52,18 @@ func (m *AIAssistantModel) View() string {
 	// AI status
 	status := lipgloss.NewStyle().
 		Foreground(t.Success).
-		Render("🤖 AI Status: Ready")
-	
+		Render("[AI] Status: Ready")
+
 	// Quick suggestions
 	suggestionsTitle := lipgloss.NewStyle().
 		Foreground(t.Text).
 		Bold(true).
-		Render("💡 Quick Suggestions:")
+		Render("[TIP] Quick Suggestions:")
 	
 	suggestions := []string{
-		"• \"Summer memories...\"",
-		"• \"Dancing through...\"",
-		"• \"Where the wind...\"",
+		"- \"Summer memories...\"",
+		"- \"Dancing through...\"",
+		"- \"Where the wind...\"",
 	}
 	
 	var suggestionViews []string

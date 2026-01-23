@@ -172,9 +172,9 @@ func NewHeaderModel() *HeaderModel {
 
 // View renders the header
 func (hm *HeaderModel) View() string {
-	title := "🎵 noise.sh"
+	title := "[~] noise.sh"
 	themeName := theme.GetManager().Current().Name
-	status := "● 3 Songs, 2 Projects"
+	status := "[*] 3 Songs, 2 Projects"
 	help := "[F1] Help"
 	quit := "[Q]uit"
 	

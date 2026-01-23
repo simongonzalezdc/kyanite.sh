@@ -124,7 +124,7 @@ func (m *VoiceSettingsModel) buildItems() {
 			itemType:    voiceItemTestMic,
 		},
 		{
-			label:       "← Back",
+			label:       "<- Back",
 			description: "",
 			itemType:    voiceItemBack,
 		},
@@ -255,16 +255,16 @@ func (m *VoiceSettingsModel) View() string {
 	var b strings.Builder
 
 	// Title
-	b.WriteString(m.titleStyle.Render("🎤 Voice-to-Text Settings"))
+	b.WriteString(m.titleStyle.Render("[MIC] Voice-to-Text Settings"))
 	b.WriteString("\n\n")
 
 	// Status
 	if m.voiceService != nil && m.voiceService.IsAvailable() {
-		b.WriteString(m.successStyle.Render("✓ Voice service ready"))
+		b.WriteString(m.successStyle.Render("[OK] Voice service ready"))
 	} else if m.voiceService != nil {
-		b.WriteString(m.errorStyle.Render("⟳ Voice service initializing..."))
+		b.WriteString(m.errorStyle.Render("[...] Voice service initializing..."))
 	} else {
-		b.WriteString(m.errorStyle.Render("✗ Voice service not available"))
+		b.WriteString(m.errorStyle.Render("[X] Voice service not available"))
 	}
 	b.WriteString("\n\n")
 
@@ -281,7 +281,7 @@ func (m *VoiceSettingsModel) View() string {
 	// Download progress
 	if m.downloadingModel != "" {
 		progress := int(m.downloadProgress * 40)
-		bar := strings.Repeat("█", progress) + strings.Repeat("░", 40-progress)
+		bar := strings.Repeat("#", progress) + strings.Repeat("-", 40-progress)
 		b.WriteString(m.progressStyle.Render(fmt.Sprintf("Downloading %s: [%s] %.0f%%\n\n",
 			m.downloadingModel, bar, m.downloadProgress*100)))
 	}
@@ -300,7 +300,7 @@ func (m *VoiceSettingsModel) View() string {
 		if item.itemType == voiceItemModelSelect && m.voiceService != nil {
 			cfg := m.voiceService.GetConfig()
 			if cfg != nil && cfg.Model == item.value {
-				label = "● " + label
+				label = "[*] " + label
 			}
 		}
 
@@ -324,12 +324,12 @@ func (m *VoiceSettingsModel) View() string {
 	// Test recording indicator
 	if m.testRecording {
 		b.WriteString("\n")
-		b.WriteString(m.errorStyle.Render("● Recording... Press Enter to stop"))
+		b.WriteString(m.errorStyle.Render("[REC] Recording... Press Enter to stop"))
 	}
 
 	// Help
 	b.WriteString("\n\n")
-	b.WriteString(m.descriptionStyle.Render("↑/↓: Navigate • Enter: Select • Esc: Back"))
+	b.WriteString(m.descriptionStyle.Render("Up/Down: Navigate - Enter: Select - Esc: Back"))
 
 	return b.String()
 }

@@ -114,7 +114,7 @@ func (m *SyncSettingsModel) buildItems() {
 			itemType:    syncItemInbox,
 		},
 		{
-			label:       "← Back",
+			label:       "<- Back",
 			description: "",
 			itemType:    syncItemBack,
 		},
@@ -197,19 +197,19 @@ func (m *SyncSettingsModel) View() string {
 	var b strings.Builder
 
 	// Title
-	b.WriteString(m.titleStyle.Render("📱 PWA Sync Settings"))
+	b.WriteString(m.titleStyle.Render("[SYNC] PWA Sync Settings"))
 	b.WriteString("\n\n")
 
 	// Status
 	if m.syncServer != nil && m.syncServer.IsRunning() {
 		url := m.syncServer.GetLocalURL()
 		devices := m.syncServer.GetConnectedDevices()
-		b.WriteString(m.successStyle.Render("✓ Sync server running"))
+		b.WriteString(m.successStyle.Render("[OK] Sync server running"))
 		b.WriteString("\n")
 		b.WriteString(fmt.Sprintf("URL: %s\n", m.urlStyle.Render(url)))
 		b.WriteString(fmt.Sprintf("Connected devices: %d\n", devices))
 	} else {
-		b.WriteString(m.errorStyle.Render("✗ Sync server stopped"))
+		b.WriteString(m.errorStyle.Render("[X] Sync server stopped"))
 	}
 	b.WriteString("\n")
 
@@ -236,9 +236,9 @@ func (m *SyncSettingsModel) View() string {
 		// Update toggle label based on state
 		if item.itemType == syncItemToggle {
 			if m.syncServer != nil && m.syncServer.IsRunning() {
-				label = "● Stop Sync Server"
+				label = "[*] Stop Sync Server"
 			} else {
-				label = "○ Start Sync Server"
+				label = "[ ] Start Sync Server"
 			}
 		}
 
@@ -253,7 +253,7 @@ func (m *SyncSettingsModel) View() string {
 
 	// Help
 	b.WriteString("\n")
-	b.WriteString(m.descriptionStyle.Render("↑/↓: Navigate • Enter: Select • Esc: Back"))
+	b.WriteString(m.descriptionStyle.Render("Up/Down: Navigate - Enter: Select - Esc: Back"))
 
 	return b.String()
 }

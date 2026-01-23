@@ -1040,7 +1040,7 @@ func (m *SettingsModel) View() string {
 		saveMsgStyle := lipgloss.NewStyle().
 			Foreground(t.Success).
 			Bold(true)
-		saveMsg = saveMsgStyle.Render("✔ Settings saved successfully!")
+		saveMsg = saveMsgStyle.Render("[OK] Settings saved successfully!")
 	}
 
 	// Combine sections
@@ -1128,7 +1128,7 @@ func (s settingItem) Render() string {
 	switch s.setting.Type {
 	case TypeBool:
 		if s.setting.Value.(bool) {
-			valueStr = valueStyle.Render("✔ Yes")
+			valueStr = valueStyle.Render("[x] Yes")
 		} else {
 			valueStr = valueStyle.Render("o No")
 		}

@@ -93,14 +93,14 @@ func (m *VoiceIndicatorModel) View() string {
 		// Recording indicator with duration and level meter
 		durStr := formatDuration(m.duration)
 		levelBar := m.renderLevelBar()
-		content = m.recordingStyle.Render(fmt.Sprintf("● REC %s %s", durStr, levelBar))
+		content = m.recordingStyle.Render(fmt.Sprintf("[REC] %s %s", durStr, levelBar))
 
 	case app.VoiceStateProcessing:
-		content = m.processingStyle.Render("⟳ Transcribing...")
+		content = m.processingStyle.Render("[...] Transcribing...")
 
 	case app.VoiceStateError:
 		if m.error != "" {
-			content = m.errorStyle.Render(fmt.Sprintf("✗ %s", m.error))
+			content = m.errorStyle.Render(fmt.Sprintf("[X] %s", m.error))
 		}
 
 	default:
@@ -124,9 +124,9 @@ func (m *VoiceIndicatorModel) renderLevelBar() string {
 	bar := ""
 	for i := 0; i < barWidth; i++ {
 		if i < filled {
-			bar += "█"
+			bar += "#"
 		} else {
-			bar += "░"
+			bar += "-"
 		}
 	}
 
@@ -215,7 +215,7 @@ func (sb *VoiceStatusBar) View() string {
 	// Show availability hint
 	if sb.available {
 		style := lipgloss.NewStyle().Foreground(t.Secondary)
-		return style.Render(fmt.Sprintf("🎤 %s: Dictate", sb.shortcut))
+		return style.Render(fmt.Sprintf("[MIC] %s: Dictate", sb.shortcut))
 	}
 
 	return ""

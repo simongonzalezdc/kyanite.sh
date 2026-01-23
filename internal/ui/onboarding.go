@@ -209,11 +209,11 @@ func (m *OnboardingModel) View() string {
 	var dots []string
 	for i := range m.steps {
 		if i < m.currentStep {
-			dots = append(dots, m.progressDotDone.Render("●"))
+			dots = append(dots, m.progressDotDone.Render("[x]"))
 		} else if i == m.currentStep {
-			dots = append(dots, m.progressDotActive.Render("●"))
+			dots = append(dots, m.progressDotActive.Render("[*]"))
 		} else {
-			dots = append(dots, m.progressStyle.Render("○"))
+			dots = append(dots, m.progressStyle.Render("[ ]"))
 		}
 	}
 	progress := strings.Join(dots, " ")
@@ -236,7 +236,7 @@ func (m *OnboardingModel) View() string {
 	if len(step.Tips) > 0 {
 		content.WriteString("\n")
 		for _, tip := range step.Tips {
-			content.WriteString(m.tipStyle.Render("• " + tip))
+			content.WriteString(m.tipStyle.Render("- " + tip))
 			content.WriteString("\n")
 		}
 	}
@@ -246,15 +246,15 @@ func (m *OnboardingModel) View() string {
 	isLast := m.currentStep == len(m.steps)-1
 	var hints []string
 	if !isFirst {
-		hints = append(hints, "← Back")
+		hints = append(hints, "<- Back")
 	}
 	if isLast {
 		hints = append(hints, "Enter: Get Started")
 	} else {
-		hints = append(hints, "Enter/→: Next")
+		hints = append(hints, "Enter/->: Next")
 	}
 	hints = append(hints, "Esc: Skip")
-	content.WriteString(m.hintStyle.Render(strings.Join(hints, "  •  ")))
+	content.WriteString(m.hintStyle.Render(strings.Join(hints, "  -  ")))
 
 	// Step counter
 	stepCount := fmt.Sprintf("\n\nStep %d of %d", m.currentStep+1, len(m.steps))

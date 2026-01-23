@@ -162,7 +162,7 @@ func (m *ThemePreviewModel) renderSampleElements(t theme.Theme) string {
 func (m *ThemePreviewModel) renderNavigation() string {
 	nav := lipgloss.NewStyle().
 		Foreground(theme.GetManager().Current().Text).
-		Render("◀ ▶ Switch Themes")
+		Render("<< >> Switch Themes")
 	
 	return nav
 }

@@ -111,7 +111,7 @@ func (m *IdeaInboxModel) View() string {
 	var b strings.Builder
 
 	// Title
-	b.WriteString(m.titleStyle.Render("💡 Idea Inbox"))
+	b.WriteString(m.titleStyle.Render("[*] Idea Inbox"))
 	b.WriteString(fmt.Sprintf(" (%d ideas)\n\n", len(m.ideas)))
 
 	// Empty state
@@ -153,7 +153,7 @@ func (m *IdeaInboxModel) View() string {
 
 	// Help
 	b.WriteString("\n")
-	b.WriteString(m.helpStyle.Render("↑/↓: Navigate • Enter: Assign to song • D: Delete • P: Preview • Esc: Back"))
+	b.WriteString(m.helpStyle.Render("Up/Down: Navigate - Enter: Assign to song - D: Delete - P: Preview - Esc: Back"))
 
 	return b.String()
 }
@@ -182,10 +182,10 @@ func (m *IdeaInboxModel) renderIdea(idea *sync.CapturedIdea, selected bool) stri
 		content = fmt.Sprintf("%d BPM", idea.BPM)
 	}
 	if idea.Type == sync.IdeaTypeVoiceMemo {
-		content = "🎤 Voice memo"
+		content = "[MIC] Voice memo"
 	}
 	if idea.Type == sync.IdeaTypePhoto {
-		content = "📷 Photo"
+		content = "[IMG] Photo"
 	}
 
 	// Format
@@ -199,15 +199,15 @@ func (m *IdeaInboxModel) renderIdea(idea *sync.CapturedIdea, selected bool) stri
 func (m *IdeaInboxModel) getTypeIcon(ideaType sync.IdeaType) string {
 	switch ideaType {
 	case sync.IdeaTypeText:
-		return "📝"
+		return "[TXT]"
 	case sync.IdeaTypeVoiceMemo:
-		return "🎤"
+		return "[MIC]"
 	case sync.IdeaTypePhoto:
-		return "📷"
+		return "[IMG]"
 	case sync.IdeaTypeTempo:
-		return "🎵"
+		return "[BPM]"
 	default:
-		return "💡"
+		return "[*]"
 	}
 }
 

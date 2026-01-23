@@ -315,7 +315,7 @@ func (pm *PresenceManager) GetPresenceIndicator(userID string) PresenceIndicator
 		return PresenceIndicator{
 			Status: StatusOffline,
 			Color:  "gray",
-			Icon:   "○",
+			Icon:   "[ ]",
 		}
 	}
 
@@ -460,35 +460,35 @@ func (pm *PresenceManager) presenceStatusToIndicator(status PresenceStatus) Pres
 		return PresenceIndicator{
 			Status:  StatusOnline,
 			Color:   "green",
-			Icon:    "●",
+			Icon:    "[*]",
 			Tooltip: "Online",
 		}
 	case StatusAway:
 		return PresenceIndicator{
 			Status:  StatusAway,
 			Color:   "yellow",
-			Icon:    "●",
+			Icon:    "[~]",
 			Tooltip: "Away",
 		}
 	case StatusBusy:
 		return PresenceIndicator{
 			Status:  StatusBusy,
 			Color:   "red",
-			Icon:    "●",
+			Icon:    "[!]",
 			Tooltip: "Busy",
 		}
 	case StatusOffline:
 		return PresenceIndicator{
 			Status:  StatusOffline,
 			Color:   "gray",
-			Icon:    "○",
+			Icon:    "[ ]",
 			Tooltip: "Offline",
 		}
 	default:
 		return PresenceIndicator{
 			Status:  StatusOffline,
 			Color:   "gray",
-			Icon:    "○",
+			Icon:    "[ ]",
 			Tooltip: "Unknown",
 		}
 	}
