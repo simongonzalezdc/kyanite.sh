@@ -473,16 +473,16 @@ func (eru *ErrorRecoveryUI) renderStatusBar() string {
 	switch {
 	case health.OverallScore >= 80:
 		healthColor = "#00FF00"
-		healthIcon = "â—"
+		healthIcon = "[o]"
 	case health.OverallScore >= 60:
 		healthColor = "#FFA500"
-		healthIcon = "â—"
+		healthIcon = "[o]"
 	case health.OverallScore >= 40:
 		healthColor = "#FF6600"
-		healthIcon = "â—"
+		healthIcon = "[o]"
 	default:
 		healthColor = "#FF0000"
-		healthIcon = "â—"
+		healthIcon = "[o]"
 	}
 
 	healthIndicator := lipgloss.NewStyle().
@@ -603,7 +603,7 @@ func (eru *ErrorRecoveryUI) renderOperationsSection(operations []RecoveryOperati
 
 		switch op.Status {
 		case StatusPending:
-			statusIcon = "â³"
+			statusIcon = "â³"
 			statusColor = "#FFA500"
 		case StatusRunning:
 			statusIcon = "”„"
@@ -615,7 +615,7 @@ func (eru *ErrorRecoveryUI) renderOperationsSection(operations []RecoveryOperati
 			statusIcon = "âŒ"
 			statusColor = "#FF0000"
 		case StatusCancelled:
-			statusIcon = "â¹ï¸"
+			statusIcon = "[v]"
 			statusColor = "#888888"
 		}
 
@@ -662,7 +662,7 @@ func (eru *ErrorRecoveryUI) renderProgressBar(progress float64) string {
 
 	bar := ""
 	for i := 0; i < filled; i++ {
-		bar += "â–ˆ"
+		bar += "[-]"
 	}
 	for i := 0; i < empty; i++ {
 		bar += "."

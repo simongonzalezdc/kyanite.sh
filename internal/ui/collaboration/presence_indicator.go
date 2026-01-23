@@ -224,7 +224,7 @@ func (m *PresenceIndicatorModel) getRoleIcon(role collaboration.ParticipantRole)
 	case collaboration.RoleEditor:
 		return "[*]"
 	case collaboration.RoleViewer:
-		return "‘ï¸"
+		return "‘ï¸"
 	default:
 		return ""
 	}

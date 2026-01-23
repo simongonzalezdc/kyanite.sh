@@ -231,7 +231,7 @@ func (m *ChordPickerModel) View() string {
 	var content strings.Builder
 
 	// Header
-	header := m.headerStyle.Render("Žµ Quick Chord Picker")
+	header := m.headerStyle.Render("[~] Quick Chord Picker")
 	content.WriteString(header)
 	content.WriteString("\n\n")
 

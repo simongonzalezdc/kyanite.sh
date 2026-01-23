@@ -101,7 +101,7 @@ func TestMenuResponsiveTransitions(t *testing.T) {
 	if viewSmall == "" {
 		t.Fatal("expected non-empty view in small layout")
 	}
-	if !strings.Contains(viewSmall, "ðŸŽµ") && !strings.Contains(strings.ToLower(viewSmall), "noise") {
+	if !strings.Contains(viewSmall, "ðŸ[~]") && !strings.Contains(strings.ToLower(viewSmall), "noise") {
 		// Ensure some title still present
 		t.Logf("small view content: %q", viewSmall)
 	}

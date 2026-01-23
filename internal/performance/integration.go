@@ -55,11 +55,11 @@ type PerformanceManagerConfig struct {
 
 // MetricsCollector collects and aggregates performance metrics
 type MetricsCollector struct {
-	dbMetrics      []db.PerformanceMetrics
+	dbMetrics      []*db.PerformanceMetrics
 	aiMetrics      []ai.AIMetrics
 	uiMetrics      []ui.UIMetrics
-	themeMetrics   []theme.ThemeMetrics
-	collabMetrics  []collaboration.CollaborationMetrics
+	themeMetrics   []*theme.ThemeMetrics
+	collabMetrics  []*collaboration.CollaborationMetrics
 	memoryMetrics  []MemoryMetrics
 	mutex          sync.RWMutex
 	maxHistorySize int
@@ -344,7 +344,9 @@ func (pm *PerformanceManager) collectMetrics() {
 	// Collect database metrics
 	if pm.dbOptimizer != nil {
 		metrics := pm.dbOptimizer.GetPerformanceMetrics()
-		pm.metricsCollector.AddDatabaseMetrics(metrics)
+		if metrics != nil {
+			pm.metricsCollector.AddDatabaseMetrics(metrics)
+		}
 	}
 
 	// Collect AI metrics
@@ -362,13 +364,17 @@ func (pm *PerformanceManager) collectMetrics() {
 	// Collect theme metrics
 	if pm.themeOptimizer != nil {
 		metrics := pm.themeOptimizer.GetMetrics()
-		pm.metricsCollector.AddThemeMetrics(metrics)
+		if metrics != nil {
+			pm.metricsCollector.AddThemeMetrics(metrics)
+		}
 	}
 
 	// Collect collaboration metrics
 	if pm.collabOptimizer != nil {
 		metrics := pm.collabOptimizer.GetMetrics()
-		pm.metricsCollector.AddCollaborationMetrics(metrics)
+		if metrics != nil {
+			pm.metricsCollector.AddCollaborationMetrics(metrics)
+		}
 	}
 
 	// Collect memory metrics
@@ -567,18 +573,18 @@ func (pm *PerformanceManager) GetPerformanceTargets() map[string]interface{} {
 // NewMetricsCollector creates a new metrics collector
 func NewMetricsCollector(maxHistorySize int) *MetricsCollector {
 	return &MetricsCollector{
-		dbMetrics:      make([]db.PerformanceMetrics, 0, maxHistorySize),
+		dbMetrics:      make([]*db.PerformanceMetrics, 0, maxHistorySize),
 		aiMetrics:      make([]ai.AIMetrics, 0, maxHistorySize),
 		uiMetrics:      make([]ui.UIMetrics, 0, maxHistorySize),
-		themeMetrics:   make([]theme.ThemeMetrics, 0, maxHistorySize),
-		collabMetrics:  make([]collaboration.CollaborationMetrics, 0, maxHistorySize),
+		themeMetrics:   make([]*theme.ThemeMetrics, 0, maxHistorySize),
+		collabMetrics:  make([]*collaboration.CollaborationMetrics, 0, maxHistorySize),
 		memoryMetrics:  make([]MemoryMetrics, 0, maxHistorySize),
 		maxHistorySize: maxHistorySize,
 	}
 }
 
 // AddDatabaseMetrics adds database metrics to the collection
-func (mc *MetricsCollector) AddDatabaseMetrics(metrics db.PerformanceMetrics) {
+func (mc *MetricsCollector) AddDatabaseMetrics(metrics *db.PerformanceMetrics) {
 	mc.mutex.Lock()
 	defer mc.mutex.Unlock()
 
@@ -611,7 +617,7 @@ func (mc *MetricsCollector) AddUIMetrics(metrics ui.UIMetrics) {
 }
 
 // AddThemeMetrics adds theme metrics to the collection
-func (mc *MetricsCollector) AddThemeMetrics(metrics theme.ThemeMetrics) {
+func (mc *MetricsCollector) AddThemeMetrics(metrics *theme.ThemeMetrics) {
 	mc.mutex.Lock()
 	defer mc.mutex.Unlock()
 
@@ -622,7 +628,7 @@ func (mc *MetricsCollector) AddThemeMetrics(metrics theme.ThemeMetrics) {
 }
 
 // AddCollaborationMetrics adds collaboration metrics to the collection
-func (mc *MetricsCollector) AddCollaborationMetrics(metrics collaboration.CollaborationMetrics) {
+func (mc *MetricsCollector) AddCollaborationMetrics(metrics *collaboration.CollaborationMetrics) {
 	mc.mutex.Lock()
 	defer mc.mutex.Unlock()
 
@@ -655,8 +661,10 @@ func (mc *MetricsCollector) GetAggregatedMetrics() map[string]interface{} {
 		var totalQueryTime int64
 		var totalSlowQueries int64
 		for _, metrics := range mc.dbMetrics {
-			totalQueryTime += int64(metrics.TotalQueryTime)
-			totalSlowQueries += metrics.SlowQueries
+			if metrics != nil {
+				totalQueryTime += int64(metrics.TotalQueryTime)
+				totalSlowQueries += metrics.SlowQueries
+			}
 		}
 		aggregated["database"] = map[string]interface{}{
 			"total_query_time":   totalQueryTime / int64(len(mc.dbMetrics)),

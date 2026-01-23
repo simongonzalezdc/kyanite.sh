@@ -491,11 +491,11 @@ func (db *PerformanceOptimizedDB) recordQueryMetrics(queryType string, duration 
 }
 
 // GetPerformanceMetrics returns current performance metrics
-func (db *PerformanceOptimizedDB) GetPerformanceMetrics() PerformanceMetrics {
+func (db *PerformanceOptimizedDB) GetPerformanceMetrics() *PerformanceMetrics {
 	db.metrics.mutex.RLock()
 	defer db.metrics.mutex.RUnlock()
 
-	return *db.metrics
+	return db.metrics
 }
 
 // startHealthMonitoring starts the connection health checker

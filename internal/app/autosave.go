@@ -119,6 +119,7 @@ type AutoSaveService struct {
 	db           *db.DB
 	config       *AutoSaveConfig
 	status       AutoSaveStatus
+	statusMutex  sync.RWMutex // protects status field
 	lastSaveTime time.Time
 	lastContent  string
 	contentMutex sync.RWMutex
@@ -127,7 +128,8 @@ type AutoSaveService struct {
 	writeMutex sync.Mutex
 
 	// Internal lifecycle
-	started bool
+	started        bool
+	lifecycleMutex sync.RWMutex // protects started field
 
 	// Channels for controlling the service
 	stopChan   chan struct{}
@@ -137,6 +139,7 @@ type AutoSaveService struct {
 	// Callbacks
 	onStatusChange func(AutoSaveStatus)
 	onError        func(error)
+	callbackMutex  sync.RWMutex // protects callback fields
 }
 
 // GetDB returns the database instance for external access
@@ -167,7 +170,9 @@ func (s *AutoSaveService) Start(ctx context.Context) error {
 	}
 
 	// Mark service as started so SaveContent behaves accordingly
+	s.lifecycleMutex.Lock()
 	s.started = true
+	s.lifecycleMutex.Unlock()
 
 	// Start the save processor goroutine
 	go s.processSaves(ctx)
@@ -182,7 +187,9 @@ func (s *AutoSaveService) Start(ctx context.Context) error {
 // Stop halts the auto-save service
 func (s *AutoSaveService) Stop() error {
 	// Mark service as stopped (prevents Start/Save race)
+	s.lifecycleMutex.Lock()
 	s.started = false
+	s.lifecycleMutex.Unlock()
 
 	// Best-effort close; if already closed, recover gracefully
 	select {
@@ -204,16 +211,12 @@ func (s *AutoSaveService) SaveContent(content string) {
 	// If the service hasn't been started, perform an immediate async save so
 	// tests and callers that don't start the service still get the expected
 	// behavior (callbacks, status updates).
-	if !s.started {
+	if !s.isStarted() {
 		s.setStatus(AutoSaveSaving)
-		if s.onStatusChange != nil {
-			s.onStatusChange(AutoSaveSaving)
-		}
+		s.invokeStatusCallback(AutoSaveSaving)
 		go func() {
 			if err := s.performSave(content); err != nil {
-				if s.onError != nil {
-					s.onError(err)
-				}
+				s.invokeErrorCallback(err)
 			}
 		}()
 		return
@@ -249,6 +252,8 @@ func (s *AutoSaveService) ForceSave(content string) error {
 
 // GetStatus returns the current auto-save status
 func (s *AutoSaveService) GetStatus() AutoSaveStatus {
+	s.statusMutex.RLock()
+	defer s.statusMutex.RUnlock()
 	return s.status
 }
 
@@ -261,11 +266,15 @@ func (s *AutoSaveService) GetLastSaveTime() time.Time {
 
 // SetStatusChangeCallback sets a callback for status changes
 func (s *AutoSaveService) SetStatusChangeCallback(callback func(AutoSaveStatus)) {
+	s.callbackMutex.Lock()
+	defer s.callbackMutex.Unlock()
 	s.onStatusChange = callback
 }
 
 // SetErrorCallback sets a callback for errors
 func (s *AutoSaveService) SetErrorCallback(callback func(error)) {
+	s.callbackMutex.Lock()
+	defer s.callbackMutex.Unlock()
 	s.onError = callback
 }
 
@@ -357,21 +366,15 @@ func (s *AutoSaveService) handleSaveFailure(err error) error {
 	}
 
 	s.setStatus(AutoSaveError)
-	if s.onStatusChange != nil {
-		s.onStatusChange(AutoSaveError)
-	}
-	if s.onError != nil {
-		s.onError(err)
-	}
+	s.invokeStatusCallback(AutoSaveError)
+	s.invokeErrorCallback(err)
 	return err
 }
 
 // performSave executes the actual save operation with retry logic
 func (s *AutoSaveService) performSave(content string) error {
 	s.setStatus(AutoSaveSaving)
-	if s.onStatusChange != nil {
-		s.onStatusChange(AutoSaveSaving)
-	}
+	s.invokeStatusCallback(AutoSaveSaving)
 
 	if err := s.ensureDBAvailable(); err != nil {
 		return s.handleSaveFailure(err)
@@ -397,17 +400,13 @@ func (s *AutoSaveService) performSave(content string) error {
 	}
 
 	s.setStatus(AutoSaveSuccess)
-	if s.onStatusChange != nil {
-		s.onStatusChange(AutoSaveSuccess)
-	}
+	s.invokeStatusCallback(AutoSaveSuccess)
 
 	// Reset to idle after a brief delay
 	go func() {
 		time.Sleep(2 * time.Second)
 		s.setStatus(AutoSaveIdle)
-		if s.onStatusChange != nil {
-			s.onStatusChange(AutoSaveIdle)
-		}
+		s.invokeStatusCallback(AutoSaveIdle)
 	}()
 
 	return nil
@@ -472,9 +471,7 @@ func (s *AutoSaveService) executeSave(content string) error {
 // SaveWithVersioning saves content with versioning support
 func (s *AutoSaveService) SaveWithVersioning(songID int, content string, isMilestone bool, name string) error {
 	s.setStatus(AutoSaveSaving)
-	if s.onStatusChange != nil {
-		s.onStatusChange(AutoSaveSaving)
-	}
+	s.invokeStatusCallback(AutoSaveSaving)
 
 	if err := s.ensureDBAvailable(); err != nil {
 		return s.handleSaveFailure(err)
@@ -499,17 +496,13 @@ func (s *AutoSaveService) SaveWithVersioning(songID int, content string, isMiles
 	}
 
 	s.setStatus(AutoSaveSuccess)
-	if s.onStatusChange != nil {
-		s.onStatusChange(AutoSaveSuccess)
-	}
+	s.invokeStatusCallback(AutoSaveSuccess)
 
 	// Reset to idle after a brief delay
 	go func() {
 		time.Sleep(2 * time.Second)
 		s.setStatus(AutoSaveIdle)
-		if s.onStatusChange != nil {
-			s.onStatusChange(AutoSaveIdle)
-		}
+		s.invokeStatusCallback(AutoSaveIdle)
 	}()
 
 	return nil
@@ -721,7 +714,36 @@ type SaveStatistics struct {
 
 // setStatus updates the current status
 func (s *AutoSaveService) setStatus(status AutoSaveStatus) {
+	s.statusMutex.Lock()
+	defer s.statusMutex.Unlock()
 	s.status = status
+}
+
+// invokeStatusCallback safely invokes the status change callback
+func (s *AutoSaveService) invokeStatusCallback(status AutoSaveStatus) {
+	s.callbackMutex.RLock()
+	cb := s.onStatusChange
+	s.callbackMutex.RUnlock()
+	if cb != nil {
+		cb(status)
+	}
+}
+
+// invokeErrorCallback safely invokes the error callback
+func (s *AutoSaveService) invokeErrorCallback(err error) {
+	s.callbackMutex.RLock()
+	cb := s.onError
+	s.callbackMutex.RUnlock()
+	if cb != nil {
+		cb(err)
+	}
+}
+
+// isStarted returns whether the service has been started (thread-safe)
+func (s *AutoSaveService) isStarted() bool {
+	s.lifecycleMutex.RLock()
+	defer s.lifecycleMutex.RUnlock()
+	return s.started
 }
 
 // getLastSavedContent returns the last content that was successfully saved

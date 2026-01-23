@@ -122,6 +122,9 @@ type RootModel struct {
 	// PWA sync service
 	syncServer *sync.SyncServer
 	syncStatus *SyncStatusModel
+
+	// Toast notification system
+	toast *ToastModel
 }
 
 // NewRootModel creates a new root model with initialized state
@@ -373,20 +376,64 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ScreenChangeMsg:
 		// Handle screen changes from menu
 		m.currentScreen = msg.Screen
+		// Focus the export screen when entering it
+		if msg.Screen == screenExport && m.export != nil {
+			m.export.Focus()
+		}
 
 	case dashboard.ScreenChangeMsg:
 		// Handle screen changes from dashboard (different type due to package boundary)
 		m.currentScreen = screen(msg.Screen)
+		// Focus the export screen when entering it
+		if screen(msg.Screen) == screenExport && m.export != nil {
+			m.export.Focus()
+		}
 
 	case editor.ScreenChangeMsg:
 		// Handle screen changes from editor/split_pane (different type due to package boundary)
 		m.currentScreen = screen(msg.Screen)
+		// Focus the export screen when entering it
+		if screen(msg.Screen) == screenExport && m.export != nil {
+			m.export.Focus()
+		}
 
 	case dashboard.AnimationTickMsg:
 		// Handle animation ticks from dashboard (different type due to package boundary)
 		// Forward to dashboard for animation updates
 		if m.dashboard != nil {
 			if cmd := m.dashboard.Update(msg); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
+
+	case dashboard.TriggerBrainstormMsg:
+		// Handle AI brainstorm trigger from dashboard
+		// Switch to editor and start brainstorm mode
+		m.currentScreen = screenEditor
+		if m.editor != nil {
+			// Use provided theme or derive from context
+			theme := msg.Theme
+			if theme == "" {
+				theme = "creative inspiration"
+			}
+			m.editor.StartRapidBrainstorm(theme)
+		}
+		return m, nil
+
+	case ToastMsg:
+		// Handle global toast notifications
+		if m.toast != nil {
+			cmd := m.toast.Update(msg)
+			if cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
+
+	case toastDismissMsg:
+		// Handle toast dismissal
+		if m.toast != nil {
+			cmd := m.toast.Update(msg)
+			if cmd != nil {
 				cmds = append(cmds, cmd)
 			}
 		}
@@ -428,6 +475,12 @@ func (m *RootModel) initializeChildModels() {
 	// Initialize dashboard
 	m.dashboard = dashboard.NewDashboardModel()
 
+	// Pass AI service and database to dashboard for its panels
+	if dashboardModel, ok := m.dashboard.(*dashboard.DashboardModel); ok {
+		dashboardModel.SetAIService(m.aiService)
+		dashboardModel.SetDatabase(m.database)
+	}
+
 	// CRITICAL: Pass current dimensions to ALL child models immediately after creation
 	// This ensures all screens have valid dimensions when navigated to
 	if m.width > 0 && m.height > 0 {
@@ -460,6 +513,9 @@ func (m *RootModel) initializeChildModels() {
 
 	// Initialize help system
 	m.helpPane = editor.NewHelpPaneModel(nil)
+
+	// Initialize toast notification system
+	m.toast = NewToastModel()
 
 	// Initialize voice service if enabled
 	m.initializeVoiceService(cfg)
@@ -759,6 +815,22 @@ func (m *RootModel) View() string {
 		content = constrainStyle.Render(content)
 	}
 
+	// Render toast notifications as overlay (if any)
+	if m.toast != nil {
+		toastView := m.toast.View()
+		if toastView != "" {
+			// Position toasts at the top of the screen
+			toastStyle := lipgloss.NewStyle().
+				MarginTop(1).
+				Align(lipgloss.Right).
+				Width(m.width)
+			content = lipgloss.JoinVertical(lipgloss.Left,
+				toastStyle.Render(toastView),
+				content,
+			)
+		}
+	}
+
 	return content
 }
 
@@ -809,7 +881,7 @@ func (m *RootModel) renderLoading() string {
 		Width(m.width).
 		Height(m.height)
 
-	loadingText := "Žµ noise.sh Žµ\n\n"
+	loadingText := "[~] noise.sh [~]\n\n"
 	if m.errorMsg != "" {
 		loadingText += "Error: " + m.errorMsg + "\n\nPress any key to exit..."
 	} else {

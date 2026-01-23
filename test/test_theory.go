@@ -14,7 +14,7 @@ func TestTheoryService() {
 	// Test theory service functionality
 	theoryService := app.NewTheoryService()
 
-	fmt.Println("ðŸŽµ Testing Theory Tools Implementation")
+	fmt.Println("ðŸ[~] Testing Theory Tools Implementation")
 	fmt.Println("=====================================")
 
 	// Test scale functionality

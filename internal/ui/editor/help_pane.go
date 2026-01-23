@@ -55,7 +55,7 @@ func NewHelpPaneModel(shortcutManager *ShortcutManager) *HelpPaneModel {
 	// Initialize search input
 	searchInput := textinput.New()
 	searchInput.Placeholder = "Search shortcuts..."
-	searchInput.Prompt = "” "
+	searchInput.Prompt = "[?] "
 	searchInput.PromptStyle = lipgloss.NewStyle().Foreground(t.Accent)
 	searchInput.TextStyle = lipgloss.NewStyle().Foreground(t.Text)
 	searchInput.Cursor.Style = lipgloss.NewStyle().Foreground(t.Accent)
@@ -299,14 +299,14 @@ func (m *HelpPaneModel) performSearch() {
 
 // renderFullHelp renders the complete help content
 func (m *HelpPaneModel) renderFullHelp() string {
-	title := m.titleStyle.Render("Ž¹ Keyboard Shortcuts Reference")
+	title := m.titleStyle.Render("[*] Keyboard Shortcuts Reference")
 	title = lipgloss.NewStyle().Width(m.width - 4).Align(lipgloss.Center).Render(title)
 
 	var content string
 
 	if m.searchMode {
 		// Render search interface
-		searchTitle := m.categoryStyle.Render("” Search Shortcuts")
+		searchTitle := m.categoryStyle.Render("[?] Search Shortcuts")
 		searchInputView := m.searchInputStyle.Render(m.searchInput.View())
 
 		searchContent := lipgloss.JoinVertical(lipgloss.Left, searchTitle, searchInputView)
@@ -378,14 +378,14 @@ func (m *HelpPaneModel) renderFullHelp() string {
 
 // renderCompactHelp renders compact help content
 func (m *HelpPaneModel) renderCompactHelp() string {
-	title := m.titleStyle.Render("Ž¹ Shortcuts")
+	title := m.titleStyle.Render("[*] Shortcuts")
 	title = lipgloss.NewStyle().Width(m.width - 4).Align(lipgloss.Center).Render(title)
 
 	var content string
 
 	if m.searchMode {
 		// Render search interface in compact mode
-		searchTitle := m.categoryStyle.Render("” Search")
+		searchTitle := m.categoryStyle.Render("[?] Search")
 		searchInputView := m.searchInputStyle.Width(30).Render(m.searchInput.View())
 
 		searchContent := lipgloss.JoinVertical(lipgloss.Left, searchTitle, searchInputView)
@@ -442,7 +442,7 @@ func (m *HelpPaneModel) renderMinimalHelp() string {
 
 	if m.searchMode {
 		// Render minimal search interface
-		searchTitle := m.categoryStyle.Render("”")
+		searchTitle := m.categoryStyle.Render("[?]")
 		searchInputView := m.searchInputStyle.Width(20).Render(m.searchInput.View())
 
 		searchContent := lipgloss.JoinVertical(lipgloss.Left, searchTitle, searchInputView)

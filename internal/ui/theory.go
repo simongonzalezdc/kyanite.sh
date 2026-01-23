@@ -236,7 +236,7 @@ func (m *TheoryModel) View() string {
 // renderHeader renders the header section
 func (m *TheoryModel) renderHeader() string {
 	t := theme.GetManager().Current()
-	title := titleGradient("Žµ Music Theory Tools", t)
+	title := titleGradient("[~] Music Theory Tools", t)
 	title = lipgloss.NewStyle().
 		Width(m.width).
 		Align(lipgloss.Center).

@@ -95,7 +95,7 @@ func TestSplitPaneLayoutDimensions(t *testing.T) {
 
 		// Test minimum pane width constraints (using unexported method)
 		// Since getMinimumPaneWidth is private, we'll test through view rendering behavior
-		if !strings.Contains(view, "â”‚") {
+		if !strings.Contains(view, "|") {
 			t.Errorf("Expected view to contain divider for dimensions %dx%d", tc.width, tc.height)
 		}
 	}
@@ -159,7 +159,7 @@ func TestSplitPaneResponsiveBreakpoints(t *testing.T) {
 
 		// Test that minimum width constraints are respected
 		// Since we can't access private methods, we'll verify through view structure
-		if !strings.Contains(view, "â”‚") && test.width > 30 {
+		if !strings.Contains(view, "|") && test.width > 30 {
 			t.Errorf("Expected divider in view for width %d", test.width)
 		}
 	}
@@ -254,7 +254,7 @@ func TestSplitPaneViewRendering(t *testing.T) {
 	}
 
 	// View should contain divider character
-	if !strings.Contains(view, "â”‚") {
+	if !strings.Contains(view, "|") {
 		t.Error("Expected view to contain divider character")
 	}
 

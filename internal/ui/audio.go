@@ -256,7 +256,7 @@ func (m *AudioModel) View() string {
 	var sections []string
 
 	// Header
-	header := m.headerStyle.Render("Žµ Audio Tools")
+	header := m.headerStyle.Render("[~] Audio Tools")
 	sections = append(sections, header)
 
 	// Tool selector

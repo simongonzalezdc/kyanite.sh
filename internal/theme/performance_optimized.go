@@ -509,11 +509,11 @@ func (m *PerformanceOptimizedManager) updateAverageSwitchTime(duration time.Dura
 }
 
 // GetMetrics returns current theme performance metrics
-func (m *PerformanceOptimizedManager) GetMetrics() ThemeMetrics {
+func (m *PerformanceOptimizedManager) GetMetrics() *ThemeMetrics {
 	m.metrics.mutex.RLock()
 	defer m.metrics.mutex.RUnlock()
 
-	return *m.metrics
+	return m.metrics
 }
 
 // GetPerformanceReport returns a comprehensive performance report

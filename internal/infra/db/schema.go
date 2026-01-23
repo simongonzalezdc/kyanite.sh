@@ -209,3 +209,63 @@ CREATE INDEX IF NOT EXISTS idx_ideas_song ON captured_ideas(song_id);
 CREATE INDEX IF NOT EXISTS idx_ideas_type ON captured_ideas(type, created_at);
 CREATE INDEX IF NOT EXISTS idx_devices_last_seen ON paired_devices(last_seen);
 `
+
+// MuseAgentSchema contains database tables for the AI companion agent.
+// This stores conversation history, user preferences, and episodic memories.
+const MuseAgentSchema = `
+-- Muse agent episodic memory (time-anchored events)
+CREATE TABLE IF NOT EXISTS muse_episodes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    event_type TEXT NOT NULL,  -- 'edit', 'brainstorm', 'suggestion_accepted', 'suggestion_dismissed', 'chat', 'tool_use'
+    song_id INTEGER,
+    section TEXT,
+    content_snippet TEXT,
+    outcome TEXT,
+    metadata TEXT,  -- JSON for additional context
+    FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE SET NULL
+);
+
+-- Muse agent user preferences (learned patterns and settings)
+CREATE TABLE IF NOT EXISTS muse_preferences (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,  -- JSON value
+    confidence REAL DEFAULT 0.5,
+    source TEXT,  -- 'explicit', 'inferred', 'default'
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Muse agent conversation history
+CREATE TABLE IF NOT EXISTS muse_conversations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    role TEXT NOT NULL,  -- 'user' or 'assistant'
+    content TEXT NOT NULL,
+    context TEXT,  -- JSON context (song, section, progress state)
+    tool_calls TEXT,  -- JSON array of tool calls made
+    tokens_used INTEGER DEFAULT 0
+);
+
+-- Muse agent session summary (for long-term context)
+CREATE TABLE IF NOT EXISTS muse_session_summaries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT UNIQUE NOT NULL,
+    started_at DATETIME NOT NULL,
+    ended_at DATETIME,
+    summary TEXT,  -- AI-generated session summary
+    songs_worked_on TEXT,  -- JSON array of song IDs
+    key_insights TEXT,  -- JSON array of insights
+    suggestions_accepted INTEGER DEFAULT 0,
+    suggestions_dismissed INTEGER DEFAULT 0,
+    words_written INTEGER DEFAULT 0
+);
+
+-- Muse agent indexes
+CREATE INDEX IF NOT EXISTS idx_muse_episodes_session ON muse_episodes(session_id);
+CREATE INDEX IF NOT EXISTS idx_muse_episodes_song ON muse_episodes(song_id);
+CREATE INDEX IF NOT EXISTS idx_muse_episodes_type ON muse_episodes(event_type, timestamp);
+CREATE INDEX IF NOT EXISTS idx_muse_conversations_session ON muse_conversations(session_id, timestamp);
+CREATE INDEX IF NOT EXISTS idx_muse_sessions_dates ON muse_session_summaries(started_at, ended_at);
+`

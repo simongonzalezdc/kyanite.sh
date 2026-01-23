@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/app/agent"
 	"github.com/Kyanite/noise/internal/config"
 	"github.com/Kyanite/noise/internal/domain"
 	"github.com/Kyanite/noise/internal/infra/db"
@@ -56,6 +57,9 @@ type SplitPaneModel struct {
 	// Keyboard shortcuts
 	shortcutManager *ShortcutManager
 
+	// Muse AI companion agent
+	museAgent *agent.Muse
+
 	// Performance optimizations
 	lastUpdateLength int
 
@@ -102,6 +106,10 @@ func NewSplitPaneModel(database *db.DB, aiService *app.AIService) *SplitPaneMode
 	}
 
 	t := theme.GetManager().Current()
+
+	// Initialize Muse AI companion agent
+	museAgent := agent.NewMuse(database, aiService, nil)
+
 	model := &SplitPaneModel{
 		splitRatio:      splitRatio,
 		editorPane:      NewEditorPaneModel(editorTA, aiService),
@@ -115,6 +123,7 @@ func NewSplitPaneModel(database *db.DB, aiService *app.AIService) *SplitPaneMode
 		ctx:             ctx,
 		cancel:          cancel,
 		shortcutManager: NewShortcutManager(),
+		museAgent:       museAgent,
 		dividerStyle: lipgloss.NewStyle().
 			Foreground(t.Secondary),
 		sketchLayout: NewSketchLayout(),
@@ -215,6 +224,11 @@ func (m *SplitPaneModel) Update(msg tea.Msg) (*SplitPaneModel, tea.Cmd) {
 			}
 		}
 		m.lastUpdateLength = len(editorContent)
+
+		// Notify Muse agent of content changes for context tracking
+		if m.museAgent != nil && editorContent != currentContent {
+			m.museAgent.OnContentChange(editorContent)
+		}
 
 		if m.previewPane.GetRealtimeManager() != nil {
 			m.previewPane.GetRealtimeManager().UpdateContent(editorContent, ChangeSourceEditor)
@@ -406,6 +420,17 @@ func (m *SplitPaneModel) Cleanup() {
 			logging.Warnf("Error stopping auto-save service: %v", err)
 		}
 	}
+	// End Muse session
+	if m.museAgent != nil {
+		if err := m.museAgent.EndSession(); err != nil {
+			logging.Warnf("Error ending Muse session: %v", err)
+		}
+	}
+}
+
+// GetMuse returns the Muse AI companion agent
+func (m *SplitPaneModel) GetMuse() *agent.Muse {
+	return m.museAgent
 }
 
 // handleShortcutAction handles actions from the keyboard shortcut system
@@ -613,6 +638,14 @@ func (m *SplitPaneModel) SetQuickStartConfig(theme string, scratchMode bool, aut
 	if autoBrainstorm && theme != "" {
 		m.editorPane.StartRapidBrainstorm(theme)
 	}
+}
+
+// StartRapidBrainstorm starts the AI rapid brainstorm mode with the given theme
+func (m *SplitPaneModel) StartRapidBrainstorm(theme string) {
+	if m.editorPane == nil {
+		return
+	}
+	m.editorPane.StartRapidBrainstorm(theme)
 }
 
 // File dialog helper methods

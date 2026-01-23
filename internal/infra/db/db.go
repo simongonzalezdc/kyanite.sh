@@ -219,6 +219,30 @@ func (db *DB) Ping() error {
 	return db.conn.Ping()
 }
 
+// Query executes a query that returns rows
+func (db *DB) Query(query string, args ...interface{}) (*sql.Rows, error) {
+	if db == nil || db.conn == nil {
+		return nil, sql.ErrConnDone
+	}
+	return db.conn.Query(query, args...)
+}
+
+// QueryRow executes a query that returns a single row
+func (db *DB) QueryRow(query string, args ...interface{}) *sql.Row {
+	if db == nil || db.conn == nil {
+		return nil
+	}
+	return db.conn.QueryRow(query, args...)
+}
+
+// Exec executes a query that doesn't return rows
+func (db *DB) Exec(query string, args ...interface{}) (sql.Result, error) {
+	if db == nil || db.conn == nil {
+		return nil, sql.ErrConnDone
+	}
+	return db.conn.Exec(query, args...)
+}
+
 // initializeSchema creates all tables if they don't exist
 func initializeSchema(conn *sql.DB, enableCollaboration bool) error {
 	// Always execute the core schema
@@ -231,6 +255,11 @@ func initializeSchema(conn *sql.DB, enableCollaboration bool) error {
 		if _, err := conn.Exec(CollaborationSchema); err != nil {
 			return errutil.Wrap(err, "execute collaboration schema")
 		}
+	}
+
+	// Always execute the Muse agent schema (AI companion feature)
+	if _, err := conn.Exec(MuseAgentSchema); err != nil {
+		return errutil.Wrap(err, "execute muse agent schema")
 	}
 
 	return nil

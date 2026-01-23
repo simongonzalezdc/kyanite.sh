@@ -118,16 +118,16 @@ type MemoryMonitor struct {
 
 // AggregatedMetrics combines metrics from all components
 type AggregatedMetrics struct {
-	Timestamp        time.Time                          `json:"timestamp"`
-	Database         db.PerformanceMetrics              `json:"database"`
-	AI               ai.AIMetrics                       `json:"ai"`
-	UI               ui.UIMetrics                       `json:"ui"`
-	Theme            theme.ThemeMetrics                 `json:"theme"`
-	Collaboration    collaboration.CollaborationMetrics `json:"collaboration"`
-	System           SystemMetrics                      `json:"system"`
-	Memory           MemoryMetrics                      `json:"memory"`
-	OverallScore     float64                            `json:"overall_score"`
-	PerformanceLevel PerformanceLevel                   `json:"performance_level"`
+	Timestamp        time.Time                           `json:"timestamp"`
+	Database         *db.PerformanceMetrics              `json:"database"`
+	AI               ai.AIMetrics                        `json:"ai"`
+	UI               ui.UIMetrics                        `json:"ui"`
+	Theme            *theme.ThemeMetrics                 `json:"theme"`
+	Collaboration    *collaboration.CollaborationMetrics `json:"collaboration"`
+	System           SystemMetrics                       `json:"system"`
+	Memory           MemoryMetrics                       `json:"memory"`
+	OverallScore     float64                             `json:"overall_score"`
+	PerformanceLevel PerformanceLevel                    `json:"performance_level"`
 }
 
 // SystemMetrics represents system-level metrics
@@ -428,7 +428,7 @@ func (m *Monitor) calculatePerformanceScore(metrics *AggregatedMetrics) float64 
 	score := 100.0
 
 	// Database performance impact (30% weight)
-	if metrics.Database.QueryCount > 0 {
+	if metrics.Database != nil && metrics.Database.QueryCount > 0 {
 		avgQueryTime := float64(metrics.Database.TotalQueryTime.Nanoseconds()) / float64(metrics.Database.QueryCount) / 1e6
 		if avgQueryTime > 100 { // 100ms threshold
 			score -= (avgQueryTime - 100) * 0.3
@@ -514,7 +514,7 @@ func (m *Monitor) checkAlerts(metrics *AggregatedMetrics) {
 	}
 
 	// Check database query time
-	if metrics.Database.QueryCount > 0 {
+	if metrics.Database != nil && metrics.Database.QueryCount > 0 {
 		avgQueryTime := float64(metrics.Database.TotalQueryTime.Nanoseconds()) / float64(metrics.Database.QueryCount) / 1e6
 		if avgQueryTime > float64(m.config.AlertThresholds.DatabaseQueryTime.Milliseconds()) {
 			alerts = append(alerts, PerformanceAlert{
@@ -582,11 +582,11 @@ func (m *Monitor) detectRegressions() {
 }
 
 // GetMetrics returns the current aggregated metrics
-func (m *Monitor) GetMetrics() AggregatedMetrics {
+func (m *Monitor) GetMetrics() *AggregatedMetrics {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
-	return *m.aggregatedMetrics
+	return m.aggregatedMetrics
 }
 
 // GetPerformanceReport returns a comprehensive performance report

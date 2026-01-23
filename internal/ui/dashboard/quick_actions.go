@@ -169,7 +169,8 @@ func (m *QuickActionsModel) activateAction(idx int) tea.Cmd {
 	case "open":
 		return func() tea.Msg { return ScreenChangeMsg{Screen: 5} } // screenManager
 	case "ai":
-		return func() tea.Msg { return ScreenChangeMsg{Screen: 2} } // screenEditor
+		// Trigger AI brainstorm mode instead of just navigating to editor
+		return func() tea.Msg { return TriggerBrainstormMsg{} }
 	case "export":
 		return func() tea.Msg { return ScreenChangeMsg{Screen: 3} } // screenExport
 	case "theory":
@@ -192,8 +193,9 @@ func (m *QuickActionsModel) HandleKey(msg tea.KeyMsg) tea.Cmd {
 			return ScreenChangeMsg{Screen: 5} // screenManager
 		}
 	case "3":
+		// Trigger AI brainstorm mode instead of just navigating to editor
 		return func() tea.Msg {
-			return ScreenChangeMsg{Screen: 2} // screenEditor
+			return TriggerBrainstormMsg{}
 		}
 	case "4":
 		return func() tea.Msg {

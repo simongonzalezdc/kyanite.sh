@@ -145,7 +145,7 @@ func (m *bpmTapperModel) View() string {
 	var content strings.Builder
 
 	// Header
-	header := m.headerStyle.Render("Žµ BPM Tapper")
+	header := m.headerStyle.Render("[~] BPM Tapper")
 	content.WriteString(header)
 	content.WriteString("\n\n")
 

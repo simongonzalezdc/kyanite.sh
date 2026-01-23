@@ -2,6 +2,9 @@ package dashboard
 
 import (
 	"fmt"
+
+	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/infra/db"
 	"github.com/Kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -63,7 +66,40 @@ func NewDashboardModel() *DashboardModel {
 
 // Init initializes the dashboard model
 func (dm *DashboardModel) Init() tea.Cmd {
-	return nil
+	var cmds []tea.Cmd
+
+	// Initialize recent work panel (loads data from database)
+	if dm.recentWork != nil {
+		if cmd := dm.recentWork.Init(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	// Initialize system info panel
+	if dm.systemInfo != nil {
+		if cmd := dm.systemInfo.Init(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	return tea.Batch(cmds...)
+}
+
+// SetAIService passes the AI service to the dashboard's AI assistant panel
+func (dm *DashboardModel) SetAIService(aiService *app.AIService) {
+	if dm.aiAssistant != nil {
+		dm.aiAssistant.SetAIService(aiService)
+	}
+}
+
+// SetDatabase passes the database to panels that need it
+func (dm *DashboardModel) SetDatabase(database *db.DB) {
+	if dm.recentWork != nil {
+		dm.recentWork.SetDatabase(database)
+	}
+	if dm.systemInfo != nil {
+		dm.systemInfo.SetDatabase(database)
+	}
 }
 
 // Update handles messages for the dashboard
@@ -132,6 +168,35 @@ func (dm *DashboardModel) Update(msg tea.Msg) tea.Cmd {
 	case ForceRefreshMsg:
 		// Handle force refresh
 		return nil
+
+	case tea.MouseMsg:
+		// Forward mouse events to interactive child components
+		// This enables click, scroll, and hover interactions
+		if dm.quickActions != nil {
+			if cmd := dm.quickActions.Update(msg); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
+		if dm.aiAssistant != nil {
+			if cmd := dm.aiAssistant.Update(msg); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
+		if dm.themeManager != nil {
+			if cmd := dm.themeManager.Update(msg); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
+		if dm.recentWork != nil {
+			if cmd := dm.recentWork.Update(msg); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
+		if dm.musicTools != nil {
+			if cmd := dm.musicTools.Update(msg); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
 
 	case tea.KeyMsg:
 		switch msg.String() {

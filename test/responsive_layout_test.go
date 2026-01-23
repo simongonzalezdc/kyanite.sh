@@ -192,11 +192,11 @@ func TestResponsiveSizeWarnings(t *testing.T) {
 		t.Error("Expected warnings for small size")
 	}
 
-	// Test warnings for ultra-wide
+	// Test no warnings for ultra-wide (fully supported with multi-column layouts)
 	manager.UpdateSize(220, 60)
 	warnings = manager.GetSizeWarnings()
-	if len(warnings) == 0 {
-		t.Error("Expected warnings for ultra-wide terminal")
+	if len(warnings) != 0 {
+		t.Errorf("Expected no warnings for ultra-wide terminal (supported), got %d warnings", len(warnings))
 	}
 }
 
@@ -219,8 +219,8 @@ func TestResponsiveSizeWarningRendering(t *testing.T) {
 	}
 
 	// Verify warning contains expected content
-	if !contains(warning, "âš ï¸") {
-		t.Error("Expected warning to contain warning emoji")
+	if !contains(warning, "[!]") {
+		t.Error("Expected warning to contain warning icon [!]")
 	}
 }
 

@@ -57,3 +57,8 @@ func (m *EditorModel) SetEditorText(text string) {
 func (m *EditorModel) InsertText(text string) {
 	m.splitPane.InsertText(text)
 }
+
+// StartRapidBrainstorm starts the AI rapid brainstorm mode with the given theme
+func (m *EditorModel) StartRapidBrainstorm(theme string) {
+	m.splitPane.StartRapidBrainstorm(theme)
+}

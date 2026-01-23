@@ -561,11 +561,11 @@ func (cp *ConnectionPool) Put(conn *db.DB) {
 }
 
 // GetMetrics returns current collaboration performance metrics
-func (m *PerformanceOptimizedCollaborationManager) GetMetrics() CollaborationMetrics {
+func (m *PerformanceOptimizedCollaborationManager) GetMetrics() *CollaborationMetrics {
 	m.metrics.mutex.RLock()
 	defer m.metrics.mutex.RUnlock()
 
-	return *m.metrics
+	return m.metrics
 }
 
 // GetPerformanceReport returns a comprehensive performance report

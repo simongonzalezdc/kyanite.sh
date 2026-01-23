@@ -54,7 +54,7 @@ func TestAudioModelView(t *testing.T) {
 	}
 
 	// Check that view contains expected content
-	expectedContent := "ðŸŽµ Audio Tools"
+	expectedContent := "ðŸ[~] Audio Tools"
 	if !strings.Contains(view, expectedContent) {
 		t.Errorf("View should contain '%s', got: %s", expectedContent, view)
 	}

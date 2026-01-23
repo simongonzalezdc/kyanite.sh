@@ -122,7 +122,7 @@ func NewProjectManagerModel(database *db.DB) *ProjectManagerModel {
 		{
 			Name:        "Songwriter's Collection",
 			Description: "A comprehensive collection for songwriters",
-			Icon:        "Žµ",
+			Icon:        "[~]",
 			Category:    "Music",
 			SongCount:   0,
 			Tags:        []string{"songwriting", "lyrics", "music"},
@@ -154,7 +154,7 @@ func NewProjectManagerModel(database *db.DB) *ProjectManagerModel {
 		{
 			Name:        "Genre-Specific",
 			Description: "Organize songs by specific genre",
-			Icon:        "Ž¸",
+			Icon:        "[#]",
 			Category:    "Music",
 			SongCount:   0,
 			Tags:        []string{"genre", "style", "categorization"},
@@ -593,7 +593,7 @@ func (m *ProjectManagerModel) renderLoading() string {
 		Width(m.width).
 		Height(m.height)
 
-	content := "Žµ Project Manager Žµ\n\n"
+	content := "[~] Project Manager [~]\n\n"
 	content += "Loading projects...\n\n"
 	content += m.spinner.View()
 
@@ -653,7 +653,7 @@ func (m *ProjectManagerModel) renderProjectList() string {
 		Foreground(t.Text)
 
 	// Header
-	header := headerStyle.Render("Žµ Project Manager")
+	header := headerStyle.Render("[~] Project Manager")
 	header += "\n\n"
 
 	// Status bar
@@ -856,7 +856,7 @@ func (m *ProjectManagerModel) renderSongList() string {
 		Foreground(t.Text)
 
 	// Header
-	header := headerStyle.Render(fmt.Sprintf("Žµ Songs in: %s", m.currentProject.Name))
+	header := headerStyle.Render(fmt.Sprintf("[~] Songs in: %s", m.currentProject.Name))
 	header += "\n\n"
 
 	// Song list

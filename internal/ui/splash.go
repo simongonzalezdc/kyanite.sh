@@ -107,7 +107,7 @@ func (m *SplashModel) View() string {
 
 	// Apply fade effects based on animation progress
 	if m.showTitle || titleProgress > 0 {
-		title := "Žµ noise.sh Žµ"
+		title := "[~] noise.sh [~]"
 		if titleProgress < 1.0 && titleProgress > 0 {
 			// Apply fade effect to title
 			titleOpacity := uint(titleProgress * 255)

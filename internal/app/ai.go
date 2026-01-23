@@ -261,3 +261,9 @@ func (s *AIService) GenerateHarmonySuggestions(ctx context.Context, mood string)
 	}
 	return resp.Suggestions, nil
 }
+
+// FindRhymes finds words that rhyme with the given word
+func (s *AIService) FindRhymes(word string) []string {
+	// Use the basic rhyme finder from the ai package
+	return ai.FindBasicRhymes(word)
+}
