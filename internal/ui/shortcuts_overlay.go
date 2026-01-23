@@ -177,7 +177,7 @@ func (m *ShortcutsOverlayModel) Update(msg tea.Msg) tea.Cmd {
 		}
 
 		switch msg.String() {
-		case "esc", "q", "?":
+		case "esc", "?":
 			m.visible = false
 		case "up", "k":
 			if m.scrollY > 0 {

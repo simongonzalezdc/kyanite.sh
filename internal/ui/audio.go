@@ -181,7 +181,7 @@ func (m *AudioModel) Update(msg tea.Msg) (*AudioModel, tea.Cmd) {
 			case ToolRecording:
 				m.toggleRecording()
 			}
-		case "s":
+		case "alt+s":
 			// Stop actions
 			switch m.activeTool {
 			case ToolPlayback:
@@ -210,7 +210,7 @@ func (m *AudioModel) Update(msg tea.Msg) (*AudioModel, tea.Cmd) {
 			if m.activeTool == ToolMetronome && m.tempo > 60 {
 				m.tempo -= 5
 			}
-		case "h", "?":
+		case "f1", "?":
 			m.showHelp = !m.showHelp
 		case "esc":
 			if m.showHelp {
@@ -327,10 +327,9 @@ func (m *AudioModel) stopPlayback() {
 
 func (m *AudioModel) updatePlaybackKeys(msg tea.KeyMsg) tea.Cmd {
 	switch msg.String() {
-	case "c":
+	case "alt+c":
 		m.currentChord = m.getNextChord()
-	case "n":
-		// Use 'n' for Next Scale to avoid conflicting with Stop (s)
+	case "alt+n":
 		m.currentScale = m.getNextScale()
 	}
 	return nil
@@ -364,7 +363,7 @@ func (m *AudioModel) stopMetronome() {
 
 func (m *AudioModel) updateMetronomeKeys(msg tea.KeyMsg) tea.Cmd {
 	switch msg.String() {
-	case "t":
+	case "alt+t":
 		// Change time signature
 		if m.timeSignature == "4/4" {
 			m.timeSignature = "3/4"
@@ -394,7 +393,7 @@ func (m *AudioModel) stopRecording() {
 func (m *AudioModel) updateRecordingKeys(msg tea.KeyMsg) tea.Cmd {
 	// Recording-specific key handling could be added here
 	switch msg.String() {
-	case "r":
+	case "alt+r":
 		// Reset recording duration
 		m.recordingDuration = 0
 	}
@@ -432,7 +431,7 @@ func (m *AudioModel) renderPlaybackTool() string {
 	sections = append(sections, chordInfo)
 
 	// Playback controls
-	controls := []string{"Play/Pause: Space", "Stop: S", "Next Chord: C", "Next Scale: N"}
+	controls := []string{"Play/Pause: Space", "Stop: Alt+S", "Next Chord: Alt+C", "Next Scale: Alt+N"}
 	sections = append(sections, "Controls: "+strings.Join(controls, " | "))
 
 	// Progress indicator
@@ -468,7 +467,7 @@ func (m *AudioModel) renderMetronomeTool() string {
 	sections = append(sections, fmt.Sprintf("Beat: %s", beatDisplay))
 
 	// Metronome controls
-	controls := []string{"Play/Pause: Space", "Stop: S", "Tempo +/-: +/=", "Time Sig: T"}
+	controls := []string{"Play/Pause: Space", "Stop: Alt+S", "Tempo +/-: +/=", "Time Sig: Alt+T"}
 	sections = append(sections, "Controls: "+strings.Join(controls, " | "))
 
 	// Metronome state
@@ -493,7 +492,7 @@ func (m *AudioModel) renderRecordingTool() string {
 	sections = append(sections, fmt.Sprintf("Duration: %s", duration))
 
 	// Recording controls
-	controls := []string{"Record/Pause: Space", "Stop: S"}
+	controls := []string{"Record/Pause: Space", "Stop: Alt+S", "Reset: Alt+R"}
 	sections = append(sections, "Controls: "+strings.Join(controls, " | "))
 
 	// Recording state
@@ -517,7 +516,7 @@ func (m *AudioModel) renderStatusBar() string {
 	status = append(status, fmt.Sprintf("Tool: %s", toolNames[m.activeTool]))
 
 	// Navigation hints
-	status = append(status, "Tab: Next Tool | 1-3: Select Tool | H: Help")
+	status = append(status, "Tab: Next Tool | 1-3: Select Tool | F1: Help")
 
 	return m.statusStyle.Render(strings.Join(status, " | "))
 }
@@ -528,30 +527,31 @@ func (m *AudioModel) renderHelp() string {
 Navigation:
   Tab / Shift+Tab    Switch between tools
   1, 2, 3           Jump to specific tool
-  Up / Down             Navigate within tool
-  H / ?             Toggle this help
+  Up / Down         Navigate within tool
+  F1 / ?            Toggle this help
   Esc               Exit help
 
 Playback Tool:
   Space             Play/Pause chord/scale
-  S                 Stop playback
-  C                 Next chord
-  N                 Next scale
+  Alt+S             Stop playback
+  Alt+C             Next chord
+  Alt+N             Next scale
 
 Metronome Tool:
   Space             Start/Stop metronome
-  S                 Stop metronome
+  Alt+S             Stop metronome
   + / =             Increase tempo
   -                 Decrease tempo
-  T                 Toggle time signature
+  Alt+T             Toggle time signature
 
 Recording Tool:
   Space             Start/Pause recording
-  S                 Stop recording
+  Alt+S             Stop recording
+  Alt+R             Reset recording
 
 General:
   All tools support Space for primary action
-  and S to stop the current operation`)
+  and Alt+S to stop the current operation`)
 
 	return help
 }

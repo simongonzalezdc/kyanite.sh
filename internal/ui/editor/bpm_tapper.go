@@ -108,11 +108,11 @@ func (m *bpmTapperModel) Update(msg tea.Msg) (*bpmTapperModel, tea.Cmd) {
 			m.visible = false
 			return m, nil
 
-		case " ", "enter":
+		case " ":
 			// Record a tap
 			m.recordTap()
 
-		case "c":
+		case "enter":
 			// Confirm and set BPM
 			if m.setBMPCallback != nil {
 				m.setBMPCallback(m.currentBPM)
@@ -120,7 +120,7 @@ func (m *bpmTapperModel) Update(msg tea.Msg) (*bpmTapperModel, tea.Cmd) {
 			m.visible = false
 			return m, nil
 
-		case "r":
+		case "alt+r":
 			// Reset taps
 			m.reset()
 		}
@@ -192,9 +192,9 @@ func (m *bpmTapperModel) renderTapHistory() string {
 // renderInstructions renders the instruction text
 func (m *bpmTapperModel) renderInstructions() string {
 	instructions := []string{
-		"[Space/Enter] Tap tempo",
-		"[C] Confirm BPM",
-		"[R] Reset",
+		"[Space] Tap tempo",
+		"[Enter] Confirm BPM",
+		"[Alt+R] Reset",
 		"[Esc] Cancel",
 	}
 

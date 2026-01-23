@@ -597,6 +597,18 @@ func (m *SplitPaneModel) GetShortcutManager() *ShortcutManager {
 	return m.shortcutManager
 }
 
+// HasUnsavedChanges returns whether the editor has unsaved changes
+func (m *SplitPaneModel) HasUnsavedChanges() bool {
+	if m.editorPane == nil {
+		return false
+	}
+	statusBar := m.editorPane.GetStatusBar()
+	if statusBar == nil {
+		return false
+	}
+	return statusBar.HasUnsavedChanges()
+}
+
 // SetShortcutContext sets the keyboard shortcut context
 func (m *SplitPaneModel) SetShortcutContext(context KeyContext) {
 	if m.shortcutManager != nil {

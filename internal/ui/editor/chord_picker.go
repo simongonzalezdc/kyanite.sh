@@ -202,7 +202,7 @@ func (m *chordPickerModel) Update(msg tea.Msg) (*chordPickerModel, tea.Cmd) {
 				m.selectedIdx++
 			}
 
-		case "a":
+		case "alt+a":
 			// Trigger AI Brainstorm (for now just use activeMood if it's not 'all')
 			if m.aiService != nil {
 				return m, m.triggerAIBrainstorm()
@@ -227,7 +227,7 @@ func (m *chordPickerModel) Update(msg tea.Msg) (*chordPickerModel, tea.Cmd) {
 				m.setMoodFilter(moods[idx])
 			}
 
-		case "r":
+		case "alt+r":
 			// Random selection
 			if len(m.filteredProg) > 0 {
 				m.selectedIdx = rand.Intn(len(m.filteredProg))
@@ -370,7 +370,8 @@ func (m *chordPickerModel) renderProgressionsList(maxWidth, maxHeight int) strin
 func (m *chordPickerModel) renderInstructions() string {
 	instructions := []string{
 		"[1-5] Filter by mood",
-		"[R] Random selection",
+		"[Alt+R] Random selection",
+		"[Alt+A] AI Brainstorm",
 		"[UpDown] Navigate",
 		"[Enter/Space] Insert chords",
 		"[Esc] Cancel",

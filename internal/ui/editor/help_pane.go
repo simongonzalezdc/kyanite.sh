@@ -153,7 +153,7 @@ func (m *HelpPaneModel) Update(msg tea.Msg) (*HelpPaneModel, tea.Cmd) {
 					m.shortcutManager.SetHelpMode(false)
 				}
 			}
-		case "q", "enter":
+		case "enter":
 			// Exit help mode
 			if m.shortcutManager != nil {
 				m.shortcutManager.SetHelpMode(false)

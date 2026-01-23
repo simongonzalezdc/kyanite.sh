@@ -180,7 +180,7 @@ func (m *ChordPickerModel) Update(msg tea.Msg) (*ChordPickerModel, tea.Cmd) {
 				m.setMoodFilter(moods[idx])
 			}
 
-		case "r":
+		case "alt+r":
 			// Random selection
 			if len(m.filteredProg) > 0 {
 				m.selectedIdx = rand.Intn(len(m.filteredProg))
@@ -331,7 +331,7 @@ func (m *ChordPickerModel) renderProgressionsList(maxWidth, maxHeight int) strin
 func (m *ChordPickerModel) renderInstructions() string {
 	instructions := []string{
 		"[1-5] Filter by mood",
-		"[R] Random selection",
+		"[Alt+R] Random selection",
 		"[UpDown] Navigate",
 		"[Enter/Space] Insert chords",
 		"[Esc] Cancel",

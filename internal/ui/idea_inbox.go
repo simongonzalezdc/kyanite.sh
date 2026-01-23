@@ -91,9 +91,9 @@ func (m *IdeaInboxModel) Update(msg tea.Msg) (*IdeaInboxModel, tea.Cmd) {
 			}
 		case "enter":
 			return m, m.assignIdea()
-		case "d", "delete":
+		case "delete":
 			return m, m.deleteIdea()
-		case "p":
+		case "ctrl+p":
 			return m, m.previewIdea()
 		case "esc":
 			return m, func() tea.Msg { return BackToSettingsMsg{} }
@@ -156,7 +156,7 @@ func (m *IdeaInboxModel) View() string {
 
 	// Help
 	b.WriteString("\n")
-	b.WriteString(m.helpStyle.Render("Up/Down: Navigate - Enter: Assign to song - D: Delete - P: Preview - Esc: Back"))
+	b.WriteString(m.helpStyle.Render("Up/Down: Navigate - Enter: Assign to song - Delete: Remove - Ctrl+P: Preview - Esc: Back"))
 
 	return b.String()
 }

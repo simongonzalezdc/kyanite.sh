@@ -184,7 +184,7 @@ func (m *OnboardingModel) Update(msg tea.Msg) tea.Cmd {
 			if m.currentStep > 0 {
 				m.currentStep--
 			}
-		case "esc", "q":
+		case "esc":
 			m.Complete()
 		case "home":
 			m.currentStep = 0

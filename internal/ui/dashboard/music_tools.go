@@ -62,16 +62,16 @@ func (m *MusicToolsModel) Update(msg tea.Msg) tea.Cmd {
 			}
 		case "enter":
 			return m.activateSelected()
-		case "c", "C":
+		case "ctrl+shift+c":
 			m.selected = 0
 			return m.openTheoryTools()
-		case "s", "S":
+		case "ctrl+shift+s":
 			m.selected = 1
 			return m.openTheoryTools()
-		case "r", "R":
+		case "ctrl+shift+r":
 			m.selected = 2
 			return m.openTheoryTools()
-		case "t":
+		case "ctrl+shift+t":
 			m.selected = 3
 			return m.openTheoryTools()
 		}
@@ -209,7 +209,7 @@ func (m *MusicToolsModel) View() string {
 	mouseHint := lipgloss.NewStyle().
 		Foreground(t.Secondary).
 		Faint(true).
-		Render("Click or use C/S/R/T keys")
+		Render("Click or use Ctrl+Shift+C/S/R/T")
 
 	content := lipgloss.JoinVertical(lipgloss.Left,
 		title,

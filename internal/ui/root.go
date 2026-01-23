@@ -63,6 +63,9 @@ type RootModel struct {
 	width         int
 	height        int
 
+	// Quit confirmation dialog state
+	confirmingQuit bool
+
 	// Database connection
 	database *db.DB
 
@@ -248,26 +251,29 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, m.scheduleRefresh())
 
 	case tea.KeyMsg:
+		// Handle quit confirmation dialog
+		if m.confirmingQuit {
+			switch msg.String() {
+			case "y", "Y", "enter":
+				// User confirmed quit
+				return m, m.performQuit()
+			case "n", "N", "esc":
+				// User cancelled quit
+				m.confirmingQuit = false
+				return m, nil
+			}
+			// Ignore other keys while confirming
+			return m, nil
+		}
+
 		switch msg.String() {
-		case "ctrl+c", "q":
-			if m.database != nil {
-				m.database.Close()
+		case "ctrl+c", "ctrl+q":
+			// Check for unsaved changes before quitting
+			if m.hasUnsavedChanges() {
+				m.confirmingQuit = true
+				return m, nil
 			}
-			// Clean up animation manager
-			if m.animation != nil {
-				m.animation.Close()
-			}
-			// Clean up voice service
-			if m.voiceService != nil {
-				m.voiceService.Close()
-			}
-			// Clean up sync server
-			if m.syncServer != nil {
-				m.syncServer.Stop()
-			}
-			// Restore normal logging before exit
-			logging.DisableTUIMode()
-			return m, tea.Quit
+			return m, m.performQuit()
 		case "ctrl+d":
 			// Global voice dictation toggle
 			if m.voiceService != nil && m.voiceService.IsAvailable() {
@@ -763,6 +769,11 @@ func (m *RootModel) updateCurrentScreen(msg tea.Msg) tea.Cmd {
 
 // View renders the current screen
 func (m *RootModel) View() string {
+	// Show quit confirmation dialog if active
+	if m.confirmingQuit {
+		return m.renderQuitConfirmation()
+	}
+
 	// Show help overlay if help mode is active
 	if m.helpMode {
 		return m.renderHelp()
@@ -896,6 +907,52 @@ func (m *RootModel) renderDashboard() string {
 		return m.dashboard.View()
 	}
 	return "Dashboard loading..."
+}
+
+// renderQuitConfirmation renders the quit confirmation dialog
+func (m *RootModel) renderQuitConfirmation() string {
+	t := theme.GetManager().Current()
+
+	dialogStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(t.Warning).
+		Background(t.Background).
+		Padding(1, 3).
+		Align(lipgloss.Center)
+
+	titleStyle := lipgloss.NewStyle().
+		Foreground(t.Warning).
+		Bold(true)
+
+	textStyle := lipgloss.NewStyle().
+		Foreground(t.Text)
+
+	hintStyle := lipgloss.NewStyle().
+		Foreground(t.Secondary).
+		MarginTop(1)
+
+	title := titleStyle.Render("[!] Unsaved Changes")
+	message := textStyle.Render("You have unsaved changes that will be lost.")
+	hint := hintStyle.Render("[Y] Quit anyway  [N/Esc] Cancel")
+
+	dialog := lipgloss.JoinVertical(lipgloss.Center,
+		title,
+		"",
+		message,
+		"",
+		hint,
+	)
+
+	dialogBox := dialogStyle.Render(dialog)
+
+	// Center on screen
+	return lipgloss.Place(
+		m.width,
+		m.height,
+		lipgloss.Center,
+		lipgloss.Center,
+		dialogBox,
+	)
 }
 
 // renderHelp renders the help screen
@@ -1151,4 +1208,38 @@ func (m *RootModel) configureQuickStart() {
 			splitPane.SetQuickStartConfig(m.quickStartConfig.Theme, m.quickStartConfig.ScratchMode, m.quickStartConfig.AutoBrainstorm)
 		}
 	}
+}
+
+// hasUnsavedChanges checks if the editor has unsaved changes
+func (m *RootModel) hasUnsavedChanges() bool {
+	if m.editor == nil {
+		return false
+	}
+	splitPane := m.editor.GetSplitPane()
+	if splitPane == nil {
+		return false
+	}
+	return splitPane.HasUnsavedChanges()
+}
+
+// performQuit performs the actual quit operation with cleanup
+func (m *RootModel) performQuit() tea.Cmd {
+	if m.database != nil {
+		m.database.Close()
+	}
+	// Clean up animation manager
+	if m.animation != nil {
+		m.animation.Close()
+	}
+	// Clean up voice service
+	if m.voiceService != nil {
+		m.voiceService.Close()
+	}
+	// Clean up sync server
+	if m.syncServer != nil {
+		m.syncServer.Stop()
+	}
+	// Restore normal logging before exit
+	logging.DisableTUIMode()
+	return tea.Quit
 }
