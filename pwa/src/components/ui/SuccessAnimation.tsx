@@ -2,6 +2,9 @@
 
 import { useEffect, useRef } from "react";
 
+/** Duration of the success animation (ms) */
+const SUCCESS_ANIMATION_DURATION_MS = 1500;
+
 interface SuccessAnimationProps {
   /** Whether to show the animation */
   show: boolean;
@@ -30,7 +33,7 @@ export function SuccessAnimation({
       // Transition from false to true - animation started
       const timer = setTimeout(() => {
         onComplete?.();
-      }, 1500);
+      }, SUCCESS_ANIMATION_DURATION_MS);
 
       prevShowRef.current = show;
       return () => clearTimeout(timer);

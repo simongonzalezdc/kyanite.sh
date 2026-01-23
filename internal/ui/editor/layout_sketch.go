@@ -32,7 +32,8 @@ func (l *SketchLayout) Render(editorContent string, brainstormContent string) st
 	// Sketch mode: Minimal UI with editor + AI panel only
 	// 80% editor, 20% AI panel
 
-	editorWidth := l.width * 80 / 100
+	editorWidthPercent := 80
+	editorWidth := l.width * editorWidthPercent / 100
 	aiPanelWidth := l.width - editorWidth - 1 // -1 for divider
 
 	// Create editor pane (80% width) - NO border since editorContent already has one
@@ -76,10 +77,12 @@ func (l *SketchLayout) Render(editorContent string, brainstormContent string) st
 
 // GetBrainstormPanelWidth returns the width of the brainstorm panel in sketch mode
 func (l *SketchLayout) GetBrainstormPanelWidth() int {
-	return l.width * 20 / 100
+	aiPanelWidthPercent := 20
+	return l.width * aiPanelWidthPercent / 100
 }
 
 // GetEditorWidth returns the width of the editor pane in sketch mode
 func (l *SketchLayout) GetEditorWidth() int {
-	return l.width * 80 / 100
+	editorWidthPercent := 80
+	return l.width * editorWidthPercent / 100
 }

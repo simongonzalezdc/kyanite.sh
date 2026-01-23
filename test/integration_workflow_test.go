@@ -43,7 +43,8 @@ func TestEditorWorkflow(t *testing.T) {
 
 	content := "# Test Song\n\nVerse 1\nLine A\nLine B\n\n[Chorus]\nSing along"
 	sp.SetEditorText(content)
-	time.Sleep(100 * time.Millisecond)
+	// Trigger synchronous update for test determinism
+	sp.Update(nil)
 
 	view := sp.View()
 	if view == "" {
@@ -89,7 +90,8 @@ func TestPreviewSync(t *testing.T) {
 
 	updated := md + "\n\n[Bridge]\nBridge text"
 	sp.SetEditorText(updated)
-	time.Sleep(100 * time.Millisecond)
+	// Trigger synchronous update for test determinism
+	sp.Update(nil)
 	view2 := sp.View()
 	if !strings.Contains(view2, "Bridge text") {
 		t.Fatalf("expected view to reflect updated content; got: %q", view2)

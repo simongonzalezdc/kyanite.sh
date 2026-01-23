@@ -244,6 +244,9 @@ func (m *bpmTapperModel) calculateBPM() {
 	}
 
 	avgInterval := totalInterval / time.Duration(len(recentTaps)-1)
+	if avgInterval <= 0 {
+		return
+	}
 
 	// Convert to BPM (60 seconds / average interval in seconds)
 	m.currentBPM = int(60.0 / avgInterval.Seconds())

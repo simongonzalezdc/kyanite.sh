@@ -102,12 +102,14 @@ func New(cfg Config) (*DB, error) {
 	}
 
 	// Cache size: 64MB (negative value = KB)
-	if _, err := conn.Exec("PRAGMA cache_size = -65536"); err != nil {
+	cacheSize := -65536
+	if _, err := conn.Exec(fmt.Sprintf("PRAGMA cache_size = %d", cacheSize)); err != nil {
 		logging.GetDefaultLogger().Warn("Failed to set cache size", "error", err)
 	}
 
 	// Busy timeout: 5 seconds for lock acquisition
-	if _, err := conn.Exec("PRAGMA busy_timeout = 5000"); err != nil {
+	busyTimeout := 5000
+	if _, err := conn.Exec(fmt.Sprintf("PRAGMA busy_timeout = %d", busyTimeout)); err != nil {
 		logging.GetDefaultLogger().Warn("Failed to set busy timeout", "error", err)
 	}
 

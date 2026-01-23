@@ -136,11 +136,13 @@ func (m *TheoryModel) Update(msg tea.Msg) (*TheoryModel, tea.Cmd) {
 				if msg.Y <= 3 {
 					// Calculate which tab was clicked based on X position
 					// Tabs are roughly evenly spaced
-					tabWidth := m.width / len(m.tabNames)
-					if tabWidth > 0 {
-						clickedTab := msg.X / tabWidth
-						if clickedTab >= 0 && clickedTab < len(m.tabNames) {
-							m.activeTab = clickedTab
+					if len(m.tabNames) > 0 {
+						tabWidth := m.width / len(m.tabNames)
+						if tabWidth > 0 {
+							clickedTab := msg.X / tabWidth
+							if clickedTab >= 0 && clickedTab < len(m.tabNames) {
+								m.activeTab = clickedTab
+							}
 						}
 					}
 				}

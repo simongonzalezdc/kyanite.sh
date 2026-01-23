@@ -26,7 +26,7 @@ export function SyncStatusIndicator({ connectionState }: SyncStatusIndicatorProp
     
     // Start auto-sync when connected
     if (connectionState === "connected") {
-      manager.startAutoSync(30000); // Every 30 seconds
+      manager.startAutoSync(SYNC_INTERVAL_MS);
     }
 
     return () => {

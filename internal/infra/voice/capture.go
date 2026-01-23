@@ -80,7 +80,7 @@ func (rb *RingBuffer) Read() []float32 {
 	rb.mu.Lock()
 	defer rb.mu.Unlock()
 
-	if rb.count == 0 {
+	if rb.count == 0 || rb.size == 0 {
 		return nil
 	}
 

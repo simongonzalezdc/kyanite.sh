@@ -9,6 +9,7 @@ import (
 
 	"github.com/Kyanite/noise/internal/app"
 	"github.com/Kyanite/noise/internal/ui/editor"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // TestStatusBarModelCreation tests the creation of a status bar model
@@ -571,27 +572,31 @@ func TestStatusBarViewStructure(t *testing.T) {
 	model := editor.NewStatusBarModel()
 
 	// Test minimal view structure: set model width to the responsive width
+	// Use lipgloss.Width() to measure visual width (excludes ANSI escape codes)
 	model.SetDimensions(50, 1)
 	model.UpdateResponsiveMode(50) // Force minimal mode
 	view := model.View()
-	if len(view) > 50 {
-		t.Errorf("Expected minimal view length <= 50, got %d", len(view))
+	visualWidth := lipgloss.Width(view)
+	if visualWidth > 50 {
+		t.Errorf("Expected minimal view visual width <= 50, got %d", visualWidth)
 	}
 
 	// Test compact view structure
 	model.SetDimensions(90, 1)
 	model.UpdateResponsiveMode(90) // Force compact mode
 	view = model.View()
-	if len(view) > 90 {
-		t.Errorf("Expected compact view length <= 90, got %d", len(view))
+	visualWidth = lipgloss.Width(view)
+	if visualWidth > 90 {
+		t.Errorf("Expected compact view visual width <= 90, got %d", visualWidth)
 	}
 
 	// Test full view structure
 	model.SetDimensions(120, 1)
 	model.UpdateResponsiveMode(120) // Force full mode
 	view = model.View()
-	if len(view) > 120 {
-		t.Errorf("Expected full view length <= 120, got %d", len(view))
+	visualWidth = lipgloss.Width(view)
+	if visualWidth > 120 {
+		t.Errorf("Expected full view visual width <= 120, got %d", visualWidth)
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Kyanite/noise/internal/logging"
 	"github.com/Kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -361,6 +362,7 @@ func (m *OnboardingModel) UpdateTheme() {
 func isOnboardingComplete() bool {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
+		logging.Errorf("Failed to get user config dir: %v", err)
 		return false
 	}
 
@@ -373,17 +375,20 @@ func isOnboardingComplete() bool {
 func (m *OnboardingModel) markComplete() {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
+		logging.Errorf("Failed to get user config dir for marking completion: %v", err)
 		return
 	}
 
 	noiseDir := filepath.Join(configDir, "noise")
 	if err := os.MkdirAll(noiseDir, 0755); err != nil {
+		logging.Errorf("Failed to create noise config directory: %v", err)
 		return
 	}
 
 	markerPath := filepath.Join(noiseDir, onboardingFileName)
 	f, err := os.Create(markerPath)
 	if err != nil {
+		logging.Errorf("Failed to create onboarding completion marker: %v", err)
 		return
 	}
 	f.Close()

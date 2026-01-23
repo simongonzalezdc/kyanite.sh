@@ -126,6 +126,8 @@ class SyncQueueManager {
           await markMediaSynced(media.localIdeaId);
         } catch (err) {
           console.error("Failed to sync media:", err);
+          this.status.lastError = `Media sync failed: ${err instanceof Error ? err.message : "Unknown error"}`;
+          this.notifyCallbacks();
           // Continue with other items
         }
       }
@@ -145,6 +147,8 @@ class SyncQueueManager {
           await markIdeaSynced(idea.localId);
         } catch (err) {
           console.error("Failed to sync idea:", err);
+          this.status.lastError = `Idea sync failed: ${err instanceof Error ? err.message : "Unknown error"}`;
+          this.notifyCallbacks();
           // Continue with other items
         }
       }

@@ -115,11 +115,17 @@ func (s PreviewStats) AverageWordLength() float64 {
 	if s.Words == 0 {
 		return 0
 	}
+	if s.Words == 0 {
+		return 0
+	}
 	return float64(s.Characters) / float64(s.Words)
 }
 
 // AverageSentenceLength calculates average sentence length in words
 func (s PreviewStats) AverageSentenceLength() float64 {
+	if s.Sentences == 0 {
+		return 0
+	}
 	if s.Sentences == 0 {
 		return 0
 	}

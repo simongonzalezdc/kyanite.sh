@@ -17,6 +17,9 @@ interface ProgressBarProps {
   "aria-label"?: string;
 }
 
+/** Width of the indeterminate progress indicator (%) */
+const INDETERMINATE_PROGRESS_WIDTH = "30%";
+
 export function ProgressBar({
   value,
   label,
@@ -77,7 +80,7 @@ export function ProgressBar({
             ${indeterminate ? "animate-progress-indeterminate" : ""}
           `}
           style={{
-            width: indeterminate ? "30%" : `${clampedValue}%`,
+            width: indeterminate ? INDETERMINATE_PROGRESS_WIDTH : `${clampedValue}%`,
           }}
         />
       </div>

@@ -214,6 +214,8 @@ func (cd *ContextDetector) AnalyzeContent(content string) ContentType {
 	if totalLines > 0 {
 		rawLyricRatio = lyricScore / float64(totalLines)
 		rawPatternRatio = patternScore / float64(totalLines)
+	} else {
+		return ContentTypeUnknown
 	}
 
 	lyricRatio := min(rawLyricRatio, 1.0)
@@ -372,8 +374,17 @@ func (cd *ContextDetector) GetContextAnalysis(content string) *ContextAnalysis {
 	}
 
 	// Calculate ratios and confidence
-	lyricRatio := float64(lyricMatches) / float64(totalLines)
-	patternRatio := float64(patternMatches) / float64(totalLines)
+	var lyricRatio, patternRatio float64
+	if totalLines > 0 {
+		lyricRatio = float64(lyricMatches) / float64(totalLines)
+		patternRatio = float64(patternMatches) / float64(totalLines)
+	} else {
+		return &ContextAnalysis{
+			ContentType: ContentTypeUnknown,
+			Confidence:  0.0,
+			Details:     "No lines to analyze",
+		}
+	}
 
 	contentType := cd.AnalyzeContent(content)
 

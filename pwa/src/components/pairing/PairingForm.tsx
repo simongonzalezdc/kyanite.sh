@@ -9,6 +9,10 @@ interface PairingFormProps {
   onPaired: (serverUrl: string, deviceId: string) => void;
 }
 
+const DEFAULT_SERVER_PLACEHOLDER = "192.168.1.100:8765";
+const DEFAULT_PAIRING_CODE_PLACEHOLDER = "000000";
+const PAIRING_CODE_LENGTH = 6;
+
 export function PairingForm({ onPaired }: PairingFormProps) {
   const [serverUrl, setServerUrl] = useState("");
   const [pairingCode, setPairingCode] = useState("");
@@ -130,11 +134,11 @@ export function PairingForm({ onPaired }: PairingFormProps) {
               id="pairingCode"
               type="text"
               value={pairingCode}
-              onChange={(e) => setPairingCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              placeholder="000000"
+              onChange={(e) => setPairingCode(e.target.value.replace(/\D/g, "").slice(0, PAIRING_CODE_LENGTH))}
+              placeholder={DEFAULT_PAIRING_CODE_PLACEHOLDER}
               className="w-full text-center text-2xl tracking-[0.5em] font-mono"
-              maxLength={6}
-              pattern="[0-9]{6}"
+              maxLength={PAIRING_CODE_LENGTH}
+              pattern={`[0-9]{${PAIRING_CODE_LENGTH}}`}
               required
               autoFocus
               autoComplete="off"

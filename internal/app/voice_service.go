@@ -137,29 +137,31 @@ func NewVoiceServiceWithAutoSetup(cfg *config.Config, logger *logging.Logger, on
 		modelName = voice.ModelBaseEN
 	}
 
-	if !vs.modelManager.IsModelAvailable(modelName) {
-		if onProgress != nil {
-			onProgress("Downloading voice model (first-time setup)...", 0)
+	if vs.modelManager.IsModelAvailable(modelName) {
+		return vs, nil
+	}
+
+	if onProgress != nil {
+		onProgress("Downloading voice model (first-time setup)...", 0)
+	}
+
+	// Download model with progress updates
+	_, err = vs.modelManager.EnsureModel(modelName, func(downloaded, total int64) {
+		if onProgress != nil && total > 0 {
+			progress := float64(downloaded) / float64(total)
+			onProgress(fmt.Sprintf("Downloading %s...", modelName), progress)
 		}
+	})
 
-		// Download model with progress updates
-		_, err := vs.modelManager.EnsureModel(modelName, func(downloaded, total int64) {
-			if onProgress != nil && total > 0 {
-				progress := float64(downloaded) / float64(total)
-				onProgress(fmt.Sprintf("Downloading %s...", modelName), progress)
-			}
-		})
-
-		if err != nil {
-			if onProgress != nil {
-				onProgress("Model download failed - voice will be unavailable", 0)
-			}
-			logger.Warnf("Failed to download voice model: %v", err)
-			// Don't fail - voice just won't be available until model is downloaded
-		} else {
-			if onProgress != nil {
-				onProgress("Voice model ready", 1.0)
-			}
+	if err != nil {
+		if onProgress != nil {
+			onProgress("Model download failed - voice will be unavailable", 0)
+		}
+		logger.Warnf("Failed to download voice model: %v", err)
+		// Don't fail - voice just won't be available until model is downloaded
+	} else {
+		if onProgress != nil {
+			onProgress("Voice model ready", 1.0)
 		}
 	}
 

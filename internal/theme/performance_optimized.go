@@ -537,12 +537,18 @@ func (m *PerformanceOptimizedManager) GetPerformanceReport() map[string]interfac
 	}
 
 	// Calculate cache hit rates
-	if metrics.CacheHits+metrics.CacheMisses > 0 {
-		report["theme_cache_hit_rate"] = float64(metrics.CacheHits) / float64(metrics.CacheHits+metrics.CacheMisses)
+	totalThemeCacheOps := metrics.CacheHits + metrics.CacheMisses
+	if totalThemeCacheOps > 0 {
+		report["theme_cache_hit_rate"] = float64(metrics.CacheHits) / float64(totalThemeCacheOps)
+	} else {
+		report["theme_cache_hit_rate"] = 0.0
 	}
 
-	if metrics.RenderCacheHits+metrics.RenderCacheMisses > 0 {
-		report["render_cache_hit_rate"] = float64(metrics.RenderCacheHits) / float64(metrics.RenderCacheHits+metrics.RenderCacheMisses)
+	totalRenderCacheOps := metrics.RenderCacheHits + metrics.RenderCacheMisses
+	if totalRenderCacheOps > 0 {
+		report["render_cache_hit_rate"] = float64(metrics.RenderCacheHits) / float64(totalRenderCacheOps)
+	} else {
+		report["render_cache_hit_rate"] = 0.0
 	}
 
 	return report

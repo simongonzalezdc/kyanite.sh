@@ -74,9 +74,20 @@ function applyThemeToDocument(theme: Theme): void {
  * Adjust color opacity by converting to rgba
  */
 function adjustOpacity(hex: string, opacity: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
+  // Validate hex format
+  if (!hex || !/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+    return `rgba(0, 0, 0, ${opacity})`;
+  }
+
+  // Expand shorthand hex (#RGB to #RRGGBB)
+  let fullHex = hex;
+  if (hex.length === 4) {
+    fullHex = "#" + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+  }
+
+  const r = parseInt(fullHex.slice(1, 3), 16);
+  const g = parseInt(fullHex.slice(3, 5), 16);
+  const b = parseInt(fullHex.slice(5, 7), 16);
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
 
@@ -84,9 +95,20 @@ function adjustOpacity(hex: string, opacity: number): string {
  * Adjust color brightness
  */
 function adjustBrightness(hex: string, factor: number): string {
-  const r = Math.min(255, Math.round(parseInt(hex.slice(1, 3), 16) * factor));
-  const g = Math.min(255, Math.round(parseInt(hex.slice(3, 5), 16) * factor));
-  const b = Math.min(255, Math.round(parseInt(hex.slice(5, 7), 16) * factor));
+  // Validate hex format
+  if (!hex || !/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+    return "#000000";
+  }
+
+  // Expand shorthand hex
+  let fullHex = hex;
+  if (hex.length === 4) {
+    fullHex = "#" + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+  }
+
+  const r = Math.min(255, Math.round(parseInt(fullHex.slice(1, 3), 16) * factor));
+  const g = Math.min(255, Math.round(parseInt(fullHex.slice(3, 5), 16) * factor));
+  const b = Math.min(255, Math.round(parseInt(fullHex.slice(5, 7), 16) * factor));
   return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 }
 

@@ -499,7 +499,7 @@ func (em *ErrorManager) GetErrorStats() map[string]interface{} {
 	stats["recent_errors"] = recentCount
 
 	// Calculate error rate (errors per hour)
-	hours := 24.0 // Default to 24 hours for now
+	hours := 0.0
 	if len(em.errorHistory) > 0 {
 		earliest := em.errorHistory[0].Timestamp
 		elapsed := now.Sub(earliest).Hours()
@@ -512,6 +512,8 @@ func (em *ErrorManager) GetErrorStats() map[string]interface{} {
 		if totalErrors, ok := stats["total_errors"].(int); ok {
 			stats["error_rate"] = float64(totalErrors) / hours
 		}
+	} else {
+		stats["error_rate"] = 0.0
 	}
 
 	// Add recovery statistics

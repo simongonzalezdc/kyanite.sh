@@ -93,6 +93,9 @@ func (m *QuickActionsModel) handleMouse(msg tea.MouseMsg) tea.Cmd {
 
 	// Calculate card dimensions (must match renderActionCard)
 	cardWidth := (m.width / cols) - 6
+	if cardWidth < 0 {
+		cardWidth = 0
+	}
 	cardHeight := 7 // 5 content + 2 border
 
 	// Account for panel padding and title
@@ -100,7 +103,11 @@ func (m *QuickActionsModel) handleMouse(msg tea.MouseMsg) tea.Cmd {
 
 	// Calculate which action is at the mouse position
 	// X position maps to column
-	col := msg.X / (cardWidth + 2) // +2 for margin
+	divisor := cardWidth + 2
+	if divisor <= 0 {
+		divisor = 1
+	}
+	col := msg.X / divisor // +2 for margin
 	if col >= cols {
 		col = cols - 1
 	}

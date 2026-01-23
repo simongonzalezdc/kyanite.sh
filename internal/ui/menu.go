@@ -251,6 +251,10 @@ func titleGradient(text string, t theme.Theme) string {
 	textRunes := []rune(text)
 	colorCount := len(colors)
 
+	if len(textRunes) == 0 {
+		return ""
+	}
+
 	for i, char := range textRunes {
 		if char == ' ' {
 			result += " "
@@ -277,20 +281,22 @@ func (m *MenuModel) handleMouse(msg tea.MouseMsg) tea.Cmd {
 			itemHeight := 2 // Each item takes ~2 lines (title + desc)
 			headerOffset := 3 // Title area
 
-			clickedIdx := (msg.Y - headerOffset) / itemHeight
-			if clickedIdx >= 0 && clickedIdx < len(m.list.Items()) {
-				m.list.Select(clickedIdx)
+			if itemHeight > 0 {
+				clickedIdx := (msg.Y - headerOffset) / itemHeight
+				if clickedIdx >= 0 && clickedIdx < len(m.list.Items()) {
+					m.list.Select(clickedIdx)
 
-				// Activate the selected item
-				selectedItem, ok := m.list.SelectedItem().(item)
-				if ok {
-					m.animation.PulseAnimation("menu_selection", 1.0)
+					// Activate the selected item
+					selectedItem, ok := m.list.SelectedItem().(item)
+					if ok {
+						m.animation.PulseAnimation("menu_selection", 1.0)
 
-					if selectedItem.title == "Help" {
-						return func() tea.Msg { return ToggleHelpMsg{} }
-					}
-					return func() tea.Msg {
-						return ScreenChangeMsg{Screen: selectedItem.screen}
+						if selectedItem.title == "Help" {
+							return func() tea.Msg { return ToggleHelpMsg{} }
+						}
+						return func() tea.Msg {
+							return ScreenChangeMsg{Screen: selectedItem.screen}
+						}
 					}
 				}
 			}

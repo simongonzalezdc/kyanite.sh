@@ -31,7 +31,10 @@ interface ToastContextValue {
 // =============================================================================
 
 const DEFAULT_DURATION_MS = 4000;
+const ERROR_DURATION_MS = 6000;
 const ANIMATION_DURATION_MS = 300;
+const MOUNT_ANIMATION_DELAY_MS = 10;
+const RANDOM_ID_LENGTH = 9;
 
 const TOAST_ICONS: Record<ToastType, string> = {
   success: "✓",
@@ -89,7 +92,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const addToast = useCallback((toast: Omit<Toast, "id">): string => {
-    const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, RANDOM_ID_LENGTH)}`;
     const newToast: Toast = {
       ...toast,
       id,
@@ -245,7 +248,7 @@ export function useToastActions() {
       addToast({ type: "success", message, action }),
 
     error: (message: string, action?: Toast["action"]) =>
-      addToast({ type: "error", message, duration: 6000, action }),
+      addToast({ type: "error", message, duration: ERROR_DURATION_MS, action }),
 
     warning: (message: string, action?: Toast["action"]) =>
       addToast({ type: "warning", message, action }),

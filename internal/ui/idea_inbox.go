@@ -126,7 +126,10 @@ func (m *IdeaInboxModel) View() string {
 	// Calculate visible items
 	visibleHeight := m.height - 8 // Account for title and help
 	itemHeight := 3               // Lines per item
-	visibleItems := visibleHeight / itemHeight
+	visibleItems := 0
+	if itemHeight > 0 {
+		visibleItems = visibleHeight / itemHeight
+	}
 	if visibleItems < 1 {
 		visibleItems = 1
 	}
@@ -215,7 +218,10 @@ func (m *IdeaInboxModel) getTypeIcon(ideaType sync.IdeaType) string {
 func (m *IdeaInboxModel) updateScroll() {
 	visibleHeight := m.height - 8
 	itemHeight := 3
-	visibleItems := visibleHeight / itemHeight
+	visibleItems := 0
+	if itemHeight > 0 {
+		visibleItems = visibleHeight / itemHeight
+	}
 	if visibleItems < 1 {
 		visibleItems = 1
 	}

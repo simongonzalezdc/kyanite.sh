@@ -280,7 +280,7 @@ func (m *PresenceIndicatorModel) SelectPrev() {
 
 // GetSelectedUser returns the currently selected user
 func (m *PresenceIndicatorModel) GetSelectedUser() *SessionPresenceIndicator {
-	if len(m.indicators) == 0 || m.selected >= len(m.indicators) {
+	if len(m.indicators) == 0 || m.selected < 0 || m.selected >= len(m.indicators) {
 		return nil
 	}
 	return &m.indicators[m.selected]

@@ -169,7 +169,8 @@ func (s *EditorState) HandleAutoSave() {
 
 			// Use song-specific auto-save if we have a song ID
 			if s.currentSong.ID > 0 {
-				versionName := fmt.Sprintf("Auto-save %s", time.Now().Format("2006-01-02 15:04:05"))
+				autoSaveTimestampFormat := "2006-01-02 15:04:05"
+				versionName := fmt.Sprintf("Auto-save %s", time.Now().Format(autoSaveTimestampFormat))
 				if err := s.autoSaveService.SaveWithVersioning(s.currentSong.ID, currentContent, false, versionName); err != nil {
 					// Use proper error handling instead of printf
 					s.onAutoSaveError(err)
@@ -697,11 +698,15 @@ func (s *EditorState) Undo() error {
 	}
 
 	// Restore previous state
-	previousState := s.undoStack[len(s.undoStack)-1]
-	s.undoStack = s.undoStack[:len(s.undoStack)-1]
-	s.SetText(previousState)
+	if len(s.undoStack) > 0 {
+		previousState := s.undoStack[len(s.undoStack)-1]
+		s.undoStack = s.undoStack[:len(s.undoStack)-1]
+		s.SetText(previousState)
+		logging.Debugf("Undo operation restored %d characters", len(previousState))
+	} else {
+		return fmt.Errorf("no undo history available")
+	}
 
-	logging.Debugf("Undo operation restored %d characters", len(previousState))
 	return nil
 }
 
@@ -716,11 +721,15 @@ func (s *EditorState) Redo() error {
 	s.saveUndoState()
 
 	// Restore redo state
-	redoState := s.redoStack[len(s.redoStack)-1]
-	s.redoStack = s.redoStack[:len(s.redoStack)-1]
-	s.SetText(redoState)
+	if len(s.redoStack) > 0 {
+		redoState := s.redoStack[len(s.redoStack)-1]
+		s.redoStack = s.redoStack[:len(s.redoStack)-1]
+		s.SetText(redoState)
+		logging.Debugf("Redo operation restored %d characters", len(redoState))
+	} else {
+		return fmt.Errorf("no redo history available")
+	}
 
-	logging.Debugf("Redo operation restored %d characters", len(redoState))
 	return nil
 }
 

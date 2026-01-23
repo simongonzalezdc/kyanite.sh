@@ -179,8 +179,11 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 		if aiModeActive {
 			// Extract selection index
 			var selectIdx int = -1
-			if len(kmsg.Runes) > 0 && kmsg.Runes[0] >= '1' && kmsg.Runes[0] <= '3' {
-				selectIdx = int(kmsg.Runes[0]-'0') - 1
+			if len(kmsg.Runes) > 0 {
+				r := kmsg.Runes[0]
+				if r >= '1' && r <= '3' {
+					selectIdx = int(r-'0') - 1
+				}
 			}
 
 			if m.ai.IsRapidBrainstorm() {

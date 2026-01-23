@@ -16,6 +16,7 @@ import { SYNC_INTERVAL_MS } from "@/lib/constants";
 import { ThemeSelector } from "@/components/ui/ThemeSelector";
 import { useSwipe } from "@/lib/hooks/useSwipe";
 import { OnboardingWizard, hasCompletedOnboarding } from "@/components/onboarding/OnboardingWizard";
+import { useToast } from "@/components/ui/Toast";
 
 type AppState = "loading" | "unpaired" | "paired";
 type CaptureTab = "text" | "voice" | "photo" | "tempo";
@@ -89,6 +90,10 @@ export default function Home() {
         }
       } catch (error) {
         console.error("Failed to check pairing:", error);
+        addToast({
+          type: "error",
+          message: "Failed to check pairing status. Please try again.",
+        });
         setAppState("unpaired");
       }
     }

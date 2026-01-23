@@ -168,6 +168,8 @@ func (m *VoiceSettingsModel) Update(msg tea.Msg) (*VoiceSettingsModel, tea.Cmd) 
 			m.downloadProgress = 0
 		} else if msg.Total > 0 {
 			m.downloadProgress = float64(msg.Downloaded) / float64(msg.Total)
+		} else {
+			m.downloadProgress = 0
 		}
 	}
 

@@ -1,5 +1,7 @@
 package errors
 
+import "github.com/Kyanite/noise/internal/logging"
+
 // Result is a generic result type that can hold either a value or an error
 type Result[T any] struct {
 	value T
@@ -30,6 +32,7 @@ func (r Result[T]) IsErr() bool {
 // Unwrap returns the value or panics if error
 func (r Result[T]) Unwrap() T {
 	if r.err != nil {
+		logging.Errorf("Panic: called Unwrap on error result: %v", r.err)
 		panic("called Unwrap on error result")
 	}
 	return r.value
@@ -63,6 +66,7 @@ func (r Result[T]) UnwrapOrZero() T {
 // Expect returns the value or panics with message if error
 func (r Result[T]) Expect(message string) T {
 	if r.err != nil {
+		logging.Errorf("Panic: %s: %v", message, r.err)
 		panic(message + ": " + r.err.Error())
 	}
 	return r.value

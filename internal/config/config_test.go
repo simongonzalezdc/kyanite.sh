@@ -114,8 +114,9 @@ func TestSaveAndLoadRoundTrip(t *testing.T) {
 	if loaded.App.Name != "roundtrip-test" {
 		t.Fatalf("expected loaded name roundtrip-test, got %q", loaded.App.Name)
 	}
-	if loaded.AI.APIKey != "secret-key" {
-		t.Fatalf("expected AI API key preserved")
+	// API key is masked during Save(), so it won't be preserved in roundtrip
+	if loaded.AI.APIKey == "secret-key" {
+		t.Fatalf("expected AI API key to be masked in saved file")
 	}
 }
 

@@ -335,7 +335,7 @@ func (c *Config) Save() error {
 	aiConfig := map[string]interface{}{
 		"provider":       c.AI.Provider,
 		"model":          c.AI.Model,
-		"api_key":        c.AI.APIKey,
+		"api_key":        "********", // Masked for security
 		"base_url":       c.AI.BaseURL,
 		"temperature":    c.AI.Temperature,
 		"max_tokens":     c.AI.MaxTokens,
@@ -359,7 +359,7 @@ func (c *Config) Save() error {
 	}
 
 	glmConfig := map[string]interface{}{
-		"api_key":     c.GLM.APIKey,
+		"api_key":     "********", // Masked for security
 		"model":       c.GLM.Model,
 		"temperature": c.GLM.Temperature,
 		"max_tokens":  c.GLM.MaxTokens,
@@ -398,7 +398,7 @@ func (c *Config) Save() error {
 			"port":     c.Database.Port,
 			"database": c.Database.Database,
 			"username": c.Database.Username,
-			"password": c.Database.Password,
+			"password": "********", // Masked for security
 			"ssl_mode": c.Database.SSLMode,
 		},
 		"ui": map[string]interface{}{

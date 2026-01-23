@@ -514,8 +514,11 @@ func (ui *PerformanceOptimizedUI) GetPerformanceReport() map[string]interface{} 
 	}
 
 	// Calculate cache hit rate
-	if metrics.CacheHits+metrics.CacheMisses > 0 {
-		report["cache_hit_rate"] = float64(metrics.CacheHits) / float64(metrics.CacheHits+metrics.CacheMisses)
+	totalCacheOps := metrics.CacheHits + metrics.CacheMisses
+	if totalCacheOps > 0 {
+		report["cache_hit_rate"] = float64(metrics.CacheHits) / float64(totalCacheOps)
+	} else {
+		report["cache_hit_rate"] = 0.0
 	}
 
 	// Calculate current FPS if we have render data

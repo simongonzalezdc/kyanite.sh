@@ -1,5 +1,8 @@
 import { useRef, useCallback, TouchEvent } from "react";
 
+const SWIPE_THRESHOLD_DEFAULT = 50;
+const SWIPE_MAX_VERTICAL_MOVEMENT_DEFAULT = 100;
+
 interface SwipeConfig {
   /** Minimum distance (px) to trigger swipe */
   threshold?: number;
@@ -40,8 +43,8 @@ interface TouchPosition {
  */
 export function useSwipe(config: SwipeConfig): SwipeHandlers {
   const {
-    threshold = 50,
-    maxVerticalMovement = 100,
+    threshold = SWIPE_THRESHOLD_DEFAULT,
+    maxVerticalMovement = SWIPE_MAX_VERTICAL_MOVEMENT_DEFAULT,
     onSwipeLeft,
     onSwipeRight,
     onSwipeUp,

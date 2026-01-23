@@ -2,6 +2,9 @@
 
 import { useRef, useEffect, useSyncExternalStore } from "react";
 
+/** Duration to show the "back online" banner (ms) */
+const BACK_ONLINE_BANNER_DURATION_MS = 2000;
+
 interface OfflineBannerProps {
   /** Override the online status (for testing) */
   forceOffline?: boolean;
@@ -44,7 +47,7 @@ function showBackOnlineBanner() {
   setTimeout(() => {
     backOnlineBannerVisible = false;
     backOnlineBannerListeners.forEach((cb) => cb());
-  }, 2000);
+  }, BACK_ONLINE_BANNER_DURATION_MS);
 }
 
 /**

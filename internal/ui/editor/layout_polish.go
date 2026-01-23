@@ -29,12 +29,16 @@ func (l *PolishLayout) GetDimensions() (int, int) {
 // Render renders the polish mode layout
 func (l *PolishLayout) Render(editorContent string, previewContent string, theoryContent string, critiqueContent string) string {
 	t := theme.GetManager().Current()
-	// Polish mode: Full suite with all tools
+	// Poland mode: Full suite with all tools
 	// 40% editor, 20% preview, 20% theory, 20% critique
 
-	editorWidth := l.width * 40 / 100
-	previewWidth := l.width * 20 / 100
-	theoryWidth := l.width * 20 / 100
+	editorWidthPercent := 40
+	previewWidthPercent := 20
+	theoryWidthPercent := 20
+
+	editorWidth := l.width * editorWidthPercent / 100
+	previewWidth := l.width * previewWidthPercent / 100
+	theoryWidth := l.width * theoryWidthPercent / 100
 	critiqueWidth := l.width - editorWidth - previewWidth - theoryWidth - 3 // -3 for dividers
 
 	// Create editor pane (40% width) - NO border since editorContent already has one
@@ -108,20 +112,24 @@ func (l *PolishLayout) Render(editorContent string, previewContent string, theor
 
 // GetPreviewPanelWidth returns the width of the preview panel in polish mode
 func (l *PolishLayout) GetPreviewPanelWidth() int {
-	return l.width * 20 / 100
+	previewWidthPercent := 20
+	return l.width * previewWidthPercent / 100
 }
 
 // GetTheoryPanelWidth returns the width of the theory panel in polish mode
 func (l *PolishLayout) GetTheoryPanelWidth() int {
-	return l.width * 20 / 100
+	theoryWidthPercent := 20
+	return l.width * theoryWidthPercent / 100
 }
 
 // GetCritiquePanelWidth returns the width of the critique panel in polish mode
 func (l *PolishLayout) GetCritiquePanelWidth() int {
-	return l.width * 20 / 100
+	critiqueWidthPercent := 20
+	return l.width * critiqueWidthPercent / 100
 }
 
 // GetEditorWidth returns the width of the editor pane in polish mode
 func (l *PolishLayout) GetEditorWidth() int {
-	return l.width * 40 / 100
+	editorWidthPercent := 40
+	return l.width * editorWidthPercent / 100
 }

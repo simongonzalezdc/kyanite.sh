@@ -9,6 +9,7 @@ import (
 
 	"github.com/Kyanite/noise/internal/domain"
 	"github.com/Kyanite/noise/internal/infra/db"
+	"github.com/Kyanite/noise/internal/logging"
 	"github.com/google/uuid"
 )
 
@@ -230,6 +231,7 @@ func (m *MemoryManager) GetRecentEpisodes(limit int) ([]EpisodicEvent, error) {
 			&metadataJSON,
 		)
 		if err != nil {
+			logging.Errorf("Failed to scan episode row: %v", err)
 			continue
 		}
 		
@@ -294,6 +296,7 @@ func (m *MemoryManager) GetEpisodesForSong(songID int, limit int) ([]EpisodicEve
 			&metadataJSON,
 		)
 		if err != nil {
+			logging.Errorf("Failed to scan episode row for song: %v", err)
 			continue
 		}
 		
@@ -403,6 +406,7 @@ func (m *MemoryManager) GetAllPreferences() (map[string]*Preference, error) {
 			&pref.UpdatedAt,
 		)
 		if err != nil {
+			logging.Errorf("Failed to scan preference row: %v", err)
 			continue
 		}
 		
@@ -487,10 +491,14 @@ func (m *MemoryManager) GetChatHistory(limit int) ([]ChatMessage, error) {
 		}
 		
 		if contextJSON.Valid && contextJSON.String != "" {
-			json.Unmarshal([]byte(contextJSON.String), &msg.Context)
+			if err := json.Unmarshal([]byte(contextJSON.String), &msg.Context); err != nil {
+				logging.Errorf("Failed to unmarshal chat context: %v", err)
+			}
 		}
 		if toolCallsJSON.Valid && toolCallsJSON.String != "" {
-			json.Unmarshal([]byte(toolCallsJSON.String), &msg.ToolCalls)
+			if err := json.Unmarshal([]byte(toolCallsJSON.String), &msg.ToolCalls); err != nil {
+				logging.Errorf("Failed to unmarshal chat tool calls: %v", err)
+			}
 		}
 		
 		messages = append(messages, msg)
@@ -622,22 +630,30 @@ func (m *MemoryManager) GetMemoryStats() (map[string]interface{}, error) {
 	
 	// Count episodes
 	var episodeCount int
-	m.db.QueryRow("SELECT COUNT(*) FROM muse_episodes").Scan(&episodeCount)
+	if err := m.db.QueryRow("SELECT COUNT(*) FROM muse_episodes").Scan(&episodeCount); err != nil {
+		logging.Errorf("Failed to get episode count: %v", err)
+	}
 	stats["episode_count"] = episodeCount
-	
+
 	// Count preferences
 	var prefCount int
-	m.db.QueryRow("SELECT COUNT(*) FROM muse_preferences").Scan(&prefCount)
+	if err := m.db.QueryRow("SELECT COUNT(*) FROM muse_preferences").Scan(&prefCount); err != nil {
+		logging.Errorf("Failed to get preference count: %v", err)
+	}
 	stats["preference_count"] = prefCount
-	
+
 	// Count conversations
 	var convCount int
-	m.db.QueryRow("SELECT COUNT(*) FROM muse_conversations").Scan(&convCount)
+	if err := m.db.QueryRow("SELECT COUNT(*) FROM muse_conversations").Scan(&convCount); err != nil {
+		logging.Errorf("Failed to get conversation count: %v", err)
+	}
 	stats["conversation_count"] = convCount
-	
+
 	// Count sessions
 	var sessionCount int
-	m.db.QueryRow("SELECT COUNT(*) FROM muse_session_summaries").Scan(&sessionCount)
+	if err := m.db.QueryRow("SELECT COUNT(*) FROM muse_session_summaries").Scan(&sessionCount); err != nil {
+		logging.Errorf("Failed to get session count: %v", err)
+	}
 	stats["session_count"] = sessionCount
 	
 	// Current session info

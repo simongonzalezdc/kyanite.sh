@@ -346,7 +346,11 @@ func (m *RealTimePreviewManager) GetUpdateIndicatorView() string {
 	}
 
 	// Create animated indicator based on elapsed time
-	progress := elapsed.Seconds() / m.config.UpdateIndicatorDuration.Seconds()
+	duration := m.config.UpdateIndicatorDuration.Seconds()
+	if duration <= 0 {
+		duration = 0.2 // Default fallback
+	}
+	progress := elapsed.Seconds() / duration
 	dots := int(progress*3) + 1
 
 	indicator := "Updating"

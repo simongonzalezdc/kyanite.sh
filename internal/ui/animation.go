@@ -182,6 +182,9 @@ func (am *AnimationManager) Update() tea.Cmd {
 		if frameRate <= 0 {
 			frameRate = DefaultAnimationConfig().FrameRate
 		}
+		if frameRate <= 0 {
+			frameRate = 30 // Final fallback
+		}
 
 		// Use tea.Tick for non-blocking animation scheduling
 		return tea.Tick(time.Second/time.Duration(frameRate), func(t time.Time) tea.Msg {

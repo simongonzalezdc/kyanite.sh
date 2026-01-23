@@ -6,9 +6,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/Kyanite/noise/internal/logging"
 )
 
 // ChatMessage represents a single message in a chat conversation
@@ -80,7 +83,11 @@ func (s *AIService) streamOllama(ctx context.Context, message string, ch chan<- 
 		"stream": true,
 	}
 
-	reqJSON, _ := json.Marshal(reqBody)
+	reqJSON, err := json.Marshal(reqBody)
+	if err != nil {
+		ch <- fmt.Sprintf("Error marshaling request: %v", err)
+		return
+	}
 	req, err := http.NewRequestWithContext(ctx, "POST", s.config.AI.BaseURL+"/api/generate", bytes.NewReader(reqJSON))
 	if err != nil {
 		ch <- fmt.Sprintf("Error creating request: %v", err)
@@ -137,7 +144,11 @@ func (s *AIService) streamGLM(ctx context.Context, message string, ch chan<- str
 		"stream": true,
 	}
 
-	reqJSON, _ := json.Marshal(reqBody)
+	reqJSON, err := json.Marshal(reqBody)
+	if err != nil {
+		ch <- fmt.Sprintf("Error marshaling request: %v", err)
+		return
+	}
 	req, err := http.NewRequestWithContext(ctx, "POST", "https://open.bigmodel.cn/api/paas/v4/chat/completions", bytes.NewReader(reqJSON))
 	if err != nil {
 		ch <- fmt.Sprintf("Error creating request: %v", err)
@@ -164,6 +175,9 @@ func (s *AIService) streamGLM(ctx context.Context, message string, ch chan<- str
 	for {
 		line, err := reader.ReadString('\n')
 		if err != nil {
+			if err != io.EOF {
+				logging.Errorf("Error reading stream from GLM: %v", err)
+			}
 			return
 		}
 

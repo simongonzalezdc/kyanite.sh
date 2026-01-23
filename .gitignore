@@ -36,3 +36,17 @@ combined_coverage.out
 coverage.out
 final_coverage.out
 full_coverage.out
+
+# Config files
+*.yaml
+*.yml
+!.github/**/*.yml
+config/
+.env
+.env.*
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+data/.noise/

@@ -137,6 +137,8 @@ func (o *ContextObserver) updateMetrics() {
 			}
 		}
 		o.writingVelocity = float64(totalWordsAdded) / duration
+	} else {
+		o.writingVelocity = 0
 	}
 	
 	// Calculate deletion ratio

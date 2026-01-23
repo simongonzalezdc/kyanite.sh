@@ -36,7 +36,12 @@ export function TapTempo({ onCaptured, disabled }: TapTempoProps) {
       intervals.push(tapTimes[i] - tapTimes[i - 1]);
     }
 
-    const averageInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+    const averageInterval = intervals.length > 0 
+      ? intervals.reduce((a, b) => a + b, 0) / intervals.length 
+      : 0;
+    
+    if (averageInterval <= 0) return null;
+    
     const calculatedBpm = Math.round(MS_PER_MINUTE / averageInterval);
 
     // Clamp to reasonable BPM range

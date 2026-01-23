@@ -368,6 +368,8 @@ func (d *Dictionary) GetStats() DictionaryStats {
 
 	if stats.TotalWords > 0 {
 		stats.AvgSyllables = float64(totalSyllables) / float64(stats.TotalWords)
+	} else {
+		stats.AvgSyllables = 0
 	}
 
 	return stats

@@ -441,18 +441,21 @@ func (m *PreviewPaneModel) Update(msg tea.Msg) (*PreviewPaneModel, tea.Cmd) {
 			if m.focused {
 				m.refreshPreview()
 			}
-		case "ctrl++", "ctrl+=":
+		case "+", "=":
 			if m.focused {
 				m.zoomIn()
 			}
-		case "ctrl+-":
+			return m, nil
+		case "-":
 			if m.focused {
 				m.zoomOut()
 			}
-		case "ctrl+0":
+			return m, nil
+		case "0":
 			if m.focused {
 				m.resetZoom()
 			}
+			return m, nil
 		case "ctrl+p":
 			if m.focused {
 				m.showProsody = !m.showProsody
@@ -1096,7 +1099,8 @@ func (m *PreviewPaneModel) onContentUpdate(content string) {
 	m.content = content
 
 	// For large documents, implement throttling and lazy loading
-	if len(content) > m.contentThreshold {
+	contentThreshold := 50000
+	if len(content) > contentThreshold {
 		now := time.Now()
 		timeSinceLastUpdate := now.Sub(m.lastContentUpdate)
 
@@ -1148,8 +1152,11 @@ func (m *PreviewPaneModel) performThrottledUpdate(content string) {
 	m.content = content
 
 	// Set up lazy loading for very large documents
-	if m.lazyLoadingEnabled && len(content) > m.contentThreshold {
-		m.setupLazyLoading(content)
+	if m.lazyLoadingEnabled {
+		contentThreshold := 50000
+		if len(content) > contentThreshold {
+			m.setupLazyLoading(content)
+		}
 	}
 
 	// Maintain scroll position if enabled
@@ -1482,6 +1489,8 @@ func (m *PreviewPaneModel) GetPreviewStats() PreviewStats {
 	stats.UpdateCount = m.renderCount
 	if m.renderCount > 0 {
 		stats.AvgUpdateTime = m.totalRenderTime / time.Duration(m.renderCount)
+	} else {
+		stats.AvgUpdateTime = 0
 	}
 	stats.LastUpdateTime = m.lastRenderTime
 	m.cacheMutex.RUnlock()
@@ -1523,6 +1532,8 @@ func (m *PreviewPaneModel) GetPerformanceMetrics() PerformanceMetrics {
 		if cacheHitRate > 100 {
 			cacheHitRate = 100
 		}
+	} else {
+		avgRenderTime = 0
 	}
 
 	return PerformanceMetrics{
@@ -1558,8 +1569,9 @@ func (m *PreviewPaneModel) GetTOC() []TOCEntry {
 
 // renderContentWithCache renders content with caching for performance
 func (m *PreviewPaneModel) renderContentWithCache() (string, error) {
+	contentThreshold := 50000
 	// Use lazy loading for very large documents
-	if m.lazyLoadingEnabled && len(m.content) > m.contentThreshold && len(m.contentLines) > 0 {
+	if m.lazyLoadingEnabled && len(m.content) > contentThreshold && len(m.contentLines) > 0 {
 		visibleContent := m.getVisibleContent()
 		contentHash := m.hashContent(visibleContent)
 
@@ -1593,7 +1605,7 @@ func (m *PreviewPaneModel) renderContentWithCache() (string, error) {
 	}
 
 	// Standard caching for moderately large documents
-	if len(m.content) < m.contentThreshold {
+	if len(m.content) < contentThreshold {
 		return m.renderContentWithGlamour()
 	}
 
@@ -1617,7 +1629,7 @@ func (m *PreviewPaneModel) renderContentWithCache() (string, error) {
 	m.cacheMutex.Unlock()
 
 	// Cache the result if successful and content is large enough
-	if err == nil && rendered != "" && len(m.content) >= m.contentThreshold {
+	if err == nil && rendered != "" && len(m.content) >= contentThreshold {
 		m.setCachedRender(contentHash, rendered)
 	}
 

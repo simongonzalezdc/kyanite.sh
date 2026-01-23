@@ -285,7 +285,8 @@ func (s *EditorService) AutoSave(song *domain.Song) error {
 		return errors.NewValidationError("song must have valid ID for auto-save", nil)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	autoSaveTimeout := 15 * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), autoSaveTimeout)
 	defer cancel()
 
 	// Create auto-save version with error handling
@@ -358,7 +359,8 @@ func (s *EditorService) CreateMilestone(song *domain.Song, name string) error {
 
 	// Default milestone name
 	if strings.TrimSpace(name) == "" {
-		name = fmt.Sprintf("Milestone %s", time.Now().Format("2006-01-02 15:04:05"))
+		autoSaveTimestampFormat := "2006-01-02 15:04:05"
+		name = fmt.Sprintf("Milestone %s", time.Now().Format(autoSaveTimestampFormat))
 	}
 
 	// Serialize full song content

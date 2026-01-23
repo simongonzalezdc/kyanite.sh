@@ -610,24 +610,26 @@ func (m *SettingsModel) handleMouse(msg tea.MouseMsg) tea.Cmd {
 				headerOffset := 6 // header area
 				itemHeight := 1   // single line per category
 
-				clickedIdx := (msg.Y - headerOffset) / itemHeight
-				if clickedIdx >= 0 && clickedIdx < len(m.categoryList.Items()) {
-					// Save scroll position of current category
-					m.categoryScrollPos[m.activeTab] = m.settingsList.Index()
+				if itemHeight > 0 {
+					clickedIdx := (msg.Y - headerOffset) / itemHeight
+					if clickedIdx >= 0 && clickedIdx < len(m.categoryList.Items()) {
+						// Save scroll position of current category
+						m.categoryScrollPos[m.activeTab] = m.settingsList.Index()
 
-					m.categoryList.Select(clickedIdx)
+						m.categoryList.Select(clickedIdx)
 
-					// Update active tab
-					selected := m.categoryList.SelectedItem()
-					if catItem, ok := selected.(categoryItem); ok {
-						m.activeTab = catItem.category
-						m.updateSettingsList()
+						// Update active tab
+						selected := m.categoryList.SelectedItem()
+						if catItem, ok := selected.(categoryItem); ok {
+							m.activeTab = catItem.category
+							m.updateSettingsList()
 
-						// Restore scroll position
-						if savedPos, ok := m.categoryScrollPos[m.activeTab]; ok {
-							m.settingsList.Select(savedPos)
-						} else {
-							m.settingsList.Select(0)
+							// Restore scroll position
+							if savedPos, ok := m.categoryScrollPos[m.activeTab]; ok {
+								m.settingsList.Select(savedPos)
+							} else {
+								m.settingsList.Select(0)
+							}
 						}
 					}
 				}
@@ -639,15 +641,17 @@ func (m *SettingsModel) handleMouse(msg tea.MouseMsg) tea.Cmd {
 				headerOffset := 6
 				itemHeight := 5 // settings items are larger (name + desc + value)
 
-				clickedIdx := (msg.Y - headerOffset) / itemHeight
-				if clickedIdx >= 0 && clickedIdx < len(m.settingsList.Items()) {
-					m.settingsList.Select(clickedIdx)
+				if itemHeight > 0 {
+					clickedIdx := (msg.Y - headerOffset) / itemHeight
+					if clickedIdx >= 0 && clickedIdx < len(m.settingsList.Items()) {
+						m.settingsList.Select(clickedIdx)
 
-					// Activate the setting (toggle/edit)
-					selected := m.settingsList.SelectedItem()
-					if settingItem, ok := selected.(settingItem); ok {
-						m.editSetting(settingItem.setting)
-						m.updateSettingsList()
+						// Activate the setting (toggle/edit)
+						selected := m.settingsList.SelectedItem()
+						if settingItem, ok := selected.(settingItem); ok {
+							m.editSetting(settingItem.setting)
+							m.updateSettingsList()
+						}
 					}
 				}
 			}
@@ -1127,28 +1131,43 @@ func (s settingItem) Render() string {
 	var valueStr string
 	switch s.setting.Type {
 	case TypeBool:
-		if s.setting.Value.(bool) {
+		if val, ok := s.setting.Value.(bool); ok && val {
 			valueStr = valueStyle.Render("[x] Yes")
 		} else {
 			valueStr = valueStyle.Render("o No")
 		}
 	case TypeInt:
-		if s.setting.Unit != "" {
-			valueStr = valueStyle.Render(fmt.Sprintf("%d %s", s.setting.Value.(int), s.setting.Unit))
+		if val, ok := s.setting.Value.(int); ok {
+			if s.setting.Unit != "" {
+				valueStr = valueStyle.Render(fmt.Sprintf("%d %s", val, s.setting.Unit))
+			} else {
+				valueStr = valueStyle.Render(fmt.Sprintf("%d", val))
+			}
 		} else {
-			valueStr = valueStyle.Render(fmt.Sprintf("%d", s.setting.Value.(int)))
+			valueStr = valueStyle.Render("invalid value")
 		}
 	case TypeFloat:
-		if s.setting.Unit != "" {
-			valueStr = valueStyle.Render(fmt.Sprintf("%.2f %s", s.setting.Value.(float64), s.setting.Unit))
+		if val, ok := s.setting.Value.(float64); ok {
+			if s.setting.Unit != "" {
+				valueStr = valueStyle.Render(fmt.Sprintf("%.2f %s", val, s.setting.Unit))
+			} else {
+				valueStr = valueStyle.Render(fmt.Sprintf("%.2f", val))
+			}
 		} else {
-			valueStr = valueStyle.Render(fmt.Sprintf("%.2f", s.setting.Value.(float64)))
+			valueStr = valueStyle.Render("invalid value")
 		}
 	case TypeDuration:
-		duration := s.setting.Value.(time.Duration)
-		valueStr = valueStyle.Render(fmt.Sprintf("%.0f seconds", duration.Seconds()))
+		if duration, ok := s.setting.Value.(time.Duration); ok {
+			valueStr = valueStyle.Render(fmt.Sprintf("%.0f seconds", duration.Seconds()))
+		} else {
+			valueStr = valueStyle.Render("invalid value")
+		}
 	case TypeSelect:
-		valueStr = valueStyle.Render(s.setting.Value.(string))
+		if strVal, ok := s.setting.Value.(string); ok {
+			valueStr = valueStyle.Render(strVal)
+		} else {
+			valueStr = valueStyle.Render("invalid value")
+		}
 	default:
 		valueStr = valueStyle.Render(fmt.Sprintf("%v", s.setting.Value))
 	}

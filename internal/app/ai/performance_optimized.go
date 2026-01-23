@@ -350,6 +350,8 @@ func (rc *ResponseCache) GetCacheStats() map[string]interface{} {
 	hitRate := float64(0)
 	if total > 0 {
 		hitRate = float64(rc.hits) / float64(total)
+	} else {
+		hitRate = 0
 	}
 
 	return map[string]interface{}{

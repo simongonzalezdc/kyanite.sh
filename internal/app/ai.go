@@ -32,7 +32,8 @@ func NewAIService(cfg *config.Config) *AIService {
 
 	// Initialize infrastructure clients
 	s.ollamaClient = ollama.NewClient(cfg.AI.BaseURL, cfg.AI.Timeout)
-	s.glmClient = glm.NewClient(cfg.GLM.APIKey, 60*time.Second)
+	glmTimeout := 60 * time.Second
+	s.glmClient = glm.NewClient(cfg.GLM.APIKey, glmTimeout)
 
 	// Configure QuickIdeaAgent based on provider
 	var client ai.QuickLLMClient
@@ -67,7 +68,8 @@ func (s *AIService) GetQuickAgent() *ai.QuickIdeaAgent {
 func (s *AIService) Brainstorm(theme string) ([]string, error) {
 	// If provider is GLM or Hybrid, use GLM for high-quality structural brainstorm
 	if s.config.AI.Provider == "glm" || s.config.AI.Provider == "hybrid" {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		brainstormTimeout := 30 * time.Second
+		ctx, cancel := context.WithTimeout(context.Background(), brainstormTimeout)
 		defer cancel()
 
 		prompt := fmt.Sprintf("Generate 5 unique and evocative songwriting angles for the theme: '%s'. Return as a plain list of bullet points.", theme)

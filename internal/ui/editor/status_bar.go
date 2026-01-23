@@ -414,6 +414,7 @@ func (m *StatusBarModel) renderRightSection() StatusBarSection {
 // renderAutoSaveStatus renders the auto-save status with appropriate styling
 func (m *StatusBarModel) renderAutoSaveStatus() string {
 	var text string
+	autoSaveTimeFormat := "15:04:05"
 
 	switch m.autoSaveStatus {
 	case app.AutoSaveSaving:
@@ -421,7 +422,7 @@ func (m *StatusBarModel) renderAutoSaveStatus() string {
 		return m.autoSaveSavingStyle.Render(text)
 	case app.AutoSaveSuccess:
 		if !m.lastSaveTime.IsZero() {
-			text = fmt.Sprintf("Saved %s", m.lastSaveTime.Format("15:04:05"))
+			text = fmt.Sprintf("Saved %s", m.lastSaveTime.Format(autoSaveTimeFormat))
 		} else {
 			text = "Saved"
 		}
@@ -431,7 +432,7 @@ func (m *StatusBarModel) renderAutoSaveStatus() string {
 		return m.autoSaveErrorStyle.Render(text)
 	case app.AutoSaveIdle:
 		if !m.lastSaveTime.IsZero() {
-			text = fmt.Sprintf("Saved %s", m.lastSaveTime.Format("15:04:05"))
+			text = fmt.Sprintf("Saved %s", m.lastSaveTime.Format(autoSaveTimeFormat))
 			return m.autoSaveIdleStyle.Render(text)
 		}
 		return m.autoSaveIdleStyle.Render("Ready")
@@ -480,15 +481,11 @@ func (m *StatusBarModel) renderMinimalView() string {
 	content := strings.Join(parts, " | ")
 	content = m.centerSectionStyle.Render(content)
 
-	// Ensure proper width
-	if len(content) > m.width {
-		content = content[:m.width]
-	} else if len(content) < m.width {
-		padding := strings.Repeat(" ", m.width-len(content))
-		content += padding
-	}
-
-	return content
+	// Use lipgloss to properly constrain width (handles ANSI codes correctly)
+	constrainedStyle := lipgloss.NewStyle().
+		Width(m.width).
+		MaxWidth(m.width)
+	return constrainedStyle.Render(content)
 }
 
 // renderCompactView renders abbreviated but complete information
@@ -501,15 +498,11 @@ func (m *StatusBarModel) renderCompactView() string {
 	// Combine sections with compact spacing
 	fullContent := leftSection + "|" + centerSection + "|" + rightSection
 
-	// Ensure the content fits exactly within the width
-	if len(fullContent) > m.width {
-		fullContent = fullContent[:m.width]
-	} else if len(fullContent) < m.width {
-		padding := strings.Repeat(" ", m.width-len(fullContent))
-		fullContent += padding
-	}
-
-	return fullContent
+	// Use lipgloss to properly constrain width (handles ANSI codes correctly)
+	constrainedStyle := lipgloss.NewStyle().
+		Width(m.width).
+		MaxWidth(m.width)
+	return constrainedStyle.Render(fullContent)
 }
 
 // renderFullView renders the complete status bar
@@ -541,15 +534,11 @@ func (m *StatusBarModel) renderFullView() string {
 	// Combine sections with proper spacing
 	fullContent := leftSection.Content + leftSpacer + centerSection.Content + rightSpacer + rightSection.Content
 
-	// Ensure the content fits exactly within the width
-	if len(fullContent) > m.width {
-		fullContent = fullContent[:m.width]
-	} else if len(fullContent) < m.width {
-		padding := strings.Repeat(" ", m.width-len(fullContent))
-		fullContent += padding
-	}
-
-	return fullContent
+	// Use lipgloss to properly constrain width (handles ANSI codes correctly)
+	constrainedStyle := lipgloss.NewStyle().
+		Width(m.width).
+		MaxWidth(m.width)
+	return constrainedStyle.Render(fullContent)
 }
 
 // renderCompactLeftSection renders a compact version of the left section

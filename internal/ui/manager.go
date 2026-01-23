@@ -316,9 +316,10 @@ func (m *ProjectManagerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case StateProjectList:
 				if len(m.projects) > 0 {
 					selected := m.projectList.SelectedItem()
-					if selected != nil {
+					idx := m.projectList.Index()
+					if selected != nil && idx >= 0 && idx < len(m.projects) {
 						m.state = StateProjectDetail
-						m.currentProject = m.projects[m.projectList.Index()]
+						m.currentProject = m.projects[idx]
 						return m, m.loadProjectSongs(m.currentProject.ID)
 					}
 				}
@@ -346,12 +347,14 @@ func (m *ProjectManagerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case StateProjectTemplates:
 				selected := m.projectList.SelectedItem()
 				if selected != nil {
-					template := m.getTemplateByName(selected.(projectTemplateItem).name)
-					if template != nil {
-						m.state = StateCreateProject
-						m.projectNameInput.SetValue(template.Name)
-						m.projectDescInput.SetValue(template.Description)
-						m.focusedComponent = "name_input"
+					if templateItem, ok := selected.(projectTemplateItem); ok {
+						template := m.getTemplateByName(templateItem.name)
+						if template != nil {
+							m.state = StateCreateProject
+							m.projectNameInput.SetValue(template.Name)
+							m.projectDescInput.SetValue(template.Description)
+							m.focusedComponent = "name_input"
+						}
 					}
 				}
 			}

@@ -216,7 +216,8 @@ func (m *SplitPaneModel) Update(msg tea.Msg) (*SplitPaneModel, tea.Cmd) {
 		currentContent := m.previewPane.GetContent()
 
 		// Skip update if content hasn't changed (for large documents, this saves significant processing)
-		if editorContent == currentContent && len(editorContent) > 10000 { // 10KB threshold
+		contentThreshold := 10000
+		if editorContent == currentContent && len(editorContent) > contentThreshold { // 10KB threshold
 			// For very large documents, only update if content length has changed
 			if m.lastUpdateLength == len(editorContent) {
 				// Content length hasn't changed, skip update

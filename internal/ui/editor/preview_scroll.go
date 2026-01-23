@@ -131,7 +131,7 @@ func (s *PreviewScroll) ScrollPercentage() float64 {
 	}
 
 	maxOffset := s.totalLines - s.visibleLines
-	if maxOffset == 0 {
+	if maxOffset <= 0 {
 		return 0
 	}
 

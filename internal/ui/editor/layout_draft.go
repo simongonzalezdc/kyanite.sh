@@ -32,8 +32,11 @@ func (l *DraftLayout) Render(editorContent string, previewContent string, theory
 	// Draft mode: Editor + Preview + Theory tools
 	// 50% editor, 25% preview, 25% theory
 
-	editorWidth := l.width * 50 / 100
-	previewWidth := l.width * 25 / 100
+	editorWidthPercent := 50
+	previewWidthPercent := 25
+
+	editorWidth := l.width * editorWidthPercent / 100
+	previewWidth := l.width * previewWidthPercent / 100
 	theoryWidth := l.width - editorWidth - previewWidth - 2 // -2 for dividers
 
 	// Create editor pane (50% width) - NO border since editorContent already has one
@@ -84,15 +87,18 @@ func (l *DraftLayout) Render(editorContent string, previewContent string, theory
 
 // GetPreviewPanelWidth returns the width of the preview panel in draft mode
 func (l *DraftLayout) GetPreviewPanelWidth() int {
-	return l.width * 25 / 100
+	previewWidthPercent := 25
+	return l.width * previewWidthPercent / 100
 }
 
 // GetTheoryPanelWidth returns the width of the theory panel in draft mode
 func (l *DraftLayout) GetTheoryPanelWidth() int {
-	return l.width * 25 / 100
+	theoryWidthPercent := 25
+	return l.width * theoryWidthPercent / 100
 }
 
 // GetEditorWidth returns the width of the editor pane in draft mode
 func (l *DraftLayout) GetEditorWidth() int {
-	return l.width * 50 / 100
+	editorWidthPercent := 50
+	return l.width * editorWidthPercent / 100
 }

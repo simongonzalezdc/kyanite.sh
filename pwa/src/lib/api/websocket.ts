@@ -78,6 +78,10 @@ export class SyncWebSocket {
           this.notifyHandlers(message);
         } catch (error) {
           console.error("Failed to parse WebSocket message:", error);
+          this.notifyHandlers({ 
+            type: "error", 
+            payload: "Failed to process server message." 
+          });
         }
       };
 
@@ -90,6 +94,10 @@ export class SyncWebSocket {
       this.ws.onerror = (error) => {
         console.error("WebSocket error:", error);
         this.setState("error");
+        this.notifyHandlers({ 
+          type: "error", 
+          payload: "Connection error occurred. Check server status." 
+        });
       };
     } catch (error) {
       console.error("Failed to create WebSocket:", error);

@@ -313,10 +313,12 @@ func (eru *ErrorRecoveryUI) ExecuteRecoveryOperation(operationID string) error {
 
 	// Find the operation
 	var operation *RecoveryOperation
-	for i := range eru.recoveryOperations {
-		if eru.recoveryOperations[i].ID == operationID {
-			operation = &eru.recoveryOperations[i]
-			break
+	if len(eru.recoveryOperations) > 0 {
+		for i := range eru.recoveryOperations {
+			if eru.recoveryOperations[i].ID == operationID {
+				operation = &eru.recoveryOperations[i]
+				break
+			}
 		}
 	}
 
@@ -425,7 +427,7 @@ func (eru *ErrorRecoveryUI) Update(msg tea.Msg) (*ErrorRecoveryUI, tea.Cmd) {
 			eru.refreshRecoveryOperations()
 			cmd = eru.spinner.Tick // Return spinner tick to indicate refresh
 		case "enter":
-			if eru.showRecoveryPanel && eru.selectedRecovery < len(eru.recoveryOperations) {
+			if eru.showRecoveryPanel && len(eru.recoveryOperations) > 0 && eru.selectedRecovery < len(eru.recoveryOperations) {
 				operation := eru.recoveryOperations[eru.selectedRecovery]
 				if operation.Status == StatusPending {
 					go func() {

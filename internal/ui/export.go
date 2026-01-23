@@ -167,11 +167,17 @@ func (m *ExportModel) Update(msg tea.Msg) (*ExportModel, tea.Cmd) {
 					headerOffset := 6 // title area
 					itemHeight := 3   // each option takes ~3 lines
 
-					clickedIdx := (msg.Y - headerOffset) / itemHeight
-					if clickedIdx >= 0 && clickedIdx < len(m.options) {
-						m.selected = clickedIdx
-						// Double-click behavior: immediately export
-						// For single click, just select
+					// Calculate which option was clicked
+					headerOffset = 6 // title area
+					itemHeight = 3   // each option takes ~3 lines
+
+					if itemHeight > 0 {
+						clickedIdx := (msg.Y - headerOffset) / itemHeight
+						if len(m.options) > 0 && clickedIdx >= 0 && clickedIdx < len(m.options) {
+							m.selected = clickedIdx
+							// Double-click behavior: immediately export
+							// For single click, just select
+						}
 					}
 				}
 
@@ -1010,7 +1016,10 @@ func (m *ExportModel) GetDimensions() (int, int) {
 
 // GetSelectedFormat returns the currently selected export format
 func (m *ExportModel) GetSelectedFormat() ExportFormat {
-	return m.options[m.selected]
+		if len(m.options) > 0 {
+			return m.options[m.selected]
+		}
+		return FormatPlainText // Default fallback
 }
 
 // SetContent sets the content to be exported

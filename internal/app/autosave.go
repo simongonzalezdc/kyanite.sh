@@ -420,7 +420,8 @@ func (s *AutoSaveService) executeSave(content string) error {
 
 	// For now, we'll save as a version without a specific song ID
 	// In a full implementation, this would be associated with the current song
-	versionName := fmt.Sprintf("Auto-save %s", time.Now().Format("2006-01-02 15:04:05"))
+	autoSaveTimestampFormat := "2006-01-02 15:04:05"
+	versionName := fmt.Sprintf("Auto-save %s", time.Now().Format(autoSaveTimestampFormat))
 
 	// Add retry logic specifically for lock errors
 	var lastErr error
@@ -516,10 +517,11 @@ func (s *AutoSaveService) executeSaveWithVersioning(songID int, content string, 
 
 	// Ensure we have a proper version name
 	if strings.TrimSpace(name) == "" {
+		autoSaveTimestampFormat := "2006-01-02 15:04:05"
 		if isMilestone {
-			name = fmt.Sprintf("Milestone %s", time.Now().Format("2006-01-02 15:04:05"))
+			name = fmt.Sprintf("Milestone %s", time.Now().Format(autoSaveTimestampFormat))
 		} else {
-			name = fmt.Sprintf("Auto-save %s", time.Now().Format("2006-01-02 15:04:05"))
+			name = fmt.Sprintf("Auto-save %s", time.Now().Format(autoSaveTimestampFormat))
 		}
 	}
 
