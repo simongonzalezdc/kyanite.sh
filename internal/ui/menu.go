@@ -140,6 +140,13 @@ func (m *MenuModel) Update(msg tea.Msg) (*MenuModel, tea.Cmd) {
 		if cmd != nil {
 			cmds = append(cmds, cmd)
 		}
+
+	case tea.MouseMsg:
+		// Handle mouse events for menu
+		cmd := m.handleMouse(msg)
+		if cmd != nil {
+			return m, cmd
+		}
 	}
 
 	var cmd tea.Cmd
@@ -258,6 +265,51 @@ func titleGradient(text string, t theme.Theme) string {
 	}
 
 	return result
+}
+
+// handleMouse processes mouse events for the menu
+func (m *MenuModel) handleMouse(msg tea.MouseMsg) tea.Cmd {
+	switch msg.Button {
+	case tea.MouseButtonLeft:
+		if msg.Action == tea.MouseActionRelease {
+			// Calculate which item was clicked based on Y position
+			// The list typically starts after the title (around Y=2-3)
+			itemHeight := 2 // Each item takes ~2 lines (title + desc)
+			headerOffset := 3 // Title area
+
+			clickedIdx := (msg.Y - headerOffset) / itemHeight
+			if clickedIdx >= 0 && clickedIdx < len(m.list.Items()) {
+				m.list.Select(clickedIdx)
+
+				// Activate the selected item
+				selectedItem, ok := m.list.SelectedItem().(item)
+				if ok {
+					m.animation.PulseAnimation("menu_selection", 1.0)
+
+					if selectedItem.title == "Help" {
+						return func() tea.Msg { return ToggleHelpMsg{} }
+					}
+					return func() tea.Msg {
+						return ScreenChangeMsg{Screen: selectedItem.screen}
+					}
+				}
+			}
+		}
+
+	case tea.MouseButtonWheelUp:
+		// Scroll up
+		if m.list.Index() > 0 {
+			m.list.CursorUp()
+		}
+
+	case tea.MouseButtonWheelDown:
+		// Scroll down
+		if m.list.Index() < len(m.list.Items())-1 {
+			m.list.CursorDown()
+		}
+	}
+
+	return nil
 }
 
 // ToggleHelpMsg represents a message to toggle help mode

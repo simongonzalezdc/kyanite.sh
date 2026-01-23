@@ -19,10 +19,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       danger: "bg-[var(--color-error)] text-white hover:opacity-90 focus-visible:ring-[var(--color-error)]",
     };
 
+    // All sizes meet 44px minimum touch target (WCAG 2.5.5)
     const sizes = {
-      sm: "h-8 px-3 text-sm rounded",
-      md: "h-10 px-4 text-base rounded-md",
-      lg: "h-12 px-6 text-lg rounded-lg",
+      sm: "h-11 min-h-[44px] px-4 text-sm rounded",
+      md: "h-12 min-h-[44px] px-5 text-base rounded-md",
+      lg: "h-14 min-h-[44px] px-6 text-lg rounded-lg",
     };
 
     return (

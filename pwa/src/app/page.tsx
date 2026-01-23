@@ -12,9 +12,25 @@ import { TapTempo } from "@/components/capture/TapTempo";
 import { getServerConfig, clearServerConfig } from "@/lib/db";
 import { initSyncClient, clearSyncClient } from "@/lib/api/client";
 import { initWebSocket, clearWebSocket, type ConnectionState } from "@/lib/api/websocket";
+import { SYNC_INTERVAL_MS } from "@/lib/constants";
+import { ThemeSelector } from "@/components/ui/ThemeSelector";
+import { useSwipe } from "@/lib/hooks/useSwipe";
+import { OnboardingWizard, hasCompletedOnboarding } from "@/components/onboarding/OnboardingWizard";
 
 type AppState = "loading" | "unpaired" | "paired";
 type CaptureTab = "text" | "voice" | "photo" | "tempo";
+
+/**
+ * Safely extract hostname from URL, returning fallback on invalid URLs
+ */
+function getHostname(url: string | null, fallback = "server"): string {
+  if (!url) return fallback;
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return fallback;
+  }
+}
 
 const tabs: { id: CaptureTab; icon: string; label: string }[] = [
   { id: "text", icon: "📝", label: "Text" },
@@ -28,6 +44,33 @@ export default function Home() {
   const [connectionState, setConnectionState] = useState<ConnectionState>("disconnected");
   const [serverUrl, setServerUrl] = useState<string>("");
   const [activeTab, setActiveTab] = useState<CaptureTab>("text");
+
+  // Initialize onboarding state - show for first-time users once app loads
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !hasCompletedOnboarding();
+  });
+
+  // Tab navigation helpers
+  const tabIds = tabs.map((t) => t.id);
+  const currentTabIndex = tabIds.indexOf(activeTab);
+
+  const goToNextTab = useCallback(() => {
+    const nextIndex = (currentTabIndex + 1) % tabIds.length;
+    setActiveTab(tabIds[nextIndex]);
+  }, [currentTabIndex, tabIds]);
+
+  const goToPrevTab = useCallback(() => {
+    const prevIndex = (currentTabIndex - 1 + tabIds.length) % tabIds.length;
+    setActiveTab(tabIds[prevIndex]);
+  }, [currentTabIndex, tabIds]);
+
+  // Swipe gesture handlers
+  const swipeHandlers = useSwipe({
+    onSwipeLeft: goToNextTab,
+    onSwipeRight: goToPrevTab,
+    threshold: 50,
+  });
 
   // Check for existing pairing on mount
   useEffect(() => {
@@ -62,7 +105,7 @@ export default function Home() {
 
     // Start auto-sync if connected
     if (connectionState === "connected") {
-      syncManager.startAutoSync(30000);
+      syncManager.startAutoSync(SYNC_INTERVAL_MS);
     }
 
     return () => {
@@ -114,6 +157,10 @@ export default function Home() {
   if (appState === "unpaired") {
     return (
       <main className="min-h-dvh flex items-center justify-center p-4">
+        {/* Onboarding wizard for first-time users */}
+        {showOnboarding && (
+          <OnboardingWizard onComplete={() => setShowOnboarding(false)} />
+        )}
         <PairingForm onPaired={handlePaired} />
       </main>
     );
@@ -122,13 +169,21 @@ export default function Home() {
   // Paired - show capture interface
   return (
     <main className="min-h-dvh flex flex-col">
+      {/* Onboarding wizard for first-time users */}
+      {showOnboarding && (
+        <OnboardingWizard onComplete={() => setShowOnboarding(false)} />
+      )}
+
       {/* Header */}
       <header className="flex items-center justify-between p-4 border-b border-[var(--color-surface)]">
         <div className="flex items-center gap-2">
           <span className="text-xl">♪</span>
           <span className="font-bold text-[var(--color-primary)]">noise.sh</span>
         </div>
-        <SyncStatusIndicator connectionState={connectionState} />
+        <div className="flex items-center gap-2">
+          <SyncStatusIndicator connectionState={connectionState} />
+          <ThemeSelector compact />
+        </div>
       </header>
 
       {/* Tab bar */}
@@ -153,8 +208,14 @@ export default function Home() {
         ))}
       </nav>
 
-      {/* Capture content */}
-      <div className="flex-1 overflow-hidden" role="tabpanel" aria-labelledby={`tab-${activeTab}`} id={`panel-${activeTab}`}>
+      {/* Capture content - swipeable */}
+      <div
+        className="flex-1 overflow-hidden"
+        role="tabpanel"
+        aria-labelledby={`tab-${activeTab}`}
+        id={`panel-${activeTab}`}
+        {...swipeHandlers}
+      >
         {activeTab === "text" && (
           <TextCapture
             onCaptured={handleCaptured}
@@ -189,7 +250,7 @@ export default function Home() {
           onClick={handleUnpair}
           className="w-full text-[var(--color-text-muted)]"
         >
-          Disconnect from {serverUrl ? new URL(serverUrl).hostname : "server"}
+          Disconnect from {getHostname(serverUrl)}
         </Button>
       </footer>
     </main>

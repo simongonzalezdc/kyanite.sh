@@ -21,10 +21,10 @@ func NewMediaStore(basePath string) (*MediaStore, error) {
 	photosPath := filepath.Join(basePath, "photos")
 
 	// Create directories
-	if err := os.MkdirAll(voicePath, 0755); err != nil {
+	if err := os.MkdirAll(voicePath, DefaultDirPermission); err != nil {
 		return nil, fmt.Errorf("failed to create voice directory: %w", err)
 	}
-	if err := os.MkdirAll(photosPath, 0755); err != nil {
+	if err := os.MkdirAll(photosPath, DefaultDirPermission); err != nil {
 		return nil, fmt.Errorf("failed to create photos directory: %w", err)
 	}
 
@@ -40,7 +40,7 @@ func (ms *MediaStore) SaveVoiceMemo(deviceID string, data []byte) (string, error
 	filename := generateMediaFilename(deviceID, "webm")
 	path := filepath.Join(ms.voicePath, filename)
 
-	if err := os.WriteFile(path, data, 0644); err != nil {
+	if err := os.WriteFile(path, data, DefaultFilePermission); err != nil {
 		return "", fmt.Errorf("failed to write voice memo: %w", err)
 	}
 
@@ -52,7 +52,7 @@ func (ms *MediaStore) SavePhoto(deviceID string, data []byte) (string, error) {
 	filename := generateMediaFilename(deviceID, "jpg")
 	path := filepath.Join(ms.photosPath, filename)
 
-	if err := os.WriteFile(path, data, 0644); err != nil {
+	if err := os.WriteFile(path, data, DefaultFilePermission); err != nil {
 		return "", fmt.Errorf("failed to write photo: %w", err)
 	}
 
@@ -112,38 +112,58 @@ func (ms *MediaStore) GetPhotosPath() string {
 }
 
 // Cleanup removes old media files older than the specified duration
+// Returns count of deleted files and any errors encountered (aggregated)
 func (ms *MediaStore) Cleanup(olderThan time.Duration) (int, error) {
 	cutoff := time.Now().Add(-olderThan)
 	count := 0
+	var errs []error
 
 	// Cleanup voice memos
-	voiceFiles, _ := listFiles(ms.voicePath)
+	voiceFiles, err := listFiles(ms.voicePath)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("failed to list voice files: %w", err))
+	}
 	for _, file := range voiceFiles {
-		info, err := os.Stat(filepath.Join(ms.voicePath, file))
+		filePath := filepath.Join(ms.voicePath, file)
+		info, err := os.Stat(filePath)
 		if err != nil {
+			errs = append(errs, fmt.Errorf("failed to stat %s: %w", file, err))
 			continue
 		}
 		if info.ModTime().Before(cutoff) {
-			if os.Remove(filepath.Join(ms.voicePath, file)) == nil {
+			if err := os.Remove(filePath); err != nil {
+				errs = append(errs, fmt.Errorf("failed to remove %s: %w", file, err))
+			} else {
 				count++
 			}
 		}
 	}
 
 	// Cleanup photos
-	photoFiles, _ := listFiles(ms.photosPath)
+	photoFiles, err := listFiles(ms.photosPath)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("failed to list photo files: %w", err))
+	}
 	for _, file := range photoFiles {
-		info, err := os.Stat(filepath.Join(ms.photosPath, file))
+		filePath := filepath.Join(ms.photosPath, file)
+		info, err := os.Stat(filePath)
 		if err != nil {
+			errs = append(errs, fmt.Errorf("failed to stat %s: %w", file, err))
 			continue
 		}
 		if info.ModTime().Before(cutoff) {
-			if os.Remove(filepath.Join(ms.photosPath, file)) == nil {
+			if err := os.Remove(filePath); err != nil {
+				errs = append(errs, fmt.Errorf("failed to remove %s: %w", file, err))
+			} else {
 				count++
 			}
 		}
 	}
 
+	// Return aggregated error if any occurred
+	if len(errs) > 0 {
+		return count, fmt.Errorf("cleanup encountered %d errors, first: %w", len(errs), errs[0])
+	}
 	return count, nil
 }
 
@@ -151,14 +171,21 @@ func (ms *MediaStore) Cleanup(olderThan time.Duration) (int, error) {
 func generateMediaFilename(deviceID, ext string) string {
 	timestamp := time.Now().Format("20060102_150405")
 	randomBytes := make([]byte, 4)
-	rand.Read(randomBytes)
-	
+	if _, err := rand.Read(randomBytes); err != nil {
+		// Fallback: use timestamp nanoseconds for uniqueness if crypto/rand fails
+		ns := time.Now().UnixNano()
+		randomBytes[0] = byte(ns)
+		randomBytes[1] = byte(ns >> 8)
+		randomBytes[2] = byte(ns >> 16)
+		randomBytes[3] = byte(ns >> 24)
+	}
+
 	// Truncate device ID to 8 chars or use full if shorter
 	shortDeviceID := deviceID
 	if len(shortDeviceID) > 8 {
 		shortDeviceID = shortDeviceID[:8]
 	}
-	
+
 	return fmt.Sprintf("%s_%s_%x.%s", timestamp, shortDeviceID, randomBytes, ext)
 }
 

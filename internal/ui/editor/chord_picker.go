@@ -269,7 +269,7 @@ func (m *chordPickerModel) View() string {
 	var content strings.Builder
 
 	// Header
-	header := m.headerStyle.Render("ðŸŽµ Quick Chord Picker")
+	header := m.headerStyle.Render("Žµ Quick Chord Picker")
 	content.WriteString(header)
 	content.WriteString("\n\n")
 
@@ -370,7 +370,7 @@ func (m *chordPickerModel) renderInstructions() string {
 	instructions := []string{
 		"[1-5] Filter by mood",
 		"[R] Random selection",
-		"[â†‘â†“] Navigate",
+		"[UpDown] Navigate",
 		"[Enter/Space] Insert chords",
 		"[Esc] Cancel",
 	}

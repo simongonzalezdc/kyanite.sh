@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
 import { getSyncClient } from "@/lib/api/client";
 import { addPendingIdea, addPendingMedia } from "@/lib/db";
+import { MEDIA_RECORDER_TIMESLICE_MS, RECORDING_TIMER_INTERVAL_MS } from "@/lib/constants";
 
 interface VoiceMemoProps {
   onCaptured?: () => void;
@@ -58,14 +59,14 @@ export function VoiceMemo({ onCaptured, disabled }: VoiceMemoProps) {
       };
 
       mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start(100); // Collect data every 100ms
+      mediaRecorder.start(MEDIA_RECORDER_TIMESLICE_MS);
       setState("recording");
       setDuration(0);
 
       // Start duration timer
       timerRef.current = setInterval(() => {
         setDuration((d) => d + 1);
-      }, 1000);
+      }, RECORDING_TIMER_INTERVAL_MS);
     } catch (err) {
       console.error("Failed to start recording:", err);
       setError("Could not access microphone. Please grant permission.");

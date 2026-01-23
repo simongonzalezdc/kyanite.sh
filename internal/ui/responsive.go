@@ -181,10 +181,8 @@ func (r *ResponsiveLayoutManager) updateSizeWarnings() {
 			"For optimal experience, use at least 100x30 terminal")
 	}
 
-	if r.currentSize.Width > 200 {
-		r.sizeWarnings = append(r.sizeWarnings,
-			"Ultra-wide terminal detected. Consider using multiple columns for better layout")
-	}
+	// Ultra-wide screens are fully supported with multi-column layouts
+	// No warning needed
 }
 
 // RenderSizeWarning renders size warnings for display
@@ -202,7 +200,7 @@ func (r *ResponsiveLayoutManager) RenderSizeWarning() string {
 		BorderForeground(t.Error)
 
 	warningText := strings.Join(r.sizeWarnings, "\n")
-	return warningStyle.Render("âš ï¸  " + warningText)
+	return warningStyle.Render("[!] " + warningText)
 }
 
 // HandleWindowSizeMsg handles window size messages and returns appropriate commands

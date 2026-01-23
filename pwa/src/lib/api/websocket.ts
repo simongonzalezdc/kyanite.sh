@@ -3,6 +3,13 @@
  * Protocol defined in internal/infra/sync/websocket.go
  */
 
+import {
+  WEBSOCKET_RECONNECT_DELAY_MS,
+  WEBSOCKET_MAX_RECONNECT_ATTEMPTS,
+  WEBSOCKET_PING_INTERVAL_MS,
+  WEBSOCKET_BACKOFF_MULTIPLIER,
+} from "@/lib/constants";
+
 export type MessageType = "idea_received" | "sync_complete" | "ping" | "pong" | "connected" | "error";
 
 export interface WSMessage {
@@ -20,8 +27,8 @@ export class SyncWebSocket {
   private url: string;
   private deviceId: string;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 1000;
+  private maxReconnectAttempts = WEBSOCKET_MAX_RECONNECT_ATTEMPTS;
+  private reconnectDelay = WEBSOCKET_RECONNECT_DELAY_MS;
   private pingInterval: ReturnType<typeof setInterval> | null = null;
   private messageHandlers: Set<MessageHandler> = new Set();
   private stateHandlers: Set<StateChangeHandler> = new Set();
@@ -137,7 +144,7 @@ export class SyncWebSocket {
     this.stopPingInterval();
     this.pingInterval = setInterval(() => {
       this.send({ type: "ping", payload: null });
-    }, 30000); // Ping every 30 seconds
+    }, WEBSOCKET_PING_INTERVAL_MS);
   }
 
   private stopPingInterval(): void {
@@ -154,7 +161,7 @@ export class SyncWebSocket {
     }
 
     this.reconnectAttempts++;
-    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
+    const delay = this.reconnectDelay * Math.pow(WEBSOCKET_BACKOFF_MULTIPLIER, this.reconnectAttempts - 1);
     
     console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
     

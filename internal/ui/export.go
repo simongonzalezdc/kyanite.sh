@@ -157,6 +157,32 @@ func (m *ExportModel) Update(msg tea.Msg) (*ExportModel, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 
+	case tea.MouseMsg:
+		// Handle mouse events for export options
+		if m.focused && !m.showProgress {
+			switch msg.Button {
+			case tea.MouseButtonLeft:
+				if msg.Action == tea.MouseActionRelease {
+					// Calculate which option was clicked
+					headerOffset := 6 // title area
+					itemHeight := 3   // each option takes ~3 lines
+
+					clickedIdx := (msg.Y - headerOffset) / itemHeight
+					if clickedIdx >= 0 && clickedIdx < len(m.options) {
+						m.selected = clickedIdx
+						// Double-click behavior: immediately export
+						// For single click, just select
+					}
+				}
+
+			case tea.MouseButtonWheelUp:
+				m.selected = max(0, m.selected-1)
+
+			case tea.MouseButtonWheelDown:
+				m.selected = min(len(m.options)-1, m.selected+1)
+			}
+		}
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
@@ -166,6 +192,16 @@ func (m *ExportModel) Update(msg tea.Msg) (*ExportModel, tea.Cmd) {
 		case "down", "j":
 			if m.focused && !m.showProgress {
 				m.selected = min(len(m.options)-1, m.selected+1)
+			}
+		case "tab":
+			// Tab cycles forward through options
+			if m.focused && !m.showProgress {
+				m.selected = (m.selected + 1) % len(m.options)
+			}
+		case "shift+tab":
+			// Shift+Tab cycles backward through options
+			if m.focused && !m.showProgress {
+				m.selected = (m.selected - 1 + len(m.options)) % len(m.options)
 			}
 		case "enter":
 			if m.focused && !m.showProgress {
@@ -197,14 +233,14 @@ func (m *ExportModel) View() string {
 		Foreground(t.Primary).
 		Bold(true).
 		Padding(0, 2).
-		Render("ðŸ“¤ Export Options")
+		Render("“¤ Export Options")
 
 	// Format options
 	var options []string
 	for i, format := range m.options {
 		var option string
 		if i == m.selected && m.focused {
-			option = m.selectedStyle.Render("â–¶ " + format.String())
+			option = m.selectedStyle.Render("> " + format.String())
 		} else {
 			option = "  " + format.String()
 		}
@@ -233,7 +269,7 @@ func (m *ExportModel) View() string {
 	// Instructions
 	instructions := lipgloss.NewStyle().
 		Foreground(t.Secondary).
-		Render("\nâ†‘â†“ Navigate â€¢ Enter: Export â€¢ Esc: Back")
+		Render("\nUp/Down: Navigate | Enter: Export | Esc: Back")
 
 	// Progress indicator
 	progressView := ""
@@ -241,16 +277,16 @@ func (m *ExportModel) View() string {
 		t := theme.GetManager().Current()
 		progressView = lipgloss.NewStyle().
 			Foreground(t.Accent).
-			Render("\nâ³ " + m.progressMsg + "...")
+			Render("\n" + m.progressMsg + "...")
 	}
 
 	// Result message
 	resultView := ""
 	if m.result != nil {
 		if m.result.Success {
-			resultView = m.successStyle.Render(fmt.Sprintf("\nâœ… Export successful: %s", m.result.OutputPath))
+			resultView = m.successStyle.Render(fmt.Sprintf("\n[OK] Export successful: %s", m.result.OutputPath))
 		} else {
-			resultView = m.errorStyle.Render(fmt.Sprintf("\nâŒ Export failed: %s", m.result.ErrorMessage))
+			resultView = m.errorStyle.Render(fmt.Sprintf("\n[X] Export failed: %s", m.result.ErrorMessage))
 		}
 	}
 
@@ -265,9 +301,19 @@ func (m *ExportModel) View() string {
 	return style.Width(m.width).Height(m.height).Render(content)
 }
 
+// ClearResult clears the previous export result
+func (m *ExportModel) ClearResult() {
+	m.result = nil
+	m.showProgress = false
+	m.progressMsg = ""
+}
+
 // performExport performs the actual export operation
 func (m *ExportModel) performExport() tea.Cmd {
 	return func() tea.Msg {
+		// Clear previous result before starting new export
+		m.result = nil
+
 		m.showProgress = true
 		m.progressMsg = "Preparing export"
 
@@ -279,10 +325,8 @@ func (m *ExportModel) performExport() tea.Cmd {
 		ext := m.getFileExtension(format)
 		filename := fmt.Sprintf("noise.sh_export_%s.%s", timestamp, ext)
 
-		// Default output path
-		if m.result == nil {
-			m.result = &ExportResult{Format: format}
-		}
+		// Create new result
+		m.result = &ExportResult{Format: format}
 		m.result.OutputPath = filepath.Join(".", filename)
 
 		// Perform export based on format

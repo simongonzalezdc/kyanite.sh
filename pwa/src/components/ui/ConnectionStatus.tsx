@@ -8,6 +8,17 @@ interface ConnectionStatusProps {
   pendingCount?: number;
 }
 
+/**
+ * Safely extract hostname from URL, returning fallback on invalid URLs
+ */
+function getHostname(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url; // Return original string if URL parsing fails
+  }
+}
+
 export function ConnectionStatus({ state, serverUrl, pendingCount = 0 }: ConnectionStatusProps) {
   const statusConfig = {
     connected: {
@@ -42,7 +53,7 @@ export function ConnectionStatus({ state, serverUrl, pendingCount = 0 }: Connect
       <span className="text-[var(--color-text-muted)]">
         {config.text}
         {serverUrl && state === "connected" && (
-          <span className="ml-1 opacity-60">· {new URL(serverUrl).hostname}</span>
+          <span className="ml-1 opacity-60">· {getHostname(serverUrl)}</span>
         )}
         {pendingCount > 0 && state !== "connected" && (
           <span className="ml-1 text-[var(--color-warning)]">· {pendingCount} pending</span>

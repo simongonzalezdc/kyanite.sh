@@ -17,8 +17,62 @@ type LayoutConfig struct {
 // GetLayoutConfig returns the appropriate layout configuration for the given screen size
 func GetLayoutConfig(width, height int) LayoutConfig {
 	switch {
+	case width >= 240 && height >= 30:
+		// Ultra-wide terminals (240+) - full 6-column layout
+		return LayoutConfig{
+			PanelWidths: map[string]int{
+				"theme":   width / 6,
+				"actions": width / 6,
+				"recent":  width / 6,
+				"tools":   width / 6,
+				"ai":      width / 6,
+				"info":    width / 6,
+			},
+			PanelHeights: map[string]int{
+				"theme":   height - 4,
+				"actions": height - 4,
+				"recent":  height - 4,
+				"tools":   height - 4,
+				"ai":      height - 4,
+				"info":    height - 4,
+			},
+			GridCols: 6,
+			GridRows: 1,
+			ShowPanels: map[string]bool{
+				"theme": true, "actions": true, "recent": true,
+				"tools": true, "ai": true, "info": true,
+			},
+		}
+
+	case width >= 180 && height >= 30:
+		// Wide terminals (180-239) - 4-column layout
+		return LayoutConfig{
+			PanelWidths: map[string]int{
+				"theme":   width / 4,
+				"actions": width / 4,
+				"recent":  width / 4,
+				"tools":   width / 4,
+				"ai":      width / 4,
+				"info":    width / 4,
+			},
+			PanelHeights: map[string]int{
+				"theme":   height / 2,
+				"actions": height / 2,
+				"recent":  height / 2,
+				"tools":   height / 2,
+				"ai":      height / 2,
+				"info":    height / 2,
+			},
+			GridCols: 4,
+			GridRows: 2,
+			ShowPanels: map[string]bool{
+				"theme": true, "actions": true, "recent": true,
+				"tools": true, "ai": true, "info": true,
+			},
+		}
+
 	case width >= 120 && height >= 30:
-		// Large terminals - full 3x3 grid
+		// Large terminals - full 3-column grid
 		return LayoutConfig{
 			PanelWidths: map[string]int{
 				"theme":   width / 3,
@@ -29,15 +83,15 @@ func GetLayoutConfig(width, height int) LayoutConfig {
 				"info":    width / 3,
 			},
 			PanelHeights: map[string]int{
-				"theme":   height / 3,
-				"actions": height / 3,
-				"recent":  height / 3,
-				"tools":   height / 3,
-				"ai":      height / 3,
-				"info":    height / 3,
+				"theme":   height / 2,
+				"actions": height / 2,
+				"recent":  height / 2,
+				"tools":   height / 2,
+				"ai":      height / 2,
+				"info":    height / 2,
 			},
 			GridCols: 3,
-			GridRows: 3,
+			GridRows: 2,
 			ShowPanels: map[string]bool{
 				"theme": true, "actions": true, "recent": true,
 				"tools": true, "ai": true, "info": true,

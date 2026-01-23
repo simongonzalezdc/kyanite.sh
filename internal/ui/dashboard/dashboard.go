@@ -75,24 +75,34 @@ func (dm *DashboardModel) Update(msg tea.Msg) tea.Cmd {
 		dm.width = msg.Width
 		dm.height = msg.Height
 
-		// Update all child components
+		// Get layout config to determine panel dimensions
+		config := GetLayoutConfig(msg.Width, msg.Height)
+
+		// Calculate panel dimensions based on grid configuration
+		panelWidth := msg.Width / config.GridCols
+		panelHeight := (msg.Height - 4) / config.GridRows // Subtract header/footer space
+
+		// Create panel-specific size message
+		panelMsg := tea.WindowSizeMsg{Width: panelWidth, Height: panelHeight}
+
+		// Update all child components with panel dimensions
 		if dm.themeManager != nil {
-			cmds = append(cmds, dm.themeManager.Update(msg))
+			cmds = append(cmds, dm.themeManager.Update(panelMsg))
 		}
 		if dm.quickActions != nil {
-			cmds = append(cmds, dm.quickActions.Update(msg))
+			cmds = append(cmds, dm.quickActions.Update(panelMsg))
 		}
 		if dm.recentWork != nil {
-			cmds = append(cmds, dm.recentWork.Update(msg))
+			cmds = append(cmds, dm.recentWork.Update(panelMsg))
 		}
 		if dm.musicTools != nil {
-			cmds = append(cmds, dm.musicTools.Update(msg))
+			cmds = append(cmds, dm.musicTools.Update(panelMsg))
 		}
 		if dm.aiAssistant != nil {
-			cmds = append(cmds, dm.aiAssistant.Update(msg))
+			cmds = append(cmds, dm.aiAssistant.Update(panelMsg))
 		}
 		if dm.systemInfo != nil {
-			cmds = append(cmds, dm.systemInfo.Update(msg))
+			cmds = append(cmds, dm.systemInfo.Update(panelMsg))
 		}
 
 		// CRITICAL: Force refresh after resize
@@ -168,16 +178,47 @@ func (dm *DashboardModel) View() string {
 	// Get layout configuration based on terminal size
 	config := GetLayoutConfig(dm.width, dm.height)
 
-	// Header
+	// Header (fixed height: 1 line)
 	header := dm.header.View()
+
+	// Footer (fixed height: 1 line)
+	footer := dm.footer.View()
+
+	// Calculate available height for content (subtract header + footer + margins)
+	contentHeight := dm.height - 4 // 1 header + 1 footer + 2 margin lines
 
 	// Main content based on layout and progressive disclosure
 	var content string
 	if dm.showAllPanels {
 		// Full dashboard view
 		switch config.GridCols {
+		case 6:
+			// Ultra-wide: all 6 panels in a single row
+			content = lipgloss.JoinHorizontal(lipgloss.Top,
+				dm.themeManager.View(),
+				dm.quickActions.View(),
+				dm.recentWork.View(),
+				dm.musicTools.View(),
+				dm.aiAssistant.View(),
+				dm.systemInfo.View(),
+			)
+
+		case 4:
+			// Wide: 4 columns, 2 rows
+			topRow := lipgloss.JoinHorizontal(lipgloss.Top,
+				dm.themeManager.View(),
+				dm.quickActions.View(),
+				dm.recentWork.View(),
+				dm.musicTools.View(),
+			)
+			bottomRow := lipgloss.JoinHorizontal(lipgloss.Top,
+				dm.aiAssistant.View(),
+				dm.systemInfo.View(),
+			)
+			content = lipgloss.JoinVertical(lipgloss.Left, topRow, bottomRow)
+
 		case 3:
-			// Full 3x3 grid
+			// Large: 3 columns, 2 rows
 			topRow := lipgloss.JoinHorizontal(lipgloss.Top,
 				dm.themeManager.View(),
 				dm.quickActions.View(),
@@ -191,7 +232,7 @@ func (dm *DashboardModel) View() string {
 			content = lipgloss.JoinVertical(lipgloss.Left, topRow, middleRow)
 
 		case 2:
-			// 2x3 grid
+			// Medium: 2 columns, 3 rows
 			topRow := lipgloss.JoinHorizontal(lipgloss.Top,
 				dm.themeManager.View(),
 				dm.quickActions.View(),
@@ -219,10 +260,24 @@ func (dm *DashboardModel) View() string {
 		content = dm.renderSimplifiedView()
 	}
 
-	// Footer
-	footer := dm.footer.View()
+	// Constrain content to available height
+	contentStyle := lipgloss.NewStyle().
+		MaxHeight(contentHeight).
+		MaxWidth(dm.width)
+	content = contentStyle.Render(content)
 
-	return lipgloss.JoinVertical(lipgloss.Left, header, content, footer)
+	// Join all sections
+	output := lipgloss.JoinVertical(lipgloss.Left, header, content, footer)
+
+	// CRITICAL: Constrain final output to exact terminal dimensions
+	// This prevents overflow that causes rendering artifacts
+	finalStyle := lipgloss.NewStyle().
+		Width(dm.width).
+		Height(dm.height).
+		MaxWidth(dm.width).
+		MaxHeight(dm.height)
+
+	return finalStyle.Render(output)
 }
 
 // focusNextPanel moves focus to the next panel
@@ -262,16 +317,29 @@ func (dm *DashboardModel) renderActivePanel() string {
 func (dm *DashboardModel) renderSimplifiedView() string {
 	t := theme.GetManager().Current()
 
+	// Calculate panel dimensions
+	panelWidth := dm.width / 2
+	panelHeight := dm.height - 6 // Leave room for header, footer, hint
+
+	// Apply constraints to panels
+	themeView := lipgloss.NewStyle().
+		MaxWidth(panelWidth).
+		MaxHeight(panelHeight).
+		Render(dm.themeManager.View())
+
+	actionsView := lipgloss.NewStyle().
+		MaxWidth(panelWidth).
+		MaxHeight(panelHeight).
+		Render(dm.quickActions.View())
+
 	// Show only quick actions and theme preview in simplified view
-	topRow := lipgloss.JoinHorizontal(lipgloss.Top,
-		dm.themeManager.View(),
-		dm.quickActions.View(),
-	)
+	topRow := lipgloss.JoinHorizontal(lipgloss.Top, themeView, actionsView)
 
 	// Add hint for expanding the view
 	expandHint := lipgloss.NewStyle().
 		Foreground(t.Secondary).
 		Align(lipgloss.Center).
+		MaxWidth(dm.width).
 		Render("Press [D] to expand dashboard panels")
 
 	return lipgloss.JoinVertical(lipgloss.Left, topRow, "", expandHint)

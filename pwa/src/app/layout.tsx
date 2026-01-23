@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { SkipLink } from "@/components/ui/SkipLink";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { Providers } from "@/components/Providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -41,10 +43,14 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body className="antialiased">
-        <SkipLink />
-        <div id="main-content">
-          {children}
-        </div>
+        <ErrorBoundary>
+          <Providers>
+            <SkipLink />
+            <div id="main-content">
+              {children}
+            </div>
+          </Providers>
+        </ErrorBoundary>
       </body>
     </html>
   );

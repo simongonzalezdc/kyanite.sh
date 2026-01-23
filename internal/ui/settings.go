@@ -66,6 +66,9 @@ type SettingsModel struct {
 	focused      FocusArea
 	showSaveMsg  bool
 	saveMsgTimer *time.Timer
+
+	// Per-category scroll position tracking
+	categoryScrollPos map[SettingsCategory]int
 }
 
 // FocusArea represents which part of the settings UI is focused
@@ -114,9 +117,10 @@ func NewSettingsModel(cfg *config.Config) *SettingsModel {
 	}
 
 	m := &SettingsModel{
-		config:   cfg,
-		settings: make(map[string]*SettingsItem),
-		focused:  FocusCategories,
+		config:            cfg,
+		settings:          make(map[string]*SettingsItem),
+		focused:           FocusCategories,
+		categoryScrollPos: make(map[SettingsCategory]int),
 	}
 
 	m.initCategories()
@@ -488,6 +492,13 @@ func (m *SettingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.categoryList.SetSize(25, m.height-10)
 		m.settingsList.SetSize(50, m.height-10)
 
+	case tea.MouseMsg:
+		// Handle mouse events for settings
+		cmd := m.handleMouse(msg)
+		if cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, DefaultKeyMap().Tab):
@@ -523,9 +534,18 @@ func (m *SettingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				selected := m.categoryList.SelectedItem()
 				if catItem, ok := selected.(categoryItem); ok {
 					if catItem.category != m.activeTab {
+						// Save scroll position of current category before switching
+						m.categoryScrollPos[m.activeTab] = m.settingsList.Index()
+
 						m.activeTab = catItem.category
 						m.updateSettingsList()
-						m.settingsList.Select(0)
+
+						// Restore scroll position for new category (or start at 0)
+						if savedPos, ok := m.categoryScrollPos[m.activeTab]; ok {
+							m.settingsList.Select(savedPos)
+						} else {
+							m.settingsList.Select(0)
+						}
 					}
 				}
 			}
@@ -572,6 +592,91 @@ func (m *SettingsModel) cycleFocus() {
 	case FocusSettings:
 		m.focused = FocusCategories
 	}
+}
+
+// handleMouse processes mouse events for settings
+func (m *SettingsModel) handleMouse(msg tea.MouseMsg) tea.Cmd {
+	// Determine which panel was clicked based on X position
+	categoryPanelWidth := 27 // matches categoryStyle width
+
+	switch msg.Button {
+	case tea.MouseButtonLeft:
+		if msg.Action == tea.MouseActionRelease {
+			if msg.X < categoryPanelWidth {
+				// Click in category panel
+				m.focused = FocusCategories
+
+				// Calculate which category was clicked
+				headerOffset := 6 // header area
+				itemHeight := 1   // single line per category
+
+				clickedIdx := (msg.Y - headerOffset) / itemHeight
+				if clickedIdx >= 0 && clickedIdx < len(m.categoryList.Items()) {
+					// Save scroll position of current category
+					m.categoryScrollPos[m.activeTab] = m.settingsList.Index()
+
+					m.categoryList.Select(clickedIdx)
+
+					// Update active tab
+					selected := m.categoryList.SelectedItem()
+					if catItem, ok := selected.(categoryItem); ok {
+						m.activeTab = catItem.category
+						m.updateSettingsList()
+
+						// Restore scroll position
+						if savedPos, ok := m.categoryScrollPos[m.activeTab]; ok {
+							m.settingsList.Select(savedPos)
+						} else {
+							m.settingsList.Select(0)
+						}
+					}
+				}
+			} else {
+				// Click in settings panel
+				m.focused = FocusSettings
+
+				// Calculate which setting was clicked
+				headerOffset := 6
+				itemHeight := 5 // settings items are larger (name + desc + value)
+
+				clickedIdx := (msg.Y - headerOffset) / itemHeight
+				if clickedIdx >= 0 && clickedIdx < len(m.settingsList.Items()) {
+					m.settingsList.Select(clickedIdx)
+
+					// Activate the setting (toggle/edit)
+					selected := m.settingsList.SelectedItem()
+					if settingItem, ok := selected.(settingItem); ok {
+						m.editSetting(settingItem.setting)
+						m.updateSettingsList()
+					}
+				}
+			}
+		}
+
+	case tea.MouseButtonWheelUp:
+		if m.focused == FocusCategories {
+			if m.categoryList.Index() > 0 {
+				m.categoryList.CursorUp()
+			}
+		} else {
+			if m.settingsList.Index() > 0 {
+				m.settingsList.CursorUp()
+			}
+		}
+
+	case tea.MouseButtonWheelDown:
+		if m.focused == FocusCategories {
+			if m.categoryList.Index() < len(m.categoryList.Items())-1 {
+				m.categoryList.CursorDown()
+			}
+		} else {
+			if m.settingsList.Index() < len(m.settingsList.Items())-1 {
+				m.settingsList.CursorDown()
+			}
+		}
+	}
+
+	return nil
 }
 
 // editSetting handles editing a specific setting
@@ -960,9 +1065,9 @@ func (m *SettingsModel) View() string {
 func (m *SettingsModel) renderInstructions() string {
 	instructions := []string{
 		"Tab: Switch focus",
-		"â†‘/â†“: Navigate",
+		"Up/Down: Navigate",
 		"Enter: Edit setting",
-		"â†/â†’: Adjust values",
+		"Up/Up: Adjust values",
 		"Ctrl+S: Save",
 		"Esc: Back/Quit",
 	}
@@ -970,7 +1075,7 @@ func (m *SettingsModel) renderInstructions() string {
 	t := theme.GetManager().Current()
 	mutedStyle := lipgloss.NewStyle().
 		Foreground(t.Secondary)
-	return mutedStyle.Render(strings.Join(instructions, " â€¢ "))
+	return mutedStyle.Render(strings.Join(instructions, " - "))
 }
 
 // Helper types for list items
@@ -990,7 +1095,7 @@ func (c categoryItem) Render() string {
 		Bold(true).
 		Padding(0, 2)
 
-	icon := "ðŸ“"
+	icon := ""
 	return style.Render(icon + " " + string(c.category))
 }
 
@@ -1025,7 +1130,7 @@ func (s settingItem) Render() string {
 		if s.setting.Value.(bool) {
 			valueStr = valueStyle.Render("✔ Yes")
 		} else {
-			valueStr = valueStyle.Render("â—‹ No")
+			valueStr = valueStyle.Render("o No")
 		}
 	case TypeInt:
 		if s.setting.Unit != "" {

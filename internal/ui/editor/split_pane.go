@@ -319,7 +319,7 @@ func (m *SplitPaneModel) renderDefaultLayout() string {
 	previewView = lipgloss.NewStyle().Width(rightWidth).Height(m.height).Render(previewView)
 
 	// Create divider
-	divider := m.dividerStyle.Render("â”‚")
+	divider := m.dividerStyle.Render("|")
 
 	// Combine views horizontally
 	return lipgloss.JoinHorizontal(lipgloss.Top, editorView, divider, previewView)

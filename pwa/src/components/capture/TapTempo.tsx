@@ -4,15 +4,20 @@ import { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { getSyncClient } from "@/lib/api/client";
 import { addPendingIdea } from "@/lib/db";
+import {
+  TAP_TEMPO_MIN_TAPS,
+  TAP_TEMPO_MAX_TAPS,
+  TAP_TEMPO_TIMEOUT_MS,
+  BPM_MIN,
+  BPM_MAX,
+  MS_PER_MINUTE,
+  TAP_HAPTIC_DURATION_MS,
+} from "@/lib/constants";
 
 interface TapTempoProps {
   onCaptured?: () => void;
   disabled?: boolean;
 }
-
-const MIN_TAPS = 4;
-const MAX_TAPS = 16;
-const TAP_TIMEOUT = 2000; // Reset if no tap for 2 seconds
 
 export function TapTempo({ onCaptured, disabled }: TapTempoProps) {
   const [taps, setTaps] = useState<number[]>([]);
@@ -24,28 +29,28 @@ export function TapTempo({ onCaptured, disabled }: TapTempoProps) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const calculateBpm = useCallback((tapTimes: number[]): number | null => {
-    if (tapTimes.length < MIN_TAPS) return null;
-    
+    if (tapTimes.length < TAP_TEMPO_MIN_TAPS) return null;
+
     const intervals: number[] = [];
     for (let i = 1; i < tapTimes.length; i++) {
       intervals.push(tapTimes[i] - tapTimes[i - 1]);
     }
-    
+
     const averageInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-    const calculatedBpm = Math.round(60000 / averageInterval);
-    
+    const calculatedBpm = Math.round(MS_PER_MINUTE / averageInterval);
+
     // Clamp to reasonable BPM range
-    return Math.max(20, Math.min(300, calculatedBpm));
+    return Math.max(BPM_MIN, Math.min(BPM_MAX, calculatedBpm));
   }, []);
 
   const handleTap = useCallback(() => {
     // Haptic feedback if available
     if (navigator.vibrate) {
-      navigator.vibrate(10);
+      navigator.vibrate(TAP_HAPTIC_DURATION_MS);
     }
 
     const now = Date.now();
-    
+
     // Reset timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -53,14 +58,14 @@ export function TapTempo({ onCaptured, disabled }: TapTempoProps) {
     
     timeoutRef.current = setTimeout(() => {
       // Don't reset if we have enough taps
-      if (taps.length < MIN_TAPS) {
+      if (taps.length < TAP_TEMPO_MIN_TAPS) {
         setTaps([]);
         setBpm(null);
       }
-    }, TAP_TIMEOUT);
+    }, TAP_TEMPO_TIMEOUT_MS);
 
     setTaps((prevTaps) => {
-      const newTaps = [...prevTaps, now].slice(-MAX_TAPS);
+      const newTaps = [...prevTaps, now].slice(-TAP_TEMPO_MAX_TAPS);
       const newBpm = calculateBpm(newTaps);
       setBpm(newBpm);
       return newTaps;
@@ -129,8 +134,8 @@ export function TapTempo({ onCaptured, disabled }: TapTempoProps) {
     }
   }, [bpm, onCaptured]);
 
-  const confidence = Math.min(100, Math.round((taps.length / MIN_TAPS) * 100));
-  const hasEnoughTaps = taps.length >= MIN_TAPS;
+  const confidence = Math.min(100, Math.round((taps.length / TAP_TEMPO_MIN_TAPS) * 100));
+  const hasEnoughTaps = taps.length >= TAP_TEMPO_MIN_TAPS;
 
   return (
     <div className="flex flex-col items-center justify-center h-full p-6">
@@ -165,7 +170,7 @@ export function TapTempo({ onCaptured, disabled }: TapTempoProps) {
             : "bg-[var(--color-surface)] text-[var(--color-text)]"
         }`}
       >
-        {hasEnoughTaps ? "♪" : `Tap (${taps.length}/${MIN_TAPS})`}
+        {hasEnoughTaps ? "♪" : `Tap (${taps.length}/${TAP_TEMPO_MIN_TAPS})`}
       </button>
 
       <p className="mt-4 text-[var(--color-text-muted)] text-sm text-center">

@@ -121,7 +121,7 @@ func (l *PolishLayout) Render(editorContent string, previewContent string, theor
 	// Create dividers
 	dividerStyle := lipgloss.NewStyle().
 		Foreground(t.Secondary).
-		Render("â”‚")
+		Render("|")
 
 	// Combine panes
 	return lipgloss.JoinHorizontal(lipgloss.Top, editorPane, dividerStyle, previewPane, dividerStyle, theoryPane, dividerStyle, critiquePane)

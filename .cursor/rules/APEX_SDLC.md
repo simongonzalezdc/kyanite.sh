@@ -1,4 +1,4 @@
-# APEX ENGINEERING RULES v4.0 — SDLC
+# APEX ENGINEERING RULES v4.1 — SDLC
 **Full Software Development Lifecycle | January 2026**
 
 ---
@@ -450,4 +450,4 @@ Before completing any significant task:
 
 ---
 
-*APEX v4.0 SDLC — Full lifecycle coverage. See APEX_CORE.md for fundamentals.*
+*APEX v4.1 SDLC — Load APEX_CORE.md for fundamentals, APEX_DESIGN.md for frontend.*

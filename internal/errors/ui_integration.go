@@ -503,7 +503,7 @@ func (eru *ErrorRecoveryUI) renderStatusBar() string {
 	if pendingOps > 0 {
 		recoveryIndicator = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FFA500")).
-			Render(fmt.Sprintf("âš  %d recovery operations available (press 'r' to view)", pendingOps))
+			Render(fmt.Sprintf("[!] %d recovery operations available (press 'r' to view)", pendingOps))
 	}
 
 	// Combine indicators
@@ -523,7 +523,7 @@ func (eru *ErrorRecoveryUI) renderRecoveryPanel() string {
 	header := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("#00BFFF")).
-		Render("ðŸ”§ Error Recovery Panel")
+		Render("[TOOLS] Error Recovery Panel")
 	sections = append(sections, header)
 
 	// System health
@@ -546,7 +546,7 @@ func (eru *ErrorRecoveryUI) renderRecoveryPanel() string {
 	// Footer
 	footer := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#888888")).
-		Render("Press 'r' to close â€¢ â†‘/â†“ to navigate â€¢ Enter to execute â€¢ Ctrl+R to refresh")
+		Render("Press 'r' to close - Up/Down to navigate - Enter to execute - Ctrl+R to refresh")
 	sections = append(sections, footer)
 
 	return lipgloss.JoinVertical(lipgloss.Left, sections...)
@@ -581,7 +581,7 @@ func (eru *ErrorRecoveryUI) renderHealthSection(health SystemHealthStatus) strin
 	if len(health.Recommendations) > 0 {
 		lines = append(lines, "Recommendations:")
 		for _, rec := range health.Recommendations {
-			lines = append(lines, fmt.Sprintf("  â€¢ %s", rec))
+			lines = append(lines, fmt.Sprintf("  - %s", rec))
 		}
 	}
 
@@ -606,7 +606,7 @@ func (eru *ErrorRecoveryUI) renderOperationsSection(operations []RecoveryOperati
 			statusIcon = "â³"
 			statusColor = "#FFA500"
 		case StatusRunning:
-			statusIcon = "ðŸ”„"
+			statusIcon = "”„"
 			statusColor = "#00BFFF"
 		case StatusCompleted:
 			statusIcon = "âœ…"
@@ -628,7 +628,7 @@ func (eru *ErrorRecoveryUI) renderOperationsSection(operations []RecoveryOperati
 		// Format operation line
 		indicator := "  "
 		if selected {
-			indicator = "â–¶ "
+			indicator = "> "
 		}
 
 		line := fmt.Sprintf("%s%s %s", indicator, statusIcon, op.Description)
@@ -665,7 +665,7 @@ func (eru *ErrorRecoveryUI) renderProgressBar(progress float64) string {
 		bar += "â–ˆ"
 	}
 	for i := 0; i < empty; i++ {
-		bar += "â–‘"
+		bar += "."
 	}
 
 	return eru.progressBar.Style.Render(fmt.Sprintf("[%s] %.1f%%", bar, progress))

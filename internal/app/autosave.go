@@ -311,6 +311,13 @@ func (s *AutoSaveService) performPeriodicSave() {
 func (s *AutoSaveService) processSaves(ctx context.Context) {
 	var debounceTimer *time.Timer
 
+	// Ensure timer is stopped when function exits
+	defer func() {
+		if debounceTimer != nil {
+			debounceTimer.Stop()
+		}
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():

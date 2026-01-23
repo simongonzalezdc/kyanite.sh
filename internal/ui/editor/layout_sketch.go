@@ -71,7 +71,7 @@ func (l *SketchLayout) Render(editorContent string, brainstormContent string) st
 	// Create divider
 	dividerStyle := lipgloss.NewStyle().
 		Foreground(t.Secondary).
-		Render("â”‚")
+		Render("|")
 
 	// Combine panes
 	return lipgloss.JoinHorizontal(lipgloss.Top, editorPane, dividerStyle, aiPanel)

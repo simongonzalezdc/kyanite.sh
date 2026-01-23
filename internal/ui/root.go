@@ -144,6 +144,9 @@ func NewRootModel(pluginManager *plugins.DefaultManager) *RootModel {
 
 // Init initializes the root model
 func (m *RootModel) Init() tea.Cmd {
+	// Enable TUI mode to suppress log output that would corrupt the terminal
+	logging.EnableTUIMode()
+
 	return tea.Batch(
 		tea.EnterAltScreen,
 		m.initializeApp(),
@@ -197,8 +200,44 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, sizeCmd)
 		}
 
+		// CRITICAL: Forward WindowSizeMsg to ALL child models
+		// This ensures all screens have proper dimensions when navigated to
+		if m.dashboard != nil {
+			if cmd := m.dashboard.Update(msg); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
+		if m.menu != nil {
+			m.menu.Update(msg)
+		}
+		if m.theory != nil {
+			m.theory.Update(msg)
+		}
+		if m.export != nil {
+			m.export.Update(msg)
+		}
+		if m.audio != nil {
+			m.audio.Update(msg)
+		}
+		if m.settings != nil {
+			m.settings.Update(msg)
+		}
+		if m.editor != nil {
+			m.editor.Update(msg)
+		}
+		if m.helpPane != nil {
+			m.helpPane.Update(msg)
+		}
+		if m.manager != nil {
+			m.manager.Update(msg)
+		}
+
 	case ForceRefreshMsg:
 		// Force a complete re-render
+		return m, nil
+
+	case dashboard.ForceRefreshMsg:
+		// Handle force refresh from dashboard (different type due to package boundary)
 		return m, nil
 
 	case RefreshTimerMsg:
@@ -223,6 +262,8 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.syncServer != nil {
 				m.syncServer.Stop()
 			}
+			// Restore normal logging before exit
+			logging.DisableTUIMode()
 			return m, tea.Quit
 		case "ctrl+d":
 			// Global voice dictation toggle
@@ -251,6 +292,15 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.helpMode = !m.helpMode
 			return m, nil
 		default:
+			// FOCUS TRAPPING: When help mode is active, route keys to help pane only
+			if m.helpMode && m.helpPane != nil {
+				_, helpCmd := m.helpPane.Update(msg)
+				if helpCmd != nil {
+					cmds = append(cmds, helpCmd)
+				}
+				// Don't propagate to underlying screen
+				return m, tea.Batch(cmds...)
+			}
 			// After any key press, ensure we refresh
 			cmds = append(cmds, func() tea.Msg { return ForceRefreshMsg{} })
 		}
@@ -323,6 +373,23 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ScreenChangeMsg:
 		// Handle screen changes from menu
 		m.currentScreen = msg.Screen
+
+	case dashboard.ScreenChangeMsg:
+		// Handle screen changes from dashboard (different type due to package boundary)
+		m.currentScreen = screen(msg.Screen)
+
+	case editor.ScreenChangeMsg:
+		// Handle screen changes from editor/split_pane (different type due to package boundary)
+		m.currentScreen = screen(msg.Screen)
+
+	case dashboard.AnimationTickMsg:
+		// Handle animation ticks from dashboard (different type due to package boundary)
+		// Forward to dashboard for animation updates
+		if m.dashboard != nil {
+			if cmd := m.dashboard.Update(msg); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
 	}
 
 	// Update current screen
@@ -360,6 +427,36 @@ func (m *RootModel) initializeChildModels() {
 
 	// Initialize dashboard
 	m.dashboard = dashboard.NewDashboardModel()
+
+	// CRITICAL: Pass current dimensions to ALL child models immediately after creation
+	// This ensures all screens have valid dimensions when navigated to
+	if m.width > 0 && m.height > 0 {
+		sizeMsg := tea.WindowSizeMsg{Width: m.width, Height: m.height}
+		if m.dashboard != nil {
+			m.dashboard.Update(sizeMsg)
+		}
+		if m.menu != nil {
+			m.menu.Update(sizeMsg)
+		}
+		if m.theory != nil {
+			m.theory.Update(sizeMsg)
+		}
+		if m.export != nil {
+			m.export.Update(sizeMsg)
+		}
+		if m.audio != nil {
+			m.audio.Update(sizeMsg)
+		}
+		if m.settings != nil {
+			m.settings.Update(sizeMsg)
+		}
+		if m.editor != nil {
+			m.editor.Update(sizeMsg)
+		}
+		if m.manager != nil {
+			m.manager.Update(sizeMsg)
+		}
+	}
 
 	// Initialize help system
 	m.helpPane = editor.NewHelpPaneModel(nil)
@@ -651,6 +748,17 @@ func (m *RootModel) View() string {
 		}
 	}
 
+	// CRITICAL: Constrain all output to terminal dimensions
+	// This prevents rendering artifacts from content overflow
+	if m.width > 0 && m.height > 0 {
+		constrainStyle := lipgloss.NewStyle().
+			Width(m.width).
+			Height(m.height).
+			MaxWidth(m.width).
+			MaxHeight(m.height)
+		content = constrainStyle.Render(content)
+	}
+
 	return content
 }
 
@@ -701,7 +809,7 @@ func (m *RootModel) renderLoading() string {
 		Width(m.width).
 		Height(m.height)
 
-	loadingText := "ðŸŽµ noise.sh ðŸŽµ\n\n"
+	loadingText := "Žµ noise.sh Žµ\n\n"
 	if m.errorMsg != "" {
 		loadingText += "Error: " + m.errorMsg + "\n\nPress any key to exit..."
 	} else {

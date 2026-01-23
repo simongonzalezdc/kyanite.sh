@@ -250,9 +250,9 @@ func (asb *AnimatedStatusBar) View() string {
 			barWidth = asb.width
 		}
 
-		progressBar := strings.Repeat("â–ˆ", barWidth)
+		progressBar := strings.Repeat("#", barWidth)
 		if barWidth < asb.width {
-			progressBar += strings.Repeat("â–‘", asb.width-barWidth)
+			progressBar += strings.Repeat(".", asb.width-barWidth)
 		}
 
 		return baseStyle.Render(fmt.Sprintf("%s [%s]", asb.message, progressBar))

@@ -53,6 +53,7 @@ type Logger struct {
 	level      LogLevel
 	showCaller bool
 	callerSkip int
+	tuiMode    bool // When true, suppress all output to avoid corrupting TUI
 }
 
 // Config holds logger configuration
@@ -67,7 +68,7 @@ type Config struct {
 func DefaultConfig() *Config {
 	return &Config{
 		Level:      INFO,
-		Output:     os.Stdout,
+		Output:     os.Stderr, // CRITICAL: Use stderr to avoid corrupting Bubble Tea's stdout rendering
 		ShowCaller: false,
 		LogFile:    "",
 	}
@@ -130,7 +131,7 @@ func NewFromConfig(appConfig *config.Config) (*Logger, error) {
 
 	cfg := &Config{
 		Level:      level,
-		Output:     os.Stdout,
+		Output:     os.Stderr, // CRITICAL: Use stderr to avoid corrupting Bubble Tea's stdout rendering
 		ShowCaller: isDebugMode,
 		LogFile:    logFile,
 	}
@@ -164,6 +165,16 @@ func (l *Logger) SetLevel(level LogLevel) {
 // SetShowCaller sets whether to show caller information
 func (l *Logger) SetShowCaller(show bool) {
 	l.showCaller = show
+}
+
+// SetTUIMode enables or disables TUI mode (suppresses output when TUI is active)
+func (l *Logger) SetTUIMode(enabled bool) {
+	l.tuiMode = enabled
+}
+
+// IsTUIMode returns whether TUI mode is active
+func (l *Logger) IsTUIMode() bool {
+	return l.tuiMode
 }
 
 // Debug logs a debug message
@@ -240,6 +251,11 @@ func (l *Logger) Fatalf(format string, v ...interface{}) {
 
 // log logs a message with the specified level
 func (l *Logger) log(level LogLevel, v ...interface{}) {
+	// Suppress output in TUI mode to avoid corrupting terminal
+	if l.tuiMode {
+		return
+	}
+
 	prefix := fmt.Sprintf("[%s] ", level.String())
 
 	var message string
@@ -256,6 +272,11 @@ func (l *Logger) log(level LogLevel, v ...interface{}) {
 
 // logf logs a formatted message with the specified level
 func (l *Logger) logf(level LogLevel, format string, v ...interface{}) {
+	// Suppress output in TUI mode to avoid corrupting terminal
+	if l.tuiMode {
+		return
+	}
+
 	prefix := fmt.Sprintf("[%s] ", level.String())
 
 	var message string
@@ -295,8 +316,9 @@ func init() {
 	logger, err := New(cfg)
 	if err != nil {
 		// Fallback to standard logger if initialization fails
+		// CRITICAL: Use stderr to avoid corrupting Bubble Tea's stdout rendering
 		defaultLogger = &Logger{
-			Logger: log.New(os.Stdout, "", log.LstdFlags),
+			Logger: log.New(os.Stderr, "", log.LstdFlags),
 			level:  INFO,
 		}
 	} else {
@@ -320,6 +342,20 @@ func DebugEnabled() bool {
 		return false
 	}
 	return defaultLogger.level <= DEBUG
+}
+
+// EnableTUIMode enables TUI mode which suppresses log output to avoid corrupting the terminal
+func EnableTUIMode() {
+	if defaultLogger != nil {
+		defaultLogger.SetTUIMode(true)
+	}
+}
+
+// DisableTUIMode disables TUI mode and restores normal log output
+func DisableTUIMode() {
+	if defaultLogger != nil {
+		defaultLogger.SetTUIMode(false)
+	}
 }
 
 // Convenience functions that use the default logger

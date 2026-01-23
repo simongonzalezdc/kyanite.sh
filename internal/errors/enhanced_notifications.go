@@ -443,7 +443,7 @@ func (enm *EnhancedNotificationManager) generateActionableMessage(actionable *Ac
 		message += "\n\nSuggested actions:"
 		for _, action := range actionable.SuggestedActions {
 			if action.Priority >= 7 { // Only show high-priority actions in message
-				message += fmt.Sprintf("\nâ€¢ %s: %s", action.Label, action.Description)
+				message += fmt.Sprintf("\n- %s: %s", action.Label, action.Description)
 			}
 		}
 	}

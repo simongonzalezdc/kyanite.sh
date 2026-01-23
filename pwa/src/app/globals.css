@@ -165,6 +165,20 @@ textarea::placeholder {
   animation: spin 1s linear infinite;
 }
 
+/* Progress bar indeterminate animation */
+@keyframes progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+.animate-progress-indeterminate {
+  animation: progress-indeterminate 1.5s ease-in-out infinite;
+}
+
 /* Screen reader only - but visible when focused */
 .sr-only {
   position: absolute;

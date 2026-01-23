@@ -256,7 +256,7 @@ func (m *AudioModel) View() string {
 	var sections []string
 
 	// Header
-	header := m.headerStyle.Render("ðŸŽµ Audio Tools")
+	header := m.headerStyle.Render("Žµ Audio Tools")
 	sections = append(sections, header)
 
 	// Tool selector
@@ -436,8 +436,8 @@ func (m *AudioModel) renderPlaybackTool() string {
 	sections = append(sections, "Controls: "+strings.Join(controls, " | "))
 
 	// Progress indicator
-	progress := strings.Repeat("â–ˆ", m.playbackProgress%20) +
-		strings.Repeat("â–‘", 20-(m.playbackProgress%20))
+	progress := strings.Repeat("#", m.playbackProgress%20) +
+		strings.Repeat(".", 20-(m.playbackProgress%20))
 	playbackState := "Stopped"
 	switch m.playbackState {
 	case StatePlaying:
@@ -462,9 +462,9 @@ func (m *AudioModel) renderMetronomeTool() string {
 	sections = append(sections, tempoInfo)
 
 	// Beat indicator
-	beatDisplay := strings.Repeat("â—‹", m.currentBeat) +
-		"â—" +
-		strings.Repeat("â—‹", m.beatsPerMeasure-m.currentBeat-1)
+	beatDisplay := strings.Repeat("o", m.currentBeat) +
+		"*" +
+		strings.Repeat("o", m.beatsPerMeasure-m.currentBeat-1)
 	sections = append(sections, fmt.Sprintf("Beat: %s", beatDisplay))
 
 	// Metronome controls
@@ -528,7 +528,7 @@ func (m *AudioModel) renderHelp() string {
 Navigation:
   Tab / Shift+Tab    Switch between tools
   1, 2, 3           Jump to specific tool
-  â†‘ / â†“             Navigate within tool
+  Up / Down             Navigate within tool
   H / ?             Toggle this help
   Esc               Exit help
 

@@ -96,7 +96,7 @@ func (l *DraftLayout) Render(editorContent string, previewContent string, theory
 	// Create dividers
 	dividerStyle := lipgloss.NewStyle().
 		Foreground(t.Secondary).
-		Render("â”‚")
+		Render("|")
 
 	// Combine panes
 	return lipgloss.JoinHorizontal(lipgloss.Top, editorPane, dividerStyle, previewPane, dividerStyle, theoryPane)

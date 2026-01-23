@@ -43,8 +43,8 @@ type SyncServerConfig struct {
 // DefaultSyncServerConfig returns the default configuration
 func DefaultSyncServerConfig() SyncServerConfig {
 	return SyncServerConfig{
-		Port:      8765,
-		MediaPath: "data/sync/media",
+		Port:      DefaultServerPort,
+		MediaPath: DefaultMediaPath,
 		Logger:    logging.GetDefaultLogger(),
 	}
 }
@@ -120,9 +120,9 @@ func (s *SyncServer) Start() error {
 	s.httpServer = &http.Server{
 		Addr:         addr,
 		Handler:      s.corsMiddleware(mux),
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
-		IdleTimeout:  60 * time.Second,
+		ReadTimeout:  ServerReadTimeout,
+		WriteTimeout: ServerWriteTimeout,
+		IdleTimeout:  ServerIdleTimeout,
 	}
 
 	// Start WebSocket hub
@@ -149,7 +149,7 @@ func (s *SyncServer) Stop() error {
 		return nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), ServerShutdownTimeout)
 	defer cancel()
 
 	if s.httpServer != nil {
@@ -237,13 +237,24 @@ func (s *SyncServer) setupRoutes(mux *http.ServeMux) {
 	})
 }
 
-// corsMiddleware adds CORS headers for PWA access
+// corsMiddleware adds CORS and security headers for PWA access
 func (s *SyncServer) corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Allow requests from any origin (local network)
+		// CORS headers - Allow all origins for local network sync
+		// This is intentional: the sync server runs on the local network
+		// and needs to accept requests from PWA running on any device
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Device-ID, X-Pairing-Code")
+
+		// Security headers
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+
+		// CSP for API endpoints - restrictive since this is a JSON API
+		w.Header().Set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
 
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
@@ -365,8 +376,8 @@ func (s *SyncServer) handleUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse multipart form (max 50MB)
-	if err := r.ParseMultipartForm(50 << 20); err != nil {
+	// Parse multipart form
+	if err := r.ParseMultipartForm(MaxMultipartFormSize); err != nil {
 		http.Error(w, "Failed to parse form", http.StatusBadRequest)
 		return
 	}

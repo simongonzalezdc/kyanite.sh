@@ -8,6 +8,7 @@ import (
 	"github.com/Kyanite/noise/internal/theme"
 	"github.com/Kyanite/noise/internal/ui/dimension"
 	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -26,6 +27,10 @@ type HelpPaneModel struct {
 	searchInput   textinput.Model
 	searchQuery   string
 	searchResults []*KeyBinding
+
+	// Scrolling support
+	viewport    viewport.Model
+	scrollReady bool
 
 	// Styles
 	containerStyle    lipgloss.Style
@@ -50,18 +55,24 @@ func NewHelpPaneModel(shortcutManager *ShortcutManager) *HelpPaneModel {
 	// Initialize search input
 	searchInput := textinput.New()
 	searchInput.Placeholder = "Search shortcuts..."
-	searchInput.Prompt = "ðŸ” "
+	searchInput.Prompt = "” "
 	searchInput.PromptStyle = lipgloss.NewStyle().Foreground(t.Accent)
 	searchInput.TextStyle = lipgloss.NewStyle().Foreground(t.Text)
 	searchInput.Cursor.Style = lipgloss.NewStyle().Foreground(t.Accent)
 	searchInput.CharLimit = 50
 	searchInput.Focus()
 
+	// Initialize viewport for scrolling
+	vp := viewport.New(0, 0)
+	vp.Style = lipgloss.NewStyle()
+
 	model := &HelpPaneModel{
 		shortcutManager: shortcutManager,
 		searchInput:     searchInput,
 		searchMode:      false,
 		searchQuery:     "",
+		viewport:        vp,
+		scrollReady:     false,
 		containerStyle: lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Primary),
@@ -104,8 +115,29 @@ func (m *HelpPaneModel) Init() tea.Cmd {
 // Update handles messages for the help pane
 func (m *HelpPaneModel) Update(msg tea.Msg) (*HelpPaneModel, tea.Cmd) {
 	var cmd tea.Cmd
+	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		// Update viewport dimensions (reserve space for header, footer, border)
+		headerHeight := 3 // title area
+		footerHeight := 2 // navigation hints
+		borderHeight := 2 // top/bottom border
+		
+		viewportHeight := msg.Height - headerHeight - footerHeight - borderHeight
+		viewportWidth := msg.Width - 4 // border padding
+		
+		if viewportHeight < 1 {
+			viewportHeight = 1
+		}
+		if viewportWidth < 10 {
+			viewportWidth = 10
+		}
+		
+		m.viewport.Width = viewportWidth
+		m.viewport.Height = viewportHeight
+		m.scrollReady = true
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
@@ -137,6 +169,36 @@ func (m *HelpPaneModel) Update(msg tea.Msg) (*HelpPaneModel, tea.Cmd) {
 				m.searchQuery = ""
 				m.searchInput.SetValue("")
 			}
+		case "up", "k":
+			// Scroll up (if not in search mode)
+			if !m.searchMode && m.scrollReady {
+				m.viewport.LineUp(1)
+			}
+		case "down", "j":
+			// Scroll down (if not in search mode)
+			if !m.searchMode && m.scrollReady {
+				m.viewport.LineDown(1)
+			}
+		case "pgup", "ctrl+u":
+			// Page up
+			if !m.searchMode && m.scrollReady {
+				m.viewport.HalfViewUp()
+			}
+		case "pgdown", "ctrl+d":
+			// Page down
+			if !m.searchMode && m.scrollReady {
+				m.viewport.HalfViewDown()
+			}
+		case "home", "g":
+			// Go to top
+			if !m.searchMode && m.scrollReady {
+				m.viewport.GotoTop()
+			}
+		case "end", "G":
+			// Go to bottom
+			if !m.searchMode && m.scrollReady {
+				m.viewport.GotoBottom()
+			}
 		default:
 			if m.searchMode {
 				// Handle search input
@@ -145,13 +207,24 @@ func (m *HelpPaneModel) Update(msg tea.Msg) (*HelpPaneModel, tea.Cmd) {
 				m.searchQuery = m.searchInput.Value()
 				m.performSearch()
 				if searchCmd != nil {
-					cmd = searchCmd
+					cmds = append(cmds, searchCmd)
 				}
 			}
 		}
 	}
 
-	return m, cmd
+	// Update viewport
+	var vpCmd tea.Cmd
+	m.viewport, vpCmd = m.viewport.Update(msg)
+	if vpCmd != nil {
+		cmds = append(cmds, vpCmd)
+	}
+
+	if cmd != nil {
+		cmds = append(cmds, cmd)
+	}
+
+	return m, tea.Batch(cmds...)
 }
 
 // View renders the help pane
@@ -226,14 +299,14 @@ func (m *HelpPaneModel) performSearch() {
 
 // renderFullHelp renders the complete help content
 func (m *HelpPaneModel) renderFullHelp() string {
-	title := m.titleStyle.Render("ðŸŽ¹ Keyboard Shortcuts Reference")
+	title := m.titleStyle.Render("Ž¹ Keyboard Shortcuts Reference")
 	title = lipgloss.NewStyle().Width(m.width - 4).Align(lipgloss.Center).Render(title)
 
 	var content string
 
 	if m.searchMode {
 		// Render search interface
-		searchTitle := m.categoryStyle.Render("ðŸ” Search Shortcuts")
+		searchTitle := m.categoryStyle.Render("” Search Shortcuts")
 		searchInputView := m.searchInputStyle.Render(m.searchInput.View())
 
 		searchContent := lipgloss.JoinVertical(lipgloss.Left, searchTitle, searchInputView)
@@ -255,6 +328,22 @@ func (m *HelpPaneModel) renderFullHelp() string {
 		content = m.renderShortcutsHelp()
 	}
 
+	// Use viewport for scrollable content (if dimensions are set)
+	if m.scrollReady && m.viewport.Height > 0 {
+		m.viewport.SetContent(content)
+		content = m.viewport.View()
+
+		// Add scroll indicator if content overflows
+		t := theme.GetManager().Current()
+		if m.viewport.TotalLineCount() > m.viewport.Height {
+			scrollPct := int(m.viewport.ScrollPercent() * 100)
+			scrollInfo := lipgloss.NewStyle().
+				Foreground(t.Secondary).
+				Render(fmt.Sprintf(" [%d%%]", scrollPct))
+			title = title + scrollInfo
+		}
+	}
+
 	fullContent := lipgloss.JoinVertical(lipgloss.Left, title, content)
 
 	// Add footer with navigation hints
@@ -271,9 +360,9 @@ func (m *HelpPaneModel) renderFullHelp() string {
 	} else {
 		// Use a more descriptive full-mode footer on large terminals to match tests
 		if m.width >= 100 && m.height >= 30 {
-			footer = footerStyle.Render("\nPress ESC, Q, or Enter to return to editor")
+			footer = footerStyle.Render("\nj/k: scroll | ESC/Q/Enter: back | /: search")
 		} else {
-			footerHints := []string{"ESC/Q/Enter: back", "/: search"}
+			footerHints := []string{"j/k: scroll", "ESC: back", "/: search"}
 			footer = footerStyle.Render("\n" + strings.Join(footerHints, " | "))
 		}
 	}
@@ -289,14 +378,14 @@ func (m *HelpPaneModel) renderFullHelp() string {
 
 // renderCompactHelp renders compact help content
 func (m *HelpPaneModel) renderCompactHelp() string {
-	title := m.titleStyle.Render("ðŸŽ¹ Shortcuts")
+	title := m.titleStyle.Render("Ž¹ Shortcuts")
 	title = lipgloss.NewStyle().Width(m.width - 4).Align(lipgloss.Center).Render(title)
 
 	var content string
 
 	if m.searchMode {
 		// Render search interface in compact mode
-		searchTitle := m.categoryStyle.Render("ðŸ” Search")
+		searchTitle := m.categoryStyle.Render("” Search")
 		searchInputView := m.searchInputStyle.Width(30).Render(m.searchInput.View())
 
 		searchContent := lipgloss.JoinVertical(lipgloss.Left, searchTitle, searchInputView)
@@ -346,14 +435,14 @@ func (m *HelpPaneModel) renderCompactHelp() string {
 
 // renderMinimalHelp renders minimal help content for very small terminals
 func (m *HelpPaneModel) renderMinimalHelp() string {
-	title := m.titleStyle.Render("â“ Help")
+	title := m.titleStyle.Render("? Help")
 	title = lipgloss.NewStyle().Width(m.width - 4).Align(lipgloss.Center).Render(title)
 
 	var content string
 
 	if m.searchMode {
 		// Render minimal search interface
-		searchTitle := m.categoryStyle.Render("ðŸ”")
+		searchTitle := m.categoryStyle.Render("”")
 		searchInputView := m.searchInputStyle.Width(20).Render(m.searchInput.View())
 
 		searchContent := lipgloss.JoinVertical(lipgloss.Left, searchTitle, searchInputView)
@@ -458,7 +547,7 @@ func (m *HelpPaneModel) renderCategorySection(category string, bindings []*KeyBi
 		"Tools":       "Specialized tools and features",
 	}
 
-	header := fmt.Sprintf("ðŸ“‚ %s", category)
+	header := fmt.Sprintf("“‚ %s", category)
 	if desc, exists := categoryDescriptions[category]; exists {
 		header += fmt.Sprintf(" - %s", desc)
 	}
@@ -484,7 +573,7 @@ func (m *HelpPaneModel) renderCategorySection(category string, bindings []*KeyBi
 func (m *HelpPaneModel) renderMinimalSearchResults() string {
 	var lines []string
 
-	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("ðŸ“‹ %d", len(m.searchResults))))
+	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("“‹ %d", len(m.searchResults))))
 
 	for i, binding := range m.searchResults {
 		keyStr := binding.Key.Help().Key
@@ -514,7 +603,7 @@ func (m *HelpPaneModel) renderMinimalSearchResults() string {
 func (m *HelpPaneModel) renderSearchResults() string {
 	var lines []string
 
-	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("ðŸ“‹ Search Results (%d found)", len(m.searchResults))))
+	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("“‹ Search Results (%d found)", len(m.searchResults))))
 
 	for i, binding := range m.searchResults {
 		keyStr := binding.Key.Help().Key
@@ -579,7 +668,7 @@ func (m *HelpPaneModel) highlightSearchTerm(text, query string) string {
 func (m *HelpPaneModel) renderCompactSearchResults() string {
 	var lines []string
 
-	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("ðŸ“‹ Results (%d)", len(m.searchResults))))
+	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("“‹ Results (%d)", len(m.searchResults))))
 
 	for i, binding := range m.searchResults {
 		keyStr := binding.Key.Help().Key
@@ -609,6 +698,25 @@ func (m *HelpPaneModel) renderCompactSearchResults() string {
 // SetDimensions sets the pane dimensions
 func (m *HelpPaneModel) SetDimensions(width, height int) {
 	dimension.Set(&m.width, &m.height, width, height)
+
+	// Update viewport dimensions
+	headerHeight := 3 // title area
+	footerHeight := 2 // navigation hints
+	borderHeight := 2 // top/bottom border
+
+	viewportHeight := height - headerHeight - footerHeight - borderHeight
+	viewportWidth := width - 4 // border padding
+
+	if viewportHeight < 1 {
+		viewportHeight = 1
+	}
+	if viewportWidth < 10 {
+		viewportWidth = 10
+	}
+
+	m.viewport.Width = viewportWidth
+	m.viewport.Height = viewportHeight
+	m.scrollReady = true
 }
 
 func (m *HelpPaneModel) GetDimensions() (int, int) {
@@ -690,7 +798,7 @@ func (m *HelpPaneModel) renderMinimalShortcutsHelp() string {
 		bindings := m.getBindingsByCategory(category, context)
 
 		// Render header even if there are no bindings to keep tests stable
-		header := m.categoryStyle.Render(fmt.Sprintf("ðŸ“‚ %s", category))
+		header := m.categoryStyle.Render(fmt.Sprintf("“‚ %s", category))
 		lines := []string{header}
 
 		// If bindings exist, render up to a few of them
@@ -720,7 +828,7 @@ func (m *HelpPaneModel) renderCompactCategorySection(category string, bindings [
 	var lines []string
 
 	// Compact category header
-	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("ðŸ“‚ %s", category)))
+	lines = append(lines, m.categoryStyle.Render(fmt.Sprintf("“‚ %s", category)))
 
 	// Compact bindings (key only, no description for very small spaces)
 	for _, binding := range bindings {

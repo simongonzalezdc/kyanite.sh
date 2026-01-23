@@ -109,14 +109,19 @@ func NewPreviewPaneModel() *PreviewPaneModel {
 
 	if err != nil {
 		// Fallback to basic dark style if custom style fails
-		// Log the original error for debugging
 		var fallbackErr error
 		renderer, fallbackErr = glamour.NewTermRenderer(
 			glamour.WithStylePath("dark"),
 		)
 		if fallbackErr != nil {
 			// Both custom and fallback styles failed - use auto style as last resort
-			renderer, _ = glamour.NewTermRenderer(glamour.WithAutoStyle())
+			var autoErr error
+			renderer, autoErr = glamour.NewTermRenderer(glamour.WithAutoStyle())
+			if autoErr != nil {
+				// All renderer attempts failed - create a no-op renderer that returns plain text
+				// This ensures the preview pane doesn't crash but shows unformatted content
+				renderer = nil // Will be handled by renderMarkdown fallback
+			}
 		}
 	}
 
@@ -571,13 +576,13 @@ func (m *PreviewPaneModel) View() string {
 		if scrollPercent > 1.0 {
 			scrollPercent = 1.0
 		}
-		progressBar := strings.Repeat("â–ˆ", int(scrollPercent*20)) + strings.Repeat("â–‘", 20-int(scrollPercent*20))
+		progressBar := strings.Repeat("#", int(scrollPercent*20)) + strings.Repeat(".", 20-int(scrollPercent*20))
 		t := theme.GetManager().Current()
 		scrollIndicator = lipgloss.NewStyle().
 			Foreground(t.Secondary).
 			Align(lipgloss.Center).
 			Width(m.width - 4).
-			Render("â†“ " + progressBar + " â†‘")
+			Render("Down " + progressBar + " Up")
 	}
 
 	// Add preview statistics if enabled
@@ -596,7 +601,7 @@ func (m *PreviewPaneModel) View() string {
 				Foreground(t.Secondary).
 				Align(lipgloss.Center).
 				Width(m.width - 4).
-				Render(strings.Join(statsParts, " â€¢ "))
+				Render(strings.Join(statsParts, " - "))
 		}
 	}
 
@@ -614,7 +619,7 @@ func (m *PreviewPaneModel) View() string {
 			Foreground(t.Secondary).
 			Align(lipgloss.Center).
 			Width(m.width - 4).
-			Render("Controls: â†‘â†“/jk: scroll | Ctrl+R: refresh | Ctrl+Â±: zoom | Ctrl+0: reset zoom")
+			Render("Controls: UpDown/jk: scroll | Ctrl+R: refresh | Ctrl++/-: zoom | Ctrl+0: reset zoom")
 	}
 
 	// Combine all elements
@@ -850,21 +855,21 @@ func (m *PreviewPaneModel) renderBasicContent() string {
 	for i, line := range lines {
 		// Headers
 		if strings.HasPrefix(line, "# ") {
-			lines[i] = strings.Replace(line, "# ", "ðŸ“ ", 1)
+			lines[i] = strings.Replace(line, "# ", "“ ", 1)
 		} else if strings.HasPrefix(line, "## ") {
-			lines[i] = strings.Replace(line, "## ", "ðŸ“‹ ", 1)
+			lines[i] = strings.Replace(line, "## ", "“‹ ", 1)
 		} else if strings.HasPrefix(line, "### ") {
-			lines[i] = strings.Replace(line, "### ", "ðŸ“Œ ", 1)
+			lines[i] = strings.Replace(line, "### ", "“Œ ", 1)
 		}
 
 		// Bold text
 		lines[i] = strings.ReplaceAll(lines[i], "**", "")
 		// Italic text
-		lines[i] = strings.ReplaceAll(lines[i], "*", "â€¢")
+		lines[i] = strings.ReplaceAll(lines[i], "*", "-")
 
 		// Code blocks
 		if strings.HasPrefix(strings.TrimSpace(line), "```") {
-			lines[i] = "â”Œâ”€ Code Block â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€"
+			lines[i] = "+- Code Block ---------------------------------"
 		}
 	}
 
@@ -919,7 +924,7 @@ func (m *PreviewPaneModel) renderError(err error) string {
 	t := theme.GetManager().Current()
 	return lipgloss.NewStyle().
 		Foreground(t.Error).
-		Render("âš ï¸  " + errorMsg)
+		Render("[!]  " + errorMsg)
 }
 
 // createTitleBar creates the title bar with status information
@@ -936,12 +941,12 @@ func (m *PreviewPaneModel) createTitleBar() string {
 
 	// Add error indicator if present
 	if m.lastError != "" {
-		title += " | âš ï¸ Error"
+		title += " | [!] Error"
 	}
 
 	// Add refresh indicator if needed
 	if m.showRefresh {
-		title += " | âŸ³ Refreshing..."
+		title += " | ... Refreshing..."
 	}
 
 	titleBar := m.titleStyle.Render(title)
@@ -1042,7 +1047,7 @@ func (m *PreviewPaneModel) renderTOC() string {
 		indent := strings.Repeat("  ", entry.Level-1)
 
 		// Create clickable-style entry
-		tocEntry := fmt.Sprintf("%sâ€¢ %s", indent, entry.Title)
+		tocEntry := fmt.Sprintf("%s- %s", indent, entry.Title)
 		tocLines = append(tocLines, tocEntry)
 	}
 

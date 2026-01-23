@@ -11,8 +11,8 @@ import (
 )
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+	ReadBufferSize:  WebSocketReadBufferSize,
+	WriteBufferSize: WebSocketWriteBufferSize,
 	CheckOrigin: func(r *http.Request) bool {
 		return true // Allow all origins for local network
 	},
@@ -50,7 +50,7 @@ func NewWebSocketHub(logger *logging.Logger) *WebSocketHub {
 	}
 	return &WebSocketHub{
 		clients:    make(map[*Client]bool),
-		broadcast:  make(chan Message, 256),
+		broadcast:  make(chan Message, WebSocketBroadcastBuffer),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		done:       make(chan struct{}),
@@ -152,10 +152,10 @@ func (c *Client) readPump() {
 		c.conn.Close()
 	}()
 
-	c.conn.SetReadLimit(512 * 1024) // 512KB max message size
-	c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+	c.conn.SetReadLimit(WebSocketMaxMessageSize)
+	c.conn.SetReadDeadline(time.Now().Add(WebSocketReadDeadline))
 	c.conn.SetPongHandler(func(string) error {
-		c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		c.conn.SetReadDeadline(time.Now().Add(WebSocketReadDeadline))
 		return nil
 	})
 
@@ -182,7 +182,7 @@ func (c *Client) readPump() {
 
 // writePump writes messages to the WebSocket connection
 func (c *Client) writePump() {
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(WebSocketPingInterval)
 	defer func() {
 		ticker.Stop()
 		c.conn.Close()
@@ -191,7 +191,7 @@ func (c *Client) writePump() {
 	for {
 		select {
 		case message, ok := <-c.send:
-			c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			c.conn.SetWriteDeadline(time.Now().Add(WebSocketWriteDeadline))
 			if !ok {
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
@@ -208,7 +208,7 @@ func (c *Client) writePump() {
 			}
 
 		case <-ticker.C:
-			c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			c.conn.SetWriteDeadline(time.Now().Add(WebSocketWriteDeadline))
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}

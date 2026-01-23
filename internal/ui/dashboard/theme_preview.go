@@ -62,26 +62,26 @@ func (m *ThemePreviewModel) View() string {
 	if m.width == 0 {
 		return "Theme Preview"
 	}
-	
+
 	currentTheme := m.themes[m.currentIdx]
-	
+
 	// Create theme showcase
 	title := lipgloss.NewStyle().
 		Foreground(currentTheme.Primary).
 		Bold(true).
 		Align(lipgloss.Center).
 		Render(currentTheme.Name)
-	
+
 	// Color palette display
 	palette := m.renderColorPalette(currentTheme)
-	
+
 	// Sample UI elements
 	samples := m.renderSampleElements(currentTheme)
-	
+
 	// Navigation
 	nav := m.renderNavigation()
-	
-	return lipgloss.JoinVertical(lipgloss.Center,
+
+	content := lipgloss.JoinVertical(lipgloss.Center,
 		title,
 		"",
 		palette,
@@ -90,6 +90,14 @@ func (m *ThemePreviewModel) View() string {
 		"",
 		nav,
 	)
+
+	// Use allocated panel dimensions directly
+	return lipgloss.NewStyle().
+		Width(m.width - 2).
+		MaxWidth(m.width - 2).
+		MaxHeight(m.height - 2).
+		Padding(0, 1).
+		Render(content)
 }
 
 func (m *ThemePreviewModel) renderColorPalette(t theme.Theme) string {

@@ -122,7 +122,7 @@ func NewProjectManagerModel(database *db.DB) *ProjectManagerModel {
 		{
 			Name:        "Songwriter's Collection",
 			Description: "A comprehensive collection for songwriters",
-			Icon:        "ðŸŽµ",
+			Icon:        "Žµ",
 			Category:    "Music",
 			SongCount:   0,
 			Tags:        []string{"songwriting", "lyrics", "music"},
@@ -130,7 +130,7 @@ func NewProjectManagerModel(database *db.DB) *ProjectManagerModel {
 		{
 			Name:        "Album Project",
 			Description: "Organize songs for an album release",
-			Icon:        "ðŸ’¿",
+			Icon:        "’¿",
 			Category:    "Music",
 			SongCount:   0,
 			Tags:        []string{"album", "release", "collection"},
@@ -138,7 +138,7 @@ func NewProjectManagerModel(database *db.DB) *ProjectManagerModel {
 		{
 			Name:        "Poetry Collection",
 			Description: "Collection of poetic works and lyrics",
-			Icon:        "ðŸ“",
+			Icon:        "“",
 			Category:    "Literature",
 			SongCount:   0,
 			Tags:        []string{"poetry", "literature", "creative-writing"},
@@ -146,7 +146,7 @@ func NewProjectManagerModel(database *db.DB) *ProjectManagerModel {
 		{
 			Name:        "Collaborative Project",
 			Description: "Project for collaborative songwriting",
-			Icon:        "ðŸ‘¥",
+			Icon:        "",
 			Category:    "Collaboration",
 			SongCount:   0,
 			Tags:        []string{"collaboration", "team", "shared"},
@@ -154,7 +154,7 @@ func NewProjectManagerModel(database *db.DB) *ProjectManagerModel {
 		{
 			Name:        "Genre-Specific",
 			Description: "Organize songs by specific genre",
-			Icon:        "ðŸŽ¸",
+			Icon:        "Ž¸",
 			Category:    "Music",
 			SongCount:   0,
 			Tags:        []string{"genre", "style", "categorization"},
@@ -593,7 +593,7 @@ func (m *ProjectManagerModel) renderLoading() string {
 		Width(m.width).
 		Height(m.height)
 
-	content := "ðŸŽµ Project Manager ðŸŽµ\n\n"
+	content := "Žµ Project Manager Žµ\n\n"
 	content += "Loading projects...\n\n"
 	content += m.spinner.View()
 
@@ -653,7 +653,7 @@ func (m *ProjectManagerModel) renderProjectList() string {
 		Foreground(t.Text)
 
 	// Header
-	header := headerStyle.Render("ðŸŽµ Project Manager")
+	header := headerStyle.Render("Žµ Project Manager")
 	header += "\n\n"
 
 	// Status bar
@@ -661,11 +661,11 @@ func (m *ProjectManagerModel) renderProjectList() string {
 	if m.statusMessage != "" {
 		statusBar = lipgloss.NewStyle().
 			Foreground(t.Success).
-			Render("âœ“ " + m.statusMessage)
+			Render("[X] " + m.statusMessage)
 	} else if m.errorMessage != "" {
 		statusBar = lipgloss.NewStyle().
 			Foreground(t.Error).
-			Render("âœ— " + m.errorMessage)
+			Render("[X] " + m.errorMessage)
 	}
 
 	// Instructions
@@ -699,7 +699,7 @@ func (m *ProjectManagerModel) renderProjectList() string {
 
 		recentList := ""
 		for _, project := range m.recentProjects {
-			recentList += fmt.Sprintf("â€¢ %s\n", project.Name)
+			recentList += fmt.Sprintf("- %s\n", project.Name)
 		}
 
 		rightColumn = recentStyle.Render(
@@ -732,7 +732,7 @@ func (m *ProjectManagerModel) renderProjectDetail() string {
 		Foreground(t.Text)
 
 	// Header
-	header := headerStyle.Render(fmt.Sprintf("ðŸ“ %s", m.currentProject.Name))
+	header := headerStyle.Render(fmt.Sprintf(" %s", m.currentProject.Name))
 	header += "\n\n"
 
 	// Project info
@@ -785,7 +785,7 @@ func (m *ProjectManagerModel) renderCreateProject() string {
 		Foreground(t.Text)
 
 	// Header
-	header := headerStyle.Render("ðŸ“ Create New Project")
+	header := headerStyle.Render("“ Create New Project")
 	header += "\n\n"
 
 	// Form
@@ -822,7 +822,7 @@ func (m *ProjectManagerModel) renderEditProject() string {
 	contentStyle := lipgloss.NewStyle().
 		Foreground(t.Text)
 
-	header := headerStyle.Render("âœï¸  Edit Project")
+	header := headerStyle.Render("[*]  Edit Project")
 	header += "\n\n"
 
 	form := "Project Name:\n"
@@ -856,7 +856,7 @@ func (m *ProjectManagerModel) renderSongList() string {
 		Foreground(t.Text)
 
 	// Header
-	header := headerStyle.Render(fmt.Sprintf("ðŸŽµ Songs in: %s", m.currentProject.Name))
+	header := headerStyle.Render(fmt.Sprintf("Žµ Songs in: %s", m.currentProject.Name))
 	header += "\n\n"
 
 	// Song list
@@ -890,7 +890,7 @@ func (m *ProjectManagerModel) renderProjectTemplates() string {
 		Foreground(t.Text)
 
 	// Header
-	header := headerStyle.Render("ðŸ“‹ Project Templates")
+	header := headerStyle.Render("“‹ Project Templates")
 	header += "\n\n"
 
 	// Instructions

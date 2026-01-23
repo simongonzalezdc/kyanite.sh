@@ -3,6 +3,14 @@
 import { useEffect, useState } from "react";
 import { getSyncQueueManager, type SyncQueueStatus } from "@/lib/sync/queue";
 import { type ConnectionState } from "@/lib/api/websocket";
+import {
+  TIME_JUST_NOW_THRESHOLD,
+  TIME_ONE_MINUTE_THRESHOLD,
+  TIME_ONE_HOUR_THRESHOLD,
+  TIME_TWO_HOURS_THRESHOLD,
+  SECONDS_PER_MINUTE,
+  SECONDS_PER_HOUR,
+} from "@/lib/constants";
 
 interface SyncStatusIndicatorProps {
   connectionState: ConnectionState;
@@ -81,10 +89,10 @@ export function SyncStatusIndicator({ connectionState }: SyncStatusIndicatorProp
 
 function formatRelativeTime(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  
-  if (seconds < 60) return "just now";
-  if (seconds < 120) return "1m ago";
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 7200) return "1h ago";
-  return `${Math.floor(seconds / 3600)}h ago`;
+
+  if (seconds < TIME_JUST_NOW_THRESHOLD) return "just now";
+  if (seconds < TIME_ONE_MINUTE_THRESHOLD) return "1m ago";
+  if (seconds < TIME_ONE_HOUR_THRESHOLD) return `${Math.floor(seconds / SECONDS_PER_MINUTE)}m ago`;
+  if (seconds < TIME_TWO_HOURS_THRESHOLD) return "1h ago";
+  return `${Math.floor(seconds / SECONDS_PER_HOUR)}h ago`;
 }

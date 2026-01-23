@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
 import { getSyncClient } from "@/lib/api/client";
 import { addPendingIdea, addPendingMedia } from "@/lib/db";
+import { CAMERA_WIDTH, CAMERA_HEIGHT, JPEG_QUALITY } from "@/lib/constants";
 
 interface PhotoCaptureProps {
   onCaptured?: () => void;
@@ -29,8 +30,8 @@ export function PhotoCapture({ onCaptured, disabled }: PhotoCaptureProps) {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: "environment", // Prefer back camera
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
+          width: { ideal: CAMERA_WIDTH },
+          height: { ideal: CAMERA_HEIGHT },
         },
       });
       
@@ -84,7 +85,7 @@ export function PhotoCapture({ onCaptured, disabled }: PhotoCaptureProps) {
         }
       },
       "image/jpeg",
-      0.9
+      JPEG_QUALITY
     );
   }, [stopCamera]);
 

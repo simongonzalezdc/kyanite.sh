@@ -145,7 +145,7 @@ func (m *bpmTapperModel) View() string {
 	var content strings.Builder
 
 	// Header
-	header := m.headerStyle.Render("ðŸŽµ BPM Tapper")
+	header := m.headerStyle.Render("Žµ BPM Tapper")
 	content.WriteString(header)
 	content.WriteString("\n\n")
 
@@ -176,12 +176,12 @@ func (m *bpmTapperModel) renderTapHistory() string {
 		if tapped {
 			// Show more recent taps as brighter
 			if i >= len(m.tapHistory)-3 {
-				symbols = append(symbols, "â—")
+				symbols = append(symbols, "*")
 			} else {
-				symbols = append(symbols, "â—‹")
+				symbols = append(symbols, "o")
 			}
 		} else {
-			symbols = append(symbols, "â—‹")
+			symbols = append(symbols, "o")
 		}
 	}
 

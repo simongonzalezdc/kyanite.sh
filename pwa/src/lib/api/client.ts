@@ -3,6 +3,7 @@
  * Endpoints defined in internal/infra/sync/server.go
  */
 
+import { API_PING_TIMEOUT_MS } from "@/lib/constants";
 import type { IdeaType } from "../db";
 
 // Types matching Go sync server (internal/infra/sync/types.go)
@@ -169,7 +170,7 @@ export class SyncClient {
       const response = await fetch(`${this.baseUrl}/status`, {
         method: "GET",
         headers: this.getHeaders(),
-        signal: AbortSignal.timeout(5000), // 5 second timeout
+        signal: AbortSignal.timeout(API_PING_TIMEOUT_MS),
       });
       return response.ok;
     } catch {

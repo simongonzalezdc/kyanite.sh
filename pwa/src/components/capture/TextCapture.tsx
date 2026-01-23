@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { getSyncClient } from "@/lib/api/client";
 import { addPendingIdea } from "@/lib/db";
+import { useToastActions } from "@/components/ui/Toast";
 
 interface TextCaptureProps {
   onCaptured?: () => void;
@@ -13,8 +14,8 @@ interface TextCaptureProps {
 export function TextCapture({ onCaptured, disabled }: TextCaptureProps) {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
-  const [error, setError] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const toast = useToastActions();
 
   // Auto-resize textarea
   useEffect(() => {
@@ -29,19 +30,19 @@ export function TextCapture({ onCaptured, disabled }: TextCaptureProps) {
     if (!content) return;
 
     setSending(true);
-    setError("");
 
     const localId = `text-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
     try {
       const client = getSyncClient();
-      
+
       if (client) {
         // Try to send directly to server
         await client.submitIdea({
           type: "text",
           content,
         });
+        toast.success("Idea captured!");
       } else {
         // Queue for later sync
         await addPendingIdea({
@@ -50,13 +51,14 @@ export function TextCapture({ onCaptured, disabled }: TextCaptureProps) {
           content,
           createdAt: new Date().toISOString(),
         });
+        toast.info("Saved offline - will sync when connected");
       }
 
       setText("");
       onCaptured?.();
     } catch (err) {
       console.error("Failed to submit text idea:", err);
-      
+
       // Save to offline queue on failure
       try {
         await addPendingIdea({
@@ -66,9 +68,10 @@ export function TextCapture({ onCaptured, disabled }: TextCaptureProps) {
           createdAt: new Date().toISOString(),
         });
         setText("");
+        toast.info("Saved offline - will sync when connected");
         onCaptured?.();
       } catch {
-        setError("Failed to save idea");
+        toast.error("Failed to save idea. Please try again.");
       }
     } finally {
       setSending(false);
@@ -97,12 +100,6 @@ export function TextCapture({ onCaptured, disabled }: TextCaptureProps) {
           autoFocus
         />
       </div>
-
-      {error && (
-        <div className="px-4 py-2 text-sm text-[var(--color-error)]">
-          {error}
-        </div>
-      )}
 
       <div className="p-4 border-t border-[var(--color-surface)] flex items-center justify-between">
         <span className="text-sm text-[var(--color-text-muted)]">

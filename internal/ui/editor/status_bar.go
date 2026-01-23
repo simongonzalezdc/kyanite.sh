@@ -43,6 +43,10 @@ type StatusBarModel struct {
 	kbAvailable    bool   // Knowledge base availability status
 	kbStatus       string // Knowledge base status message
 
+	// Unsaved changes tracking
+	hasUnsavedChanges bool   // Whether there are unsaved modifications
+	lastSavedContent  string // Content at last save for comparison
+
 	// Editor features
 	showLineNumbers bool
 	wordWrap        bool
@@ -67,12 +71,13 @@ type StatusBarModel struct {
 	rightSectionStyle  lipgloss.Style
 
 	// Status-specific styles
-	autoSaveSavingStyle  lipgloss.Style
-	autoSaveSuccessStyle lipgloss.Style
-	autoSaveErrorStyle   lipgloss.Style
-	autoSaveIdleStyle    lipgloss.Style
-	modeIndicatorStyle   lipgloss.Style
-	shortcutHintStyle    lipgloss.Style
+	autoSaveSavingStyle   lipgloss.Style
+	autoSaveSuccessStyle  lipgloss.Style
+	autoSaveErrorStyle    lipgloss.Style
+	autoSaveIdleStyle     lipgloss.Style
+	modeIndicatorStyle    lipgloss.Style
+	shortcutHintStyle     lipgloss.Style
+	unsavedChangesStyle   lipgloss.Style
 }
 
 // NewStatusBarModel creates a new status bar model
@@ -148,6 +153,10 @@ func NewStatusBarModel() *StatusBarModel {
 	model.shortcutHintStyle = lipgloss.NewStyle().
 		Foreground(t.Secondary).
 		Italic(true)
+
+	model.unsavedChangesStyle = lipgloss.NewStyle().
+		Foreground(t.Accent).
+		Bold(true)
 
 	return model
 }
@@ -244,6 +253,22 @@ func (m *StatusBarModel) UpdateKnowledgeBaseStatus(available bool, status string
 	}
 }
 
+// SetUnsavedChanges explicitly sets the unsaved changes state
+func (m *StatusBarModel) SetUnsavedChanges(hasChanges bool) {
+	m.hasUnsavedChanges = hasChanges
+}
+
+// MarkAsSaved marks the current content as saved (clears unsaved indicator)
+func (m *StatusBarModel) MarkAsSaved() {
+	m.hasUnsavedChanges = false
+	m.lastSavedContent = m.content
+}
+
+// HasUnsavedChanges returns whether there are unsaved modifications
+func (m *StatusBarModel) HasUnsavedChanges() bool {
+	return m.hasUnsavedChanges
+}
+
 // hashContent calculates a simple hash of the content for change detection
 func (m *StatusBarModel) hashContent(content string) uint64 {
 	h := fnv.New64a()
@@ -272,8 +297,14 @@ func (m *StatusBarModel) calculateStatistics() {
 
 // renderLeftSection renders the left section (file info and position)
 func (m *StatusBarModel) renderLeftSection() StatusBarSection {
+	// File name with unsaved indicator
+	fileDisplay := m.fileName
+	if m.hasUnsavedChanges {
+		fileDisplay = m.unsavedChangesStyle.Render("● ") + m.fileName
+	}
+
 	// File name and cursor position
-	position := fmt.Sprintf("%s | Ln %d, Col %d", m.fileName, m.cursorLine+1, m.cursorColumn+1)
+	position := fmt.Sprintf("%s | Ln %d, Col %d", fileDisplay, m.cursorLine+1, m.cursorColumn+1)
 
 	// Add mode indicator if not normal
 	if m.editorMode != "Normal" {
@@ -403,16 +434,16 @@ func (m *StatusBarModel) renderAutoSaveStatus() string {
 			text = fmt.Sprintf("Saved %s", m.lastSaveTime.Format("15:04:05"))
 			return m.autoSaveIdleStyle.Render(text)
 		}
-		return ""
+		return m.autoSaveIdleStyle.Render("Ready")
 	default:
-		return ""
+		return m.autoSaveIdleStyle.Render("Ready")
 	}
 }
 
 // View renders the status bar
 func (m *StatusBarModel) View() string {
 	if m.width == 0 {
-		return ""
+		return "Status bar loading..."
 	}
 
 	// Use responsive rendering based on terminal width
@@ -446,7 +477,7 @@ func (m *StatusBarModel) renderMinimalView() string {
 		parts = append(parts, autoSaveText)
 	}
 
-	content := strings.Join(parts, " â”‚ ")
+	content := strings.Join(parts, " | ")
 	content = m.centerSectionStyle.Render(content)
 
 	// Ensure proper width
@@ -468,7 +499,7 @@ func (m *StatusBarModel) renderCompactView() string {
 	rightSection := m.renderCompactRightSection()
 
 	// Combine sections with compact spacing
-	fullContent := leftSection + "â”‚" + centerSection + "â”‚" + rightSection
+	fullContent := leftSection + "|" + centerSection + "|" + rightSection
 
 	// Ensure the content fits exactly within the width
 	if len(fullContent) > m.width {
@@ -523,8 +554,12 @@ func (m *StatusBarModel) renderFullView() string {
 
 // renderCompactLeftSection renders a compact version of the left section
 func (m *StatusBarModel) renderCompactLeftSection() string {
-	// Show only filename and cursor position
-	position := fmt.Sprintf("%s Ln%d", m.fileName, m.cursorLine+1)
+	// Show filename with unsaved indicator and cursor position
+	fileDisplay := m.fileName
+	if m.hasUnsavedChanges {
+		fileDisplay = m.unsavedChangesStyle.Render("●") + m.fileName
+	}
+	position := fmt.Sprintf("%s Ln%d", fileDisplay, m.cursorLine+1)
 	return m.leftSectionStyle.Render(position)
 }
 
@@ -565,7 +600,7 @@ func (m *StatusBarModel) renderCompactRightSection() string {
 		indicators = append(indicators, fmt.Sprintf("%d%%", m.zoomLevel))
 	}
 
-	return m.rightSectionStyle.Render(strings.Join(indicators, "â”‚"))
+	return m.rightSectionStyle.Render(strings.Join(indicators, "|"))
 }
 
 // Helper function to get maximum of two integers
@@ -648,7 +683,7 @@ func (m *StatusBarModel) UpdateResponsiveMode(width int) {
 // 		}
 //
 // 		if len(indicators) > 0 {
-// 			return m.rightSectionStyle.Render(strings.Join(indicators, "â”‚"))
+// 			return m.rightSectionStyle.Render(strings.Join(indicators, "|"))
 // 		}
 // 		return ""
 // 	}
@@ -672,7 +707,7 @@ func (m *StatusBarModel) UpdateResponsiveMode(width int) {
 // 			parts = append(parts, autoSaveText)
 // 		}
 //
-// 		return m.centerSectionStyle.Render(strings.Join(parts, " â”‚ "))
+// 		return m.centerSectionStyle.Render(strings.Join(parts, " | "))
 // 	}
 //
 // 	// Full mode: show all information

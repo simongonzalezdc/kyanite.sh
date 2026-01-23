@@ -83,9 +83,9 @@ func (csb *CollaborationStatusBar) View() string {
 
 	// Main status
 	if csb.hasConflicts {
-		content.WriteString(csb.conflictStyle.Render("âš ï¸ "))
+		content.WriteString(csb.conflictStyle.Render("[!] "))
 	} else {
-		content.WriteString(csb.activeStyle.Render("ðŸ¤ "))
+		content.WriteString(csb.activeStyle.Render("¤ "))
 	}
 
 	// Session info
@@ -140,7 +140,7 @@ func (csb *CollaborationStatusBar) renderDetails() string {
 
 	details = append(details, fmt.Sprintf("Last updated: %s", time.Now().Format("15:04:05")))
 
-	return csb.detailsStyle.Render(strings.Join(details, " â€¢ "))
+	return csb.detailsStyle.Render(strings.Join(details, " - "))
 }
 
 // GetStatusText returns a short status text for compact display

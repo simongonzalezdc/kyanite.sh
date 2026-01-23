@@ -127,6 +127,34 @@ func (m *TheoryModel) Update(msg tea.Msg) (*TheoryModel, tea.Cmd) {
 		m.height = msg.Height
 		m.updateLayout()
 
+	case tea.MouseMsg:
+		// Handle mouse events for theory tabs
+		switch msg.Button {
+		case tea.MouseButtonLeft:
+			if msg.Action == tea.MouseActionRelease {
+				// Check if click is in tab bar area (typically Y <= 3)
+				if msg.Y <= 3 {
+					// Calculate which tab was clicked based on X position
+					// Tabs are roughly evenly spaced
+					tabWidth := m.width / len(m.tabNames)
+					if tabWidth > 0 {
+						clickedTab := msg.X / tabWidth
+						if clickedTab >= 0 && clickedTab < len(m.tabNames) {
+							m.activeTab = clickedTab
+						}
+					}
+				}
+			}
+
+		case tea.MouseButtonWheelUp:
+			// Scroll viewport up
+			m.viewport.LineUp(3)
+
+		case tea.MouseButtonWheelDown:
+			// Scroll viewport down
+			m.viewport.LineDown(3)
+		}
+
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.Tab):
@@ -208,7 +236,7 @@ func (m *TheoryModel) View() string {
 // renderHeader renders the header section
 func (m *TheoryModel) renderHeader() string {
 	t := theme.GetManager().Current()
-	title := titleGradient("ðŸŽµ Music Theory Tools", t)
+	title := titleGradient("Žµ Music Theory Tools", t)
 	title = lipgloss.NewStyle().
 		Width(m.width).
 		Align(lipgloss.Center).
@@ -325,7 +353,7 @@ func (m *TheoryModel) renderScalesTab() string {
 	content.WriteString(inputStyle.Render("Common Scales:\n"))
 	commonScales := m.theoryService.GetCommonScales()
 	for _, scale := range commonScales {
-		content.WriteString(fmt.Sprintf("â€¢ %s: %s\n", scale.Name, strings.Join(scale.Notes, ", ")))
+		content.WriteString(fmt.Sprintf("- %s: %s\n", scale.Name, strings.Join(scale.Notes, ", ")))
 	}
 
 	return content.String()
@@ -415,13 +443,13 @@ func (m *TheoryModel) renderAnalysisTab() string {
 		} else {
 			content.WriteString(fmt.Sprintf("Found %d chords:\n", len(analysis.DetectedChords)))
 			for _, chord := range analysis.DetectedChords {
-				content.WriteString(fmt.Sprintf("â€¢ %s %s: %s\n", chord.Root, chord.Quality, strings.Join(chord.Notes, ", ")))
+				content.WriteString(fmt.Sprintf("- %s %s: %s\n", chord.Root, chord.Quality, strings.Join(chord.Notes, ", ")))
 			}
 
 			if len(analysis.Suggestions) > 0 {
 				content.WriteString("\nSuggestions:\n")
 				for _, suggestion := range analysis.Suggestions {
-					content.WriteString(fmt.Sprintf("â€¢ %s\n", suggestion))
+					content.WriteString(fmt.Sprintf("- %s\n", suggestion))
 				}
 			}
 		}

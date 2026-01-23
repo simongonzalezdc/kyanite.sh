@@ -136,7 +136,7 @@ func (m *PluginSettingsModel) renderEmptyState() string {
 		Align(lipgloss.Center).
 		Width(m.width - 4).
 		Padding(2).
-		Render("No plugins loaded.\n\nPlugins can be placed in:\nâ€¢ ~/.noise/plugins/\nâ€¢ ./plugins/\nâ€¢ ./internal/plugins/examples/")
+		Render("No plugins loaded.\n\nPlugins can be placed in:\n- ~/.noise/plugins/\n- ./plugins/\n- ./internal/plugins/examples/")
 
 	content.WriteString(emptyState)
 
@@ -206,7 +206,7 @@ func (m *PluginSettingsModel) renderPluginList() string {
 		Foreground(t.Secondary).
 		Width(m.width).
 		Padding(1).
-		Render("â†‘/â†“: Navigate â€¢ Enter: Toggle/Details â€¢ D: Back â€¢ Esc: Exit")
+		Render("Up/Down: Navigate - Enter: Toggle/Details - D: Back - Esc: Exit")
 
 	content.WriteString("\n" + help)
 
@@ -277,7 +277,7 @@ Loaded:      %s
 		Foreground(t.Secondary).
 		Width(m.width).
 		Padding(1).
-		Render("Enter: Toggle Enable/Disable â€¢ D: Back to List â€¢ Esc: Exit")
+		Render("Enter: Toggle Enable/Disable - D: Back to List - Esc: Exit")
 
 	content.WriteString(help)
 

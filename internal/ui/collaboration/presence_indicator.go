@@ -81,7 +81,7 @@ func (m *PresenceIndicatorModel) View() string {
 	var content strings.Builder
 
 	// Header
-	title := "ðŸ‘¥ Collaborators"
+	title := " Collaborators"
 	if len(m.indicators) == 1 {
 		title += " (1 user)"
 	} else {
@@ -220,11 +220,11 @@ func (m *PresenceIndicatorModel) getColoredIcon(indicator collaboration.Presence
 func (m *PresenceIndicatorModel) getRoleIcon(role collaboration.ParticipantRole) string {
 	switch role {
 	case collaboration.RoleOwner:
-		return "ðŸ‘‘"
+		return "‘‘"
 	case collaboration.RoleEditor:
-		return "âœï¸"
+		return "[*]"
 	case collaboration.RoleViewer:
-		return "ðŸ‘ï¸"
+		return "‘ï¸"
 	default:
 		return ""
 	}
@@ -256,7 +256,7 @@ func (m *PresenceIndicatorModel) getUserDetails(indicator SessionPresenceIndicat
 		details = append(details, "Read-only")
 	}
 
-	return strings.Join(details, " â€¢ ")
+	return strings.Join(details, " - ")
 }
 
 // ToggleDetails toggles the display of detailed information

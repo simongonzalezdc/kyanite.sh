@@ -1,4 +1,4 @@
-# APEX ENGINEERING RULES v4.0 — DESIGN
+# APEX ENGINEERING RULES v4.1 — DESIGN
 **Frontend Aesthetics & UI/UX Standards | January 2026**
 
 ---
@@ -371,4 +371,4 @@ Before shipping any UI:
 
 ---
 
-*APEX v4.0 Design — 2026 standards for intentional, craft-driven UI. See APEX_CORE.md for fundamentals.*
+*APEX v4.1 Design — Load APEX_CORE.md for fundamentals, APEX_SDLC.md for lifecycle.*

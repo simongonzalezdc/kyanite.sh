@@ -405,7 +405,7 @@ func (m *NotificationUIModel) renderNotification(notification *Notification, sel
 	// Add selection indicator if selected
 	indicator := " "
 	if selected {
-		indicator = "â–¶ "
+		indicator = "> "
 	}
 
 	// Render title and message

@@ -11,6 +11,7 @@ import {
   clearSyncedItems,
 } from "../db";
 import { getSyncClient } from "../api/client";
+import { SYNC_INTERVAL_MS } from "@/lib/constants";
 
 export type SyncState = "idle" | "syncing" | "error";
 
@@ -56,7 +57,7 @@ class SyncQueueManager {
   }
 
   // Start automatic sync polling
-  startAutoSync(intervalMs = 30000): void {
+  startAutoSync(intervalMs = SYNC_INTERVAL_MS): void {
     if (this.syncInterval) return;
     
     this.syncInterval = setInterval(() => {
@@ -178,16 +179,26 @@ class SyncQueueManager {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      
-      if ("sync" in registration) {
-        // Background Sync API
-        await (registration as unknown as { sync: { register: (tag: string) => Promise<void> } }).sync.register("sync-ideas");
+
+      // Type-safe check for Background Sync API
+      // The sync property is not in the standard ServiceWorkerRegistration type
+      // but is available in browsers that support the Background Sync API
+      interface BackgroundSyncManager {
+        register: (tag: string) => Promise<void>;
+      }
+      type ServiceWorkerRegistrationWithSync = ServiceWorkerRegistration & {
+        sync?: BackgroundSyncManager;
+      };
+
+      const regWithSync = registration as ServiceWorkerRegistrationWithSync;
+      if (regWithSync.sync) {
+        await regWithSync.sync.register("sync-ideas");
         return true;
       }
     } catch (err) {
       console.error("Failed to register background sync:", err);
     }
-    
+
     return false;
   }
 
