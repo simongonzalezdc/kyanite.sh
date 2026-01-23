@@ -16,6 +16,14 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// scrollTickMsg is sent to update scroll animation
+type scrollTickMsg struct{}
+
+// throttledUpdateMsg is sent after throttle delay to trigger content update
+type throttledUpdateMsg struct {
+	content string
+}
+
 // PreviewPaneModel handles the markdown preview pane
 type PreviewPaneModel struct {
 	content   string
@@ -76,6 +84,8 @@ type PreviewPaneModel struct {
 	throttleDuration  time.Duration
 	lastContentUpdate time.Time
 	pendingUpdate     bool
+	throttledContent  string    // Content waiting to be applied after throttle
+	throttledUntil    time.Time // Time when throttle period ends
 
 	// Lazy loading for large documents
 	lazyLoadingEnabled bool
@@ -322,35 +332,84 @@ func (m *PreviewPaneModel) Init() tea.Cmd {
 	return m.startScrollAnimation()
 }
 
-// startScrollAnimation starts the scroll animation loop
+// startScrollAnimation starts the scroll animation using tea.Tick for non-blocking updates
 func (m *PreviewPaneModel) startScrollAnimation() tea.Cmd {
-	return func() tea.Msg {
-		// Animation tick for smooth scrolling
-		for m.isScrolling {
-			time.Sleep(time.Second / 60) // 60 FPS
-
-			// Update spring animation
-			m.currentScroll, _ = m.scrollSpring.Update(m.currentScroll, 0.0, m.targetScroll)
-
-			// Check if we've reached the target
-			if abs(m.targetScroll-m.currentScroll) < 0.1 {
-				m.currentScroll = m.targetScroll
-				m.scrollPos = int(m.currentScroll)
-				m.isScrolling = false
-				break
-			}
-
-			m.scrollPos = int(m.currentScroll)
-		}
+	if !m.isScrolling {
 		return nil
 	}
+	// Use tea.Tick for 60 FPS animation without blocking the event loop
+	return tea.Tick(time.Second/60, func(t time.Time) tea.Msg {
+		return scrollTickMsg{}
+	})
+}
+
+// updateScrollAnimation processes a single scroll animation tick
+func (m *PreviewPaneModel) updateScrollAnimation() tea.Cmd {
+	if !m.isScrolling {
+		return nil
+	}
+
+	// Update spring animation
+	m.currentScroll, _ = m.scrollSpring.Update(m.currentScroll, 0.0, m.targetScroll)
+
+	// Check if we've reached the target
+	if abs(m.targetScroll-m.currentScroll) < 0.1 {
+		m.currentScroll = m.targetScroll
+		m.scrollPos = int(m.currentScroll)
+		m.isScrolling = false
+		return nil
+	}
+
+	m.scrollPos = int(m.currentScroll)
+
+	// Schedule next animation tick
+	return m.startScrollAnimation()
 }
 
 // Update handles messages for the preview pane
 func (m *PreviewPaneModel) Update(msg tea.Msg) (*PreviewPaneModel, tea.Cmd) {
 	var cmds []tea.Cmd
 
+	// Check for pending throttled updates that are ready to be processed
+	// This integrates with Bubble Tea's event loop instead of using goroutines
+	m.cacheMutex.RLock()
+	hasPending := m.pendingUpdate
+	throttleReady := !m.throttledUntil.IsZero() && time.Now().After(m.throttledUntil)
+	m.cacheMutex.RUnlock()
+
+	if hasPending && throttleReady {
+		// Process the throttled update now
+		m.cacheMutex.Lock()
+		content := m.throttledContent
+		m.throttledContent = ""
+		m.throttledUntil = time.Time{}
+		m.cacheMutex.Unlock()
+		m.performThrottledUpdate(content)
+	} else if hasPending && !throttleReady {
+		// Schedule a tick to check again when throttle period ends
+		m.cacheMutex.RLock()
+		waitDuration := time.Until(m.throttledUntil)
+		m.cacheMutex.RUnlock()
+		if waitDuration > 0 {
+			cmds = append(cmds, tea.Tick(waitDuration, func(t time.Time) tea.Msg {
+				return throttledUpdateMsg{content: ""}
+			}))
+		}
+	}
+
 	switch msg := msg.(type) {
+	case scrollTickMsg:
+		// Handle scroll animation tick (non-blocking)
+		cmd := m.updateScrollAnimation()
+		if cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+
+	case throttledUpdateMsg:
+		// Handle throttled content update (triggered by tea.Tick)
+		// The actual processing is done above at the start of Update()
+		// This case just ensures we don't fall through to default
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
@@ -1046,20 +1105,15 @@ func (m *PreviewPaneModel) onContentUpdate(content string) {
 			throttleDuration = m.throttleDuration / 2
 		}
 
-		// Implement throttling for large documents
+		// Implement throttling for large documents using timestamp-based approach
+		// instead of goroutine+sleep to properly integrate with Bubble Tea event loop
 		if m.enableThrottling && timeSinceLastUpdate < throttleDuration && !m.pendingUpdate {
-			// Schedule a delayed update instead of immediate
+			// Store content for delayed update - will be processed by Update() method
+			m.cacheMutex.Lock()
 			m.pendingUpdate = true
-			go func() {
-				time.Sleep(throttleDuration)
-				m.cacheMutex.Lock()
-				shouldUpdate := m.pendingUpdate
-				m.cacheMutex.Unlock()
-
-				if shouldUpdate {
-					m.performThrottledUpdate(content)
-				}
-			}()
+			m.throttledContent = content
+			m.throttledUntil = now.Add(throttleDuration)
+			m.cacheMutex.Unlock()
 			return
 		}
 		m.lastContentUpdate = now

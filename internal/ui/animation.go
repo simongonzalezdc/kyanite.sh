@@ -175,22 +175,21 @@ func (am *AnimationManager) Update() tea.Cmd {
 		}
 	}
 
-	// CRITICAL: Always return a message if animations are active
+	// CRITICAL: Use tea.Tick instead of time.Sleep to avoid blocking the event loop
 	if hasActiveAnimations {
-		// Ensure valid frame rate for sleeping between frames
+		// Ensure valid frame rate
 		frameRate := am.config.FrameRate
 		if frameRate <= 0 {
 			frameRate = DefaultAnimationConfig().FrameRate
 		}
 
-		// Use a goroutine to avoid blocking the main thread
-		return func() tea.Msg {
-			time.Sleep(time.Second / time.Duration(frameRate))
+		// Use tea.Tick for non-blocking animation scheduling
+		return tea.Tick(time.Second/time.Duration(frameRate), func(t time.Time) tea.Msg {
 			return AnimationTickMsg{}
-		}
+		})
 	}
 
-	// CRITICAL: Return nil command when no animations are active
+	// Return nil when no animations are active
 	return nil
 }
 
@@ -382,14 +381,46 @@ func abs(x float64) float64 {
 	return x
 }
 
+// StaggeredEntranceMsg is sent when a panel should start its entrance animation
+type StaggeredEntranceMsg struct {
+	PanelID string
+	Index   int
+}
+
 // StaggeredEntrance creates a staggered entrance animation for dashboard panels
-func (am *AnimationManager) StaggeredEntrance(panelIDs []string) {
-	for i, id := range panelIDs {
-		go func(panelID string, delay int) {
-			time.Sleep(time.Duration(delay) * 150 * time.Millisecond) // Increased delay for smoother effect
-			am.SlideTransition(panelID+"_entrance", 1.0)
-		}(id, i)
+// Returns a batch of commands that use tea.Tick for non-blocking delays
+func (am *AnimationManager) StaggeredEntrance(panelIDs []string) tea.Cmd {
+	if len(panelIDs) == 0 {
+		return nil
 	}
+
+	// Start the first panel immediately
+	am.SlideTransition(panelIDs[0]+"_entrance", 1.0)
+
+	// Schedule subsequent panels with staggered delays using tea.Tick
+	var cmds []tea.Cmd
+	for i := 1; i < len(panelIDs); i++ {
+		idx := i
+		panelID := panelIDs[idx]
+		delay := time.Duration(idx) * 150 * time.Millisecond
+		cmds = append(cmds, tea.Tick(delay, func(t time.Time) tea.Msg {
+			return StaggeredEntranceMsg{PanelID: panelID, Index: idx}
+		}))
+	}
+
+	if len(cmds) == 0 {
+		return am.Update()
+	}
+
+	// Add the animation update command
+	cmds = append(cmds, am.Update())
+	return tea.Batch(cmds...)
+}
+
+// HandleStaggeredEntrance processes a staggered entrance message
+func (am *AnimationManager) HandleStaggeredEntrance(msg StaggeredEntranceMsg) tea.Cmd {
+	am.SlideTransition(msg.PanelID+"_entrance", 1.0)
+	return am.Update()
 }
 
 // SetReducedMotion configures animations for users who prefer reduced motion

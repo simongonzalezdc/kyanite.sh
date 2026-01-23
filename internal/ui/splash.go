@@ -10,6 +10,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// splashSubtitleReadyMsg triggers the subtitle animation after a delay
+type splashSubtitleReadyMsg struct{}
+
 // SplashModel handles the splash screen
 type SplashModel struct {
 	spinner      spinner.Model
@@ -38,13 +41,17 @@ func NewSplashModel() *SplashModel {
 
 // Init initializes the splash model
 func (m *SplashModel) Init() tea.Cmd {
-	// Start fade-in animation for title
+	// Start fade-in animation for title immediately
 	m.animation.FadeTransition("splash_title_fade", 1.0)
 
-	// Start animations for different elements with staggered timing
+	// Use tea.Tick for staggered subtitle animation instead of blocking sleep
+	// This keeps the event loop responsive
 	return tea.Batch(
 		m.spinner.Tick,
-		m.startStaggeredAnimations(),
+		m.animation.Update(), // Start animation tick
+		tea.Tick(300*time.Millisecond, func(t time.Time) tea.Msg {
+			return splashSubtitleReadyMsg{}
+		}),
 	)
 }
 
@@ -53,6 +60,11 @@ func (m *SplashModel) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case splashSubtitleReadyMsg:
+		// Start subtitle animation after the delay (triggered by tea.Tick)
+		m.animation.FadeTransition("splash_subtitle_fade", 1.0)
+		cmds = append(cmds, m.animation.Update())
+
 	case AnimationTickMsg:
 		// Update animation states based on progress
 		titleProgress := m.animation.GetAnimationProgress("splash_title_fade")
@@ -134,16 +146,5 @@ func (m *SplashModel) SetSize(width, height int) {
 	m.height = height
 }
 
-// startStaggeredAnimations starts animations for different UI elements with delays
-func (m *SplashModel) startStaggeredAnimations() tea.Cmd {
-	return func() tea.Msg {
-		// Start title fade-in immediately
-		m.animation.FadeTransition("splash_title_fade", 1.0)
-
-		// Start subtitle animation after a delay
-		time.Sleep(300 * time.Millisecond)
-		m.animation.FadeTransition("splash_subtitle_fade", 1.0)
-
-		return nil
-	}
-}
+// startStaggeredAnimations is deprecated - using tea.Tick in Init() instead
+// to avoid blocking the event loop with time.Sleep

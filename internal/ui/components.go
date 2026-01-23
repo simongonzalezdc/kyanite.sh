@@ -50,6 +50,13 @@ func (als *AnimatedLoadingSpinner) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case pulseStartMsg:
+		// Handle pulse animation start
+		cmd := als.HandlePulseStart()
+		if cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+
 	case AnimationTickMsg:
 		cmd := als.animation.Update()
 		if cmd != nil {
@@ -114,14 +121,21 @@ func (als *AnimatedLoadingSpinner) SetSize(width, height int) {
 	als.height = height
 }
 
-// startPulseAnimation starts a pulsing animation for the spinner
+// pulseStartMsg triggers the pulse animation after a delay
+type pulseStartMsg struct{}
+
+// startPulseAnimation starts a pulsing animation for the spinner using tea.Tick
 func (als *AnimatedLoadingSpinner) startPulseAnimation() tea.Cmd {
-	return func() tea.Msg {
-		// Start pulsing animation after a short delay
-		time.Sleep(500 * time.Millisecond)
-		als.animation.PulseAnimation("spinner_pulse", 1.0)
-		return nil
-	}
+	// Use tea.Tick for non-blocking delay instead of time.Sleep
+	return tea.Tick(500*time.Millisecond, func(t time.Time) tea.Msg {
+		return pulseStartMsg{}
+	})
+}
+
+// HandlePulseStart processes the pulse start message
+func (als *AnimatedLoadingSpinner) HandlePulseStart() tea.Cmd {
+	als.animation.PulseAnimation("spinner_pulse", 1.0)
+	return als.animation.Update()
 }
 
 // AnimatedStatusBar creates an animated status bar for operations

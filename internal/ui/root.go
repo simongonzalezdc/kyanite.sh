@@ -148,11 +148,17 @@ func (m *RootModel) Init() tea.Cmd {
 		tea.EnterAltScreen,
 		m.initializeApp(),
 		m.spinner.Tick,
-		// Add periodic refresh timer
-		func() tea.Msg {
-			return RefreshTimerMsg{}
-		},
+		// Use tea.Tick for periodic refresh instead of blocking sleep
+		m.scheduleRefresh(),
 	)
+}
+
+// scheduleRefresh returns a command that schedules the next refresh tick
+// Uses tea.Tick to avoid blocking the event loop
+func (m *RootModel) scheduleRefresh() tea.Cmd {
+	return tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+		return RefreshTimerMsg{}
+	})
 }
 
 // initializeApp initializes the application (database, secrets, AI service)
@@ -196,11 +202,8 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case RefreshTimerMsg:
-		// Trigger periodic refresh every 100ms
-		cmds = append(cmds, func() tea.Msg {
-			time.Sleep(100 * time.Millisecond)
-			return RefreshTimerMsg{}
-		})
+		// Schedule next refresh using tea.Tick (non-blocking)
+		cmds = append(cmds, m.scheduleRefresh())
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -280,6 +283,11 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Initialize child models
 		m.initializeChildModels()
+
+		// CRITICAL: Call Init() on child models and collect their commands
+		// Without this, animations and background tasks won't start
+		childCmds := m.initializeChildModelCommands()
+		cmds = append(cmds, childCmds...)
 
 		// If quick start is configured, configure the editor
 		if m.quickStartConfig != nil {
@@ -361,6 +369,60 @@ func (m *RootModel) initializeChildModels() {
 
 	// Initialize sync service if enabled (auto-creates directories)
 	m.initializeSyncService(cfg)
+}
+
+// initializeChildModelCommands calls Init() on all child models and returns their commands
+// CRITICAL: This must be called after initializeChildModels() to start animations and background tasks
+func (m *RootModel) initializeChildModelCommands() []tea.Cmd {
+	var cmds []tea.Cmd
+
+	// Initialize editor (includes split pane, editor pane, preview pane)
+	if m.editor != nil {
+		if cmd := m.editor.Init(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	// Initialize manager (starts project loading and spinner)
+	if m.manager != nil {
+		if cmd := m.manager.Init(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	// Initialize dashboard
+	if m.dashboard != nil {
+		if cmd := m.dashboard.Init(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	// Initialize other models that have Init() implementations
+	if m.settings != nil {
+		if cmd := m.settings.Init(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	if m.theory != nil {
+		if cmd := m.theory.Init(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	if m.export != nil {
+		if cmd := m.export.Init(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	if m.helpPane != nil {
+		if cmd := m.helpPane.Init(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	return cmds
 }
 
 // initializeVoiceService initializes the voice-to-text service
