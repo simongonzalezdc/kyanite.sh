@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Kyanite/noise/internal/constants"
 	"github.com/Kyanite/noise/internal/domain"
 	appErrors "github.com/Kyanite/noise/internal/errors"
 	"github.com/Kyanite/noise/internal/logging"
@@ -210,7 +211,7 @@ func (db *PerformanceOptimizedDB) createPerformanceIndexes() error {
 		},
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.DefaultContextTimeout)
 	defer cancel()
 
 	for _, index := range indexes {
@@ -261,7 +262,7 @@ func (db *PerformanceOptimizedDB) GetSongOptimized(id int) (*domain.Song, error)
 		return db.GetSong(id)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Reduced timeout
+	ctx, cancel := context.WithTimeout(context.Background(), constants.ShortContextTimeout) // Reduced timeout
 	defer cancel()
 
 	row := stmt.QueryRowContext(ctx, id)
@@ -339,7 +340,7 @@ func (db *PerformanceOptimizedDB) ListSongsOptimized(limit, offset int) ([]*doma
 		return db.ListSongs(limit, offset)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.DBQueryTimeout)
 	defer cancel()
 
 	rows, err := stmt.QueryContext(ctx, limit, offset)
@@ -417,7 +418,7 @@ func (db *PerformanceOptimizedDB) SearchSongsOptimized(query string, limit int) 
 
 	// Optimized search query
 	searchQuery := "%" + query + "%"
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.DBQueryTimeout)
 	defer cancel()
 
 	rows, err := stmt.QueryContext(ctx, searchQuery, searchQuery, searchQuery, limit)
@@ -558,7 +559,7 @@ func (hc *ConnectionHealthChecker) start() {
 }
 
 func (hc *ConnectionHealthChecker) checkHealth() {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.ShortContextTimeout)
 	defer cancel()
 
 	err := hc.db.conn.PingContext(ctx)

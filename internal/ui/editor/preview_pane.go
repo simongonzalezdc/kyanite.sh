@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Kyanite/noise/internal/app/theory"
+	"github.com/Kyanite/noise/internal/logging"
 	"github.com/Kyanite/noise/internal/theme"
 	"github.com/Kyanite/noise/internal/ui/dimension"
 	tea "github.com/charmbracelet/bubbletea"
@@ -1606,7 +1607,11 @@ func (m *PreviewPaneModel) renderContentWithCache() (string, error) {
 
 	// Standard caching for moderately large documents
 	if len(m.content) < contentThreshold {
-		return m.renderContentWithGlamour()
+		rendered, err := m.renderContentWithGlamour()
+		if err != nil {
+			logging.Warnf("PreviewPane: render error: %v", err)
+		}
+		return rendered, err
 	}
 
 	contentHash := m.hashContent(m.content)

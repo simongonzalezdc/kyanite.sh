@@ -16,7 +16,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       primary: "bg-[var(--color-primary)] text-[var(--color-background)] hover:opacity-90 focus-visible:ring-[var(--color-primary)]",
       secondary: "border border-[var(--color-secondary)] text-[var(--color-text)] hover:bg-[var(--color-surface)] focus-visible:ring-[var(--color-secondary)]",
       ghost: "text-[var(--color-text)] hover:bg-[var(--color-surface)] focus-visible:ring-[var(--color-text-muted)]",
-      danger: "bg-[var(--color-error)] text-white hover:opacity-90 focus-visible:ring-[var(--color-error)]",
+      danger: "bg-[var(--color-error)] text-[var(--color-background)] hover:opacity-90 focus-visible:ring-[var(--color-error)]",
     };
 
     // All sizes meet 44px minimum touch target (WCAG 2.5.5)

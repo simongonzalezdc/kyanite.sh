@@ -36,7 +36,7 @@ func (v *SignatureVerifier) LoadTrustedKey(keyID string, keyPath string) error {
 
 	block, _ := pem.Decode(keyData)
 	if block == nil {
-		return fmt.Errorf("failed to decode PEM block")
+		return fmt.Errorf("failed to decode PEM block: no data found")
 	}
 
 	pubKey, err := x509.ParsePKIXPublicKey(block.Bytes)

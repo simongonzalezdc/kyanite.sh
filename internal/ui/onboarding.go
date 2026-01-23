@@ -391,7 +391,7 @@ func (m *OnboardingModel) markComplete() {
 		logging.Errorf("Failed to create onboarding completion marker: %v", err)
 		return
 	}
-	f.Close()
+	defer f.Close()
 }
 
 // ResetOnboarding removes the completion marker (for testing)

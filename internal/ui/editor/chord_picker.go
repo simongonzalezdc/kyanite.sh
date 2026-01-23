@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Kyanite/noise/internal/app"
+	"github.com/Kyanite/noise/internal/constants"
 	"github.com/Kyanite/noise/internal/data"
 	"github.com/Kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
@@ -115,7 +116,7 @@ func (m *chordPickerModel) triggerAIBrainstorm() tea.Cmd {
 			mood = "inspirational"
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), constants.ShortContextTimeout)
 		defer cancel()
 
 		suggestions, err := m.aiService.GenerateHarmonySuggestions(ctx, mood)

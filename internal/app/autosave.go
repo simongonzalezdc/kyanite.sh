@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Kyanite/noise/internal/constants"
 	"github.com/Kyanite/noise/internal/domain"
 	errutil "github.com/Kyanite/noise/internal/errutil"
 	"github.com/Kyanite/noise/internal/infra/db"
@@ -239,9 +240,7 @@ func (s *AutoSaveService) SaveContent(content string) {
 	}
 
 	// Block the caller for the debounce duration to match test expectations
-	// where SaveContent calls during an active service should be debounced.
-	// This keeps the behavior explicit and simple for tests; production
-	// callers won't typically call SaveContent synchronously in rapid loops.
+	// This keeps the behavior explicit and simple for tests.
 	time.Sleep(time.Duration(s.config.DebounceMs) * time.Millisecond)
 }
 
@@ -404,7 +403,7 @@ func (s *AutoSaveService) performSave(content string) error {
 
 	// Reset to idle after a brief delay
 	go func() {
-		time.Sleep(2 * time.Second)
+		time.Sleep(constants.StatusIdleDelay)
 		s.setStatus(AutoSaveIdle)
 		s.invokeStatusCallback(AutoSaveIdle)
 	}()
@@ -425,12 +424,11 @@ func (s *AutoSaveService) executeSave(content string) error {
 
 	// Add retry logic specifically for lock errors
 	var lastErr error
-	maxLockRetries := 3
-	lockRetryDelay := 50 * time.Millisecond
+	lockRetryDelay := constants.LockRetryDelay
 
-	for attempt := 0; attempt <= maxLockRetries; attempt++ {
+	for attempt := 0; attempt <= constants.MaxLockRetries; attempt++ {
 		if attempt > 0 {
-			logging.Debugf("Database lock retry attempt %d/%d", attempt, maxLockRetries)
+			logging.Debugf("Database lock retry attempt %d/%d", attempt, constants.MaxLockRetries)
 			time.Sleep(lockRetryDelay)
 			lockRetryDelay *= 2 // Exponential backoff
 		}
@@ -442,7 +440,7 @@ func (s *AutoSaveService) executeSave(content string) error {
 			if strings.Contains(err.Error(), "database is locked") ||
 				strings.Contains(err.Error(), "locked") ||
 				strings.Contains(err.Error(), "busy") {
-				if attempt < maxLockRetries {
+				if attempt < constants.MaxLockRetries {
 					continue // Retry on lock errors
 				}
 			}
@@ -501,7 +499,7 @@ func (s *AutoSaveService) SaveWithVersioning(songID int, content string, isMiles
 
 	// Reset to idle after a brief delay
 	go func() {
-		time.Sleep(2 * time.Second)
+		time.Sleep(constants.StatusIdleDelay)
 		s.setStatus(AutoSaveIdle)
 		s.invokeStatusCallback(AutoSaveIdle)
 	}()
@@ -527,12 +525,11 @@ func (s *AutoSaveService) executeSaveWithVersioning(songID int, content string, 
 
 	// Add retry logic specifically for lock errors
 	var lastErr error
-	maxLockRetries := 3
-	lockRetryDelay := 50 * time.Millisecond
+	lockRetryDelay := constants.LockRetryDelay
 
-	for attempt := 0; attempt <= maxLockRetries; attempt++ {
+	for attempt := 0; attempt <= constants.MaxLockRetries; attempt++ {
 		if attempt > 0 {
-			logging.Debugf("Versioned save lock retry attempt %d/%d", attempt, maxLockRetries)
+			logging.Debugf("Versioned save lock retry attempt %d/%d", attempt, constants.MaxLockRetries)
 			time.Sleep(lockRetryDelay)
 			lockRetryDelay *= 2 // Exponential backoff
 		}
@@ -544,7 +541,7 @@ func (s *AutoSaveService) executeSaveWithVersioning(songID int, content string, 
 			if strings.Contains(err.Error(), "database is locked") ||
 				strings.Contains(err.Error(), "locked") ||
 				strings.Contains(err.Error(), "busy") {
-				if attempt < maxLockRetries {
+				if attempt < constants.MaxLockRetries {
 					continue // Retry on lock errors
 				}
 			}
@@ -587,10 +584,9 @@ func (s *AutoSaveService) CleanupOldVersions(songID int) error {
 		version := versions[len(versions)-1]
 
 		var deleteErr error
-		maxDeleteRetries := 3
-		deleteRetryDelay := 50 * time.Millisecond
+		deleteRetryDelay := constants.LockRetryDelay
 
-		for attempt := 0; attempt <= maxDeleteRetries; attempt++ {
+		for attempt := 0; attempt <= constants.MaxDeleteRetries; attempt++ {
 			if attempt > 0 {
 				time.Sleep(deleteRetryDelay)
 				deleteRetryDelay *= 2
@@ -604,7 +600,7 @@ func (s *AutoSaveService) CleanupOldVersions(songID int) error {
 			if strings.Contains(deleteErr.Error(), "database is locked") ||
 				strings.Contains(deleteErr.Error(), "locked") ||
 				strings.Contains(deleteErr.Error(), "busy") {
-				if attempt < maxDeleteRetries {
+				if attempt < constants.MaxDeleteRetries {
 					continue // Retry on lock errors
 				}
 			}

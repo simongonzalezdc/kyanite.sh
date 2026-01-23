@@ -115,6 +115,7 @@ type UpdateIndicator struct {
 	startTime time.Time
 	// duration  time.Duration // TODO: Uncomment when duration tracking is needed
 	style lipgloss.Style
+	mutex sync.RWMutex
 }
 
 // NewRealTimePreviewManager creates a new real-time preview manager
@@ -278,14 +279,18 @@ func (m *RealTimePreviewManager) performUpdate(content string) {
 
 // showUpdateIndicator shows the update indicator
 func (m *RealTimePreviewManager) showUpdateIndicator() {
+	m.updateIndicator.mutex.Lock()
 	m.updateIndicator.isVisible = true
 	m.updateIndicator.startTime = time.Now()
+	m.updateIndicator.mutex.Unlock()
 }
 
 // hideUpdateIndicatorAfterDelay hides the update indicator after a delay
 func (m *RealTimePreviewManager) hideUpdateIndicatorAfterDelay() {
 	time.Sleep(m.config.UpdateIndicatorDuration)
+	m.updateIndicator.mutex.Lock()
 	m.updateIndicator.isVisible = false
+	m.updateIndicator.mutex.Unlock()
 }
 
 // updateStats updates preview statistics
@@ -336,11 +341,16 @@ func (m *RealTimePreviewManager) GetContentHistory() []ContentChangeEvent {
 
 // GetUpdateIndicatorView returns the visual representation of the update indicator
 func (m *RealTimePreviewManager) GetUpdateIndicatorView() string {
-	if !m.updateIndicator.isVisible || !m.config.ShowUpdateIndicator {
+	m.updateIndicator.mutex.RLock()
+	isVisible := m.updateIndicator.isVisible
+	startTime := m.updateIndicator.startTime
+	m.updateIndicator.mutex.RUnlock()
+
+	if !isVisible || !m.config.ShowUpdateIndicator {
 		return ""
 	}
 
-	elapsed := time.Since(m.updateIndicator.startTime)
+	elapsed := time.Since(startTime)
 	if elapsed > m.config.UpdateIndicatorDuration {
 		return ""
 	}

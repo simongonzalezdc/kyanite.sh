@@ -216,7 +216,10 @@ func (r *ExternalErrorReporter) Report(ctx context.Context, report *ErrorReport)
 
 	// Check response
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("external service returned error (status %d): failed to read body: %w", resp.StatusCode, err)
+		}
 		return fmt.Errorf("external service returned error: %s (status: %d)", string(body), resp.StatusCode)
 	}
 

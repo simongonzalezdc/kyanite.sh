@@ -1,0 +1,22 @@
+---
+description: Standards for AI orchestration and QuickIdeaAgent integration
+globs: internal/app/ai/**/*.go, internal/app/agent/**/*.go
+alwaysApply: false
+---
+
+# AI Orchestration Standards
+
+## QuickIdeaAgent
+- Maintain <2s response time for "unstick", "spark", "tweak", and "check" flows.
+- Use deterministic prompts located in `pkg/prompts/`.
+- Ensure context-awareness without leaking sensitive data.
+
+## Ollama Integration
+- Support local model hosting via Ollama.
+- Implement robust retry logic and fallback to lighter models if needed.
+- Use `internal/infra/ollama` for client communication.
+
+## RAG & Knowledge Base
+- Use ChromaDB for semantic search in the knowledge base.
+- Follow the 6-stage pipeline architecture defined in `docs/tdd_markdown.md`.
+- Ensure all AI-generated content is clearly marked as such.

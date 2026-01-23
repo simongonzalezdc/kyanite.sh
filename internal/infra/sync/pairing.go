@@ -57,8 +57,12 @@ func (pm *PairingManager) GenerateCode() string {
 	// Generate random 6-digit code
 	code := generateNumericCode(PairingCodeLength)
 
-	// Ensure uniqueness
-	for pm.activeCodes[code].After(time.Now()) {
+	// Ensure uniqueness - regenerate if code exists and hasn't expired
+	for {
+		expiry, exists := pm.activeCodes[code]
+		if !exists || !expiry.After(time.Now()) {
+			break
+		}
 		code = generateNumericCode(PairingCodeLength)
 	}
 

@@ -206,7 +206,11 @@ func (eru *ErrorRecoveryUI) refreshRecoveryOperations() {
 func (eru *ErrorRecoveryUI) updateSystemHealth() {
 	health := eru.gracefulDegradation.GetSystemHealth()
 
-	eru.healthStatus.OverallScore = health["health_score"].(int)
+	if score, ok := health["health_score"].(int); ok {
+		eru.healthStatus.OverallScore = score
+	} else {
+		eru.healthStatus.OverallScore = 0 // Safe default
+	}
 	eru.healthStatus.LastUpdated = time.Now()
 
 	// Update feature health

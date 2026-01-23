@@ -244,7 +244,9 @@ func (m *MemoryManager) GetRecentEpisodes(limit int) ([]EpisodicEvent, error) {
 		event.Outcome = outcome.String
 		
 		if metadataJSON != "" {
-			json.Unmarshal([]byte(metadataJSON), &event.Metadata)
+			if err := json.Unmarshal([]byte(metadataJSON), &event.Metadata); err != nil {
+				logging.Errorf("Failed to unmarshal episode metadata: %v", err)
+			}
 		}
 		
 		events = append(events, event)
@@ -309,7 +311,9 @@ func (m *MemoryManager) GetEpisodesForSong(songID int, limit int) ([]EpisodicEve
 		event.Outcome = outcome.String
 		
 		if metadataJSON != "" {
-			json.Unmarshal([]byte(metadataJSON), &event.Metadata)
+			if err := json.Unmarshal([]byte(metadataJSON), &event.Metadata); err != nil {
+				logging.Errorf("Failed to unmarshal episode metadata for song: %v", err)
+			}
 		}
 		
 		events = append(events, event)
@@ -410,7 +414,9 @@ func (m *MemoryManager) GetAllPreferences() (map[string]*Preference, error) {
 			continue
 		}
 		
-		json.Unmarshal([]byte(valueJSON), &pref.Value)
+		if err := json.Unmarshal([]byte(valueJSON), &pref.Value); err != nil {
+			logging.Errorf("Failed to unmarshal preference value for key %s: %v", pref.Key, err)
+		}
 		prefs[pref.Key] = &pref
 	}
 	
@@ -428,15 +434,23 @@ func (m *MemoryManager) RecordChatMessage(msg ChatMessage) error {
 		msg.Timestamp = time.Now()
 	}
 	
-	contextJSON, _ := json.Marshal(msg.Context)
-	toolCallsJSON, _ := json.Marshal(msg.ToolCalls)
+	contextJSON, err := json.Marshal(msg.Context)
+	if err != nil {
+		logging.Errorf("Failed to marshal chat context: %v", err)
+		contextJSON = []byte("{}")
+	}
+	toolCallsJSON, err := json.Marshal(msg.ToolCalls)
+	if err != nil {
+		logging.Errorf("Failed to marshal chat tool calls: %v", err)
+		toolCallsJSON = []byte("[]")
+	}
 	
 	query := `
 		INSERT INTO muse_conversations (session_id, timestamp, role, content, context, tool_calls)
 		VALUES (?, ?, ?, ?, ?, ?)
 	`
 	
-	_, err := m.db.Exec(query,
+	_, err = m.db.Exec(query,
 		msg.SessionID,
 		msg.Timestamp,
 		msg.Role,
@@ -568,7 +582,11 @@ func (m *MemoryManager) saveSessionSummary() error {
 	if wm.CurrentSong != nil {
 		songsWorkedOn = append(songsWorkedOn, wm.CurrentSong.ID)
 	}
-	songsJSON, _ := json.Marshal(songsWorkedOn)
+	songsJSON, err := json.Marshal(songsWorkedOn)
+	if err != nil {
+		logging.Errorf("Failed to marshal songs worked on: %v", err)
+		songsJSON = []byte("[]")
+	}
 	
 	query := `
 		INSERT INTO muse_session_summaries (session_id, started_at, ended_at, songs_worked_on, words_written)
@@ -579,7 +597,7 @@ func (m *MemoryManager) saveSessionSummary() error {
 			words_written = excluded.words_written
 	`
 	
-	_, err := m.db.Exec(query,
+	_, err = m.db.Exec(query,
 		sessionID,
 		wm.SessionStart,
 		time.Now(),

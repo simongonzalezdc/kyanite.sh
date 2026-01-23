@@ -53,7 +53,8 @@ type Logger struct {
 	level      LogLevel
 	showCaller bool
 	callerSkip int
-	tuiMode    bool // When true, suppress all output to avoid corrupting TUI
+	tuiMode    bool    // When true, suppress all output to avoid corrupting TUI
+	logFile    *os.File // File handle for log file (if any)
 }
 
 // Config holds logger configuration
@@ -79,19 +80,21 @@ func New(cfg *Config) (*Logger, error) {
 	var output io.Writer = cfg.Output
 
 	// If log file is specified, create or append to it
+	var logFile *os.File
 	if cfg.LogFile != "" {
 		logDir := filepath.Dir(cfg.LogFile)
 		if err := os.MkdirAll(logDir, 0755); err != nil {
 			return nil, errutil.Wrap(err, "create log directory")
 		}
 
-		file, err := os.OpenFile(cfg.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		var err error
+		logFile, err = os.OpenFile(cfg.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 		if err != nil {
 			return nil, errutil.Wrap(err, "open log file")
 		}
 
 		// Use multi-writer to write to both file and stdout
-		output = io.MultiWriter(cfg.Output, file)
+		output = io.MultiWriter(cfg.Output, logFile)
 	}
 
 	logger := &Logger{
@@ -99,9 +102,18 @@ func New(cfg *Config) (*Logger, error) {
 		level:      cfg.Level,
 		showCaller: cfg.ShowCaller,
 		callerSkip: 2,
+		logFile:    logFile,
 	}
 
 	return logger, nil
+}
+
+// Close closes the log file if one was opened
+func (l *Logger) Close() error {
+	if l.logFile != nil {
+		return l.logFile.Close()
+	}
+	return nil
 }
 
 // NewFromConfig creates a new logger from application configuration

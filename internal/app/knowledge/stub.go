@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/Kyanite/noise/internal/constants"
 )
 
 // StubKnowledgeBase provides a stub implementation of the KnowledgeBase interface
@@ -340,7 +342,7 @@ func (kb *StubKnowledgeBase) Search(ctx context.Context, query string, options S
 	kb.searchCount++
 
 	// Simulate some processing time
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(constants.StubDelay)
 
 	// Default options if not provided
 	if options.Limit <= 0 {

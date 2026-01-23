@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/Kyanite/noise/internal/logging"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -55,7 +56,8 @@ func NewTheoryService() *TheoryService {
 	// Try to load the dictionary file
 	if err := dict.LoadDictionary("data/dictionary.json"); err != nil {
 		// If loading fails, continue with empty dictionary (will use fallbacks)
-		// In production, you might want to log this error
+		// In production, we log this error for visibility
+		logging.Warnf("TheoryService: failed to load dictionary: %v", err)
 	}
 
 	return &TheoryService{

@@ -11,6 +11,7 @@ import (
 
 	"github.com/Kyanite/noise/internal/app/ai"
 	"github.com/Kyanite/noise/internal/config"
+	"github.com/Kyanite/noise/internal/constants"
 	"github.com/Kyanite/noise/internal/domain"
 	"github.com/Kyanite/noise/internal/infra/glm"
 	"github.com/Kyanite/noise/internal/infra/ollama"
@@ -68,8 +69,7 @@ func (s *AIService) GetQuickAgent() *ai.QuickIdeaAgent {
 func (s *AIService) Brainstorm(theme string) ([]string, error) {
 	// If provider is GLM or Hybrid, use GLM for high-quality structural brainstorm
 	if s.config.AI.Provider == "glm" || s.config.AI.Provider == "hybrid" {
-		brainstormTimeout := 30 * time.Second
-		ctx, cancel := context.WithTimeout(context.Background(), brainstormTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), constants.BrainstormTimeout)
 		defer cancel()
 
 		prompt := fmt.Sprintf("Generate 5 unique and evocative songwriting angles for the theme: '%s'. Return as a plain list of bullet points.", theme)

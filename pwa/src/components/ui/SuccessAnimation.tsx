@@ -1,9 +1,28 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /** Duration of the success animation (ms) */
 const SUCCESS_ANIMATION_DURATION_MS = 1500;
+
+/** Hook to check if user prefers reduced motion */
+function useReducedMotion(): boolean {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const handler = (event: MediaQueryListEvent) => {
+      setPrefersReducedMotion(event.matches);
+    };
+
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
+  }, []);
+
+  return prefersReducedMotion;
+}
 
 interface SuccessAnimationProps {
   /** Whether to show the animation */
@@ -41,13 +60,16 @@ export function SuccessAnimation({
     prevShowRef.current = show;
   }, [show, onComplete]);
 
+  const prefersReducedMotion = useReducedMotion();
+
   // Only render when show is true
   if (!show) {
     return null;
   }
 
   // Animation is controlled by CSS - plays when component mounts (show becomes true)
-  const isAnimating = true;
+  // Skip animations if user prefers reduced motion
+  const isAnimating = !prefersReducedMotion;
 
   const sizes = {
     sm: { circle: 48, stroke: 3, icon: 20 },

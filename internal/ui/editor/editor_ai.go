@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/Kyanite/noise/internal/app"
 	"github.com/Kyanite/noise/internal/app/ai"
+	"github.com/Kyanite/noise/internal/constants"
 	"github.com/Kyanite/noise/internal/logging"
 	"github.com/Kyanite/noise/internal/theme"
 	"github.com/charmbracelet/lipgloss"
@@ -39,7 +39,7 @@ func (a *EditorAI) StartRapidBrainstorm(theme string) {
 	}
 
 	// Call the AI agent with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.AIContextTimeout)
 	defer cancel()
 
 	resp, err := a.aiAgent.Generate(ctx, req)
@@ -103,7 +103,7 @@ func (a *EditorAI) SelectBrainstormAngle(index int, state StateManagerInterface)
 	}
 
 	// Call the AI agent with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.AIContextTimeout)
 	defer cancel()
 
 	resp, err := a.aiAgent.Generate(ctx, req)
@@ -216,7 +216,7 @@ func (a *EditorAI) GenerateContinueSuggestions(state StateManagerInterface) {
 	}
 
 	// Call the AI agent with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.AIContextTimeout)
 	defer cancel()
 
 	resp, err := a.aiAgent.Generate(ctx, req)
@@ -274,7 +274,7 @@ func (a *EditorAI) StartVariationMode(selectedText string) {
 	}
 
 	// Call the AI agent with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.AIContextTimeout)
 	defer cancel()
 
 	resp, err := a.aiAgent.Generate(ctx, req)
@@ -359,7 +359,7 @@ func (a *EditorAI) PerformQualityCheck(state StateManagerInterface) {
 	}
 
 	// Call the AI agent with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.AIContextTimeout)
 	defer cancel()
 
 	resp, err := a.aiAgent.Generate(ctx, req)

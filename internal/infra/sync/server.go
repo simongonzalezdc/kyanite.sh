@@ -478,6 +478,11 @@ func isImageType(contentType string) bool {
 }
 
 func mustMarshal(v interface{}) []byte {
-	data, _ := json.Marshal(v)
+	data, err := json.Marshal(v)
+	if err != nil {
+		// Log error and return empty JSON object as fallback
+		fmt.Printf("[SyncServer] Failed to marshal data: %v\n", err)
+		return []byte("{}")
+	}
 	return data
 }

@@ -246,7 +246,15 @@ func (ai *PerformanceOptimizedAI) generateCacheKey(contentType ContentType, mode
 		"options":      options,
 	}
 
-	jsonBytes, _ := json.Marshal(data)
+	jsonBytes, err := json.Marshal(data)
+	if err != nil {
+		// Fallback to a simple string-based key if marshal fails
+		truncLen := 50
+		if len(contentText) < truncLen {
+			truncLen = len(contentText)
+		}
+		return fmt.Sprintf("%v-%v-%s", contentType, mode, contentText[:truncLen])
+	}
 	hash := sha256.Sum256(jsonBytes)
 	return hex.EncodeToString(hash[:])
 }
@@ -479,9 +487,13 @@ func (ai *PerformanceOptimizedAI) GetPerformanceReport() map[string]interface{} 
 		"config":  ai.config,
 	}
 
-	// Calculate cache hit rate
-	if cacheStats["hits"].(int64)+cacheStats["misses"].(int64) > 0 {
-		report["cache_hit_rate"] = cacheStats["hit_rate"].(float64)
+	// Calculate cache hit rate with safe type assertions
+	hits, hitsOk := cacheStats["hits"].(int64)
+	misses, missesOk := cacheStats["misses"].(int64)
+	if hitsOk && missesOk && hits+misses > 0 {
+		if hitRate, ok := cacheStats["hit_rate"].(float64); ok {
+			report["cache_hit_rate"] = hitRate
+		}
 	}
 
 	return report

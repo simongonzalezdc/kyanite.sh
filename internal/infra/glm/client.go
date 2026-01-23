@@ -99,7 +99,10 @@ func (c *Client) Generate(ctx context.Context, model, prompt string, options map
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return "", fmt.Errorf("GLM error (status %d): failed to read body: %w", resp.StatusCode, err)
+		}
 		return "", fmt.Errorf("GLM error (status %d): %s", resp.StatusCode, string(body))
 	}
 
