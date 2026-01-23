@@ -300,7 +300,9 @@ func (l *Logger) logf(level LogLevel, format string, v ...interface{}) {
 	}
 
 	message += fmt.Sprintf(format, v...)
-	l.Logger.Print(message)
+	if l.Logger != nil {
+		l.Logger.Print(message)
+	}
 }
 
 // getCaller returns the file and line number of the caller

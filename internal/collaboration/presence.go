@@ -2,6 +2,7 @@ package collaboration
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -381,6 +382,12 @@ func (pm *PresenceManager) emitPresenceEvent(event PresenceEvent) {
 }
 
 func (pm *PresenceManager) processPresenceEvents() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("[PresenceManager] Panic in event processor: %v\n", r)
+		}
+	}()
+
 	for {
 		select {
 		case <-pm.ctx.Done():
@@ -408,6 +415,12 @@ func (pm *PresenceManager) handlePresenceEvent(event PresenceEvent) {
 }
 
 func (pm *PresenceManager) cleanupIdleUsers() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("[PresenceManager] Panic in cleanup processor: %v\n", r)
+		}
+	}()
+
 	ticker := time.NewTicker(30 * time.Second) // Check every 30 seconds
 	defer ticker.Stop()
 

@@ -40,10 +40,14 @@ func NewToolRegistry() *ToolRegistry {
 }
 
 // Register adds a tool to the registry
-func (r *ToolRegistry) Register(tool *Tool) {
+func (r *ToolRegistry) Register(tool *Tool) error {
+	if tool == nil {
+		return fmt.Errorf("cannot register nil tool")
+	}
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	r.tools[tool.Name] = tool
+	return nil
 }
 
 // Get retrieves a tool by name
@@ -57,7 +61,7 @@ func (r *ToolRegistry) Get(name string) (*Tool, bool) {
 // Execute runs a tool with the given parameters
 func (r *ToolRegistry) Execute(name string, params map[string]string) (string, error) {
 	tool, ok := r.Get(name)
-	if !ok {
+	if !ok || tool == nil {
 		return "", fmt.Errorf("tool not found: %s", name)
 	}
 	

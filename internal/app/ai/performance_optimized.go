@@ -402,6 +402,12 @@ func (bp *BatchProcessor) start() {
 
 // worker processes batches of requests
 func (bp *BatchProcessor) worker(id int) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("[AI BatchProcessor] Panic in worker %d: %v\n", id, r)
+		}
+	}()
+
 	batch := make([]*BatchRequest, 0, bp.batchSize)
 	ticker := time.NewTicker(bp.batchTimeout)
 	defer ticker.Stop()

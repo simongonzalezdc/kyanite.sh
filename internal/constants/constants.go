@@ -10,7 +10,7 @@ const (
 	LongContextTimeout    = 60 * time.Second
 
 	// Editor specific timeouts
-	SaveOperationTimeout = 10 * time.Second
+	SaveOperationTimeout = 30 * time.Second
 	AutoSaveTimeout      = 15 * time.Second
 
 	// AI timeouts

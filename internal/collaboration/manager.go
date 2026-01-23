@@ -578,6 +578,12 @@ func (cm *CollaborationManager) broadcastMessage(msg CollaborationMessage) {
 }
 
 func (cm *CollaborationManager) processEvents() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("[CollaborationManager] Panic in event processor: %v\n", r)
+		}
+	}()
+
 	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
 
@@ -595,6 +601,12 @@ func (cm *CollaborationManager) processEvents() {
 }
 
 func (cm *CollaborationManager) processBroadcasts() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("[CollaborationManager] Panic in broadcast processor: %v\n", r)
+		}
+	}()
+
 	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
 

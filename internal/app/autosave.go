@@ -131,6 +131,7 @@ type AutoSaveService struct {
 	// Internal lifecycle
 	started        bool
 	lifecycleMutex sync.RWMutex // protects started field
+	wg             sync.WaitGroup // coordinates goroutine shutdown
 
 	// Channels for controlling the service
 	stopChan   chan struct{}
@@ -176,10 +177,18 @@ func (s *AutoSaveService) Start(ctx context.Context) error {
 	s.lifecycleMutex.Unlock()
 
 	// Start the save processor goroutine
-	go s.processSaves(ctx)
+	s.wg.Add(1)
+	go func() {
+		defer s.wg.Done()
+		s.processSaves(ctx)
+	}()
 
 	// Start the periodic timer goroutine
-	go s.startPeriodicTimer(ctx)
+	s.wg.Add(1)
+	go func() {
+		defer s.wg.Done()
+		s.startPeriodicTimer(ctx)
+	}()
 
 	logging.Infof("Auto-save service started with %d second intervals", s.config.IntervalSeconds)
 	return nil
@@ -199,6 +208,10 @@ func (s *AutoSaveService) Stop() error {
 	default:
 		close(s.stopChan)
 	}
+
+	// Wait for goroutines to complete
+	s.wg.Wait()
+
 	logging.Info("Auto-save service stopped")
 	return nil
 }
@@ -284,6 +297,12 @@ func (s *AutoSaveService) UpdateConfig(config *AutoSaveConfig) {
 
 // startPeriodicTimer starts the periodic auto-save timer
 func (s *AutoSaveService) startPeriodicTimer(ctx context.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			logging.Errorf("Panic in autosave periodic timer: %v", r)
+		}
+	}()
+
 	ticker := time.NewTicker(time.Duration(s.config.IntervalSeconds) * time.Second)
 	defer ticker.Stop()
 
@@ -317,6 +336,12 @@ func (s *AutoSaveService) performPeriodicSave() {
 
 // processSaves handles the debounced save processing
 func (s *AutoSaveService) processSaves(ctx context.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			logging.Errorf("Panic in autosave processSaves: %v", r)
+		}
+	}()
+
 	var debounceTimer *time.Timer
 
 	// Ensure timer is stopped when function exits

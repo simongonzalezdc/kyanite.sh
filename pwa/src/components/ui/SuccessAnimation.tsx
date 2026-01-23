@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 /** Duration of the success animation (ms) */
 const SUCCESS_ANIMATION_DURATION_MS = 1500;
+/** Reduced duration when user prefers reduced motion (ms) */
+const REDUCED_MOTION_DURATION_MS = 100;
 
 /** Hook to check if user prefers reduced motion */
 function useReducedMotion(): boolean {
@@ -45,22 +47,23 @@ export function SuccessAnimation({
   message,
 }: SuccessAnimationProps) {
   const prevShowRef = useRef(show);
+  const prefersReducedMotion = useReducedMotion();
 
   // Trigger onComplete callback after animation duration
+  // Use shorter duration when user prefers reduced motion
   useEffect(() => {
     if (show && !prevShowRef.current) {
       // Transition from false to true - animation started
+      const duration = prefersReducedMotion ? REDUCED_MOTION_DURATION_MS : SUCCESS_ANIMATION_DURATION_MS;
       const timer = setTimeout(() => {
         onComplete?.();
-      }, SUCCESS_ANIMATION_DURATION_MS);
+      }, duration);
 
       prevShowRef.current = show;
       return () => clearTimeout(timer);
     }
     prevShowRef.current = show;
-  }, [show, onComplete]);
-
-  const prefersReducedMotion = useReducedMotion();
+  }, [show, onComplete, prefersReducedMotion]);
 
   // Only render when show is true
   if (!show) {

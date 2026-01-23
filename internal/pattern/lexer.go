@@ -43,17 +43,13 @@ func (l *Lexer) Reset() {
 func (l *Lexer) readChar() {
 	if l.readPosition >= len(l.input) {
 		l.ch = 0 // ASCII NUL represents EOF
+		l.position = l.readPosition
 	} else {
 		r, width := utf8.DecodeRuneInString(l.input[l.readPosition:])
-		if r == utf8.RuneError && width == 1 {
-			// Invalid UTF-8 byte - skip it and use replacement character
-			l.ch = utf8.RuneError
-		} else {
-			l.ch = r
-		}
+		l.ch = r
+		l.position = l.readPosition
+		l.readPosition += width // Use actual decoded width, not RuneLen
 	}
-	l.position = l.readPosition
-	l.readPosition += utf8.RuneLen(l.ch)
 	if l.ch == '\n' {
 		l.line++
 		l.column = 1
@@ -67,11 +63,7 @@ func (l *Lexer) peekChar() rune {
 	if l.readPosition >= len(l.input) {
 		return 0
 	}
-	r, width := utf8.DecodeRuneInString(l.input[l.readPosition:])
-	if r == utf8.RuneError && width == 1 {
-		// Invalid UTF-8 byte
-		return utf8.RuneError
-	}
+	r, _ := utf8.DecodeRuneInString(l.input[l.readPosition:])
 	return r
 }
 

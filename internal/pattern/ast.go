@@ -308,6 +308,9 @@ func NewASTWalker(visitor ASTVisitor) *ASTWalker {
 }
 
 func (w *ASTWalker) Walk(node Node) interface{} {
+	if node == nil {
+		return nil
+	}
 	return w.Visit(node)
 }
 

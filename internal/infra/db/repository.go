@@ -332,6 +332,10 @@ func (db *DB) GetSong(id int) (*domain.Song, error) {
 
 // GetSongByFilepath retrieves a song by its file path
 func (db *DB) GetSongByFilepath(filepath string) (*domain.Song, error) {
+	if err := db.validateConnection(); err != nil {
+		return nil, err
+	}
+
 	query := `
 		SELECT id, filepath, title, artist, key, tempo, time_signature, structure, tags, created_at, updated_at
 		FROM songs WHERE filepath = ?`
@@ -626,6 +630,10 @@ func (db *DB) GetVersion(id int) (*domain.Version, error) {
 		return db.getVersionInMemory(id)
 	}
 
+	if err := db.validateConnection(); err != nil {
+		return nil, err
+	}
+
 	query := `
 		SELECT id, song_id, content, is_milestone, milestone_name, created_at
 		FROM versions WHERE id = ?`
@@ -860,6 +868,10 @@ func (db *DB) RecordStats(stats *domain.WritingStats) error {
 
 // GetStats retrieves writing statistics for a specific date
 func (db *DB) GetStats(date time.Time) (*domain.WritingStats, error) {
+	if err := db.validateConnection(); err != nil {
+		return nil, err
+	}
+
 	query := `SELECT id, date, words_written, songs_created, songs_edited, ai_requests, time_spent_minutes FROM writing_stats WHERE date = ?`
 
 	row := db.conn.QueryRow(query, date)
@@ -978,6 +990,10 @@ func (db *DB) CreateProject(project *domain.Project) (*domain.Project, error) {
 
 // GetProject retrieves a project by ID
 func (db *DB) GetProject(id int) (*domain.Project, error) {
+	if err := db.validateConnection(); err != nil {
+		return nil, err
+	}
+
 	query := `
 		SELECT id, name, description, song_ids, created_at, updated_at
 		FROM projects WHERE id = ?`

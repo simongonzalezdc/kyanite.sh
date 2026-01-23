@@ -148,6 +148,9 @@ func (h *WebSocketHub) HandleConnection(w http.ResponseWriter, r *http.Request, 
 // readPump reads messages from the WebSocket connection
 func (c *Client) readPump() {
 	defer func() {
+		if r := recover(); r != nil {
+			logging.GetDefaultLogger().Error("Panic in WebSocket readPump", "error", r)
+		}
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()
@@ -184,6 +187,9 @@ func (c *Client) readPump() {
 func (c *Client) writePump() {
 	ticker := time.NewTicker(WebSocketPingInterval)
 	defer func() {
+		if r := recover(); r != nil {
+			logging.GetDefaultLogger().Error("Panic in WebSocket writePump", "error", r)
+		}
 		ticker.Stop()
 		c.conn.Close()
 	}()
