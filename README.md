@@ -47,7 +47,41 @@ noise.exe song.md
 | Save | `Ctrl+S` |
 
 ## Installation
-Clone the repository and build the single binary:
+
+### Quick Start (Recommended)
+Use the launcher script which handles everything automatically:
+
+```bash
+git clone https://github.com/Kyanite/noise.sh.git
+cd noise.sh
+
+# macOS/Linux
+./launch.sh
+
+# Windows
+launch.bat
+```
+
+The launcher will:
+1. Check for Go installation
+2. Download dependencies
+3. Build the binary
+4. Set up data directories
+5. Launch the app
+
+### Launch with PWA Companion
+To start both the TUI and the mobile companion PWA:
+
+```bash
+./launch-all.sh
+```
+
+This starts:
+- TUI app in your terminal
+- PWA dev server at http://localhost:3000 (access from your phone on the same network)
+
+### Manual Build
+If you prefer to build manually:
 
 ```bash
 git clone https://github.com/Kyanite/noise.sh.git
