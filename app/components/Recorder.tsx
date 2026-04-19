@@ -59,7 +59,7 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
         currentAudioSource.current.stop();
         currentAudioSource.current = null;
       } catch (error) {
-        console.warn('Error stopping previous playback:', error);
+        console.error('Error stopping previous playback:', error);
       }
     }
 
