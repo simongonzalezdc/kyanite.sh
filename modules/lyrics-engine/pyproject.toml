@@ -1,0 +1,74 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lyrics-engine"
+version = "0.1.0"
+description = "Standalone lyrics writing tool with rhyme engine, syllable counter, AI generation, and song structure templates"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Simon", email = "simon@puenteworks.com"},
+    {name = "Liam", email = "liam@puenteworks.com"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Topic :: Artistic Software",
+    "Topic :: Text Processing :: Linguistic",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "pronouncing>=0.2.0",
+    "pyphen>=0.14.0",
+    "spacy>=3.7.0",
+    "typer>=0.9.0",
+    "openai>=1.0.0",
+    "ollama-python>=0.1.0",
+    "rich>=13.7.0",
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.1.0",
+    "mypy>=1.7.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Pastorsimon1798/lyrics-engine"
+Documentation = "https://github.com/Pastorsimon1798/lyrics-engine#readme"
+Repository = "https://github.com/Pastorsimon1798/lyrics-engine"
+
+[project.scripts]
+lyrics = "lyrics.cli:app"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v"
