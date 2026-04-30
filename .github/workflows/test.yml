@@ -9,7 +9,7 @@ on:
 jobs:
   unit-tests:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     
     steps:
     - name: Checkout code
@@ -42,7 +42,7 @@ jobs:
 
   e2e-tests:
     name: E2E Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     
     steps:
     - name: Checkout code
@@ -86,7 +86,7 @@ jobs:
 
   performance-tests:
     name: Performance Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     
     steps:
     - name: Checkout code
@@ -113,7 +113,7 @@ jobs:
 
   accessibility-tests:
     name: Accessibility Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     
     steps:
     - name: Checkout code
@@ -140,7 +140,7 @@ jobs:
 
   visual-regression-tests:
     name: Visual Regression Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     
     steps:
     - name: Checkout code
@@ -170,7 +170,7 @@ jobs:
 
   test-summary:
     name: Test Summary
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     needs: [unit-tests, e2e-tests, performance-tests, accessibility-tests, visual-regression-tests]
     if: always()
     
