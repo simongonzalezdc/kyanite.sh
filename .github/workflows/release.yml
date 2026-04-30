@@ -15,7 +15,7 @@ permissions:
 jobs:
   prepare:
     name: Prepare metadata
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     outputs:
       version_tag: ${{ steps.meta.outputs.version_tag }}
       version: ${{ steps.meta.outputs.version }}
@@ -67,7 +67,7 @@ jobs:
 
   quality:
     name: Lint and test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     needs: prepare
     steps:
       - name: Checkout repository
@@ -99,7 +99,7 @@ jobs:
 
   package:
     name: Build and package (${{ matrix.goos }}/${{ matrix.goarch }})
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     needs:
       - prepare
       - quality
@@ -192,7 +192,7 @@ jobs:
 
   checksums:
     name: Generate checksums
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     needs:
       - prepare
       - package
@@ -220,7 +220,7 @@ jobs:
 
   validate:
     name: Release validation tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     needs:
       - prepare
       - quality
@@ -243,7 +243,7 @@ jobs:
 
   release:
     name: Publish release
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     needs:
       - prepare
       - checksums

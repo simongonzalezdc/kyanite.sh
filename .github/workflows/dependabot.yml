@@ -13,7 +13,7 @@ permissions:
 jobs:
   go-module-update-report:
     name: Go Module Update Report
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     timeout-minutes: 25
     steps:
       - name: Checkout repository
