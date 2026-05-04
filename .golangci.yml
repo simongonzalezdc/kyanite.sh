@@ -1,3 +1,5 @@
+version: "2"
+
 run:
   timeout: 5m
   issues-exit-code: 1
@@ -6,7 +8,9 @@ run:
 
 output:
   formats:
-    - format: colored-line-number
+    text:
+      path: stdout
+      colors: true
   sort-results: true
 
 issues:
