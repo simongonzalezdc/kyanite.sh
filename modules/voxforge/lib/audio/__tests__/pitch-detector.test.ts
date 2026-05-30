@@ -67,6 +67,21 @@ describe('PitchDetector', () => {
       expect(pitches).toEqual([])
     })
 
+    it('should preserve quiet but clearly pitched audio', () => {
+      const audioBuffer = createAudioBuffer(1, 44100)
+      const channelData = audioBuffer.getChannelData(0)
+      const sampleRate = audioBuffer.sampleRate
+
+      for (let i = 0; i < channelData.length; i++) {
+        const t = i / sampleRate
+        channelData[i] = 0.05 * Math.sin(2 * Math.PI * 440 * t)
+      }
+
+      const pitches = pitchDetector.analyze(audioBuffer)
+      expect(pitches.length).toBeGreaterThan(0)
+      expect(pitches[0].frequency).toBeCloseTo(440, 0)
+    })
+
     it('should handle multi-channel audio', () => {
       const audioBuffer = createAudioBuffer(1, 44100, 2)
       // Fill left channel with 440Hz, right channel with 880Hz

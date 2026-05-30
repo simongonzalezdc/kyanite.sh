@@ -55,24 +55,22 @@ export class PitchDetector {
       }
 
       const time = i / this.sampleRate;
-      const frequency = this.detectPitch(window);
+      const detectionWindow = rms < 0.1 ? this.normalizeWindow(window, rms) : window;
+      const frequency = this.detectPitch(detectionWindow);
       
       if (frequency && frequency >= minFreq && frequency <= maxFreq) {
-        const confidence = Math.min(100, Math.max(0, rms * 160));
-        
-        if (confidence > 15) {
-          const midi = this.frequencyToMidi(frequency);
-          const clampedMidi = Math.max(0, Math.min(127, midi));
+        const confidence = Math.min(100, Math.max(20, rms * 160));
+        const midi = this.frequencyToMidi(frequency);
+        const clampedMidi = Math.max(0, Math.min(127, midi));
 
-          const pitchPoint: PitchPoint = {
-            frequency,
-            time,
-            midi: clampedMidi,
-            confidence: Math.min(100, Math.max(0, confidence))
-          };
+        const pitchPoint: PitchPoint = {
+          frequency,
+          time,
+          midi: clampedMidi,
+          confidence
+        };
 
-          pitches.push(pitchPoint);
-        }
+        pitches.push(pitchPoint);
       }
     }
     
@@ -100,6 +98,20 @@ export class PitchDetector {
     if (noiseFrames.length > 0) {
       this.noiseProfile = [noiseFrames.reduce((a, b) => a + b, 0) / noiseFrames.length];
     }
+  }
+
+  private normalizeWindow(window: Float32Array, rms: number): Float32Array {
+    if (rms <= 0) return window;
+
+    const targetRMS = 0.2;
+    const scale = targetRMS / rms;
+    const normalized = new Float32Array(window.length);
+
+    for (let i = 0; i < window.length; i++) {
+      normalized[i] = Math.max(-1, Math.min(1, window[i] * scale));
+    }
+
+    return normalized;
   }
 
   private preprocessAudio(window: Float32Array): Float32Array {
