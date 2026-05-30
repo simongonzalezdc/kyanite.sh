@@ -44,6 +44,8 @@ full_coverage.out
 config/
 .env
 .env.*
+*.pem
+*.key
 
 # Database files
 *.db

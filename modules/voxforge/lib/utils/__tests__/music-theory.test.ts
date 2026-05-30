@@ -88,7 +88,7 @@ describe('music-theory', () => {
 
     it('should handle octave wrapping', () => {
       expect(transposeNote('B', 1)).toBe('C')
-      expect(transposeNote('B', 2)).toBe('D')
+      expect(transposeNote('B', 2)).toBe('C#')
       expect(transposeNote('C', -1)).toBe('B')
       expect(transposeNote('C', -2)).toBe('A#')
     })
@@ -100,7 +100,7 @@ describe('music-theory', () => {
     })
 
     it('should handle complex transpositions', () => {
-      expect(transposeNote('F#', 7)).toBe('C') // Perfect fifth up
+      expect(transposeNote('F#', 7)).toBe('C#') // Perfect fifth up
       expect(transposeNote('Ab', 4)).toBe('C') // Major third up
       expect(transposeNote('D', -7)).toBe('G') // Perfect fourth down
     })
@@ -135,7 +135,7 @@ describe('music-theory', () => {
       const firstChord = progression[0]
       const transposedChord = firstChord.map(note => transposeNote(note, 2))
       
-      expect(transposedChord).toEqual(['D', 'F#', 'A'])
+      expect(transposedChord).toEqual(['D3', 'F#3', 'A3'])
       
       // Transpose the entire progression up a perfect fifth
       const transposedProgression = progression.map(chord => 
@@ -143,10 +143,10 @@ describe('music-theory', () => {
       )
       
       expect(transposedProgression).toEqual([
-        ['G', 'B', 'D'],     // I chord in G Major
-        ['D', 'F#', 'A'],    // V chord in G Major
-        ['E', 'G', 'B'],     // vi chord in G Major
-        ['C', 'E', 'G'],     // IV chord in G Major
+        ['G3', 'B3', 'D4'],     // I chord in G Major
+        ['D4', 'F#4', 'A4'],    // V chord in G Major
+        ['E4', 'G4', 'B4'],     // vi chord in G Major
+        ['C4', 'E4', 'G4'],     // IV chord in G Major
       ])
     })
 
@@ -157,11 +157,11 @@ describe('music-theory', () => {
       
       // A minor is the relative minor of C major
       // They should share the same key signature (no sharps or flats)
-      expect(cMajorProgression[0]).toEqual(['C', 'E', 'G'])     // C Major
-      expect(aMinorProgression[0]).toEqual(['A', 'C', 'E'])     // A minor
+      expect(cMajorProgression[0]).toEqual(['C3', 'E3', 'G3'])     // C Major
+      expect(aMinorProgression[0]).toEqual(['A3', 'C4', 'E4'])     // A minor
       
       // The V chord in A minor should be the same as the III chord in C major
-      expect(aMinorProgression[1]).toEqual(['E', 'G#', 'B'])  // E Major (V in Am)
+      expect(aMinorProgression[1]).toEqual(['E4', 'G#4', 'B4'])  // E Major (V in Am)
     })
   })
 

@@ -64,7 +64,7 @@ Create a `.env.local` file in the root directory with the following variables:
 
 ```bash
 # Required: OpenAI-compatible API key (for AI lyrics feature)
-OPENAI_API_KEY=your-api-key-here
+OPENAI_API_KEY=<your-openai-key>
 
 # Optional: Custom API base URL (for OpenRouter, Chutes, Z.ai, etc.)
 # If not specified, defaults to https://api.openai.com/v1
@@ -181,4 +181,3 @@ MIT License - See LICENSE file for details.
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-

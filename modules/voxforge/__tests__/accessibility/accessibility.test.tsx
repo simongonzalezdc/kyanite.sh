@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { AccessibilityProvider } from '../../app/components/AccessibilityProvider';
 import { KeyboardNavigation } from '../../app/components/KeyboardNavigation';
@@ -131,7 +132,7 @@ describe('Accessibility Components', () => {
     it('should announce dynamic content', async () => {
       render(
         <AccessibilityWrapper>
-          <div aria-live="polite" aria-atomic="true">
+          <div role="status" aria-live="polite" aria-atomic="true">
             Dynamic content will appear here
           </div>
         </AccessibilityWrapper>
@@ -255,7 +256,7 @@ describe('Accessibility Integration', () => {
           
           <section id="analyze" aria-labelledby="analyze-heading">
             <h2 id="analyze-heading">Analysis Results</h2>
-            <div aria-live="polite" aria-atomic="true">
+            <div role="status" aria-live="polite" aria-atomic="true">
               Analysis will appear here
             </div>
           </section>
@@ -293,8 +294,8 @@ describe('Accessibility Integration', () => {
     expect(screen.getAllByRole('heading', { level: 2 })).toHaveLength(3);
 
     // Check interactive elements
-    expect(screen.getByRole('button', { name: 'Start Recording' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Generate' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Start recording' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Generate music' })).toBeInTheDocument();
 
     // Check navigation links
     expect(screen.getByRole('link', { name: 'Record' })).toBeInTheDocument();
@@ -307,7 +308,9 @@ describe('Accessibility Integration', () => {
     expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'polite');
   });
 
-  it('should handle keyboard navigation properly', () => {
+  it('should handle keyboard navigation properly', async () => {
+    const user = userEvent.setup();
+
     render(
       <AccessibilityWrapper>
         <div>
@@ -321,17 +324,17 @@ describe('Accessibility Integration', () => {
     const buttons = screen.getAllByRole('button');
     
     // Test Tab navigation
-    fireEvent.keyDown(document, { key: 'Tab' });
+    await user.tab();
     expect(buttons[0]).toHaveFocus();
     
-    fireEvent.keyDown(document, { key: 'Tab' });
+    await user.tab();
     expect(buttons[1]).toHaveFocus();
     
-    fireEvent.keyDown(document, { key: 'Tab' });
+    await user.tab();
     expect(buttons[2]).toHaveFocus();
     
     // Test Shift+Tab navigation
-    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+    await user.tab({ shift: true });
     expect(buttons[1]).toHaveFocus();
     
     // Test Enter activation
@@ -344,7 +347,7 @@ describe('Accessibility Integration', () => {
     
     render(
       <AccessibilityWrapper>
-        <div aria-live="assertive" aria-atomic="true">
+        <div role="alert" aria-live="assertive" aria-atomic="true">
           Important message
         </div>
       </AccessibilityWrapper>

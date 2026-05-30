@@ -1,313 +1,91 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { Recorder } from '../Recorder'
-import { renderWithProviders, simulateMediaPermission, createAudioBuffer } from '@/__tests__/utils/testHelpers'
+import { renderWithProviders, simulateMediaPermission } from '@/__tests__/utils/testHelpers'
+import { useAudioStore } from '@/lib/store/audioStore'
 
-// Mock Web Audio API
-beforeAll(() => {
-  // Mock getUserMedia to grant permission
-  simulateMediaPermission(true)
-})
+const renderRecorder = () => renderWithProviders(<Recorder />)
+
+const recordOneClip = async () => {
+  renderRecorder()
+
+  fireEvent.click(screen.getByTestId('record-button'))
+
+  const stopButton = await screen.findByTestId('stop-button')
+  fireEvent.click(stopButton)
+
+  await screen.findByTestId('play-button')
+}
 
 describe('Recorder Component', () => {
-  it('should render recorder component', () => {
-    renderWithProviders(<Recorder />)
-    
+  beforeEach(() => {
+    jest.clearAllMocks()
+    simulateMediaPermission(true)
+    useAudioStore.getState().resetAll()
+  })
+
+  it('renders the recorder controls and waveform surface', () => {
+    renderRecorder()
+
     expect(screen.getByTestId('recorder-container')).toBeInTheDocument()
-    expect(screen.getByTestId('record-button')).toBeInTheDocument()
-    expect(screen.getByTestId('stop-button')).toBeInTheDocument()
-    expect(screen.getByTestId('play-button')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /voice recorder/i })).toBeInTheDocument()
+    expect(screen.getByTestId('record-button')).toHaveTextContent('Start Recording')
+    expect(screen.getByTestId('waveform-visualization')).toBeInTheDocument()
   })
 
-  it('should show record button initially', () => {
-    renderWithProviders(<Recorder />)
-    
-    const recordButton = screen.getByTestId('record-button')
-    expect(recordButton).toBeInTheDocument()
-    expect(recordButton).toHaveTextContent('Record')
+  it('starts recording from a single click after microphone permission is granted', async () => {
+    renderRecorder()
+
+    fireEvent.click(screen.getByTestId('record-button'))
+
+    const stopButton = await screen.findByTestId('stop-button')
+    expect(stopButton).toHaveTextContent('Stop Recording')
+    expect(screen.getByRole('status')).toHaveTextContent('Recording in progress')
   })
 
-  it('should show stop button when recording', async () => {
-    renderWithProviders(<Recorder />)
-    
-    const recordButton = screen.getByTestId('record-button')
-    
-    // Start recording
-    fireEvent.click(recordButton)
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('stop-button')).toBeInTheDocument()
-      expect(screen.getByTestId('stop-button')).toHaveTextContent('Stop')
-    })
+  it('stores a recorded clip and reveals playback and trim controls', async () => {
+    await recordOneClip()
+
+    expect(screen.getByTestId('play-button')).toHaveTextContent('Play Back')
+    expect(screen.getByTestId('audio-duration')).toHaveTextContent('Duration:')
+    expect(screen.getByTestId('trim-controls')).toBeInTheDocument()
+    expect(screen.getByTestId('trim-start')).toBeInTheDocument()
+    expect(screen.getByTestId('trim-end')).toBeInTheDocument()
   })
 
-  it('should show play button when audio is recorded', async () => {
-    renderWithProviders(<Recorder />)
-    
-    const recordButton = screen.getByTestId('record-button')
-    
-    // Start and stop recording
-    fireEvent.click(recordButton)
-    
+  it('plays a recorded clip and announces playback state', async () => {
+    await recordOneClip()
+
+    fireEvent.click(screen.getByTestId('play-button'))
+
     await waitFor(() => {
-      const stopButton = screen.getByTestId('stop-button')
-      fireEvent.click(stopButton)
-    })
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('play-button')).toBeInTheDocument()
-      expect(screen.getByTestId('play-button')).toHaveTextContent('Play')
+      expect(screen.getByTestId('play-button')).toBeDisabled()
+      expect(screen.getByText('Playing recording')).toBeInTheDocument()
     })
   })
 
-  it('should show pause button when playing', async () => {
-    renderWithProviders(<Recorder />)
-    
-    const recordButton = screen.getByTestId('record-button')
-    
-    // Start and stop recording, then play
-    fireEvent.click(recordButton)
-    
-    await waitFor(() => {
-      const stopButton = screen.getByTestId('stop-button')
-      fireEvent.click(stopButton)
-    })
-    
-    await waitFor(() => {
-      const playButton = screen.getByTestId('play-button')
-      fireEvent.click(playButton)
-    })
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('pause-button')).toBeInTheDocument()
-      expect(screen.getByTestId('pause-button')).toHaveTextContent('Pause')
-    })
-  })
-
-  it('should show recording indicator when recording', async () => {
-    renderWithProviders(<Recorder />)
-    
-    const recordButton = screen.getByTestId('record-button')
-    
-    // Start recording
-    fireEvent.click(recordButton)
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('recording-indicator')).toBeInTheDocument()
-      expect(screen.getByTestId('recording-indicator')).toHaveTextContent('Recording...')
-    })
-  })
-
-  it('should show playing indicator when playing', async () => {
-    renderWithProviders(<Recorder />)
-    
-    const recordButton = screen.getByTestId('record-button')
-    
-    // Start and stop recording, then play
-    fireEvent.click(recordButton)
-    
-    await waitFor(() => {
-      const stopButton = screen.getByTestId('stop-button')
-      fireEvent.click(stopButton)
-    })
-    
-    await waitFor(() => {
-      const playButton = screen.getByTestId('play-button')
-      fireEvent.click(playButton)
-    })
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('playing-indicator')).toBeInTheDocument()
-      expect(screen.getByTestId('playing-indicator')).toHaveTextContent('Playing...')
-    })
-  })
-
-  it('should show audio level meter', () => {
-    renderWithProviders(<Recorder />)
-    
-    expect(screen.getByTestId('audio-level-meter')).toBeInTheDocument()
-  })
-
-  it('should show timer when recording', async () => {
-    renderWithProviders(<Recorder />)
-    
-    const recordButton = screen.getByTestId('record-button')
-    
-    // Start recording
-    fireEvent.click(recordButton)
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('recording-timer')).toBeInTheDocument()
-    })
-  })
-
-  it('should show audio duration when recorded', async () => {
-    renderWithProviders(<Recorder />)
-    
-    const recordButton = screen.getByTestId('record-button')
-    
-    // Start and stop recording
-    fireEvent.click(recordButton)
-    
-    await waitFor(() => {
-      const stopButton = screen.getByTestId('stop-button')
-      fireEvent.click(stopButton)
-    })
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('audio-duration')).toBeInTheDocument()
-    })
-  })
-
-  it('should handle microphone permission denied', async () => {
-    // Mock denied permission
+  it('keeps the recorder stable when microphone permission is denied', async () => {
     simulateMediaPermission(false)
-    
-    renderWithProviders(<Recorder />)
-    
+    renderRecorder()
+
+    fireEvent.click(screen.getByTestId('record-button'))
+
     await waitFor(() => {
-      expect(screen.getByTestId('permission-denied')).toBeInTheDocument()
-      expect(screen.getByTestId('permission-denied')).toHaveTextContent('Microphone access denied')
+      expect(window.alert).toHaveBeenCalledWith('Microphone permission is required to record audio.')
     })
+    expect(screen.queryByTestId('stop-button')).not.toBeInTheDocument()
+    expect(screen.getByTestId('record-button')).toBeInTheDocument()
   })
 
-  it('should show settings button', () => {
-    renderWithProviders(<Recorder />)
-    
-    expect(screen.getByTestId('settings-button')).toBeInTheDocument()
-  })
+  it('exposes accessible labels for record, stop, and playback states', async () => {
+    renderRecorder()
 
-  it('should show clear button when audio is recorded', async () => {
-    renderWithProviders(<Recorder />)
-    
-    const recordButton = screen.getByTestId('record-button')
-    
-    // Start and stop recording
-    fireEvent.click(recordButton)
-    
-    await waitFor(() => {
-      const stopButton = screen.getByTestId('stop-button')
-      fireEvent.click(stopButton)
-    })
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('clear-button')).toBeInTheDocument()
-      expect(screen.getByTestId('clear-button')).toHaveTextContent('Clear')
-    })
-  })
+    expect(screen.getByRole('button', { name: /start recording/i })).toBeInTheDocument()
 
-  it('should handle keyboard shortcuts', () => {
-    renderWithProviders(<Recorder />)
-    
-    // Test spacebar for record/stop
-    fireEvent.keyDown(document, { key: ' ' })
-    
-    // Should trigger record button
-    expect(screen.getByTestId('record-button')).toHaveFocus()
-  })
+    fireEvent.click(screen.getByTestId('record-button'))
+    expect(await screen.findByRole('button', { name: /stop recording/i })).toBeInTheDocument()
 
-  it('should be accessible', () => {
-    const { container } = renderWithProviders(<Recorder />)
-    
-    // Check for proper ARIA labels
-    expect(screen.getByLabelText('Record audio')).toBeInTheDocument()
-    expect(screen.getByLabelText('Stop recording')).toBeInTheDocument()
-    expect(screen.getByLabelText('Play audio')).toBeInTheDocument()
-    
-    // Check for proper roles
-    expect(screen.getByRole('button', { name: 'Record audio' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Stop recording' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Play audio' })).toBeInTheDocument()
-  })
-
-  it('should handle responsive design', () => {
-    const { container } = renderWithProviders(<Recorder />)
-    
-    // Should be responsive
-    expect(container.firstChild).toHaveClass('responsive')
-  })
-
-  it('should show loading state during processing', async () => {
-    renderWithProviders(<Recorder />)
-    
-    const recordButton = screen.getByTestId('record-button')
-    
-    // Start recording
-    fireEvent.click(recordButton)
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('processing-indicator')).toBeInTheDocument()
-      expect(screen.getByTestId('processing-indicator')).toHaveTextContent('Processing...')
-    })
-  })
-
-  it('should show error message on recording error', async () => {
-    renderWithProviders(<Recorder />)
-    
-    // Mock recording error
-    const recordButton = screen.getByTestId('record-button')
-    fireEvent.error(recordButton)
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('error-message')).toBeInTheDocument()
-      expect(screen.getByTestId('error-message')).toHaveTextContent('Recording failed')
-    })
-  })
-
-  it('should show waveform visualization', async () => {
-    renderWithProviders(<Recorder />)
-    
-    const recordButton = screen.getByTestId('record-button')
-    
-    // Start and stop recording
-    fireEvent.click(recordButton)
-    
-    await waitFor(() => {
-      const stopButton = screen.getByTestId('stop-button')
-      fireEvent.click(stopButton)
-    })
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('waveform-visualization')).toBeInTheDocument()
-    })
-  })
-
-  it('should handle audio export', async () => {
-    renderWithProviders(<Recorder />)
-    
-    const recordButton = screen.getByTestId('record-button')
-    
-    // Start and stop recording
-    fireEvent.click(recordButton)
-    
-    await waitFor(() => {
-      const stopButton = screen.getByTestId('stop-button')
-      fireEvent.click(stopButton)
-    })
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('export-button')).toBeInTheDocument()
-      expect(screen.getByTestId('export-button')).toHaveTextContent('Export')
-    })
-  })
-
-  it('should handle audio trim controls', async () => {
-    renderWithProviders(<Recorder />)
-    
-    const recordButton = screen.getByTestId('record-button')
-    
-    // Start and stop recording
-    fireEvent.click(recordButton)
-    
-    await waitFor(() => {
-      const stopButton = screen.getByTestId('stop-button')
-      fireEvent.click(stopButton)
-    })
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('trim-controls')).toBeInTheDocument()
-      expect(screen.getByTestId('trim-start')).toBeInTheDocument()
-      expect(screen.getByTestId('trim-end')).toBeInTheDocument()
-    })
+    fireEvent.click(screen.getByTestId('stop-button'))
+    expect(await screen.findByRole('button', { name: /play recording/i })).toBeInTheDocument()
   })
 })

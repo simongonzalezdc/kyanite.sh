@@ -10,6 +10,7 @@ import {
   TIME_TWO_HOURS_THRESHOLD,
   SECONDS_PER_MINUTE,
   SECONDS_PER_HOUR,
+  SYNC_INTERVAL_MS,
 } from "@/lib/constants";
 
 interface SyncStatusIndicatorProps {

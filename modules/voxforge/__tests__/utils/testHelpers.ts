@@ -5,6 +5,8 @@
 import { render, RenderOptions } from '@testing-library/react'
 import React, { ReactElement, ReactNode } from 'react'
 import { StoreProvider } from '@/app/components/StoreProvider'
+import { AccessibilityProvider } from '@/app/components/AccessibilityProvider'
+import { KeyboardNavigation } from '@/app/components/KeyboardNavigation'
 import { setupAudioMocks } from './audioMocks'
 
 declare const jest: any
@@ -15,7 +17,15 @@ export const renderWithProviders = (
   options: RenderOptions = {}
 ) => {
   const Wrapper = ({ children }: { children: ReactNode }) => {
-    return React.createElement(StoreProvider, null, children)
+    return React.createElement(
+      StoreProvider,
+      null,
+      React.createElement(
+        AccessibilityProvider,
+        null,
+        React.createElement(KeyboardNavigation, null, children)
+      )
+    )
   }
 
   return render(ui, { wrapper: Wrapper, ...options })

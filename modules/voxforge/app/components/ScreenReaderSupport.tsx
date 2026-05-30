@@ -14,6 +14,7 @@ export function LiveRegion({ politeness = 'polite', children, className = '' }: 
   const [content, setContent] = useState('');
   const [isAnnouncing, setIsAnnouncing] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const role = politeness === 'assertive' ? 'alert' : 'status';
 
   const announce = useCallback((message: string) => {
     setContent(message);
@@ -45,9 +46,9 @@ export function LiveRegion({ politeness = 'polite', children, className = '' }: 
         aria-live={politeness}
         aria-atomic="true"
         className={`sr-only ${className}`}
-        role="status"
+        role={role}
       >
-        {content}
+        {content || children}
       </div>
       {children && React.isValidElement(children) &&
         React.cloneElement(children, { announce } as any)}

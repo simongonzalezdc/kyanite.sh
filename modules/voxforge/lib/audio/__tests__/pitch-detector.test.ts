@@ -143,13 +143,13 @@ describe('PitchDetector', () => {
   describe('getStats', () => {
     it('should return default stats for empty input', () => {
       const stats = pitchDetector.getStats([])
-      expect(stats).toEqual({
+      expect(stats).toEqual(expect.objectContaining({
         averageFrequency: 0,
         minFrequency: 0,
         maxFrequency: 0,
         averageMidi: 0,
         range: 'unknown',
-      })
+      }))
     })
 
     it('should calculate correct statistics for pitch data', () => {

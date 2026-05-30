@@ -18,8 +18,9 @@ export function downloadBlob(blob: Blob, filename: string): void {
 }
 
 export function formatDuration(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
+  const safeSeconds = Math.max(0, seconds);
+  const mins = Math.floor(safeSeconds / 60);
+  const secs = Math.floor(safeSeconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
@@ -68,4 +69,3 @@ export async function trimAudioBuffer(
   
   return trimmedBuffer;
 }
-

@@ -45,6 +45,7 @@ export default function Home() {
   const [connectionState, setConnectionState] = useState<ConnectionState>("disconnected");
   const [serverUrl, setServerUrl] = useState<string>("");
   const [activeTab, setActiveTab] = useState<CaptureTab>("text");
+  const { addToast } = useToast();
 
   // Initialize onboarding state - show for first-time users once app loads
   const [showOnboarding, setShowOnboarding] = useState(() => {

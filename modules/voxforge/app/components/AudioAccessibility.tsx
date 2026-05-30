@@ -372,7 +372,7 @@ export function AudioAccessibilityControls() {
       {/* Visual Indicators */}
       <div className="flex items-center justify-between">
         <label htmlFor="visual-indicators" className="text-sm font-medium">
-          Visual Audio Indicators
+          Visual Indicators
         </label>
         <button
           id="visual-indicators"

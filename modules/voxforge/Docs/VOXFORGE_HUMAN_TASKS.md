@@ -38,7 +38,7 @@ While your AI coding agent handles the development, **these tasks require a huma
 6. Copy the key (starts with `sk-`)
 7. Save in `.env.local` file:
    ```
-   OPENAI_API_KEY=sk-...your-key-here
+   OPENAI_API_KEY=<your-openai-key>
    ```
 
 **Option B: Anthropic Claude**
@@ -49,7 +49,7 @@ While your AI coding agent handles the development, **these tasks require a huma
 5. Copy the key (starts with `sk-ant-`)
 6. Save in `.env.local` file:
    ```
-   ANTHROPIC_API_KEY=sk-ant-...your-key-here
+   ANTHROPIC_API_KEY=<your-anthropic-key>
    ```
 
 **Option C: Skip It**

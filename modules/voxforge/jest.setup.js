@@ -1,15 +1,22 @@
 import '@testing-library/jest-dom'
 import { TextEncoder, TextDecoder } from 'util'
 
+const createMockAudioBuffer = (numberOfChannels = 2, length = 44100, sampleRate = 44100) => {
+  const channelData = Array.from({ length: numberOfChannels }, () => new Float32Array(length))
+  return {
+    numberOfChannels,
+    length,
+    sampleRate,
+    duration: length / sampleRate,
+    getChannelData: jest.fn((channel) => channelData[channel] || new Float32Array(length)),
+  }
+}
+
 // Mock Web Audio API
 global.AudioContext = jest.fn().mockImplementation(() => ({
-  createBuffer: jest.fn().mockReturnValue({
-    numberOfChannels: 2,
-    length: 44100,
-    sampleRate: 44100,
-    duration: 1,
-    getChannelData: jest.fn().mockReturnValue(new Float32Array(44100)),
-  }),
+  createBuffer: jest.fn((numberOfChannels, length, sampleRate) =>
+    createMockAudioBuffer(numberOfChannels, length, sampleRate)
+  ),
   createBufferSource: jest.fn().mockReturnValue({
     buffer: null,
     connect: jest.fn(),
@@ -33,12 +40,12 @@ global.AudioContext = jest.fn().mockImplementation(() => ({
     connect: jest.fn(),
     onaudioprocess: null,
   }),
+  createMediaStreamSource: jest.fn().mockReturnValue({
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+  }),
   decodeAudioData: jest.fn().mockResolvedValue({
-    numberOfChannels: 2,
-    length: 44100,
-    sampleRate: 44100,
-    duration: 1,
-    getChannelData: jest.fn().mockReturnValue(new Float32Array(44100)),
+    ...createMockAudioBuffer(2, 44100, 44100),
   }),
   destination: {},
   sampleRate: 44100,
@@ -50,18 +57,32 @@ global.AudioContext = jest.fn().mockImplementation(() => ({
 }))
 
 // Mock MediaRecorder API
-global.MediaRecorder = jest.fn().mockImplementation(() => ({
-  start: jest.fn(),
-  stop: jest.fn(),
-  pause: jest.fn(),
-  resume: jest.fn(),
-  requestData: jest.fn(),
-  ondataavailable: null,
-  onstop: null,
-  onerror: null,
-  state: 'inactive',
-  stream: {},
-}))
+global.MediaRecorder = jest.fn().mockImplementation(function () {
+  return {
+    state: 'inactive',
+    stream: {},
+    ondataavailable: null,
+    onstop: null,
+    onerror: null,
+    start: jest.fn(function () {
+      this.state = 'recording'
+    }),
+    stop: jest.fn(function () {
+      this.state = 'inactive'
+      this.ondataavailable?.({ data: new Blob([new ArrayBuffer(8)], { type: 'audio/webm' }) })
+      this.onstop?.(new Event('stop'))
+    }),
+    pause: jest.fn(function () {
+      this.state = 'paused'
+    }),
+    resume: jest.fn(function () {
+      this.state = 'recording'
+    }),
+    requestData: jest.fn(function () {
+      this.ondataavailable?.({ data: new Blob([new ArrayBuffer(8)], { type: 'audio/webm' }) })
+    }),
+  }
+})
 
 // Mock getUserMedia
 global.navigator.mediaDevices = {
@@ -91,6 +112,24 @@ global.navigator.mediaDevices = {
 global.URL.createObjectURL = jest.fn().mockReturnValue('blob:mock-url')
 global.URL.revokeObjectURL = jest.fn()
 
+Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+  writable: true,
+  value: jest.fn(() => ({
+    clearRect: jest.fn(),
+    fillRect: jest.fn(),
+    beginPath: jest.fn(),
+    moveTo: jest.fn(),
+    lineTo: jest.fn(),
+    stroke: jest.fn(),
+    scale: jest.fn(),
+    fillStyle: '',
+    strokeStyle: '',
+    lineWidth: 1,
+  })),
+})
+
+window.alert = jest.fn()
+
 // Mock Blob
 global.Blob = jest.fn().mockImplementation((content, options) => ({
   content,
@@ -99,8 +138,8 @@ global.Blob = jest.fn().mockImplementation((content, options) => ({
   type: options?.type || '',
   arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(0)),
   text: jest.fn().mockResolvedValue(''),
-  stream: jest.fn().mockReturnValue(new ReadableStream()),
-  slice: jest.fn().mockReturnValue(new Blob()),
+  stream: jest.fn().mockReturnValue({}),
+  slice: jest.fn().mockReturnValue({ size: 0, type: options?.type || '' }),
 }))
 
 // Mock File
@@ -113,8 +152,8 @@ global.File = jest.fn().mockImplementation((content, name, options) => ({
   lastModified: Date.now(),
   arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(0)),
   text: jest.fn().mockResolvedValue(''),
-  stream: jest.fn().mockReturnValue(new ReadableStream()),
-  slice: jest.fn().mockReturnValue(new File()),
+  stream: jest.fn().mockReturnValue({}),
+  slice: jest.fn().mockReturnValue({ size: 0, type: options?.type || '' }),
 }))
 
 // Mock fetch

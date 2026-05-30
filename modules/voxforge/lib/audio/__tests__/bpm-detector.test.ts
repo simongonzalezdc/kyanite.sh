@@ -206,41 +206,43 @@ describe('BPMDetector', () => {
 
   describe('error handling', () => {
     it('should handle AudioContext creation errors', async () => {
+      const audioBuffer = createAudioBuffer(1, 44100)
       // Mock AudioContext to throw an error
       const originalAudioContext = global.AudioContext
-      global.AudioContext = jest.fn().mockImplementation(() => {
-        throw new Error('AudioContext not supported')
-      }) as any
+      try {
+        global.AudioContext = jest.fn().mockImplementation(() => {
+          throw new Error('AudioContext not supported')
+        }) as any
 
-      const audioBuffer = createAudioBuffer(1, 44100)
-      const analysis = await bpmDetector.analyze(audioBuffer)
+        const analysis = await bpmDetector.analyze(audioBuffer)
 
-      expect(analysis).toBeBPMAnalysis()
-      expect(analysis.bpm).toBe(120) // Fallback value
-      expect(analysis.confidence).toBeLessThan(0.5)
-      expect(analysis.stable).toBe(false)
-
-      // Restore original AudioContext
-      global.AudioContext = originalAudioContext
+        expect(analysis).toBeBPMAnalysis()
+        expect(analysis.bpm).toBe(120)
+        expect(analysis.confidence).toBeLessThan(0.5)
+        expect(analysis.stable).toBe(false)
+      } finally {
+        global.AudioContext = originalAudioContext
+      }
     })
 
     it('should handle processor creation errors', async () => {
+      const audioBuffer = createAudioBuffer(1, 44100)
       // Mock createRealTimeBpmProcessor to throw an error
       const originalCreateProcessor = require('realtime-bpm-analyzer').createRealTimeBpmProcessor
-      require('realtime-bpm-analyzer').createRealTimeBpmProcessor = jest.fn().mockRejectedValue(
-        new Error('Processor creation failed')
-      )
+      try {
+        require('realtime-bpm-analyzer').createRealTimeBpmProcessor = jest.fn().mockRejectedValue(
+          new Error('Processor creation failed')
+        )
 
-      const audioBuffer = createAudioBuffer(1, 44100)
-      const analysis = await bpmDetector.analyze(audioBuffer)
+        const analysis = await bpmDetector.analyze(audioBuffer)
 
-      expect(analysis).toBeBPMAnalysis()
-      expect(analysis.bpm).toBeGreaterThanOrEqual(60)
-      expect(analysis.bpm).toBeLessThanOrEqual(200)
-      expect(analysis.confidence).toBeLessThan(0.7)
-
-      // Restore original function
-      require('realtime-bpm-analyzer').createRealTimeBpmProcessor = originalCreateProcessor
+        expect(analysis).toBeBPMAnalysis()
+        expect(analysis.bpm).toBeGreaterThanOrEqual(60)
+        expect(analysis.bpm).toBeLessThanOrEqual(200)
+        expect(analysis.confidence).toBeLessThan(0.7)
+      } finally {
+        require('realtime-bpm-analyzer').createRealTimeBpmProcessor = originalCreateProcessor
+      }
     })
   })
 

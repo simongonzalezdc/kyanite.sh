@@ -1,14 +1,21 @@
 import { PitchPoint } from '../types';
+import { YIN } from 'pitchfinder';
 
 // Industry-standard pitch detection using advanced techniques
 export class PitchDetector {
   private sampleRate: number;
   private hannWindow: Float32Array;
   private noiseProfile: number[] = [];
+  private detectPitch: (float32AudioBuffer: Float32Array) => number | null;
 
   constructor(sampleRate: number = 44100) {
     this.sampleRate = sampleRate;
     this.hannWindow = this.createHannWindow(4096);
+    this.detectPitch = YIN({
+      sampleRate,
+      threshold: 0.12,
+      probabilityThreshold: 0.1
+    });
   }
 
   private createHannWindow(size: number): Float32Array {
@@ -21,50 +28,39 @@ export class PitchDetector {
 
   analyze(audioBuffer: AudioBuffer): PitchPoint[] {
     if (audioBuffer.numberOfChannels === 0) {
-      console.warn('AudioBuffer has no channels');
       return [];
     }
     if (this.sampleRate <= 0) {
-      console.warn('Invalid sample rate:', this.sampleRate);
       return [];
     }
+
     const channelData = audioBuffer.getChannelData(0);
     const pitches: PitchPoint[] = [];
     
-    // Industry-standard parameters
-    const windowSize = 4096; // FFT-friendly size
-    const hopSize = 256; // 75% overlap for smooth tracking
-    const minFreq = 60; // Lower bound for voice/instruments
-    const maxFreq = 2500; // Upper bound for voice/instruments
+    const windowSize = Math.min(2048, channelData.length);
+    const hopSize = Math.max(512, Math.floor(this.sampleRate * 0.05));
+    const minFreq = 60;
+    const maxFreq = 2500;
     
-    if (channelData.length < windowSize) {
-      console.warn('Audio buffer too short for analysis');
+    if (channelData.length < 256 || this.calculateRMS(channelData) < 0.001) {
       return [];
     }
-    
-    console.log('Starting advanced pitch analysis with industry techniques...');
-    console.log('Audio duration:', audioBuffer.duration, 'seconds');
-    console.log('Sample rate:', this.sampleRate);
-    console.log('Total samples:', channelData.length);
 
-    // Build noise profile for noise reduction
-    this.buildNoiseProfile(channelData);
-    
-    // Multi-frame analysis for robustness
-    for (let i = 0; i < channelData.length - windowSize; i += hopSize) {
-      const window = channelData.slice(i, i + windowSize);
+    for (let i = 0; i <= channelData.length - windowSize; i += hopSize) {
+      const window = channelData.subarray(i, i + windowSize);
+      const rms = this.calculateRMS(window);
+
+      if (rms < 0.005) {
+        continue;
+      }
+
       const time = i / this.sampleRate;
-      
-      // Apply pre-processing pipeline
-      const processedWindow = this.preprocessAudio(window);
-      
-      // Use multiple pitch detection methods for accuracy
-      const frequency = this.detectPitchMultipleMethods(processedWindow);
+      const frequency = this.detectPitch(window);
       
       if (frequency && frequency >= minFreq && frequency <= maxFreq) {
-        const confidence = this.calculateAdvancedConfidence(processedWindow, frequency);
+        const confidence = Math.min(100, Math.max(0, rms * 160));
         
-        if (confidence > 15) { // Lower threshold for better sensitivity
+        if (confidence > 15) {
           const midi = this.frequencyToMidi(frequency);
           const clampedMidi = Math.max(0, Math.min(127, midi));
 
@@ -79,14 +75,9 @@ export class PitchDetector {
         }
       }
     }
-
-    console.log('Raw pitch analysis complete. Detected', pitches.length, 'pitch points');
     
-    // Apply advanced musical post-processing
     if (pitches.length > 0) {
-      const processed = this.applyMusicalPostProcessing(pitches);
-      console.log('After musical post-processing:', processed.length, 'pitch points');
-      return processed;
+      return this.applyMusicalPostProcessing(pitches);
     }
     
     return pitches;
@@ -557,7 +548,7 @@ export class PitchDetector {
   }
 
   private frequencyToMidi(frequency: number): number {
-    return 69 + 12 * Math.log2(frequency / 440);
+    return Math.max(0, Math.min(127, 69 + 12 * Math.log2(frequency / 440)));
   }
 
   private midiToFrequency(midi: number): number {
@@ -619,7 +610,10 @@ export class PitchDetector {
     let lastNote = -1;
 
     for (const pitch of pitches) {
-      if ((pitch.confidence || 0) > 30) { // Only confident notes
+      const confidence = pitch.confidence || 0;
+      const normalizedConfidence = confidence <= 1 ? confidence * 100 : confidence;
+
+      if (normalizedConfidence > 30) {
         const note = Math.round(pitch.midi);
         if (note !== lastNote) {
           melody.push(note);

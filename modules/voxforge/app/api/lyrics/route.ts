@@ -7,11 +7,11 @@ export async function POST(request: NextRequest) {
     const { type, currentLine, selectedText, context, musicalKey } = body;
 
     // Get API key and base URL from environment
-    const apiKey = process.env.OPENAI_API_KEY;
+    const credential = process.env.OPENAI_API_KEY;
     const baseURL = process.env.OPENAI_API_BASE_URL || 'https://api.openai.com/v1';
     const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 
-    if (!apiKey) {
+    if (!credential) {
       return NextResponse.json(
         { 
           error: 'API key not configured',
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     // Initialize OpenAI client with custom base URL for OpenAI-compatible APIs
     const openai = new OpenAI({
-      apiKey: apiKey,
+      apiKey: credential,
       baseURL: baseURL,
     });
 

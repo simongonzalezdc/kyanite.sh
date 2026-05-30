@@ -5,8 +5,8 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_APP_VERSION: process.env.npm_package_version || '1.0.0',
     NEXT_PUBLIC_ANALYTICS_ENDPOINT: process.env.ANALYTICS_ENDPOINT,
-    NEXT_PUBLIC_ANALYTICS_ENABLED: process.env.ANALYTICS_ENABLED !== 'false',
-    NEXT_PUBLIC_ANALYTICS_DEBUG: process.env.NODE_ENV === 'development'
+    NEXT_PUBLIC_ANALYTICS_ENABLED: String(process.env.ANALYTICS_ENABLED !== 'false'),
+    NEXT_PUBLIC_ANALYTICS_DEBUG: String(process.env.NODE_ENV === 'development')
   },
   // Webpack config for audio files and Pixi.js
   webpack: (config, { isServer }) => {
@@ -31,4 +31,3 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-

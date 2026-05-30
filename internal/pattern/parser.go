@@ -76,7 +76,8 @@ func (p *Parser) registerInfix(tokenType TokenType, fn infixParseFn) {
 // nextToken advances to the next token
 func (p *Parser) nextToken() {
 	p.currentToken = p.peekToken
-	p.peekToken = p.lexer.NextToken()
+	next := p.lexer.NextToken()
+	p.peekToken = next
 }
 
 // Parse parses the input and returns a program

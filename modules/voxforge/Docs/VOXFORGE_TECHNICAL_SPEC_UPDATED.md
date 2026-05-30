@@ -1118,10 +1118,10 @@ Create `.env.local`:
 
 ```bash
 # Optional: For lyrics feature
-OPENAI_API_KEY=sk-...your-key-here
+OPENAI_API_KEY=<your-openai-key>
 
 # Optional: For Anthropic API
-ANTHROPIC_API_KEY=sk-ant-...your-key-here
+ANTHROPIC_API_KEY=<your-anthropic-key>
 ```
 
 ---

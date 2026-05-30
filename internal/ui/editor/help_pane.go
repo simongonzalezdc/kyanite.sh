@@ -123,17 +123,17 @@ func (m *HelpPaneModel) Update(msg tea.Msg) (*HelpPaneModel, tea.Cmd) {
 		headerHeight := 3 // title area
 		footerHeight := 2 // navigation hints
 		borderHeight := 2 // top/bottom border
-		
+
 		viewportHeight := msg.Height - headerHeight - footerHeight - borderHeight
 		viewportWidth := msg.Width - 4 // border padding
-		
+
 		if viewportHeight < 1 {
 			viewportHeight = 1
 		}
 		if viewportWidth < 10 {
 			viewportWidth = 10
 		}
-		
+
 		m.viewport.Width = viewportWidth
 		m.viewport.Height = viewportHeight
 		m.scrollReady = true
@@ -153,7 +153,7 @@ func (m *HelpPaneModel) Update(msg tea.Msg) (*HelpPaneModel, tea.Cmd) {
 					m.shortcutManager.SetHelpMode(false)
 				}
 			}
-		case "enter":
+		case "enter", "q":
 			// Exit help mode
 			if m.shortcutManager != nil {
 				m.shortcutManager.SetHelpMode(false)

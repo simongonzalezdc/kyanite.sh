@@ -25,8 +25,10 @@ const mockDocument = {
   },
 }
 
-Object.defineProperty(global, 'URL', { value: mockURL })
-Object.defineProperty(global, 'document', { value: mockDocument })
+Object.defineProperty(global, 'URL', { value: mockURL, configurable: true })
+jest.spyOn(document, 'createElement').mockImplementation(mockDocument.createElement as any)
+jest.spyOn(document.body, 'appendChild').mockImplementation(mockDocument.body.appendChild as any)
+jest.spyOn(document.body, 'removeChild').mockImplementation(mockDocument.body.removeChild as any)
 
 describe('audio-utils', () => {
   describe('frequencyToMidi', () => {
@@ -131,7 +133,7 @@ describe('audio-utils', () => {
     })
 
     it('should handle edge cases', () => {
-      expect(formatDuration(-1)).toBe('0:-01')
+      expect(formatDuration(-1)).toBe('0:00')
       expect(formatDuration(0.5)).toBe('0:00')
       expect(formatDuration(59.9)).toBe('0:59')
     })

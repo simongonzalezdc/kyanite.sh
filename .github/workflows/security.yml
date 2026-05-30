@@ -18,16 +18,16 @@ jobs:
     timeout-minutes: 25
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
         with:
           go-version-file: go.mod
           cache: false
       - name: Cache Go build
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: |
             ~/go/pkg/mod
@@ -48,7 +48,7 @@ jobs:
           $(go env GOPATH)/bin/govulncheck -json ./... > build/security/govulncheck/report.json || true
           $(go env GOPATH)/bin/govulncheck ./... > build/security/govulncheck/report.txt || true
       - name: Upload vulnerability reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: govulncheck-report
           path: build/security/govulncheck
@@ -63,16 +63,16 @@ jobs:
       security-events: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
         with:
           go-version-file: go.mod
           cache: false
       - name: Cache Go build
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: |
             ~/go/pkg/mod
@@ -89,13 +89,13 @@ jobs:
           $(go env GOPATH)/bin/gosec -fmt=txt ./... > build/security/gosec/report.txt || true
           $(go env GOPATH)/bin/gosec -fmt=sarif -out build/security/gosec/report.sarif ./... || true
       - name: Upload gosec reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: gosec-report
           path: build/security/gosec
           if-no-files-found: error
       - name: Publish SARIF to code scanning
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@03e4368ac7daa2bd82b3e85262f3bf87ee112f57
         with:
           sarif_file: build/security/gosec/report.sarif
 
@@ -106,16 +106,16 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
         with:
           go-version-file: go.mod
           cache: false
       - name: Cache Go build
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: |
             ~/go/pkg/mod
@@ -133,7 +133,7 @@ jobs:
         run: |
           $(go env GOPATH)/bin/go-licenses check ./...
       - name: Upload license artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: license-reports
           path: build/licenses

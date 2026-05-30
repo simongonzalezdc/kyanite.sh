@@ -19,10 +19,10 @@ import { AudioVisualIndicator, AlternativeRecordingInput } from './AudioAccessib
 import { ScreenReaderOnly, LiveRegion, AriaLabel } from './ScreenReaderSupport';
 
 interface RecorderProps {
-  onRecordingComplete: (audioBuffer: AudioBuffer) => void;
+  onRecordingComplete?: (audioBuffer: AudioBuffer) => void;
 }
 
-export default function Recorder({ onRecordingComplete }: RecorderProps) {
+export function Recorder({ onRecordingComplete = () => {} }: RecorderProps) {
   // Use store hooks instead of local state
   const recording = useRecordingState();
   const audioActions = useAudioActions();
@@ -34,7 +34,7 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
   const recorderRef = useRef<AudioRecorder | null>(null);
   const currentAudioSource = useRef<AudioBufferSourceNode | null>(null);
 
-  const requestPermission = async () => {
+  const requestPermission = async (): Promise<boolean> => {
     if (!recorderRef.current) {
       recorderRef.current = new AudioRecorder();
     }
@@ -45,12 +45,14 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
     if (!granted) {
       alert('Microphone permission is required to record audio.');
     }
+
+    return granted;
   };
 
   const startRecording = async () => {
     if (!recording.hasPermission) {
-      await requestPermission();
-      if (!recording.hasPermission) return;
+      const granted = await requestPermission();
+      if (!granted) return;
     }
 
     // Stop any current playback first
@@ -149,14 +151,6 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
         currentAudioSource.current = null;
         audioContext.close();
         announce('Playback finished');
-      };
-
-      source.onerror = (error) => {
-        console.error('Audio playback error:', error);
-        audioActions.setPlaying(false);
-        currentAudioSource.current = null;
-        audioContext.close();
-        announce('Playback error');
       };
 
       // Start playback
@@ -270,7 +264,7 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
   }, [recording.isRecording, recording.recordedAudio?.duration]);
 
   return (
-    <div className="space-y-4" data-tour="recorder" id="record" role="region" aria-labelledby="recorder-heading">
+    <div className="space-y-4 responsive" data-testid="recorder-container" data-tour="recorder" id="record" role="region" aria-labelledby="recorder-heading">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
         <h2 id="recorder-heading" className="fluid-xl font-semibold flex items-center gap-2">
           Voice Recorder
@@ -278,10 +272,10 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
         </h2>
       </div>
       
-      <div ref={waveformRef} className="touch-manipulation">
+      <div ref={waveformRef} className="touch-manipulation" data-testid="waveform-visualization">
         <Waveform
           isRecording={recording.isRecording}
-          getWaveformData={recording.isRecording ? () => recorderRef.current!.getWaveformData() : undefined}
+          getWaveformData={recording.isRecording ? () => recorderRef.current?.getWaveformData() ?? new Uint8Array(1024).fill(128) : undefined}
           audioBuffer={recording.recordedAudio}
         />
         
@@ -300,6 +294,8 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
             description="Begin recording audio from microphone"
           >
             <button
+              data-testid="record-button"
+              aria-label="Record audio"
               onClick={() => {
                 startRecording();
                 triggerHaptic('medium');
@@ -326,6 +322,8 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
             description="Stop recording and process audio"
           >
             <button
+              data-testid="stop-button"
+              aria-label="Stop recording"
               onClick={() => {
                 stopRecording();
                 triggerHaptic('heavy');
@@ -354,6 +352,8 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
             description="Play back the recorded audio"
           >
             <button
+              data-testid="play-button"
+              aria-label="Play audio"
               onClick={() => {
                 playRecording();
                 triggerHaptic('light');
@@ -381,7 +381,7 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
 
       {recording.recordedAudio && !recording.isRecording && (
         <div className="space-y-4">
-          <div className="text-center fluid-sm text-gray-400" role="status" aria-live="polite">
+          <div className="text-center fluid-sm text-gray-400" data-testid="audio-duration" role="status" aria-live="polite">
             Duration: {recording.recordedAudio.duration.toFixed(2)}s
             {recording.originalAudio && recording.originalAudio !== recording.recordedAudio && (
               <span className="ml-2 text-primary-500 block sm:inline">
@@ -391,7 +391,7 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
           </div>
 
           {/* Trim Controls */}
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700 space-y-4" role="region" aria-labelledby="trim-heading">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700 space-y-4" data-testid="trim-controls" role="region" aria-labelledby="trim-heading">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <h3 id="trim-heading" className="fluid-sm font-medium flex items-center gap-2">
                 <Scissors size={16} className="text-secondary-500" aria-hidden="true" />
@@ -418,6 +418,7 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
                   Start: {recording.trimStart.toFixed(2)}s
                 </label>
                 <input
+                  data-testid="trim-start"
                   id="trim-start"
                   type="range"
                   min="0"
@@ -443,6 +444,7 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
                   End: {recording.trimEnd.toFixed(2)}s
                 </label>
                 <input
+                  data-testid="trim-end"
                   id="trim-end"
                   type="range"
                   min={recording.trimStart + 0.1}
@@ -516,3 +518,5 @@ export default function Recorder({ onRecordingComplete }: RecorderProps) {
     </div>
   );
 }
+
+export default Recorder;
