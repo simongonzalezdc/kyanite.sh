@@ -1,8 +1,11 @@
 package utils
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -115,6 +118,53 @@ func TestJournalStorage_AddEntry(t *testing.T) {
 	homeDir, _ := os.UserHomeDir()
 	storageDir := filepath.Join(homeDir, ".focus")
 	os.RemoveAll(storageDir)
+}
+
+func TestJournalStorage_ConcurrentAddsPersistAllEntries(t *testing.T) {
+	storage := &JournalStorage{
+		filePath: filepath.Join(t.TempDir(), "journal.json"),
+		cacheIdx: make(map[string]int),
+	}
+
+	const count = 20
+	var wg sync.WaitGroup
+	errs := make(chan error, count)
+
+	for i := 0; i < count; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			errs <- storage.AddEntry(&models.JournalEntry{
+				ID:      fmt.Sprintf("entry-%02d", i),
+				Date:    fmt.Sprintf("2025-01-%02d", i+1),
+				Title:   fmt.Sprintf("Entry %d", i),
+				Content: "Concurrent entry",
+			})
+		}(i)
+	}
+
+	wg.Wait()
+	close(errs)
+
+	for err := range errs {
+		if err != nil {
+			t.Fatalf("AddEntry failed: %v", err)
+		}
+	}
+
+	data, err := os.ReadFile(storage.filePath)
+	if err != nil {
+		t.Fatalf("failed to read persisted journal: %v", err)
+	}
+
+	var entries []*models.JournalEntry
+	if err := json.Unmarshal(data, &entries); err != nil {
+		t.Fatalf("failed to parse persisted journal: %v", err)
+	}
+
+	if len(entries) != count {
+		t.Fatalf("expected %d persisted entries, got %d", count, len(entries))
+	}
 }
 
 func TestJournalStorage_GetEntryByID(t *testing.T) {
