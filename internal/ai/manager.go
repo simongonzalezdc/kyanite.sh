@@ -185,8 +185,11 @@ func (m *Manager) SuggestTasks(ctx context.Context, existingTasks []string) ([]s
 		}
 	}
 
-	// If both fail, return empty suggestions
-	return []string{}, nil
+	// If both fail, return deterministic fallback suggestions.
+	return []string{
+		"Review today's highest-priority task",
+		"Break one blocked item into a smaller next step",
+	}, nil
 }
 
 // SummarizeTasks generates a summary of tasks using AI
@@ -1077,16 +1080,19 @@ func (m *Manager) filterLowQualitySuggestions(suggestions []string) []string {
 
 // basicParse provides fallback parsing when AI fails
 func (m *Manager) basicParse(input string) *ParsedTask {
-	// Very basic parsing - extract first few words as description
-	words := strings.Fields(input)
+	task, err := NewFallbackProvider().ParseTask(context.Background(), input)
+	if err != nil {
+		words := strings.Fields(input)
+		if len(words) > 10 {
+			input = strings.Join(words[:10], " ") + "..."
+		}
+		return &ParsedTask{Description: input, Priority: "medium"}
+	}
+	words := strings.Fields(task.Description)
 	if len(words) > 10 {
-		input = strings.Join(words[:10], " ") + "..."
+		task.Description = strings.Join(words[:10], " ") + "..."
 	}
-
-	return &ParsedTask{
-		Description: input,
-		Priority:    "medium",
-	}
+	return task
 }
 
 // basicSummary provides fallback summarization when AI fails

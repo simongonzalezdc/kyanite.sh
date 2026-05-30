@@ -146,10 +146,10 @@ curl -H "Authorization: Bearer $OPENROUTER_API_KEY" \
 **Solutions**:
 ```bash
 # Set correct API key
-export OPENROUTER_API_KEY="your_correct_api_key"
+export OPENROUTER_API_KEY="<your-openrouter-key>"
 
 # Add to .env file
-echo "OPENROUTER_API_KEY=your_correct_api_key" >> .env
+echo "OPENROUTER_API_KEY=<your-openrouter-key>" >> .env
 
 # Get new API key from https://openrouter.ai/keys
 ```

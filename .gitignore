@@ -9,6 +9,13 @@
 /focus
 /focus.exe
 
+# Local secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
 # Build artifacts
 /build/
 /bin/

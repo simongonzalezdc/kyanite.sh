@@ -83,7 +83,7 @@ ollama serve
 #### Setup
 ```bash
 # Get API key from https://openrouter.ai/
-export OPENROUTER_API_KEY="your_api_key_here"
+export OPENROUTER_API_KEY="<your-openrouter-key>"
 ```
 
 #### Configuration
@@ -101,7 +101,7 @@ export OPENROUTER_API_KEY="your_api_key_here"
 #### Environment Variables
 ```bash
 # .env file
-OPENROUTER_API_KEY=your_api_key_here
+OPENROUTER_API_KEY=<your-openrouter-key>
 FALLBACK_MODEL=mistralai/mistral-7b-instruct
 DEFAULT_MODEL=qwen2.5:1.5b
 OLLAMA_BASE_URL=http://localhost:11434
@@ -216,7 +216,7 @@ focus config set storage.config_path "/path/to/custom/config"
 # AI Configuration
 OLLAMA_BASE_URL=http://localhost:11434
 DEFAULT_MODEL=qwen2.5:1.5b
-OPENROUTER_API_KEY=your_api_key
+OPENROUTER_API_KEY=<your-openrouter-key>
 FALLBACK_MODEL=mistralai/mistral-7b-instruct
 
 # Google Calendar (optional)
@@ -338,7 +338,7 @@ focus theme preview synthwave
 ```bash
 OLLAMA_BASE_URL=http://localhost:11434
 DEFAULT_MODEL=qwen2.5:1.5b
-OPENROUTER_API_KEY=your_key
+OPENROUTER_API_KEY=<your-openrouter-key>
 FALLBACK_MODEL=mistralai/mistral-7b-instruct
 AI_TIMEOUT=30
 ```

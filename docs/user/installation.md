@@ -115,7 +115,7 @@ If you can't run Ollama locally, configure OpenRouter:
 2. **Configure environment**
    ```bash
    # Create .env file
-   echo "OPENROUTER_API_KEY=your_api_key_here" > .env
+   echo "OPENROUTER_API_KEY=<your-openrouter-key>" > .env
    
    # Set default fallback model
    echo "FALLBACK_MODEL=mistralai/mistral-7b-instruct" >> .env

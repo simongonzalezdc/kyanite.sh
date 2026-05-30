@@ -41,6 +41,7 @@ func (p *FallbackProvider) ParseTask(ctx context.Context, input string) (*Parsed
 		categories = append(categories, "personal")
 	}
 	if strings.Contains(lowerInput, "meeting") {
+		categories = append(categories, "meeting")
 		categories = append(categories, "meetings")
 	}
 	task.Categories = categories

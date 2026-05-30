@@ -42,7 +42,7 @@ Thank you for your interest in contributing to Focus.sh! This guide will help yo
    DEFAULT_MODEL=qwen2.5:1.5b
    
    # Fallback (OpenRouter) - Emergency only
-   OPENROUTER_API_KEY=your_openrouter_key
+   OPENROUTER_API_KEY=<your-openrouter-key>
    FALLBACK_MODEL=mistralai/mistral-7b-instruct
    ```
 

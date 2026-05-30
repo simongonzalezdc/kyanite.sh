@@ -164,7 +164,6 @@ func (js *JournalStorage) AddEntry(entry *models.JournalEntry) error {
 	}
 
 	js.cacheMutex.Lock()
-	defer js.cacheMutex.Unlock()
 
 	// Check if entry with same ID already exists (O(1) lookup)
 	if idx, exists := js.cacheIdx[entry.ID]; exists {
@@ -177,6 +176,7 @@ func (js *JournalStorage) AddEntry(entry *models.JournalEntry) error {
 	}
 
 	js.cacheDirty = true
+	js.cacheMutex.Unlock()
 	return js.flushCache()
 }
 
@@ -220,15 +220,16 @@ func (js *JournalStorage) UpdateEntry(entry *models.JournalEntry) error {
 	}
 
 	js.cacheMutex.Lock()
-	defer js.cacheMutex.Unlock()
 
 	// O(1) lookup via index
 	if idx, exists := js.cacheIdx[entry.ID]; exists {
 		js.cache[idx] = entry
 		js.cacheDirty = true
+		js.cacheMutex.Unlock()
 		return js.flushCache()
 	}
 
+	js.cacheMutex.Unlock()
 	return fmt.Errorf("journal entry with ID %s not found", entry.ID)
 }
 
@@ -239,11 +240,11 @@ func (js *JournalStorage) DeleteEntry(id string) error {
 	}
 
 	js.cacheMutex.Lock()
-	defer js.cacheMutex.Unlock()
 
 	// O(1) lookup via index
 	idx, exists := js.cacheIdx[id]
 	if !exists {
+		js.cacheMutex.Unlock()
 		return fmt.Errorf("journal entry with ID %s not found", id)
 	}
 
@@ -257,6 +258,7 @@ func (js *JournalStorage) DeleteEntry(id string) error {
 	}
 
 	js.cacheDirty = true
+	js.cacheMutex.Unlock()
 	return js.flushCache()
 }
 
