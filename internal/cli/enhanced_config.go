@@ -134,7 +134,8 @@ func saveEnhancedConfig(configData *struct {
 	Notifications bool
 	Dashboard     string
 	Editor        string
-}) error {
+},
+) error {
 	// Load existing config
 	cfg, err := config.LoadConfig()
 	if err != nil {

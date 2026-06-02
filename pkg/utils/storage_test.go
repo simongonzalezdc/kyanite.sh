@@ -30,7 +30,6 @@ func TestMigrateStorage(t *testing.T) {
 	// Test that migrateStorage doesn't panic
 	// In a real test, we would mock filesystem operations
 	err := migrateStorage()
-
 	// migrateStorage should not return error even if migration fails
 	// It's designed to be best-effort
 	if err != nil {
@@ -47,7 +46,7 @@ func TestCopyFile(t *testing.T) {
 
 	// Create source file with test content
 	content := "test content for copy"
-	err := os.WriteFile(srcFile, []byte(content), 0644)
+	err := os.WriteFile(srcFile, []byte(content), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create source file: %v", err)
 	}
@@ -102,8 +101,8 @@ func TestCopyDir(t *testing.T) {
 	file2 := filepath.Join(srcDir, "subdir", "file2.txt")
 	os.MkdirAll(filepath.Dir(file2), 0o755)
 
-	os.WriteFile(file1, []byte("content1"), 0644)
-	os.WriteFile(file2, []byte("content2"), 0644)
+	os.WriteFile(file1, []byte("content1"), 0o644)
+	os.WriteFile(file2, []byte("content2"), 0o644)
 
 	// Copy directory
 	err := copyDir(srcDir, dstDir)

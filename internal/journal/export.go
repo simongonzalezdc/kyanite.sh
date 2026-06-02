@@ -44,7 +44,7 @@ func (e *Exporter) ExportToSyntax(entry *models.JournalEntry, exportType models.
 	filePath := filepath.Join(e.syntaxDir, filename)
 
 	// Write file
-	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(content), 0o644); err != nil {
 		return fmt.Errorf("failed to write export file: %w", err)
 	}
 
@@ -58,14 +58,14 @@ func (e *Exporter) formatForExport(entry *models.JournalEntry, exportType models
 
 	// Header section
 	header.WriteString("# Imported from focus.sh\n\n")
-	header.WriteString(fmt.Sprintf("**Source:** Journal entry from %s\n", entry.Date))
-	header.WriteString(fmt.Sprintf("**Export Type:** %s\n", e.getExportTypeName(exportType)))
-	header.WriteString(fmt.Sprintf("**Tags:** %s\n", strings.Join(entry.Tags, ", ")))
+	fmt.Fprintf(&header, "**Source:** Journal entry from %s\n", entry.Date)
+	fmt.Fprintf(&header, "**Export Type:** %s\n", e.getExportTypeName(exportType))
+	fmt.Fprintf(&header, "**Tags:** %s\n", strings.Join(entry.Tags, ", "))
 	if entry.Mood != "" {
-		header.WriteString(fmt.Sprintf("**Mood:** %s\n", entry.Mood))
+		fmt.Fprintf(&header, "**Mood:** %s\n", entry.Mood)
 	}
 	if entry.Title != "" {
-		header.WriteString(fmt.Sprintf("**Title:** %s\n", entry.Title))
+		fmt.Fprintf(&header, "**Title:** %s\n", entry.Title)
 	}
 
 	// Content section

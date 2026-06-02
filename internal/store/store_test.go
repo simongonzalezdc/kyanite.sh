@@ -2,11 +2,12 @@ package store
 
 import (
 	"encoding/json"
-	"github.com/kyanite/focus/pkg/models"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/kyanite/focus/pkg/models"
 )
 
 func TestStore_New(t *testing.T) {
@@ -55,7 +56,7 @@ func TestStore_Load(t *testing.T) {
 		{
 			name: "empty file",
 			setupFile: func() error {
-				return os.WriteFile(testFile, []byte{}, 0644)
+				return os.WriteFile(testFile, []byte{}, 0o644)
 			},
 			wantTasks: []models.Task{},
 			wantError: false,
@@ -85,7 +86,7 @@ func TestStore_Load(t *testing.T) {
 				if err != nil {
 					return err
 				}
-				return os.WriteFile(testFile, data, 0644)
+				return os.WriteFile(testFile, data, 0o644)
 			},
 			wantTasks: []models.Task{
 				{
@@ -110,7 +111,7 @@ func TestStore_Load(t *testing.T) {
 		{
 			name: "invalid json",
 			setupFile: func() error {
-				return os.WriteFile(testFile, []byte("invalid json"), 0644)
+				return os.WriteFile(testFile, []byte("invalid json"), 0o644)
 			},
 			wantTasks: nil,
 			wantError: true,

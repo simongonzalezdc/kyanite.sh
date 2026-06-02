@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/internal/command"
 	"github.com/kyanite/focus/internal/tui"

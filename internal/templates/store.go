@@ -26,7 +26,7 @@ func NewStore(filePath string) *Store {
 func (s *Store) Load() ([]models.TaskTemplate, error) {
 	// Ensure directory exists
 	dir := filepath.Dir(s.filePath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return nil, err
 	}
 
@@ -60,7 +60,7 @@ func (s *Store) Load() ([]models.TaskTemplate, error) {
 func (s *Store) Save(templates []models.TaskTemplate) error {
 	// Ensure directory exists
 	dir := filepath.Dir(s.filePath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
 	}
 
@@ -71,7 +71,7 @@ func (s *Store) Save(templates []models.TaskTemplate) error {
 	}
 
 	// Write to file
-	return os.WriteFile(s.filePath, data, 0644)
+	return os.WriteFile(s.filePath, data, 0o644)
 }
 
 // Add creates a new template

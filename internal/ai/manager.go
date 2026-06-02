@@ -1266,5 +1266,5 @@ func (m *Manager) saveCache() {
 		return
 	}
 
-	os.WriteFile(m.cachePath, data, 0644)
+	_ = os.WriteFile(m.cachePath, data, 0o644)
 }

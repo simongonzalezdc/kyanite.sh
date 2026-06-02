@@ -2,9 +2,10 @@ package tui
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/pkg/styles"
-	"strings"
 )
 
 func (m *MainModel) renderChatView() string {

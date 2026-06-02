@@ -509,8 +509,8 @@ func (m UnifiedDashboardModel) renderTasks() string {
 func (m UnifiedDashboardModel) renderFooter() string {
 	var configInfo strings.Builder
 	if m.config != nil {
-		configInfo.WriteString(fmt.Sprintf("🤖 %s | ", m.config.AI.Provider))
-		configInfo.WriteString(fmt.Sprintf("🎨 %s | ", m.config.Theme))
+		fmt.Fprintf(&configInfo, "🤖 %s | ", m.config.AI.Provider)
+		fmt.Fprintf(&configInfo, "🎨 %s | ", m.config.Theme)
 	}
 	taskCount := fmt.Sprintf("📋 %d tasks", len(m.taskList))
 	return fmt.Sprintf("%s%s | %s | [?]Help [c]Config [t]Theme [r]Refresh [q]Quit", configInfo.String(), taskCount, m.currentView)

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/kyanite/focus/internal/tui"
 
 	"github.com/spf13/cobra"

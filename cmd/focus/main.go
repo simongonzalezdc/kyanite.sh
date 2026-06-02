@@ -28,7 +28,10 @@ func main() {
 			return
 		}
 		// Any other subcommand should be handled by the CLI layer
-		cli.Execute()
+		if err := cli.Execute(); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 		return
 	}
 
@@ -39,7 +42,10 @@ func main() {
 	fmt.Println("   ✨ AI-powered task management with professional interface")
 	fmt.Println()
 	fmt.Println("🚀 Launching TUI dashboard...")
-	runTUIDirectly()
+	if err := runTUIDirectly(); err != nil {
+		fmt.Fprintf(os.Stderr, "TUI error: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 func runMCPServer() error {

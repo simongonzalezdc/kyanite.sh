@@ -1,9 +1,10 @@
 package tui
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/pkg/styles"
-	"strings"
 )
 
 func (m *MainModel) renderHelpBar() string {

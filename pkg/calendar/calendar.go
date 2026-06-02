@@ -205,7 +205,7 @@ func (r *Renderer) RenderMonth(cal *Calendar) string {
 	// Weekday headers
 	weekdays := []string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}
 	for _, day := range weekdays {
-		builder.WriteString(fmt.Sprintf(" %-6s", day))
+		fmt.Fprintf(&builder, " %-6s", day)
 	}
 	builder.WriteString("\n")
 
@@ -238,11 +238,11 @@ func (r *Renderer) RenderMonth(cal *Calendar) string {
 		}
 
 		if dayNum == cal.CurrentDate.Day() {
-			builder.WriteString(fmt.Sprintf(" [%2d]  ", dayNum)) // 7 chars total
+			fmt.Fprintf(&builder, " [%2d]  ", dayNum) // 7 chars total
 		} else if dayPrefix != "" {
-			builder.WriteString(fmt.Sprintf("%s%2d%s  ", dayPrefix, dayNum, daySuffix)) // 7 chars total
+			fmt.Fprintf(&builder, "%s%2d%s  ", dayPrefix, dayNum, daySuffix) // 7 chars total
 		} else {
-			builder.WriteString(fmt.Sprintf("  %2d  ", dayNum)) // 7 chars total
+			fmt.Fprintf(&builder, "  %2d  ", dayNum) // 7 chars total
 		}
 	}
 
@@ -261,7 +261,7 @@ func (r *Renderer) RenderWeek(cal *Calendar) string {
 	for _, day := range days {
 		dateStr := day.Date.Format("2006-01-02")
 
-		builder.WriteString(fmt.Sprintf("\n%s (%d tasks)\n", dateStr, len(day.Tasks)))
+		fmt.Fprintf(&builder, "\n%s (%d tasks)\n", dateStr, len(day.Tasks))
 
 		for _, task := range day.Tasks {
 			priority := "⚪"
@@ -279,7 +279,7 @@ func (r *Renderer) RenderWeek(cal *Calendar) string {
 				status = "✅"
 			}
 
-			builder.WriteString(fmt.Sprintf("  %s %s %s\n", status, priority, task.Description))
+			fmt.Fprintf(&builder, "  %s %s %s\n", status, priority, task.Description)
 		}
 	}
 
@@ -293,17 +293,17 @@ func (r *Renderer) RenderDay(cal *Calendar) string {
 
 	var builder strings.Builder
 
-	builder.WriteString(fmt.Sprintf("📅 %s\n", dateStr))
+	fmt.Fprintf(&builder, "📅 %s\n", dateStr)
 	builder.WriteString(strings.Repeat("─", 30) + "\n")
 
-	builder.WriteString(fmt.Sprintf("📊 Summary: %d completed, %d pending, %d overdue\n",
+	fmt.Fprintf(&builder, "📊 Summary: %d completed, %d pending, %d overdue\n",
 		day.Completed, day.Pending, func() int {
 			if day.Overdue {
 				return 1
 			} else {
 				return 0
 			}
-		}()))
+		}())
 
 	if len(day.Tasks) > 0 {
 		builder.WriteString("\n📋 Tasks:\n")
@@ -323,9 +323,9 @@ func (r *Renderer) RenderDay(cal *Calendar) string {
 				status = "✅"
 			}
 
-			builder.WriteString(fmt.Sprintf("  %s %s %s\n", status, priority, task.Description))
+			fmt.Fprintf(&builder, "  %s %s %s\n", status, priority, task.Description)
 			if !task.Deadline.IsZero() {
-				builder.WriteString(fmt.Sprintf("     📅 Due: %s\n", task.Deadline.Format("3:04 PM")))
+				fmt.Fprintf(&builder, "     📅 Due: %s\n", task.Deadline.Format("3:04 PM"))
 			}
 		}
 	} else {

@@ -47,9 +47,9 @@ func simpleInteractiveHandler(cmd *cobra.Command, args []string) {
 	fmt.Print("Enter choice (1-3): ")
 
 	var priorityChoice int
-	fmt.Scanln(&priorityChoice)
+	_, _ = fmt.Scanln(&priorityChoice)
 
-	priority := "medium"
+	var priority string
 	switch priorityChoice {
 	case 1:
 		priority = "high"
@@ -71,7 +71,7 @@ func simpleInteractiveHandler(cmd *cobra.Command, args []string) {
 
 	fmt.Print("Confirm? (y/n): ")
 	var confirm string
-	fmt.Scanln(&confirm)
+	_, _ = fmt.Scanln(&confirm)
 
 	if strings.ToLower(confirm) != "y" && strings.ToLower(confirm) != "yes" {
 		fmt.Println("❌ Task creation cancelled.")

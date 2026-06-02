@@ -65,7 +65,6 @@ func TestFallbackProvider_ParseTask(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
 			task, err := provider.ParseTask(ctx, tt.input)
-
 			if err != nil {
 				t.Fatalf("ParseTask() error = %v", err)
 			}
@@ -139,7 +138,6 @@ func TestFallbackProvider_ChatAssistant(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
 			response, err := provider.ChatAssistant(ctx, tt.message, tt.taskContext)
-
 			if err != nil {
 				t.Fatalf("ChatAssistant() error = %v", err)
 			}

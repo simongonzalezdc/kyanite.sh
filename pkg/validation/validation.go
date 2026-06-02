@@ -205,7 +205,7 @@ func ValidatePassword(pw string) error {
 	hasLower := passwordLowerRegex.MatchString(pw)
 	hasUpper := passwordUpperRegex.MatchString(pw)
 	hasDigit := passwordDigitRegex.MatchString(pw)
-	if !(hasLower && hasUpper && hasDigit) {
+	if !hasLower || !hasUpper || !hasDigit {
 		return fmt.Errorf("password must contain upper, lower, and digit")
 	}
 	return nil

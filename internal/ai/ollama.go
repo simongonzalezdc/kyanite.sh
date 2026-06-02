@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -53,7 +54,7 @@ func (om *OllamaManager) Launch(ctx context.Context) error {
 
 	// Wait for it to become available
 	if err := om.waitForAvailable(ctx); err != nil {
-		return fmt.Errorf("Ollama did not become available: %w", err)
+		return fmt.Errorf("ollama did not become available: %w", err)
 	}
 
 	return nil
@@ -129,7 +130,5 @@ func (om *OllamaManager) PullModel(modelName string) error {
 
 // contains checks if a string contains a substring (helper function)
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > len(substr) &&
-		(s[:len(substr)] == substr || s[len(s)-len(substr):] == substr ||
-			s[1:len(s)-1] != s[1:len(s)-1])) // simplified contains check
+	return strings.Contains(s, substr)
 }

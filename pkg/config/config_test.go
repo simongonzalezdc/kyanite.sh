@@ -9,7 +9,6 @@ import (
 func TestLoadConfig(t *testing.T) {
 	// Test loading config with default values
 	config, err := LoadConfig()
-
 	if err != nil {
 		t.Fatalf("LoadConfig() failed: %v", err)
 	}
@@ -42,7 +41,6 @@ func TestGetConfigPath(t *testing.T) {
 
 func TestConfigDefaults(t *testing.T) {
 	config, err := LoadConfig()
-
 	if err != nil {
 		t.Fatalf("LoadConfig() failed: %v", err)
 	}
@@ -194,7 +192,7 @@ func TestConfigPermissions(t *testing.T) {
 	// File should be readable by user
 	// (Note: exact permissions depend on OS and umask)
 	perm := info.Mode()
-	if perm&0400 == 0 { // Readable by owner
+	if perm&0o400 == 0 { // Readable by owner
 		t.Error("Config file should be readable by owner")
 	}
 

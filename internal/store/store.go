@@ -3,9 +3,10 @@ package store
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kyanite/focus/pkg/models"
 	"os"
 	"path/filepath"
+
+	"github.com/kyanite/focus/pkg/models"
 )
 
 // Store handles persistence of tasks
@@ -70,7 +71,7 @@ func (s *Store) Save(tasks []models.Task) error {
 
 	// Write to temporary file first
 	tempPath := s.filePath + ".tmp"
-	if err := os.WriteFile(tempPath, data, 0644); err != nil {
+	if err := os.WriteFile(tempPath, data, 0o644); err != nil {
 		return fmt.Errorf("failed to write temporary file: %w", err)
 	}
 

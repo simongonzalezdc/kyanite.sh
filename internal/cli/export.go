@@ -178,8 +178,8 @@ func exportToMarkdown(tasks []models.Task, filename string) error {
 
 	// Write header
 	content.WriteString("# Focus Tasks Export\n\n")
-	content.WriteString(fmt.Sprintf("**Generated:** %s\n\n", time.Now().Format("2006-01-02 15:04:05")))
-	content.WriteString(fmt.Sprintf("**Total Tasks:** %d\n\n", len(tasks)))
+	fmt.Fprintf(&content, "**Generated:** %s\n\n", time.Now().Format("2006-01-02 15:04:05"))
+	fmt.Fprintf(&content, "**Total Tasks:** %d\n\n", len(tasks))
 	content.WriteString("---\n\n")
 
 	// Group tasks by status
@@ -231,22 +231,22 @@ func writeMarkdownTask(content *strings.Builder, task models.Task, completed boo
 		priorityEmoji = "🟢"
 	}
 
-	content.WriteString(fmt.Sprintf("%s %s **%s**\n", checkbox, priorityEmoji, task.Description))
-	content.WriteString(fmt.Sprintf("  - **ID:** `%s`\n", task.ID))
-	content.WriteString(fmt.Sprintf("  - **Priority:** %s\n", task.Priority))
+	fmt.Fprintf(content, "%s %s **%s**\n", checkbox, priorityEmoji, task.Description)
+	fmt.Fprintf(content, "  - **ID:** `%s`\n", task.ID)
+	fmt.Fprintf(content, "  - **Priority:** %s\n", task.Priority)
 
 	if !task.Deadline.IsZero() {
-		content.WriteString(fmt.Sprintf("  - **Deadline:** %s\n", task.Deadline.Format("2006-01-02 15:04")))
+		fmt.Fprintf(content, "  - **Deadline:** %s\n", task.Deadline.Format("2006-01-02 15:04"))
 	}
 
 	if len(task.Categories) > 0 {
-		content.WriteString(fmt.Sprintf("  - **Categories:** %s\n", strings.Join(task.Categories, ", ")))
+		fmt.Fprintf(content, "  - **Categories:** %s\n", strings.Join(task.Categories, ", "))
 	}
 
-	content.WriteString(fmt.Sprintf("  - **Created:** %s\n", task.CreatedAt.Format("2006-01-02 15:04")))
+	fmt.Fprintf(content, "  - **Created:** %s\n", task.CreatedAt.Format("2006-01-02 15:04"))
 
 	if completed {
-		content.WriteString(fmt.Sprintf("  - **Completed:** %s\n", task.UpdatedAt.Format("2006-01-02 15:04")))
+		fmt.Fprintf(content, "  - **Completed:** %s\n", task.UpdatedAt.Format("2006-01-02 15:04"))
 	}
 
 	content.WriteString("\n")

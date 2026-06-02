@@ -195,31 +195,31 @@ func showSearchResults(tasks []models.Task, query string) {
 	// Show search criteria
 	var criteria strings.Builder
 	if query != "" {
-		criteria.WriteString(fmt.Sprintf("Query: \"%s\"", query))
+		fmt.Fprintf(&criteria, "Query: \"%s\"", query)
 	}
 	if searchPriority != "" {
 		if criteria.Len() > 0 {
 			criteria.WriteString(" | ")
 		}
-		criteria.WriteString(fmt.Sprintf("Priority: %s", searchPriority))
+		fmt.Fprintf(&criteria, "Priority: %s", searchPriority)
 	}
 	if searchCategory != "" {
 		if criteria.Len() > 0 {
 			criteria.WriteString(" | ")
 		}
-		criteria.WriteString(fmt.Sprintf("Category: %s", searchCategory))
+		fmt.Fprintf(&criteria, "Category: %s", searchCategory)
 	}
 	if searchStatus != "" {
 		if criteria.Len() > 0 {
 			criteria.WriteString(" | ")
 		}
-		criteria.WriteString(fmt.Sprintf("Status: %s", searchStatus))
+		fmt.Fprintf(&criteria, "Status: %s", searchStatus)
 	}
 	if searchDeadline != "" {
 		if criteria.Len() > 0 {
 			criteria.WriteString(" | ")
 		}
-		criteria.WriteString(fmt.Sprintf("Deadline: %s", searchDeadline))
+		fmt.Fprintf(&criteria, "Deadline: %s", searchDeadline)
 	}
 
 	if criteria.Len() > 0 {

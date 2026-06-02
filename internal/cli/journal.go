@@ -25,15 +25,17 @@ var journalCmd = &cobra.Command{
 		"  export  Export entry to syntax.sh"),
 }
 
-var journalDate string
-var journalTitle string
-var journalMood string
-var journalTemplate string
-var journalTags []string
-var journalID string
-var journalQuery string
-var exportTypeStr string
-var toSyntax bool
+var (
+	journalDate     string
+	journalTitle    string
+	journalMood     string
+	journalTemplate string
+	journalTags     []string
+	journalID       string
+	journalQuery    string
+	exportTypeStr   string
+	toSyntax        bool
+)
 
 var journalNewCmd = &cobra.Command{
 	Use:   "new",

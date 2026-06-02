@@ -1,10 +1,11 @@
 package main
 
 import (
+	"testing"
+
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/models"
-	"testing"
 )
 
 func TestTaskManagement(t *testing.T) {

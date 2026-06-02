@@ -153,7 +153,7 @@ Examples:
 		fmt.Println(confirmStyle.Render("⚠️  Type 'yes' to confirm deletion:"))
 
 		var confirm string
-		fmt.Scanln(&confirm)
+		_, _ = fmt.Scanln(&confirm)
 
 		if strings.ToLower(confirm) != "yes" {
 			showBulkWarning("Deletion cancelled")

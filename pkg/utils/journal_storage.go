@@ -107,7 +107,7 @@ func (js *JournalStorage) SaveEntries(entries []*models.JournalEntry) error {
 		return fmt.Errorf("failed to create journal directory: %w", err)
 	}
 
-	if err := os.WriteFile(js.filePath, data, 0644); err != nil {
+	if err := os.WriteFile(js.filePath, data, 0o644); err != nil {
 		return fmt.Errorf("failed to write journal file: %w", err)
 	}
 
@@ -147,7 +147,7 @@ func (js *JournalStorage) flushCache() error {
 		return fmt.Errorf("failed to create journal directory: %w", err)
 	}
 
-	if err := os.WriteFile(js.filePath, data, 0644); err != nil {
+	if err := os.WriteFile(js.filePath, data, 0o644); err != nil {
 		return fmt.Errorf("failed to write journal file: %w", err)
 	}
 

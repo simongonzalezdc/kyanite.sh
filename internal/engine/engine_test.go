@@ -160,7 +160,6 @@ func TestEngine_ListTasks(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tasks, err := engine.ListTasks(tt.filter)
-
 			if err != nil {
 				t.Fatalf("ListTasks() error = %v", err)
 			}

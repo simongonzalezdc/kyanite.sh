@@ -640,7 +640,6 @@ func (m *MainModel) recreateStyles() {
 }
 
 func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
 	// Handle priority change mode
 	if m.taskEntryMode && m.taskInput == "PRIORITY_MODE" {
 		switch msg := msg.(type) {
@@ -733,9 +732,10 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			default:
 				// Handle text input for notes
-				if msg.Type == tea.KeyRunes {
+				switch msg.Type {
+				case tea.KeyRunes:
 					m.notesInput += msg.String()
-				} else if msg.Type == tea.KeyBackspace {
+				case tea.KeyBackspace:
 					if len(m.notesInput) > 0 {
 						m.notesInput = m.notesInput[:len(m.notesInput)-1]
 					}
@@ -778,9 +778,10 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			default:
 				// Handle text input
-				if msg.Type == tea.KeyRunes {
+				switch msg.Type {
+				case tea.KeyRunes:
 					m.taskInput += msg.String()
-				} else if msg.Type == tea.KeyBackspace {
+				case tea.KeyBackspace:
 					if len(m.taskInput) > 0 {
 						m.taskInput = m.taskInput[:len(m.taskInput)-1]
 					}
@@ -820,9 +821,10 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			default:
 				// Handle text input
-				if msg.Type == tea.KeyRunes {
+				switch msg.Type {
+				case tea.KeyRunes:
 					m.chatInput += msg.String()
-				} else if msg.Type == tea.KeyBackspace {
+				case tea.KeyBackspace:
 					if len(m.chatInput) > 0 {
 						m.chatInput = m.chatInput[:len(m.chatInput)-1]
 					}
@@ -1129,10 +1131,7 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.stop):
 			if m.currentView == focusView && !m.taskEntryMode {
 				audio.PlaySound(audio.SoundTimerStop)
-				if m.sessionType == workSession {
-					// Stop the timer (Bubble Tea handles stopping)
-					// Timer is already stopped when TimeoutMsg is not sent
-				}
+				// Work-session timer stops automatically when TimeoutMsg is not sent
 			}
 			return m, nil
 
@@ -1384,7 +1383,7 @@ func (m *MainModel) renderProgressBar() string {
 
 	bar.WriteString("] ")
 	percentage := int(progress * 100)
-	bar.WriteString(fmt.Sprintf("%d%%", percentage))
+	fmt.Fprintf(&bar, "%d%%", percentage)
 
 	return bar.String()
 }
@@ -1555,7 +1554,7 @@ func (m *MainModel) renderTaskList() string {
 		} else {
 			// Enhanced priority symbols with colors
 			prioritySymbol := ""
-			priorityColor := synthGreen // default
+			var priorityColor lipgloss.Color
 			switch task.Priority {
 			case "high":
 				prioritySymbol = "🔥"
@@ -1685,10 +1684,6 @@ func (m *MainModel) renderFocusView() string {
 
 	return b.String()
 }
-
-
-
-
 
 func (m *MainModel) renderDashboard() string {
 	var b strings.Builder
