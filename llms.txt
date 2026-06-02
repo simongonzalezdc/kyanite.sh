@@ -1,0 +1,12 @@
+# noise.sh
+
+> Creative audio & generative-noise toolkit in Go — procedural sound experiments from the terminal.
+
+## What it is
+A Go toolkit for procedural/generative audio and noise experiments with a maker-friendly terminal workflow.
+
+## Install / use
+Build from source with Go (`go build ./...`).
+
+## Links
+- Repository: https://github.com/simongonzalezdc/noise.sh
