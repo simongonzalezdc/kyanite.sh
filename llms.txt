@@ -1,0 +1,12 @@
+# focus.sh
+
+> Terminal-first focus & task manager in Go — ADHD-friendly attention management and a fast TUI.
+
+## What it is
+A Go CLI/TUI for focus and task management: rituals, attention management, and lightweight local automation in a fast terminal dashboard.
+
+## Install / use
+Build from source with Go (`go build ./...`) or grab a release binary.
+
+## Links
+- Repository: https://github.com/simongonzalezdc/focus.sh
