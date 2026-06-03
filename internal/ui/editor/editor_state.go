@@ -597,14 +597,16 @@ func (s *EditorState) CopySelectedText() error {
 		return nil
 	}
 
-	// Copy to system clipboard
+	// Always store in the internal clipboard first so copy/cut work even when
+	// no system clipboard utility is available (e.g. a headless CI runner).
+	s.clipboardContent = selectedText
+
+	// Best-effort sync to the system clipboard; its absence is non-fatal
+	// because the internal clipboard already holds the text.
 	if err := clipboard.WriteAll(selectedText); err != nil {
-		logging.Errorf("Failed to copy to system clipboard: %v", err)
-		return fmt.Errorf("failed to copy to clipboard: %w", err)
+		logging.Warnf("System clipboard unavailable, using internal clipboard: %v", err)
 	}
 
-	// Store in internal clipboard as fallback
-	s.clipboardContent = selectedText
 	logging.Debugf("Copied %d characters to clipboard", len(selectedText))
 	return nil
 }

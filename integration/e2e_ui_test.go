@@ -83,7 +83,7 @@ func TestE2E_UI_Workflow(t *testing.T) {
 	start := time.Now()
 	sp.SetEditorText(large.String())
 	elapsed := time.Since(start)
-	if elapsed > 2*time.Second {
+	if !relaxPerfBudgets() && elapsed > 2*time.Second {
 		t.Logf("warning: setting large content took %v (test threshold 2s)", elapsed)
 	}
 

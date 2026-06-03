@@ -288,7 +288,7 @@ Even with large amounts of text.
 	updateDuration := time.Since(startTime)
 
 	// Should complete within reasonable time (less than 100ms for this size)
-	if updateDuration > 100*time.Millisecond {
+	if !relaxPerfBudgets() && updateDuration > 100*time.Millisecond {
 		t.Errorf("Update took too long: %v", updateDuration)
 	}
 

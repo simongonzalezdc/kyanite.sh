@@ -333,7 +333,7 @@ func TestBackupManagerPerformance(t *testing.T) {
 	}
 
 	// Backup should complete within reasonable time
-	if duration > 1*time.Second {
+	if !relaxPerfBudgets() && duration > 1*time.Second {
 		t.Errorf("Backup creation took too long: %v", duration)
 	}
 
@@ -349,7 +349,7 @@ func TestBackupManagerPerformance(t *testing.T) {
 		}
 
 		// Restore should complete within reasonable time
-		if duration > 1*time.Second {
+		if !relaxPerfBudgets() && duration > 1*time.Second {
 			t.Errorf("Backup restore took too long: %v", duration)
 		}
 	}

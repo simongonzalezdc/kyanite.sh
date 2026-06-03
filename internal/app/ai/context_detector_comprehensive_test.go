@@ -211,7 +211,7 @@ func TestContextDetector_LargeContent(t *testing.T) {
 			elapsed := time.Since(start)
 
 			helper.AssertEqual(tt.expected, result)
-			helper.AssertTrue(elapsed < 100*time.Millisecond, "Analysis should complete quickly even for large content")
+			helper.AssertTrue(relaxPerfBudgets() || elapsed < 100*time.Millisecond, "Analysis should complete quickly even for large content")
 			t.Logf("Analysis completed in %v for %d characters", elapsed, len(tt.content))
 			t.Logf("Description: %s", tt.description)
 		})
@@ -583,7 +583,7 @@ func TestContextDetector_PerformanceBenchmarks(t *testing.T) {
 
 				// Performance assertions
 				maxTime := time.Duration(size.lines) * time.Millisecond * 2 // 2ms per line
-				helper.AssertTrue(elapsed < maxTime,
+				helper.AssertTrue(relaxPerfBudgets() || elapsed < maxTime,
 					"Analysis should complete in less than %v for %d lines, took %v",
 					maxTime, size.lines, elapsed)
 

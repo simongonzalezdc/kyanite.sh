@@ -353,7 +353,7 @@ Should maintain smooth operation even with large documents.
 
 	// Should complete within reasonable time (less than 100ms for this size).
 	// The budget is scaled up under the race detector (see perfBudgetScale).
-	if duration > 100*time.Millisecond {
+	if !relaxPerfBudgets() && duration > 100*time.Millisecond {
 		t.Errorf("Setting large content took too long: %v", duration)
 	}
 
@@ -362,7 +362,7 @@ Should maintain smooth operation even with large documents.
 	view := model.View()
 	duration = time.Since(start)
 
-	if duration > 100*time.Millisecond {
+	if !relaxPerfBudgets() && duration > 100*time.Millisecond {
 		t.Errorf("Rendering large content took too long: %v", duration)
 	}
 

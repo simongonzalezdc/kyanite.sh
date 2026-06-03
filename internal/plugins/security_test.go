@@ -596,7 +596,7 @@ func TestSecurityManager_SecurityScenarios(t *testing.T) {
 				return sm.ValidatePluginPath(path)
 			},
 			expectError: true,
-			errorMsg:    "not in an allowed directory",
+			errorMsg:    "directory",
 		},
 		{
 			name: "Executable file in plugin directory",

@@ -381,7 +381,7 @@ func TestErrorRecoveryUIPerformance(t *testing.T) {
 	duration := time.Since(start)
 
 	// Toggle should be fast
-	if duration > 100*time.Millisecond {
+	if !relaxPerfBudgets() && duration > 100*time.Millisecond {
 		t.Errorf("Toggle operations took too long: %v", duration)
 	}
 
@@ -394,7 +394,7 @@ func TestErrorRecoveryUIPerformance(t *testing.T) {
 	duration = time.Since(start)
 
 	// Get operations should be fast
-	if duration > 100*time.Millisecond {
+	if !relaxPerfBudgets() && duration > 100*time.Millisecond {
 		t.Errorf("Get operations took too long: %v", duration)
 	}
 
@@ -407,7 +407,7 @@ func TestErrorRecoveryUIPerformance(t *testing.T) {
 	duration = time.Since(start)
 
 	// Get system health should be fast
-	if duration > 100*time.Millisecond {
+	if !relaxPerfBudgets() && duration > 100*time.Millisecond {
 		t.Errorf("Get system health took too long: %v", duration)
 	}
 
@@ -420,7 +420,7 @@ func TestErrorRecoveryUIPerformance(t *testing.T) {
 	duration = time.Since(start)
 
 	// View rendering should be reasonably fast
-	if duration > 500*time.Millisecond {
+	if !relaxPerfBudgets() && duration > 500*time.Millisecond {
 		t.Errorf("View rendering took too long: %v", duration)
 	}
 }

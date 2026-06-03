@@ -667,7 +667,7 @@ func TestExamplePlugins_Performance(t *testing.T) {
 	}
 
 	// Should complete within reasonable time (adjust threshold as needed)
-	if duration > 100*time.Millisecond {
+	if !relaxPerfBudgets() && duration > 100*time.Millisecond {
 		t.Errorf("Analysis took too long: %v", duration)
 	}
 }

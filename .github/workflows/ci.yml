@@ -47,37 +47,25 @@ jobs:
       - name: Lint
         run: make lint
 
-      # Tests run ADVISORY (continue-on-error) for now. The suite was never
-      # exercised in CI before (the lint step failed first), and it carries
-      # pre-existing environment-specific failures on the Linux runner:
-      #   - clipboard tests need xclip/xsel/wl-clipboard (headless runner)
-      #   - a couple of security path-traversal assertions are OS-specific
-      #     (/etc/passwd hits the "blocked directory" branch on Linux)
-      #   - some editor tests assume a working dir with ./test and data/*
-      # Lint (above) and the cross-OS Build job (below) are the blocking gates.
-      # The -skip pattern also drops flaky timing micro-benchmarks. Harden these
-      # tests for CI, then drop continue-on-error to make them gate again.
-      - name: Run tests with coverage (advisory)
-        continue-on-error: true
+      # Full suite gates. Timing-sensitive perf assertions auto-relax when CI
+      # is set (relaxPerfBudgets()) since wall-clock budgets are unreliable on
+      # shared runners; the functional + concurrency assertions still run.
+      - name: Run tests with coverage
+        env:
+          CI: "true"
         run: |
           mkdir -p build/reports
-          go test ./... -covermode=atomic -coverprofile=build/reports/coverage.out -skip 'Performance|Benchmark|LargeContent' || true
-          [ -f build/reports/coverage.out ] && go tool cover -func=build/reports/coverage.out > build/reports/coverage.txt || true
+          go test ./... -covermode=atomic -coverprofile=build/reports/coverage.out
+          go tool cover -func=build/reports/coverage.out > build/reports/coverage.txt
 
-      # Race detector (advisory): the real data races are fixed; this surfaces
-      # any new ones plus the same pre-existing env failures noted above.
-      - name: Race detector (advisory)
-        continue-on-error: true
-        run: go test ./... -race -skip 'Performance|Benchmark|LargeContent'
-
-      # Timing-sensitive perf micro-benchmarks: advisory (flaky under CI load).
-      - name: Performance benchmarks (advisory)
-        continue-on-error: true
-        run: go test ./... -run 'Performance|Benchmark|LargeContent'
+      # Blocking race detector over the whole suite.
+      - name: Race detector
+        env:
+          CI: "true"
+        run: go test ./... -race
 
       - name: Upload coverage artifacts
         if: always()
-        continue-on-error: true
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: test-coverage

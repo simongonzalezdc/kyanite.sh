@@ -560,7 +560,7 @@ func TestRecoveryTimeoutHandling(t *testing.T) {
 
 	// Verify that recovery completed in reasonable time
 	// (This is a loose check since file systems vary)
-	if duration > 10*time.Second {
+	if !relaxPerfBudgets() && duration > 10*time.Second {
 		t.Logf("Recovery took longer than expected: %v", duration)
 	}
 }
@@ -730,7 +730,7 @@ func TestRecoveryPerformanceUnderLoad(t *testing.T) {
 	}
 
 	// Check performance (should complete within reasonable time)
-	if duration > 30*time.Second {
+	if !relaxPerfBudgets() && duration > 30*time.Second {
 		t.Errorf("Recovery took too long under load: %v", duration)
 	}
 

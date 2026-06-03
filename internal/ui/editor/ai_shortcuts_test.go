@@ -428,7 +428,7 @@ func TestEditorPane_AIResponseTime(t *testing.T) {
 	duration := time.Since(start)
 
 	// Should complete quickly (under 100ms for fallback)
-	if duration > 100*time.Millisecond {
+	if !relaxPerfBudgets() && duration > 100*time.Millisecond {
 		t.Errorf("AI operation took too long: %v", duration)
 	}
 
