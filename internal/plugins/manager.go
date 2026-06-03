@@ -381,6 +381,7 @@ func getDefaultPluginDirs(cfg *config.Config) []string {
 
 // StubPlugin is a placeholder plugin implementation for testing
 type StubPlugin struct {
+	mu       sync.Mutex // guards mutable state for concurrent Initialize/Enable/Disable
 	metadata *PluginMetadata
 	enabled  bool
 }
@@ -390,6 +391,8 @@ func (p *StubPlugin) Metadata() *PluginMetadata {
 }
 
 func (p *StubPlugin) Initialize(ctx *PluginContext) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	p.metadata.LoadTime = time.Now()
 	return nil
 }
@@ -399,15 +402,21 @@ func (p *StubPlugin) Cleanup() error {
 }
 
 func (p *StubPlugin) Enable() error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	p.enabled = true
 	return nil
 }
 
 func (p *StubPlugin) Disable() error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	p.enabled = false
 	return nil
 }
 
 func (p *StubPlugin) IsEnabled() bool {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	return p.enabled
 }

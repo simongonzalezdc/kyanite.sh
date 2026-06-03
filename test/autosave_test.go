@@ -225,16 +225,24 @@ func TestAutoSaveCallbacks(t *testing.T) {
 
 	service := app.NewAutoSaveService(database, nil)
 
-	// Test status change callback
-	var statusChanges []app.AutoSaveStatus
+	// The service can invoke callbacks from multiple goroutines (async
+	// SaveContent + synchronous ForceSave), so the shared slices are guarded.
+	var (
+		cbMu          sync.Mutex
+		statusChanges []app.AutoSaveStatus
+		errors        []error
+	)
 	service.SetStatusChangeCallback(func(status app.AutoSaveStatus) {
+		cbMu.Lock()
 		statusChanges = append(statusChanges, status)
+		cbMu.Unlock()
 	})
 
 	// Test error callback
-	var errors []error
 	service.SetErrorCallback(func(err error) {
+		cbMu.Lock()
 		errors = append(errors, err)
+		cbMu.Unlock()
 	})
 
 	// Trigger status change
@@ -244,13 +252,18 @@ func TestAutoSaveCallbacks(t *testing.T) {
 	_ = service.ForceSave("Test content")
 
 	// Test that callbacks were called
-	if len(statusChanges) == 0 {
+	cbMu.Lock()
+	gotStatusChanges := len(statusChanges)
+	gotErrors := append([]error(nil), errors...)
+	cbMu.Unlock()
+
+	if gotStatusChanges == 0 {
 		t.Error("Expected status change callback to be called")
 	}
 
 	// Test that no errors occurred
-	if len(errors) > 0 {
-		t.Errorf("Expected no errors, got: %v", errors[0])
+	if len(gotErrors) > 0 {
+		t.Errorf("Expected no errors, got: %v", gotErrors[0])
 	}
 }
 
@@ -401,12 +414,18 @@ waitLoop:
 				break waitLoop
 			}
 		case <-waitDeadline:
-			t.Logf("Timed out waiting for auto-save completion; statuses observed: %v", statuses)
+			statusMu.Lock()
+			timedOutSnapshot := append([]app.AutoSaveStatus(nil), statuses...)
+			statusMu.Unlock()
+			t.Logf("Timed out waiting for auto-save completion; statuses observed: %v", timedOutSnapshot)
 			break waitLoop
 		}
 	}
 
-	t.Logf("Auto-save debouncing observed duration: %v (statuses: %v)", observedDuration, statuses)
+	statusMu.Lock()
+	statusesSnapshot := append([]app.AutoSaveStatus(nil), statuses...)
+	statusMu.Unlock()
+	t.Logf("Auto-save debouncing observed duration: %v (statuses: %v)", observedDuration, statusesSnapshot)
 
 	// Since SaveContent now executes asynchronously when the service isn't started,
 	// the synchronous call duration may be near-zero even though the async save
@@ -431,7 +450,7 @@ waitLoop:
 
 	// Verify that we eventually reached a completion state
 	hasCompletionStatus := false
-	for _, status := range statuses {
+	for _, status := range statusesSnapshot {
 		if status == app.AutoSaveSuccess || status == app.AutoSaveIdle {
 			hasCompletionStatus = true
 			break
@@ -818,10 +837,15 @@ func TestAutoSaveStatusTransitions(t *testing.T) {
 
 	service := app.NewAutoSaveService(database, nil)
 
-	// Track status changes
-	var statusHistory []app.AutoSaveStatus
+	// Track status changes (callbacks may fire from multiple goroutines).
+	var (
+		histMu        sync.Mutex
+		statusHistory []app.AutoSaveStatus
+	)
 	service.SetStatusChangeCallback(func(status app.AutoSaveStatus) {
+		histMu.Lock()
 		statusHistory = append(statusHistory, status)
+		histMu.Unlock()
 	})
 
 	// Test status transitions
@@ -832,7 +856,10 @@ func TestAutoSaveStatusTransitions(t *testing.T) {
 	_ = service.ForceSave("Content 2")
 
 	// Test that status transitions occurred
-	if len(statusHistory) == 0 {
+	histMu.Lock()
+	historyLen := len(statusHistory)
+	histMu.Unlock()
+	if historyLen == 0 {
 		t.Error("Expected status transitions to occur")
 	}
 

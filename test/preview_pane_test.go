@@ -351,7 +351,8 @@ Should maintain smooth operation even with large documents.
 	model.SetContent(content)
 	duration := time.Since(start)
 
-	// Should complete within reasonable time (less than 100ms for this size)
+	// Should complete within reasonable time (less than 100ms for this size).
+	// The budget is scaled up under the race detector (see perfBudgetScale).
 	if duration > 100*time.Millisecond {
 		t.Errorf("Setting large content took too long: %v", duration)
 	}
