@@ -498,8 +498,8 @@ cat ~/.local/log/focus/focus.log
 
 ### Community Support
 
-1. **GitHub Issues**: [Report bugs](https://github.com/kyanite/focus/issues)
-2. **GitHub Discussions**: [Ask questions](https://github.com/kyanite/focus/discussions)
+1. **GitHub Issues**: [Report bugs](https://github.com/simongonzalezdc/focus.sh/issues)
+2. **GitHub Discussions**: [Ask questions](https://github.com/simongonzalezdc/focus.sh/discussions)
 3. **Security Issues**: [Security Policy](../../SECURITY.md)
 
 ### When Reporting Issues

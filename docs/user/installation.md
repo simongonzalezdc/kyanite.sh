@@ -32,7 +32,7 @@ This guide will help you install Focus.sh on your system and get it running with
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/kyanite/focus.git
+   git clone https://github.com/simongonzalezdc/focus.sh.git
    cd focus
    ```
 
@@ -68,7 +68,7 @@ If you prefer not to build, you can run directly:
 
 ```bash
 # Clone the repository
-git clone https://github.com/kyanite/focus.git
+git clone https://github.com/simongonzalezdc/focus.sh.git
 cd focus
 
 # Run directly
@@ -77,11 +77,11 @@ go run cmd/focus/main.go --help
 
 ### Method 3: Pre-built Binaries (When Available)
 
-Download pre-built binaries from [GitHub Releases](https://github.com/kyanite/focus/releases):
+Download pre-built binaries from [GitHub Releases](https://github.com/simongonzalezdc/focus.sh/releases):
 
 ```bash
 # Example for Linux
-wget https://github.com/kyanite/focus/releases/download/v1.0.0/focus-linux-amd64.tar.gz
+wget https://github.com/simongonzalezdc/focus.sh/releases/download/v1.0.0/focus-linux-amd64.tar.gz
 tar -xzf focus-linux-amd64.tar.gz
 sudo mv focus /usr/local/bin/
 ```
@@ -250,8 +250,8 @@ If you encounter issues:
 1. **Check logs**: Look for error messages in the terminal output
 2. **Verify installation**: Run the verification steps above
 3. **Check dependencies**: Ensure Go and Ollama are properly installed
-4. **Search issues**: [GitHub Issues](https://github.com/kyanite/focus/issues)
-5. **Ask for help**: [GitHub Discussions](https://github.com/kyanite/focus/discussions)
+4. **Search issues**: [GitHub Issues](https://github.com/simongonzalezdc/focus.sh/issues)
+5. **Ask for help**: [GitHub Discussions](https://github.com/simongonzalezdc/focus.sh/discussions)
 
 ## Next Steps
 

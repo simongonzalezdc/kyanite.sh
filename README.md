@@ -117,8 +117,8 @@ Contributions are welcome! 🎉 Please read our [Contributing Guide](CONTRIBUTIN
 ## Support
 
 - 📖 **Documentation**: [docs/](docs/)
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/kyanite/focus/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/kyanite/focus/discussions)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/simongonzalezdc/focus.sh/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/simongonzalezdc/focus.sh/discussions)
 - 🔒 **Security**: [Security Policy](SECURITY.md)
 
 ---

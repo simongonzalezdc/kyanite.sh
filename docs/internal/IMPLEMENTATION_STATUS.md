@@ -221,7 +221,7 @@ func (m *MainModel) updateTheme() {
 
 ### **Current Build Command**
 ```bash
-cd "C:\Users\Simon\CRUSH CLI"
+cd path/to/focus.sh
 go build -o focus-test.exe ./cmd/focus
 ```
 
@@ -380,7 +380,7 @@ go vet ./...
 
 ### **1. Build & Test (5 mins)**
 ```bash
-cd "C:\Users\Simon\CRUSH CLI"
+cd path/to/focus.sh
 go build -o focus-restart.exe ./cmd/focus
 ./focus-restart.exe dashboard
 # Test 't' key theme cycling

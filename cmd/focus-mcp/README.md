@@ -87,7 +87,7 @@ Run golangci-lint on the current directory or specific files.
 ### Common MCP Client Configurations
 
 **Cursor:**
-- Edit `C:\Users\Simon\AppData\Roaming\Code\User\mcp.json`
+- Edit `%APPDATA%\Code\User\mcp.json`
 - Add the server configuration under `servers`
 
 **Claude Desktop:**

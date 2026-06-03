@@ -305,4 +305,4 @@ This roadmap is a living document that evolves based on:
 
 *Last updated: 2024-01-XX*
 
-*This roadmap represents our current plans and may change based on community feedback and technical considerations. Join our [GitHub Discussions](https://github.com/kyanite/focus/discussions) to help shape the future of Focus.sh!*
+*This roadmap represents our current plans and may change based on community feedback and technical considerations. Join our [GitHub Discussions](https://github.com/simongonzalezdc/focus.sh/discussions) to help shape the future of Focus.sh!*

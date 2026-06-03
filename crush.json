@@ -24,7 +24,7 @@
   "mcp": {
     "golangci-lint": {
       "type": "stdio",
-      "command": "C:\\Users\\Simon\\dev\\kyanite\\mcp-server.exe",
+      "command": "./mcp-server",
       "timeout": 120,
       "disabled": false
     }

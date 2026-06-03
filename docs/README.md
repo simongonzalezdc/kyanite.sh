@@ -68,8 +68,8 @@ See [Configuration Guide](user/configuration.md) for detailed setup.
 
 ## 📞 Support
 
-- 🐛 **Report Issues**: [GitHub Issues](https://github.com/kyanite/focus/issues)
-- 💬 **Community**: [GitHub Discussions](https://github.com/kyanite/focus/discussions)
+- 🐛 **Report Issues**: [GitHub Issues](https://github.com/simongonzalezdc/focus.sh/issues)
+- 💬 **Community**: [GitHub Discussions](https://github.com/simongonzalezdc/focus.sh/discussions)
 - 🔒 **Security**: See [Security Policy](../SECURITY.md)
 - 📖 **Documentation**: Browse the sections above
 

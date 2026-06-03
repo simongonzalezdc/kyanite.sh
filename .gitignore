@@ -5,9 +5,11 @@
 *.dylib
 /neon*
 /glow_demo*
+/mcp-server
 /mcp-server.exe
 /focus
 /focus.exe
+*.msi
 
 # Local secrets
 .env
@@ -32,3 +34,6 @@ coverage.out
 # OS
 .DS_Store
 Thumbs.db
+
+# Local agent workspace
+.omx/

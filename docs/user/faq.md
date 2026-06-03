@@ -17,7 +17,7 @@ A: You need:
 ### **Q: How do I install Focus.sh?**
 A: The recommended way is to build from source:
 ```bash
-git clone https://github.com/kyanite/focus.git
+git clone https://github.com/simongonzalezdc/focus.sh.git
 cd focus
 go build ./cmd/focus
 ollama pull qwen2.5:1.5b
@@ -315,8 +315,8 @@ $env:PATH += ";$(pwd)"
 
 ### **Where can I get help?**
 - **Documentation**: Browse the [docs/](../) directory
-- **GitHub Issues**: [Report bugs](https://github.com/kyanite/focus/issues)
-- **GitHub Discussions**: [Ask questions](https://github.com/kyanite/focus/discussions)
+- **GitHub Issues**: [Report bugs](https://github.com/simongonzalezdc/focus.sh/issues)
+- **GitHub Discussions**: [Ask questions](https://github.com/simongonzalezdc/focus.sh/discussions)
 - **Troubleshooting**: [Troubleshooting Guide](troubleshooting.md)
 
 ### **How do I report a bug?**

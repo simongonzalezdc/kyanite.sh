@@ -16,7 +16,7 @@ Only the current major version receives security updates and bug fixes.
 If you discover a security vulnerability in Focus.sh, please report it responsibly:
 
 1. **Email**: Send a detailed report to `security@focus.sh`
-2. **GitHub**: Use the [Security Advisory](https://github.com/kyanite/focus/security/advisories) feature
+2. **GitHub**: Use the [Security Advisory](https://github.com/simongonzalezdc/focus.sh/security/advisories) feature
 3. **Private Issue**: Create a private issue in the repository
 
 ### What to Include
@@ -101,7 +101,7 @@ Focus.sh accesses these locations:
 ### Installation Security
 
 1. **Download from official sources only**:
-   - GitHub releases: https://github.com/kyanite/focus/releases
+   - GitHub releases: https://github.com/simongonzalezdc/focus.sh/releases
    - Package managers (when available)
 
 2. **Verify releases**:
