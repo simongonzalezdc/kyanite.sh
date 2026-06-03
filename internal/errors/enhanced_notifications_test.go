@@ -638,7 +638,19 @@ func TestNotificationLocalization(t *testing.T) {
 				t.Fatal("Expected at least one notification")
 			}
 
-			notification := notifications[len(notifications)-1]
+			// GetActiveNotifications iterates a map, so its order is not
+			// deterministic; look the notification up by the ID we just got
+			// instead of assuming it is the last element.
+			var notification *Notification
+			for _, n := range notifications {
+				if n.ID == notificationID {
+					notification = n
+					break
+				}
+			}
+			if notification == nil {
+				t.Fatalf("Notification %s not found among active notifications", notificationID)
+			}
 			if notification.Title != tc.expectedTitle {
 				t.Errorf("Expected title %s, got %s", tc.expectedTitle, notification.Title)
 			}
