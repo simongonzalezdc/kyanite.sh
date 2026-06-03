@@ -34,8 +34,11 @@ type PreviewPaneModel struct {
 	scrollPos int
 	zoomLevel float64
 
-	// Glamour renderer
-	renderer *glamour.TermRenderer
+	// Glamour renderer. glamour.TermRenderer is not safe for concurrent use,
+	// so renderMutex serializes Render calls in case a debounced (DebounceDelay>0)
+	// preview update renders off the Bubble Tea goroutine while View() renders on it.
+	renderer    *glamour.TermRenderer
+	renderMutex sync.Mutex
 
 	// Styles
 	focusedStyle lipgloss.Style
@@ -825,8 +828,11 @@ func (m *PreviewPaneModel) renderContentWithGlamour() (rendered string, err erro
 	// Pre-process content for lyric-specific formatting
 	processedContent := m.preprocessLyricContent()
 
-	// Render with Glamour
+	// Render with Glamour. The renderer is not concurrency-safe, so serialize
+	// access; Render does not call back into the model, so this cannot re-enter.
+	m.renderMutex.Lock()
 	rendered, err = m.renderer.Render(processedContent)
+	m.renderMutex.Unlock()
 	if err != nil {
 		m.lastError = err.Error()
 		return m.renderBasicContent(), err

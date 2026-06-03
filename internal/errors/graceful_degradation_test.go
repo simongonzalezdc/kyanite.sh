@@ -586,7 +586,9 @@ func TestPerformanceImpactDuringDegradation(t *testing.T) {
 
 	// Check that performance doesn't degrade significantly
 	// Allow for some overhead but it shouldn't be dramatically slower
-	if degradedDuration > enabledDuration*2 {
+	// Relative wall-clock comparison; unreliable on shared CI runners and under
+	// -race, so relax it like the other perf budgets in this package.
+	if !relaxPerfBudgets() && degradedDuration > enabledDuration*2 {
 		t.Errorf("Performance degraded too much: enabled=%v, degraded=%v", enabledDuration, degradedDuration)
 	}
 }

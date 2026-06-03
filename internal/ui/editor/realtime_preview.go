@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/Kyanite/noise/internal/theme"
@@ -80,8 +81,13 @@ type RealTimePreviewManager struct {
 	lastContent     string
 	lastContentHash string
 	lastUpdateTime  time.Time
-	isUpdating      bool
-	updateMutex     sync.RWMutex
+	// isUpdating is read by IsUpdating() from arbitrary goroutines while
+	// performUpdate flips it from the (possibly async) debounced update path.
+	// It is atomic so those accesses never race and so performUpdate does not
+	// need updateMutex, which UpdateContent already holds across the
+	// synchronous performUpdate call (taking it again would self-deadlock).
+	isUpdating  atomic.Bool
+	updateMutex sync.RWMutex
 
 	// Content tracking
 	contentHistory []ContentChangeEvent
@@ -225,7 +231,7 @@ func (m *RealTimePreviewManager) debouncedUpdate(content string) {
 // performUpdate executes the actual preview update
 func (m *RealTimePreviewManager) performUpdate(content string) {
 	startTime := time.Now()
-	m.isUpdating = true
+	m.isUpdating.Store(true)
 
 	// Trigger update start callback
 	if m.onUpdateStart != nil {
@@ -253,7 +259,7 @@ func (m *RealTimePreviewManager) performUpdate(content string) {
 
 	// Update statistics
 	updateDuration := time.Since(startTime)
-	m.isUpdating = false
+	m.isUpdating.Store(false)
 
 	// Update performance metrics
 	m.performanceMutex.Lock()
@@ -373,9 +379,7 @@ func (m *RealTimePreviewManager) GetUpdateIndicatorView() string {
 
 // IsUpdating returns whether the preview is currently updating
 func (m *RealTimePreviewManager) IsUpdating() bool {
-	m.updateMutex.RLock()
-	defer m.updateMutex.RUnlock()
-	return m.isUpdating
+	return m.isUpdating.Load()
 }
 
 // GetPerformanceStats returns performance statistics
@@ -414,7 +418,7 @@ func (m *RealTimePreviewManager) Reset() {
 	m.lastContent = ""
 	m.lastContentHash = ""
 	m.lastUpdateTime = time.Time{}
-	m.isUpdating = false
+	m.isUpdating.Store(false)
 
 	m.historyMutex.Lock()
 	m.contentHistory = nil
