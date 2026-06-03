@@ -15,11 +15,11 @@ type ChatHandler struct {
 	aiService *app.AIService
 	tools     *ToolRegistry
 	config    *AgentConfig
-	
+
 	// Conversation state
 	isActive  bool
 	lastQuery string
-	
+
 	mutex sync.RWMutex
 }
 
@@ -28,10 +28,10 @@ func NewChatHandler(memory *MemoryManager, aiService *app.AIService, config *Age
 	if config == nil {
 		config = DefaultAgentConfig()
 	}
-	
+
 	tools := NewToolRegistry()
 	registerDefaultTools(tools, memory, aiService)
-	
+
 	return &ChatHandler{
 		memory:    memory,
 		aiService: aiService,
@@ -47,31 +47,31 @@ func (c *ChatHandler) Chat(ctx context.Context, userMessage string) (string, err
 	c.isActive = true
 	c.lastQuery = userMessage
 	c.mutex.Unlock()
-	
+
 	defer func() {
 		c.mutex.Lock()
 		c.isActive = false
 		c.mutex.Unlock()
 	}()
-	
+
 	// Record user message
 	if c.memory != nil {
-		c.memory.RecordChatMessage(ChatMessage{
+		_ = c.memory.RecordChatMessage(ChatMessage{
 			Role:    "user",
 			Content: userMessage,
 			Context: c.getCurrentContext(),
 		})
 	}
-	
+
 	// Build context from memory
 	contextStr := c.buildContext()
-	
+
 	// Check if this is a tool request
 	toolResponse, toolUsed := c.checkToolRequest(userMessage)
 	if toolUsed {
 		// Record assistant response with tool call
 		if c.memory != nil {
-			c.memory.RecordChatMessage(ChatMessage{
+			_ = c.memory.RecordChatMessage(ChatMessage{
 				Role:    "assistant",
 				Content: toolResponse,
 				ToolCalls: []ToolCall{{
@@ -82,28 +82,28 @@ func (c *ChatHandler) Chat(ctx context.Context, userMessage string) (string, err
 		}
 		return toolResponse, nil
 	}
-	
+
 	// Generate AI response
 	response, err := c.generateResponse(ctx, userMessage, contextStr)
 	if err != nil {
 		return "", err
 	}
-	
+
 	// Record assistant response
 	if c.memory != nil {
-		c.memory.RecordChatMessage(ChatMessage{
+		_ = c.memory.RecordChatMessage(ChatMessage{
 			Role:    "assistant",
 			Content: response,
 		})
 	}
-	
+
 	return response, nil
 }
 
 // getCurrentContext returns the current context as a map
 func (c *ChatHandler) getCurrentContext() map[string]string {
 	ctx := make(map[string]string)
-	
+
 	if c.memory != nil {
 		wm := c.memory.GetWorkingMemory()
 		if wm.CurrentSong != nil {
@@ -114,17 +114,17 @@ func (c *ChatHandler) getCurrentContext() map[string]string {
 		ctx["progress_state"] = wm.ProgressState.String()
 		ctx["words_written"] = fmt.Sprintf("%d", wm.WordsWritten)
 	}
-	
+
 	return ctx
 }
 
 // buildContext builds a context string from memory
 func (c *ChatHandler) buildContext() string {
 	var parts []string
-	
+
 	if c.memory != nil {
 		wm := c.memory.GetWorkingMemory()
-		
+
 		// Add current song info
 		if wm.CurrentSong != nil {
 			parts = append(parts, fmt.Sprintf("Currently working on: %s", wm.CurrentSong.Metadata.Title))
@@ -132,11 +132,11 @@ func (c *ChatHandler) buildContext() string {
 				parts = append(parts, fmt.Sprintf("Current section: %s", wm.CurrentSection))
 			}
 		}
-		
+
 		// Add progress info
 		parts = append(parts, fmt.Sprintf("Progress state: %s", wm.ProgressState.String()))
 		parts = append(parts, fmt.Sprintf("Words written this session: %d", wm.WordsWritten))
-		
+
 		// Add recent chat history
 		history, err := c.memory.GetChatHistory(c.config.ContextWindowSize)
 		if err == nil && len(history) > 0 {
@@ -149,14 +149,14 @@ func (c *ChatHandler) buildContext() string {
 			}
 		}
 	}
-	
+
 	return strings.Join(parts, "\n")
 }
 
 // checkToolRequest checks if the message is a tool request and executes it
 func (c *ChatHandler) checkToolRequest(message string) (string, bool) {
 	message = strings.ToLower(message)
-	
+
 	// Check for tool triggers
 	if strings.Contains(message, "rhyme") || strings.Contains(message, "rhymes with") {
 		// Extract the word to rhyme
@@ -168,14 +168,14 @@ func (c *ChatHandler) checkToolRequest(message string) (string, bool) {
 			}
 		}
 	}
-	
+
 	if strings.Contains(message, "analyze") || strings.Contains(message, "analysis") {
 		result, err := c.tools.Execute("lyrics_analyzer", nil)
 		if err == nil {
 			return result, true
 		}
 	}
-	
+
 	if strings.Contains(message, "search") || strings.Contains(message, "find") {
 		query := extractQuery(message)
 		if query != "" {
@@ -185,14 +185,14 @@ func (c *ChatHandler) checkToolRequest(message string) (string, bool) {
 			}
 		}
 	}
-	
+
 	if strings.Contains(message, "history") || strings.Contains(message, "versions") {
 		result, err := c.tools.Execute("version_history", nil)
 		if err == nil {
 			return result, true
 		}
 	}
-	
+
 	return "", false
 }
 
@@ -201,11 +201,11 @@ func (c *ChatHandler) generateResponse(ctx context.Context, userMessage, context
 	// Mark ctx and contextStr as used for future AI integration
 	_ = ctx
 	_ = contextStr
-	
+
 	if c.aiService == nil {
 		return c.generateLocalResponse(userMessage)
 	}
-	
+
 	// TODO: Use AI service to generate response when external AI is available
 	// For now, return a helpful local response
 	return c.generateLocalResponse(userMessage)
@@ -214,7 +214,7 @@ func (c *ChatHandler) generateResponse(ctx context.Context, userMessage, context
 // generateLocalResponse generates a response without external AI
 func (c *ChatHandler) generateLocalResponse(message string) (string, error) {
 	message = strings.ToLower(message)
-	
+
 	// Pattern matching for common questions
 	if strings.Contains(message, "help") || strings.Contains(message, "what can you do") {
 		return `I'm Muse, your AI songwriting companion! I can help you with:
@@ -227,7 +227,7 @@ func (c *ChatHandler) generateLocalResponse(message string) (string, error) {
 
 What would you like help with?`, nil
 	}
-	
+
 	if strings.Contains(message, "stuck") || strings.Contains(message, "block") {
 		return `Writer's block is totally normal! Here are some ideas:
 
@@ -239,7 +239,7 @@ What would you like help with?`, nil
 
 Which approach sounds interesting to try?`, nil
 	}
-	
+
 	if strings.Contains(message, "verse") || strings.Contains(message, "chorus") || strings.Contains(message, "bridge") {
 		return `Here are some tips for that section:
 
@@ -249,11 +249,11 @@ Which approach sounds interesting to try?`, nil
 
 What's the theme or emotion you're exploring?`, nil
 	}
-	
+
 	if strings.Contains(message, "thank") {
 		return "You're welcome! Keep writing, you're doing great. Let me know if you need anything else!", nil
 	}
-	
+
 	// Default response
 	return "I'm here to help with your songwriting! You can ask me about rhymes, song structure, or just tell me what you're working on.", nil
 }
@@ -307,14 +307,14 @@ func extractToolName(message string) string {
 
 func extractWord(message, trigger string) string {
 	message = strings.ToLower(message)
-	
+
 	// Pattern: "rhymes with X" or "rhyme for X"
 	patterns := []string{
 		trigger + "s with ",
 		trigger + " for ",
 		trigger + " ",
 	}
-	
+
 	for _, pattern := range patterns {
 		if idx := strings.Index(message, pattern); idx != -1 {
 			rest := strings.TrimSpace(message[idx+len(pattern):])
@@ -324,25 +324,25 @@ func extractWord(message, trigger string) string {
 			}
 		}
 	}
-	
+
 	return ""
 }
 
 func extractQuery(message string) string {
 	message = strings.ToLower(message)
-	
+
 	patterns := []string{
 		"search for ",
 		"find ",
 		"search ",
 	}
-	
+
 	for _, pattern := range patterns {
 		if idx := strings.Index(message, pattern); idx != -1 {
 			rest := strings.TrimSpace(message[idx+len(pattern):])
 			return strings.Trim(rest, "?!.,")
 		}
 	}
-	
+
 	return ""
 }

@@ -36,7 +36,7 @@ type FileInfo struct {
 	IsValid bool      `json:"is_valid"`
 }
 
-// Ensure Service implements FileRepository by adding the required methods
+// LoadSong loads a song from the given file path.
 func (s *Service) LoadSong(filePath string) (*domain.Song, error) {
 	return s.LoadSongFromFile(filePath)
 }

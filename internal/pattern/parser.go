@@ -157,6 +157,7 @@ func (es *ExpressionStatement) String() string {
 	}
 	return ""
 }
+
 func (es *ExpressionStatement) Pos() Position {
 	if es.Expression != nil {
 		return es.Expression.Pos()
@@ -418,10 +419,7 @@ func (p *Parser) parseExpressionList(end TokenType) []Expression {
 
 	list = append(list, p.parseExpression(LOWEST))
 
-	for {
-		if p.peekTokenIs(end) {
-			break
-		}
+	for !p.peekTokenIs(end) {
 
 		if p.peekTokenIs(TokenComma) {
 			p.nextToken() // consume comma

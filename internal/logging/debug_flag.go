@@ -1,5 +1,6 @@
 //go:build !debug
 
+// Package logging provides debug-aware logging utilities for the application.
 package logging
 
 // buildDebugLogging reports whether the binary was built with the "debug" build tag.

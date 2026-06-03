@@ -144,9 +144,9 @@ func (m *PerformanceOptimizedManager) SetThemeOptimized(id string) time.Duration
 	// Check if theme is already cached
 	if cached, found := m.getThemeFromCache(id); found {
 		// Apply cached theme
-		m.Manager.mu.Lock()
-		m.Manager.current = cached.Theme
-		m.Manager.mu.Unlock()
+		m.mu.Lock()
+		m.current = cached.Theme
+		m.mu.Unlock()
 
 		// Update cache access
 		cached.AccessCount++
@@ -171,9 +171,9 @@ func (m *PerformanceOptimizedManager) SetThemeOptimized(id string) time.Duration
 	m.cacheTheme(id, theme)
 
 	// Apply theme
-	m.Manager.mu.Lock()
-	m.Manager.current = theme
-	m.Manager.mu.Unlock()
+	m.mu.Lock()
+	m.current = theme
+	m.mu.Unlock()
 
 	// Save preference asynchronously if enabled
 	if m.config.EnableAsyncSave {
@@ -200,7 +200,7 @@ func (m *PerformanceOptimizedManager) GetRenderedComponentOptimized(component st
 		return m.renderComponent(component, width, height)
 	}
 
-	currentTheme := m.Manager.Current()
+	currentTheme := m.Current()
 	cacheKey := m.generateRenderCacheKey(currentTheme.Name, component, width, height)
 
 	// Check render cache
@@ -368,7 +368,7 @@ func (m *PerformanceOptimizedManager) generateRenderCacheKey(themeName, componen
 
 // renderComponent renders a specific theme component (simplified)
 func (m *PerformanceOptimizedManager) renderComponent(component string, width, height int) string {
-	currentTheme := m.Manager.Current()
+	currentTheme := m.Current()
 
 	// This is a simplified implementation
 	// In a real application, this would render actual theme components
@@ -474,7 +474,7 @@ func (m *PerformanceOptimizedManager) saveThemePreferenceSync(themeID string) er
 	}
 
 	configDir := filepath.Join(homeDir, ".config", "noise")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		return err
 	}
 
@@ -489,7 +489,7 @@ func (m *PerformanceOptimizedManager) saveThemePreferenceSync(themeID string) er
 		return err
 	}
 
-	return os.WriteFile(configFile, data, 0644)
+	return os.WriteFile(configFile, data, 0o644)
 }
 
 // updateAverageSwitchTime updates the rolling average theme switch time

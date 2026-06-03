@@ -60,8 +60,8 @@ const (
 // File permission constants
 const (
 	// DefaultDirPermission is the default permission for directories
-	DefaultDirPermission = 0755
+	DefaultDirPermission = 0o755
 
 	// DefaultFilePermission is the default permission for files
-	DefaultFilePermission = 0644
+	DefaultFilePermission = 0o644
 )

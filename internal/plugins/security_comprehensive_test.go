@@ -44,7 +44,7 @@ func testPluginHashAlgorithm(t *testing.T, sm *SecurityManager) {
 	testFile := filepath.Join(tmpDir, "test_plugin.json")
 	content := `{"id": "test", "name": "Test Plugin", "version": "1.0.0"}`
 
-	err := os.WriteFile(testFile, []byte(content), 0600)
+	err := os.WriteFile(testFile, []byte(content), 0o600)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
@@ -83,18 +83,18 @@ func testInputValidation(t *testing.T, sm *SecurityManager) {
 	t.Run("PluginIDValidation", func(t *testing.T) {
 		validIDs := []string{"valid_plugin", "plugin123", "test-plugin"}
 		invalidIDs := []string{
-			"",                                    // Empty
-			"plugin/with/slashes",                 // Contains slashes
-			"plugin\\with\\backslashes",           // Contains backslashes
-			"plugin:with:colons",                  // Contains colons
-			"plugin*with*asterisks",               // Contains asterisks
-			"plugin?with?question",                // Contains question marks
-			"plugin\"with\"quotes",                // Contains quotes
-			"plugin<with>brackets",                // Contains brackets
-			"plugin|with|pipe",                    // Contains pipe
-			strings.Repeat("a", 101),              // Too long
-			"plugin\x00with\x00null",              // Contains null bytes
-			"plugin../../../etc/passwd",           // Path traversal
+			"",                          // Empty
+			"plugin/with/slashes",       // Contains slashes
+			"plugin\\with\\backslashes", // Contains backslashes
+			"plugin:with:colons",        // Contains colons
+			"plugin*with*asterisks",     // Contains asterisks
+			"plugin?with?question",      // Contains question marks
+			"plugin\"with\"quotes",      // Contains quotes
+			"plugin<with>brackets",      // Contains brackets
+			"plugin|with|pipe",          // Contains pipe
+			strings.Repeat("a", 101),    // Too long
+			"plugin\x00with\x00null",    // Contains null bytes
+			"plugin../../../etc/passwd", // Path traversal
 		}
 
 		for _, id := range validIDs {
@@ -115,11 +115,11 @@ func testInputValidation(t *testing.T, sm *SecurityManager) {
 	t.Run("PluginNameValidation", func(t *testing.T) {
 		validNames := []string{"Valid Plugin Name", "Plugin 123", "Test-Plugin"}
 		invalidNames := []string{
-			"",                                                                 // Empty
-			strings.Repeat("a", 201),                                              // Too long
-			"Plugin <script>alert('xss')</script>",                               // XSS attempt
-			"Plugin javascript:alert('xss')",                                      // JavaScript injection
-			"Plugin onload=alert('xss')",                                          // Event handler injection
+			"",                                     // Empty
+			strings.Repeat("a", 201),               // Too long
+			"Plugin <script>alert('xss')</script>", // XSS attempt
+			"Plugin javascript:alert('xss')",       // JavaScript injection
+			"Plugin onload=alert('xss')",           // Event handler injection
 		}
 
 		for _, name := range validNames {
@@ -140,11 +140,11 @@ func testInputValidation(t *testing.T, sm *SecurityManager) {
 	t.Run("VersionValidation", func(t *testing.T) {
 		validVersions := []string{"1.0.0", "2.1.3", "1.0.0-beta", "3.0.0-alpha.1", "1.0.0-beta.1"}
 		invalidVersions := []string{
-			"",                              // Empty
-			"not-a-version",                 // Invalid format
-			"1.x.0",                         // Non-numeric core part
-			strings.Repeat("a", 51),         // Too long
-			"1.0.0<script>",                 // Contains scripts
+			"",                      // Empty
+			"not-a-version",         // Invalid format
+			"1.x.0",                 // Non-numeric core part
+			strings.Repeat("a", 51), // Too long
+			"1.0.0<script>",         // Contains scripts
 		}
 
 		for _, version := range validVersions {
@@ -169,7 +169,7 @@ func testInputValidation(t *testing.T, sm *SecurityManager) {
 			"Version 1.0.0 - adds new features",
 		}
 		invalidDescriptions := []string{
-			strings.Repeat("a", 1001),        // Too long
+			strings.Repeat("a", 1001),                        // Too long
 			"Description with <script>alert('xss')</script>", // XSS attempt
 			"Description with javascript:alert('xss')",       // JavaScript injection
 			"Description with <iframe>src=evil.com</iframe>", // Iframe injection
@@ -196,10 +196,10 @@ func testSandboxing(t *testing.T, sm *SecurityManager) {
 	// Create a mock plugin for testing
 	plugin := &StubPlugin{
 		metadata: &PluginMetadata{
-			ID:          "test_plugin",
-			Name:        "Test Plugin",
-			Version:     "1.0.0",
-			Description: "A test plugin",
+			ID:           "test_plugin",
+			Name:         "Test Plugin",
+			Version:      "1.0.0",
+			Description:  "A test plugin",
 			Capabilities: []Capability{CapabilityMenuItem},
 		},
 		enabled: false,
@@ -338,10 +338,10 @@ func TestSecurityIntegration(t *testing.T) {
 	// Test complete security workflow
 	plugin := &StubPlugin{
 		metadata: &PluginMetadata{
-			ID:          "integration_test_plugin",
-			Name:        "Integration Test Plugin",
-			Version:     "1.0.0",
-			Description: "A plugin for integration testing",
+			ID:           "integration_test_plugin",
+			Name:         "Integration Test Plugin",
+			Version:      "1.0.0",
+			Description:  "A plugin for integration testing",
 			Capabilities: []Capability{CapabilityMenuItem},
 		},
 		enabled: false,

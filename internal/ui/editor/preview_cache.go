@@ -7,18 +7,18 @@ import (
 
 // PreviewCache manages cached preview content for performance
 type PreviewCache struct {
-	mu       sync.RWMutex
-	entries  map[string]*CacheEntry
-	maxSize  int
-	hits     int64
-	misses   int64
+	mu      sync.RWMutex
+	entries map[string]*CacheEntry
+	maxSize int
+	hits    int64
+	misses  int64
 }
 
 // CacheEntry represents a single cached preview
 type CacheEntry struct {
-	Content   string
-	Rendered  string
-	Timestamp time.Time
+	Content     string
+	Rendered    string
+	Timestamp   time.Time
 	AccessCount int
 }
 

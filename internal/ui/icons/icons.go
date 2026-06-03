@@ -30,9 +30,9 @@ type IconSet struct {
 	ChevronR   string
 
 	// Bullets/Lists
-	Bullet     string
-	BulletAlt  string
-	Separator  string
+	Bullet    string
+	BulletAlt string
+	Separator string
 
 	// Progress
 	ProgressFull  string

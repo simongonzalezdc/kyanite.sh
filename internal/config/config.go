@@ -1,3 +1,4 @@
+// Package config provides application configuration loading and types.
 package config
 
 import (
@@ -140,11 +141,11 @@ type AudioConfig struct {
 // VoiceConfig contains voice-to-text settings
 type VoiceConfig struct {
 	Enabled       bool   `mapstructure:"enabled"`
-	Model         string `mapstructure:"model"`          // Whisper model name (e.g., "ggml-base.en.bin")
-	Language      string `mapstructure:"language"`       // Language code (e.g., "en", "auto")
-	PushToTalkKey string `mapstructure:"push_to_talk"`   // Key binding for push-to-talk (default: "ctrl+d")
-	SampleRate    int    `mapstructure:"sample_rate"`    // Audio sample rate (default: 16000)
-	MaxDuration   int    `mapstructure:"max_duration"`   // Maximum recording duration in seconds
+	Model         string `mapstructure:"model"`        // Whisper model name (e.g., "ggml-base.en.bin")
+	Language      string `mapstructure:"language"`     // Language code (e.g., "en", "auto")
+	PushToTalkKey string `mapstructure:"push_to_talk"` // Key binding for push-to-talk (default: "ctrl+d")
+	SampleRate    int    `mapstructure:"sample_rate"`  // Audio sample rate (default: 16000)
+	MaxDuration   int    `mapstructure:"max_duration"` // Maximum recording duration in seconds
 }
 
 // SyncConfig contains PWA synchronization settings
@@ -319,7 +320,7 @@ func Load() (*Config, error) {
 func (c *Config) Save() error {
 	// Create config directory if it doesn't exist
 	configDir := getConfigDir()
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
@@ -375,12 +376,12 @@ func (c *Config) Save() error {
 	}
 
 	voiceConfig := map[string]interface{}{
-		"enabled":       c.Voice.Enabled,
-		"model":         c.Voice.Model,
-		"language":      c.Voice.Language,
-		"push_to_talk":  c.Voice.PushToTalkKey,
-		"sample_rate":   c.Voice.SampleRate,
-		"max_duration":  c.Voice.MaxDuration,
+		"enabled":      c.Voice.Enabled,
+		"model":        c.Voice.Model,
+		"language":     c.Voice.Language,
+		"push_to_talk": c.Voice.PushToTalkKey,
+		"sample_rate":  c.Voice.SampleRate,
+		"max_duration": c.Voice.MaxDuration,
 	}
 
 	syncConfig := map[string]interface{}{
@@ -432,7 +433,7 @@ func (c *Config) Save() error {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	if err := os.WriteFile(configPath, buf, 0644); err != nil {
+	if err := os.WriteFile(configPath, buf, 0o644); err != nil {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
 
@@ -538,7 +539,7 @@ func getConfigDir() string {
 
 // GetDataDir returns the data directory (creates it if it doesn't exist)
 func (c *Config) GetDataDir() string {
-	if err := os.MkdirAll(c.App.DataDir, 0755); err != nil {
+	if err := os.MkdirAll(c.App.DataDir, 0o755); err != nil {
 		// Fallback to current directory
 		return "./data"
 	}

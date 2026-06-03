@@ -1,3 +1,4 @@
+// Package errutil provides error wrapping and handling helpers.
 package errutil
 
 import (

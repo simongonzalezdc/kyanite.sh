@@ -278,7 +278,7 @@ func (m *MenuModel) handleMouse(msg tea.MouseMsg) tea.Cmd {
 		if msg.Action == tea.MouseActionRelease {
 			// Calculate which item was clicked based on Y position
 			// The list typically starts after the title (around Y=2-3)
-			itemHeight := 2 // Each item takes ~2 lines (title + desc)
+			itemHeight := 2   // Each item takes ~2 lines (title + desc)
 			headerOffset := 3 // Title area
 
 			if itemHeight > 0 {

@@ -34,7 +34,7 @@ func TestEnhancedTheoryService(t *testing.T) {
 		}
 	}`
 
-	err := os.WriteFile(dictFile, []byte(testDict), 0644)
+	err := os.WriteFile(dictFile, []byte(testDict), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
@@ -130,7 +130,7 @@ func TestGetDictionaryStats(t *testing.T) {
 		}
 	}`
 
-	err := os.WriteFile(dictFile, []byte(testDict), 0644)
+	err := os.WriteFile(dictFile, []byte(testDict), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
@@ -178,7 +178,7 @@ func TestTheoryServiceValidateWord(t *testing.T) {
 		}
 	}`
 
-	err := os.WriteFile(dictFile, []byte(testDict), 0644)
+	err := os.WriteFile(dictFile, []byte(testDict), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
@@ -230,7 +230,7 @@ func TestTheoryServiceSearchWords(t *testing.T) {
 		}
 	}`
 
-	err := os.WriteFile(dictFile, []byte(testDict), 0644)
+	err := os.WriteFile(dictFile, []byte(testDict), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
@@ -282,7 +282,7 @@ func TestTheoryServiceGetWordsBySyllableCount(t *testing.T) {
 		}
 	}`
 
-	err := os.WriteFile(dictFile, []byte(testDict), 0644)
+	err := os.WriteFile(dictFile, []byte(testDict), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}

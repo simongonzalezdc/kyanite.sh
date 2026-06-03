@@ -301,7 +301,6 @@ func (db *DB) GetSong(id int) (*domain.Song, error) {
 		&song.Metadata.CreatedAt,
 		&song.Metadata.UpdatedAt,
 	)
-
 	if err != nil {
 		dbErr := db.handleDatabaseError("GetSong", err)
 		if errors.Is(err, sql.ErrNoRows) {

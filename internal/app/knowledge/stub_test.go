@@ -361,7 +361,6 @@ func TestStubEnhancementProvider_GetInspirationCards(t *testing.T) {
 	ctx := context.Background()
 
 	result, err := provider.GetInspirationCards(ctx, "surveillance", SearchOptions{Limit: 5})
-
 	if err != nil {
 		t.Errorf("GetInspirationCards() error = %v", err)
 		return

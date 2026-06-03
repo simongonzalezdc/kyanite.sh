@@ -1013,7 +1013,7 @@ func (sm *SecurityManager) ExecutePluginInSandbox(pluginID string, command []str
 	return []byte("Command executed in sandbox"), nil
 }
 
-// Enhanced hash calculation using SHA-256 for better security
+// CalculatePluginHashSHA256 computes the SHA-256 hash of the plugin at path.
 func (sm *SecurityManager) CalculatePluginHashSHA256(path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -1181,7 +1181,6 @@ func (sm *SecurityManager) CleanupStalePlugins(maxAge time.Duration) error {
 
 			return nil
 		})
-
 		if err != nil {
 			return err
 		}

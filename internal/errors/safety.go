@@ -36,7 +36,7 @@ type BackupInfo struct {
 // NewBackupManager creates a new backup manager
 func NewBackupManager(backupDir string, maxBackups int, logger *logging.Logger) (*BackupManager, error) {
 	// Create backup directory if it doesn't exist
-	if err := os.MkdirAll(backupDir, 0755); err != nil {
+	if err := os.MkdirAll(backupDir, 0o755); err != nil {
 		return nil, fmt.Errorf("failed to create backup directory: %w", err)
 	}
 
@@ -73,7 +73,7 @@ func (bm *BackupManager) CreateBackup(song *domain.Song, backupType string) (*Ba
 	// Create backup file with secure permissions
 	// Format: backup_{songID}_{backupID}.json
 	backupPath := bm.getBackupPathWithSongID(backupInfo.ID, backupInfo.SongID)
-	if err := os.WriteFile(backupPath, content, 0600); err != nil {
+	if err := os.WriteFile(backupPath, content, 0o600); err != nil {
 		return nil, NewFileError("write_backup", backupPath, err).WithOperation("CreateBackup").WithComponent("backup_manager")
 	}
 

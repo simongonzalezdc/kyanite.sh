@@ -173,7 +173,7 @@ func TestLoadInvalidConfigFileReturnsError(t *testing.T) {
 		t.Fatal(err)
 	}
 	badPath := filepath.Join(cfgDir, "noise.yaml")
-	if err := ioutil.WriteFile(badPath, []byte("::: this is :::: not yaml :::: "), 0644); err != nil {
+	if err := ioutil.WriteFile(badPath, []byte("::: this is :::: not yaml :::: "), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -223,7 +223,7 @@ func TestSaveFailsWhenHomeIsFile(t *testing.T) {
 	tmp := t.TempDir()
 	// create a file and point HOME/USERPROFILE to it
 	file := filepath.Join(tmp, "afile")
-	if err := ioutil.WriteFile(file, []byte("hello"), 0644); err != nil {
+	if err := ioutil.WriteFile(file, []byte("hello"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	envKey := homeEnvKey()

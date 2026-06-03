@@ -618,7 +618,7 @@ func (eru *ErrorRecoveryUI) renderOperationsSection(operations []RecoveryOperati
 			statusIcon = "âœ…"
 			statusColor = "#00FF00"
 		case StatusFailed:
-			statusIcon = "âŒ"
+			statusIcon = "â\u009dŒ"
 			statusColor = "#FF0000"
 		case StatusCancelled:
 			statusIcon = "[v]"

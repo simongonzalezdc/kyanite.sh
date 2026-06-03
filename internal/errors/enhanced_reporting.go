@@ -128,8 +128,8 @@ func (ere *ErrorReportEnhancer) EnhanceReport(report *ErrorReport) *EnhancedErro
 	ere.addContextualData(enhanced)
 
 	// Add stack trace if not present
-	if enhanced.ErrorReport.Error.StackTrace == "" {
-		enhanced.ErrorReport.Error.StackTrace = ere.captureStackTrace()
+	if enhanced.Error.StackTrace == "" {
+		enhanced.Error.StackTrace = ere.captureStackTrace()
 	}
 
 	return enhanced

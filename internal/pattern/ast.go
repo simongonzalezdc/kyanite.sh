@@ -1,3 +1,4 @@
+// Package pattern provides a lexer, parser, and validator for the pattern language.
 package pattern
 
 import (
@@ -39,6 +40,7 @@ func (p *Program) String() string {
 	}
 	return out.String()
 }
+
 func (p *Program) Pos() Position {
 	if len(p.Statements) > 0 {
 		return p.Statements[0].Pos()

@@ -96,7 +96,7 @@ func (m *SystemInfoModel) calculateStorageSize() int64 {
 	var totalSize int64
 	for _, dir := range dataDirs {
 		if info, err := os.Stat(dir); err == nil && info.IsDir() {
-			filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+			_ = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 				if err == nil && !info.IsDir() {
 					totalSize += info.Size()
 				}
@@ -204,9 +204,9 @@ func (m *SystemInfoModel) View() string {
 		)
 
 		return lipgloss.NewStyle().
-			Width(m.width - 2).
-			MaxWidth(m.width - 2).
-			MaxHeight(m.height - 2).
+			Width(m.width-2).
+			MaxWidth(m.width-2).
+			MaxHeight(m.height-2).
 			Padding(0, 1).
 			Render(content)
 	}
@@ -285,9 +285,9 @@ func (m *SystemInfoModel) View() string {
 	)
 
 	return lipgloss.NewStyle().
-		Width(m.width - 2).
-		MaxWidth(m.width - 2).
-		MaxHeight(m.height - 2).
+		Width(m.width-2).
+		MaxWidth(m.width-2).
+		MaxHeight(m.height-2).
 		Padding(0, 1).
 		Render(content)
 }

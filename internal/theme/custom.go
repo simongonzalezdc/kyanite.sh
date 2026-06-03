@@ -1,3 +1,4 @@
+// Package theme provides theme definitions, registration, and management.
 package theme
 
 import (

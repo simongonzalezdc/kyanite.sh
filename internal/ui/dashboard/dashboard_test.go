@@ -117,7 +117,7 @@ func TestDashboardModel_FocusManagement(t *testing.T) {
 		// Test cycling through all panels
 		panels := []string{"theme", "actions", "recent", "tools", "ai", "info"}
 		visitedPanels := make(map[string]bool)
-		
+
 		for i := 0; i < len(panels)*2; i++ { // Test cycling through panels twice
 			panel := dashboard.focusedPanel
 			visitedPanels[panel] = true
@@ -388,9 +388,9 @@ func TestDashboardModel_ResponsiveLayout(t *testing.T) {
 
 		// Test various window sizes
 		sizes := []tea.WindowSizeMsg{
-			{Width: 80, Height: 24},   // Minimum size
-			{Width: 120, Height: 40},  // Medium size
-			{Width: 160, Height: 50},  // Large size
+			{Width: 80, Height: 24},  // Minimum size
+			{Width: 120, Height: 40}, // Medium size
+			{Width: 160, Height: 50}, // Large size
 		}
 
 		for _, size := range sizes {
@@ -424,7 +424,7 @@ func TestDashboardModel_ResponsiveLayout(t *testing.T) {
 
 			view := dashboard.View()
 			assert.NotEmpty(t, view)
-			
+
 			// Should maintain focus indicators
 			assert.Contains(t, view, "Dashboard")
 		}

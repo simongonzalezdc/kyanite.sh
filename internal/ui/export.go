@@ -167,10 +167,6 @@ func (m *ExportModel) Update(msg tea.Msg) (*ExportModel, tea.Cmd) {
 					headerOffset := 6 // title area
 					itemHeight := 3   // each option takes ~3 lines
 
-					// Calculate which option was clicked
-					headerOffset = 6 // title area
-					itemHeight = 3   // each option takes ~3 lines
-
 					if itemHeight > 0 {
 						clickedIdx := (msg.Y - headerOffset) / itemHeight
 						if len(m.options) > 0 && clickedIdx >= 0 && clickedIdx < len(m.options) {
@@ -394,7 +390,7 @@ func (m *ExportModel) exportToPDF() (bool, string) {
 	}
 
 	// Write HTML content (can be converted to PDF using external tools)
-	err = os.WriteFile(m.result.OutputPath, []byte(htmlContent), 0600)
+	err = os.WriteFile(m.result.OutputPath, []byte(htmlContent), 0o600)
 	if err != nil {
 		return false, fmt.Sprintf("Failed to write PDF file: %v", err)
 	}
@@ -409,7 +405,7 @@ func (m *ExportModel) exportToHTML() (bool, string) {
 		return false, fmt.Sprintf("Failed to generate HTML: %v", err)
 	}
 
-	err = os.WriteFile(m.result.OutputPath, []byte(htmlContent), 0600)
+	err = os.WriteFile(m.result.OutputPath, []byte(htmlContent), 0o600)
 	if err != nil {
 		return false, fmt.Sprintf("Failed to write HTML file: %v", err)
 	}
@@ -422,7 +418,7 @@ func (m *ExportModel) exportToPlainText() (bool, string) {
 	// Strip markdown formatting for plain text
 	textContent := m.stripMarkdown(m.content)
 
-	err := os.WriteFile(m.result.OutputPath, []byte(textContent), 0600)
+	err := os.WriteFile(m.result.OutputPath, []byte(textContent), 0o600)
 	if err != nil {
 		return false, fmt.Sprintf("Failed to write text file: %v", err)
 	}
@@ -445,7 +441,7 @@ func (m *ExportModel) exportToJSON() (bool, string) {
 		return false, fmt.Sprintf("Failed to marshal JSON: %v", err)
 	}
 
-	err = os.WriteFile(m.result.OutputPath, jsonBytes, 0600)
+	err = os.WriteFile(m.result.OutputPath, jsonBytes, 0o600)
 	if err != nil {
 		return false, fmt.Sprintf("Failed to write JSON file: %v", err)
 	}
@@ -455,7 +451,7 @@ func (m *ExportModel) exportToJSON() (bool, string) {
 
 // exportToMarkdown exports content to markdown format (as-is)
 func (m *ExportModel) exportToMarkdown() (bool, string) {
-	err := os.WriteFile(m.result.OutputPath, []byte(m.content), 0600)
+	err := os.WriteFile(m.result.OutputPath, []byte(m.content), 0o600)
 	if err != nil {
 		return false, fmt.Sprintf("Failed to write markdown file: %v", err)
 	}
@@ -468,7 +464,7 @@ func (m *ExportModel) exportToChordPro() (bool, string) {
 	// Convert content to ChordPro format
 	chordProContent := m.convertToChordPro(m.content)
 
-	err := os.WriteFile(m.result.OutputPath, []byte(chordProContent), 0600)
+	err := os.WriteFile(m.result.OutputPath, []byte(chordProContent), 0o600)
 	if err != nil {
 		return false, fmt.Sprintf("Failed to write ChordPro file: %v", err)
 	}
@@ -618,10 +614,6 @@ func (m *ExportModel) isSectionHeader(line string) bool {
 // extractSectionType extracts the section type from a header line
 func (m *ExportModel) extractSectionType(line string) string {
 	lowerLine := strings.ToLower(line)
-
-	// Remove brackets if present
-	line = strings.ReplaceAll(line, "[", "")
-	line = strings.ReplaceAll(line, "]", "")
 
 	sections := map[string]string{
 		"verse":      "verse",
@@ -1016,10 +1008,10 @@ func (m *ExportModel) GetDimensions() (int, int) {
 
 // GetSelectedFormat returns the currently selected export format
 func (m *ExportModel) GetSelectedFormat() ExportFormat {
-		if len(m.options) > 0 {
-			return m.options[m.selected]
-		}
-		return FormatPlainText // Default fallback
+	if len(m.options) > 0 {
+		return m.options[m.selected]
+	}
+	return FormatPlainText // Default fallback
 }
 
 // SetContent sets the content to be exported
@@ -1029,7 +1021,7 @@ func (m *ExportModel) SetContent(content string) {
 	m.metadata.CharacterCount = len(content)
 }
 
-// Messages for communication with parent
+// ExportCompleteMsg signals that an export has completed.
 type ExportCompleteMsg struct {
 	Result ExportResult
 }

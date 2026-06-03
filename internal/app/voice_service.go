@@ -64,16 +64,16 @@ type VoiceService struct {
 	logger       *logging.Logger
 
 	// State
-	state       VoiceState
-	startTime   time.Time
-	lastError   error
-	mu          sync.Mutex
+	state     VoiceState
+	startTime time.Time
+	lastError error
+	mu        sync.Mutex
 
 	// Event callbacks
-	onStateChange     func(VoiceState)
-	onTranscription   func(TranscriptionResult)
-	onLevelChange     func(float32)
-	onProgress        func(int64, int64) // Model download progress
+	onStateChange   func(VoiceState)
+	onTranscription func(TranscriptionResult)
+	onLevelChange   func(float32)
+	onProgress      func(int64, int64) // Model download progress
 }
 
 // NewVoiceService creates a new voice service

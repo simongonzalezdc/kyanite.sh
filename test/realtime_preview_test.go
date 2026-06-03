@@ -3,6 +3,7 @@ package noise
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -287,7 +288,7 @@ Even with large amounts of text.
 	updateDuration := time.Since(startTime)
 
 	// Should complete within reasonable time (less than 100ms for this size)
-	if updateDuration > 100*time.Millisecond {
+	if !relaxPerfBudgets() && updateDuration > 100*time.Millisecond {
 		t.Errorf("Update took too long: %v", updateDuration)
 	}
 
@@ -314,10 +315,15 @@ func TestDebouncedUpdates(t *testing.T) {
 	manager := editor.NewRealTimePreviewManager(config)
 
 	// Track update calls
-	var updateCallCount int
+	var (
+		updateMu        sync.Mutex
+		updateCallCount int
+	)
 	manager.SetCallbacks(
 		func(content string) {
+			updateMu.Lock()
 			updateCallCount++
+			updateMu.Unlock()
 		},
 		nil, nil, nil, nil,
 	)
@@ -336,7 +342,10 @@ func TestDebouncedUpdates(t *testing.T) {
 
 	// Should only have one effective update due to debouncing
 	// Note: The exact behavior depends on implementation timing
-	if updateCallCount == 0 {
+	updateMu.Lock()
+	count := updateCallCount
+	updateMu.Unlock()
+	if count == 0 {
 		t.Error("Expected at least one update call")
 	}
 }

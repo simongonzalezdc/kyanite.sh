@@ -155,7 +155,7 @@ const (
 	OpRetain OperationType = "retain"
 )
 
-// Collaboration Events
+// CollaborationEvent represents a collaboration event.
 type CollaborationEvent struct {
 	Type      EventType              `json:"type"`
 	SessionID string                 `json:"session_id"`
@@ -178,7 +178,7 @@ const (
 	EventPresenceUpdated   EventType = "presence_updated"
 )
 
-// Collaboration Messages for broadcasting
+// CollaborationMessage is a message broadcast to collaborators.
 type CollaborationMessage struct {
 	Type      MessageType            `json:"type"`
 	SessionID string                 `json:"session_id"`
@@ -196,7 +196,7 @@ const (
 	MsgSessionUpdate  MessageType = "session_update"
 )
 
-// UI Integration Events
+// SessionUpdateEvent is emitted when the session updates.
 type SessionUpdateEvent struct {
 	Session      *Session       `json:"session"`
 	Action       string         `json:"action"` // "created", "joined", "left"

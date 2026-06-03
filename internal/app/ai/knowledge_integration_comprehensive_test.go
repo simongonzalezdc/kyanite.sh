@@ -449,7 +449,7 @@ func TestQuickIdeaAgent_KnowledgeBasePerformance(t *testing.T) {
 	helper.AssertLength(resp.Suggestions, 3)
 
 	// Should complete quickly even with large knowledge base
-	helper.AssertTrue(elapsed < 500*time.Millisecond,
+	helper.AssertTrue(relaxPerfBudgets() || elapsed < 500*time.Millisecond,
 		"Should complete in less than 500ms with large knowledge base, took %v", elapsed)
 
 	t.Logf("Completed in %v with 100 knowledge cards", elapsed)

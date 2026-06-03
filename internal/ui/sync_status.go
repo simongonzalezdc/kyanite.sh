@@ -15,16 +15,16 @@ type SyncStatusModel struct {
 	width      int
 
 	// Styles
-	runningStyle  lipgloss.Style
-	stoppedStyle  lipgloss.Style
-	deviceStyle   lipgloss.Style
+	runningStyle lipgloss.Style
+	stoppedStyle lipgloss.Style
+	deviceStyle  lipgloss.Style
 }
 
 // SyncStatusUpdateMsg updates the sync status
 type SyncStatusUpdateMsg struct {
-	Running   bool
-	Devices   int
-	LocalURL  string
+	Running  bool
+	Devices  int
+	LocalURL string
 }
 
 // NewSyncStatusModel creates a new sync status model

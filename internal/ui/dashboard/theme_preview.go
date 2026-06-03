@@ -22,7 +22,7 @@ func NewThemePreviewModel() *ThemePreviewModel {
 	for i, id := range themeIDs {
 		themes[i] = theme.GetTheme(id)
 	}
-	
+
 	return &ThemePreviewModel{
 		currentIdx:  0,
 		themes:      themes,
@@ -93,9 +93,9 @@ func (m *ThemePreviewModel) View() string {
 
 	// Use allocated panel dimensions directly
 	return lipgloss.NewStyle().
-		Width(m.width - 2).
-		MaxWidth(m.width - 2).
-		MaxHeight(m.height - 2).
+		Width(m.width-2).
+		MaxWidth(m.width-2).
+		MaxHeight(m.height-2).
 		Padding(0, 1).
 		Render(content)
 }
@@ -114,7 +114,7 @@ func (m *ThemePreviewModel) renderColorPalette(t theme.Theme) string {
 		{"Warning", t.Warning},
 		{"Error", t.Error},
 	}
-	
+
 	var rows []string
 	for i := 0; i < len(colors); i += 4 {
 		var row []string
@@ -131,7 +131,7 @@ func (m *ThemePreviewModel) renderColorPalette(t theme.Theme) string {
 		}
 		rows = append(rows, lipgloss.JoinHorizontal(lipgloss.Left, row...))
 	}
-	
+
 	return lipgloss.JoinVertical(lipgloss.Left, rows...)
 }
 
@@ -142,20 +142,20 @@ func (m *ThemePreviewModel) renderSampleElements(t theme.Theme) string {
 		Padding(0, 2).
 		Bold(true).
 		Render("Primary Button")
-	
+
 	secondary := lipgloss.NewStyle().
 		Foreground(t.Text).
 		Background(t.Secondary).
 		Padding(0, 2).
 		Render("Secondary")
-	
+
 	accent := lipgloss.NewStyle().
 		Foreground(t.Background).
 		Background(t.Accent).
 		Padding(0, 2).
 		Bold(true).
 		Render("Accent")
-	
+
 	return lipgloss.JoinHorizontal(lipgloss.Left, button, " ", secondary, " ", accent)
 }
 
@@ -163,7 +163,7 @@ func (m *ThemePreviewModel) renderNavigation() string {
 	nav := lipgloss.NewStyle().
 		Foreground(theme.GetManager().Current().Text).
 		Render("<< >> Switch Themes")
-	
+
 	return nav
 }
 

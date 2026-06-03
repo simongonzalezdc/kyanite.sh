@@ -1,3 +1,4 @@
+// Package dashboard provides the dashboard UI components.
 package dashboard
 
 import (
@@ -73,7 +74,7 @@ func (m *AIAssistantModel) handleMouse(msg tea.MouseMsg) tea.Cmd {
 	}
 
 	// Calculate button position (button is near the bottom of the panel)
-	// Title (1) + empty (1) + status (1) + empty (1) + suggestions title (1) + 
+	// Title (1) + empty (1) + status (1) + empty (1) + suggestions title (1) +
 	// 3 suggestions (3) + empty (1) + button area starts around line 9
 	buttonStartY := 9
 	buttonEndY := 11
@@ -217,9 +218,9 @@ func (m *AIAssistantModel) View() string {
 
 	// Use allocated panel dimensions directly
 	return lipgloss.NewStyle().
-		Width(m.width - 2).
-		MaxWidth(m.width - 2).
-		MaxHeight(m.height - 2).
+		Width(m.width-2).
+		MaxWidth(m.width-2).
+		MaxHeight(m.height-2).
 		Padding(0, 1).
 		Render(content)
 }

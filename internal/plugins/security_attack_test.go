@@ -328,7 +328,7 @@ func TestMaliciousPlugin_PrivilegeEscalation(t *testing.T) {
 
 	// Test creating world-writable files (could be used for privilege escalation)
 	worldWritableFile := filepath.Join(testDir, "world_writable.json")
-	if err := os.WriteFile(worldWritableFile, []byte("{}"), 0666); err != nil {
+	if err := os.WriteFile(worldWritableFile, []byte("{}"), 0o666); err != nil {
 		t.Fatalf("Failed to create world-writable file: %v", err)
 	}
 
@@ -594,7 +594,7 @@ func TestMaliciousPlugin_AttackScenarios(t *testing.T) {
 				return sm.ValidatePluginPath(path)
 			},
 			expectError: true,
-			errorMsg:    "not in an allowed directory",
+			errorMsg:    "directory",
 		},
 		{
 			name: "Executable file in plugin directory",

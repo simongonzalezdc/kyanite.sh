@@ -14,11 +14,11 @@ func TestStringWidth(t *testing.T) {
 		{"empty string", "", 0},
 		{"ASCII only", "hello", 5},
 		{"ASCII with spaces", "hello world", 11},
-		{"CJK characters", "世界", 4}, // Each CJK char is 2 columns wide
+		{"CJK characters", "世界", 4},           // Each CJK char is 2 columns wide
 		{"mixed ASCII and CJK", "Hello世界", 9}, // 5 + 4
-		{"emoji", "👍", 2}, // Most emoji are 2 columns
-		{"combining characters", "é", 1}, // e + combining acute is 1 column
-		{"tabs", "\t", 0}, // Tab has 0 width in uniseg (terminal-specific)
+		{"emoji", "👍", 2},                     // Most emoji are 2 columns
+		{"combining characters", "é", 1},      // e + combining acute is 1 column
+		{"tabs", "\t", 0},                     // Tab has 0 width in uniseg (terminal-specific)
 	}
 
 	for _, tt := range tests {
@@ -41,7 +41,7 @@ func TestTruncate(t *testing.T) {
 	}{
 		{"no truncation needed", "hello", 10, "...", 5},
 		{"truncate ASCII", "hello world", 8, "...", 5}, // "hello..." = 8
-		{"truncate with CJK", "Hello世界", 7, "...", 4}, // Should not break CJK
+		{"truncate with CJK", "Hello世界", 7, "...", 4},  // Should not break CJK
 		{"empty suffix", "hello world", 5, "", 5},
 		{"very short max", "hello", 3, "...", 3},
 		{"exact width", "hello", 5, "...", 5},
@@ -51,12 +51,12 @@ func TestTruncate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := Truncate(tt.input, tt.maxWidth, tt.suffix)
 			resultWidth := StringWidth(result)
-			
+
 			if resultWidth > tt.maxWidth {
 				t.Errorf("Truncate(%q, %d, %q) result width %d exceeds max %d",
 					tt.input, tt.maxWidth, tt.suffix, resultWidth, tt.maxWidth)
 			}
-			
+
 			if len(result) < tt.minLength {
 				t.Errorf("Truncate(%q, %d, %q) result too short: %q",
 					tt.input, tt.maxWidth, tt.suffix, result)
@@ -68,7 +68,7 @@ func TestTruncate(t *testing.T) {
 func TestTruncatePreservesGraphemeClusters(t *testing.T) {
 	// Test that truncation doesn't break multi-byte characters
 	input := "Hello世界Test"
-	
+
 	for width := 1; width <= StringWidth(input); width++ {
 		result := Truncate(input, width, "")
 		// The result should be valid UTF-8 and not break mid-character
@@ -97,12 +97,12 @@ func TestTruncateLeft(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := TruncateLeft(tt.input, tt.maxWidth, tt.prefix)
 			resultWidth := StringWidth(result)
-			
+
 			if resultWidth > tt.maxWidth {
 				t.Errorf("TruncateLeft(%q, %d, %q) result width %d exceeds max %d",
 					tt.input, tt.maxWidth, tt.prefix, resultWidth, tt.maxWidth)
 			}
-			
+
 			if !strings.Contains(result, tt.contains) {
 				t.Errorf("TruncateLeft(%q, %d, %q) = %q, should contain %q",
 					tt.input, tt.maxWidth, tt.prefix, result, tt.contains)
@@ -119,7 +119,7 @@ func TestPadRight(t *testing.T) {
 		expected int // Expected display width of result
 	}{
 		{"pad ASCII", "hi", 10, 10},
-		{"pad CJK", "世界", 10, 10}, // CJK is 4 wide, should pad to 10
+		{"pad CJK", "世界", 10, 10},        // CJK is 4 wide, should pad to 10
 		{"no pad needed", "hello", 3, 5}, // Already wider, no change
 		{"exact width", "hello", 5, 5},
 		{"empty string", "", 5, 5},
@@ -129,12 +129,12 @@ func TestPadRight(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := PadRight(tt.input, tt.width)
 			resultWidth := StringWidth(result)
-			
+
 			if resultWidth != tt.expected {
 				t.Errorf("PadRight(%q, %d) width = %d, expected %d",
 					tt.input, tt.width, resultWidth, tt.expected)
 			}
-			
+
 			// Result should start with input
 			if !strings.HasPrefix(result, tt.input) {
 				t.Errorf("PadRight(%q, %d) = %q, should start with input",
@@ -161,12 +161,12 @@ func TestPadLeft(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := PadLeft(tt.input, tt.width)
 			resultWidth := StringWidth(result)
-			
+
 			if resultWidth != tt.expected {
 				t.Errorf("PadLeft(%q, %d) width = %d, expected %d",
 					tt.input, tt.width, resultWidth, tt.expected)
 			}
-			
+
 			// Result should end with input
 			if !strings.HasSuffix(result, tt.input) {
 				t.Errorf("PadLeft(%q, %d) = %q, should end with input",
@@ -193,12 +193,12 @@ func TestCenter(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := Center(tt.input, tt.width)
 			resultWidth := StringWidth(result)
-			
+
 			if resultWidth != tt.expected {
 				t.Errorf("Center(%q, %d) width = %d, expected %d",
 					tt.input, tt.width, resultWidth, tt.expected)
 			}
-			
+
 			// Result should contain input
 			if !strings.Contains(result, tt.input) {
 				t.Errorf("Center(%q, %d) = %q, should contain input",
@@ -215,16 +215,16 @@ func TestStringWidthVsLen(t *testing.T) {
 		lenResult   int
 		widthResult int
 	}{
-		{"hello", 5, 5},           // Same for ASCII
-		{"世界", 6, 4},            // len=6 bytes, width=4 columns
-		{"Hello世界", 11, 9},      // len=11 bytes, width=9 columns
-		{"é", 2, 1},               // len=2 bytes (e + combining), width=1
+		{"hello", 5, 5},    // Same for ASCII
+		{"世界", 6, 4},       // len=6 bytes, width=4 columns
+		{"Hello世界", 11, 9}, // len=11 bytes, width=9 columns
+		{"é", 2, 1},        // len=2 bytes (e + combining), width=1
 	}
 
 	for _, tt := range tests {
 		lenR := len(tt.input)
 		widthR := StringWidth(tt.input)
-		
+
 		if lenR != tt.lenResult {
 			t.Errorf("len(%q) = %d, expected %d", tt.input, lenR, tt.lenResult)
 		}
@@ -252,7 +252,7 @@ func BenchmarkStringWidth(b *testing.B) {
 
 func BenchmarkTruncate(b *testing.B) {
 	input := strings.Repeat("Hello世界Test", 50)
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Truncate(input, 100, "...")

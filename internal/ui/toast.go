@@ -72,10 +72,10 @@ type ToastModel struct {
 	maxVisible int
 
 	// Styles
-	infoStyle    lipgloss.Style
-	successStyle lipgloss.Style
-	warningStyle lipgloss.Style
-	errorStyle   lipgloss.Style
+	infoStyle      lipgloss.Style
+	successStyle   lipgloss.Style
+	warningStyle   lipgloss.Style
+	errorStyle     lipgloss.Style
 	containerStyle lipgloss.Style
 }
 

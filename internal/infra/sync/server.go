@@ -16,17 +16,17 @@ import (
 
 // SyncServer provides an embedded HTTP/WebSocket server for PWA sync
 type SyncServer struct {
-	httpServer    *http.Server
-	wsHub         *WebSocketHub
-	config        *config.SyncConfig
+	httpServer     *http.Server
+	wsHub          *WebSocketHub
+	config         *config.SyncConfig
 	pairingManager *PairingManager
-	mediaStore    *MediaStore
-	logger        *logging.Logger
+	mediaStore     *MediaStore
+	logger         *logging.Logger
 
 	// State
-	running     bool
-	localIP     string
-	mu          sync.RWMutex
+	running bool
+	localIP string
+	mu      sync.RWMutex
 
 	// Callbacks
 	onIdeaReceived func(idea *CapturedIdea)
@@ -35,9 +35,9 @@ type SyncServer struct {
 
 // SyncServerConfig holds configuration for the sync server
 type SyncServerConfig struct {
-	Port       int
-	MediaPath  string
-	Logger     *logging.Logger
+	Port      int
+	MediaPath string
+	Logger    *logging.Logger
 }
 
 // DefaultSyncServerConfig returns the default configuration
@@ -53,13 +53,13 @@ func DefaultSyncServerConfig() SyncServerConfig {
 // This is the recommended way to create a sync server for end-user apps
 func NewSyncServerWithAutoSetup(dataDir string, port int, logger *logging.Logger) (*SyncServer, error) {
 	mediaPath := dataDir + "/sync/media"
-	
+
 	cfg := SyncServerConfig{
 		Port:      port,
 		MediaPath: mediaPath,
 		Logger:    logger,
 	}
-	
+
 	return NewSyncServer(cfg)
 }
 
@@ -233,7 +233,7 @@ func (s *SyncServer) setupRoutes(mux *http.ServeMux) {
 	// Health check
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+		_, _ = w.Write([]byte("OK"))
 	})
 }
 

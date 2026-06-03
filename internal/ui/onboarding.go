@@ -380,7 +380,7 @@ func (m *OnboardingModel) markComplete() {
 	}
 
 	noiseDir := filepath.Join(configDir, "noise")
-	if err := os.MkdirAll(noiseDir, 0755); err != nil {
+	if err := os.MkdirAll(noiseDir, 0o755); err != nil {
 		logging.Errorf("Failed to create noise config directory: %v", err)
 		return
 	}

@@ -10,11 +10,11 @@ import (
 
 // Common errors for whisper engine
 var (
-	ErrModelNotLoaded    = errors.New("whisper model not loaded")
-	ErrTranscribeFailed  = errors.New("transcription failed")
-	ErrInvalidSamples    = errors.New("invalid audio samples")
-	ErrContextCreation   = errors.New("failed to create whisper context")
-	ErrWhisperNotBuilt   = errors.New("whisper support not compiled - build with: CGO_ENABLED=1 go build -tags whisper")
+	ErrModelNotLoaded   = errors.New("whisper model not loaded")
+	ErrTranscribeFailed = errors.New("transcription failed")
+	ErrInvalidSamples   = errors.New("invalid audio samples")
+	ErrContextCreation  = errors.New("failed to create whisper context")
+	ErrWhisperNotBuilt  = errors.New("whisper support not compiled - build with: CGO_ENABLED=1 go build -tags whisper")
 )
 
 // WhisperConfig configures the whisper engine

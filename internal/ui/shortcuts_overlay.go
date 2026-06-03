@@ -40,12 +40,12 @@ type ShortcutsOverlayModel struct {
 	categories []ShortcutCategory
 
 	// Styles
-	overlayStyle    lipgloss.Style
-	titleStyle      lipgloss.Style
-	categoryStyle   lipgloss.Style
-	keyStyle        lipgloss.Style
+	overlayStyle     lipgloss.Style
+	titleStyle       lipgloss.Style
+	categoryStyle    lipgloss.Style
+	keyStyle         lipgloss.Style
 	descriptionStyle lipgloss.Style
-	hintStyle       lipgloss.Style
+	hintStyle        lipgloss.Style
 }
 
 // NewShortcutsOverlayModel creates a new shortcuts overlay
@@ -321,4 +321,3 @@ func (m *ShortcutsOverlayModel) UpdateTheme() {
 		Italic(true).
 		MarginTop(1)
 }
-

@@ -146,7 +146,7 @@ func NewErrorManager(logger *logging.Logger, config *ErrorConfig) *ErrorManager 
 
 	// Create log directory if needed
 	if config.LogToFile {
-		if err := os.MkdirAll(config.LogDirectory, 0755); err != nil {
+		if err := os.MkdirAll(config.LogDirectory, 0o755); err != nil {
 			logger.Errorf("Failed to create log directory: %v", err)
 		}
 	}

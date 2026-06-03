@@ -1,3 +1,4 @@
+// Package knowledge provides a knowledge-base interface and stub implementation.
 package knowledge
 
 import (

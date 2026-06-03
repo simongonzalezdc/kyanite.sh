@@ -1,3 +1,4 @@
+// Package theory provides music theory helpers for harmony and prosody analysis.
 package theory
 
 import (

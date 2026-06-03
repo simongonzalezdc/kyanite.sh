@@ -98,7 +98,6 @@ func NewChordPickerModel(aiService *app.AIService) *chordPickerModel {
 	}
 }
 
-// Init initializes the chord picker model
 // AIProgressionFoundMsg is sent when the AI finds new chord progressions
 type AIProgressionFoundMsg struct {
 	Progressions []string
@@ -426,7 +425,7 @@ func (m *chordPickerModel) GetSelectedProgression() *data.ChordProgression {
 	return nil
 }
 
-// Message types for chord picker
+// ShowChordPickerMsg requests display of the chord picker.
 type ShowChordPickerMsg struct {
 	InsertCallback func(chords []string)
 }

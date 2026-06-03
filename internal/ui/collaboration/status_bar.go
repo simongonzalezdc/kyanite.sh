@@ -85,7 +85,7 @@ func (csb *CollaborationStatusBar) View() string {
 	if csb.hasConflicts {
 		content.WriteString(csb.conflictStyle.Render("[!] "))
 	} else {
-		content.WriteString(csb.activeStyle.Render("¤ "))
+		content.WriteString(csb.activeStyle.Render("¤\u009d "))
 	}
 
 	// Session info

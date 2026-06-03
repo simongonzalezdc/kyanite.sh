@@ -14,7 +14,7 @@ const (
 	SessionCleanupInterval   = 5 * time.Minute
 
 	// Heartbeat
-	HeartbeatInterval = 10 * time.Second
+	HeartbeatInterval    = 10 * time.Second
 	MissedHeartbeatLimit = 3
 )
 

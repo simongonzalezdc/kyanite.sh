@@ -475,7 +475,7 @@ func (a *QuickIdeaAgent) generateContextAwareFallback(req QuickRequest, contentT
 		case ContentTypeLyrics:
 			return &QuickResponse{
 				Suggestions: []string{
-					fmt.Sprintf("%s", base),
+					base,
 					"Rewrite with stronger imagery and emotion",
 					"Replace clichÃ©s with fresh, specific details",
 				},
@@ -483,7 +483,7 @@ func (a *QuickIdeaAgent) generateContextAwareFallback(req QuickRequest, contentT
 		case ContentTypePatterns:
 			return &QuickResponse{
 				Suggestions: []string{
-					fmt.Sprintf("%s", base),
+					base,
 					"Add sophisticated voice leading",
 					"Incorporate rhythmic variation",
 				},
@@ -491,7 +491,7 @@ func (a *QuickIdeaAgent) generateContextAwareFallback(req QuickRequest, contentT
 		case ContentTypeMixed:
 			return &QuickResponse{
 				Suggestions: []string{
-					fmt.Sprintf("%s", base),
+					base,
 					"Enhance both lyrical and musical flow",
 					"Strengthen the connection between words and music",
 				},

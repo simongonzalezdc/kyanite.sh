@@ -18,11 +18,11 @@ type Action struct {
 
 // QuickActionsModel manages the quick actions grid
 type QuickActionsModel struct {
-	width     int
-	height    int
-	actions   []Action
-	selected  int
-	hovered   int // Track mouse hover for visual feedback
+	width    int
+	height   int
+	actions  []Action
+	selected int
+	hovered  int // Track mouse hover for visual feedback
 }
 
 // NewQuickActionsModel creates a new quick actions model
@@ -35,7 +35,7 @@ func NewQuickActionsModel() *QuickActionsModel {
 		{ID: "theory", Title: "Theory Tools", Description: "Music theory reference", Icon: "[T]", Shortcut: "5", Animated: true},
 		{ID: "audio", Title: "Audio Tools", Description: "Metronome & playback", Icon: "[A]", Shortcut: "6", Animated: true},
 	}
-	
+
 	return &QuickActionsModel{
 		actions:  actions,
 		selected: 0,
@@ -266,9 +266,9 @@ func (m *QuickActionsModel) View() string {
 
 	// Use allocated panel dimensions directly
 	return lipgloss.NewStyle().
-		Width(m.width - 2).
-		MaxWidth(m.width - 2).
-		MaxHeight(m.height - 2).
+		Width(m.width-2).
+		MaxWidth(m.width-2).
+		MaxHeight(m.height-2).
 		Padding(0, 1).
 		Render(content)
 }

@@ -137,13 +137,13 @@ func TestFileDialogDirectoryLoading(t *testing.T) {
 	testFiles := []string{"test1.txt", "test2.md", "test3.txt"}
 	for _, filename := range testFiles {
 		filePath := filepath.Join(tempDir, filename)
-		err := os.WriteFile(filePath, []byte("test content"), 0644)
+		err := os.WriteFile(filePath, []byte("test content"), 0o644)
 		require.NoError(t, err)
 	}
 
 	// Create a subdirectory
 	subDir := filepath.Join(tempDir, "subdir")
-	err = os.MkdirAll(subDir, 0755)
+	err = os.MkdirAll(subDir, 0o755)
 	require.NoError(t, err)
 
 	dialog := NewFileDialogModel(DialogOpen, "Test", tempDir, []string{".txt"})
@@ -177,7 +177,7 @@ func TestFileDialogSelection(t *testing.T) {
 
 	// Create a test file
 	testFile := filepath.Join(tempDir, "test.txt")
-	err = os.WriteFile(testFile, []byte("test content"), 0644)
+	err = os.WriteFile(testFile, []byte("test content"), 0o644)
 	require.NoError(t, err)
 
 	dialog := NewFileDialogModel(DialogOpen, "Test", tempDir, []string{".txt"})
@@ -241,7 +241,7 @@ func TestFileDialogNavigation(t *testing.T) {
 
 	// Create a subdirectory
 	subDir := filepath.Join(tempDir, "subdir")
-	err = os.MkdirAll(subDir, 0755)
+	err = os.MkdirAll(subDir, 0o755)
 	require.NoError(t, err)
 
 	dialog := NewFileDialogModel(DialogOpen, "Test", tempDir, []string{".txt"})
@@ -263,10 +263,10 @@ func TestFileDialogHiddenFiles(t *testing.T) {
 	regularFile := filepath.Join(tempDir, "regular.txt")
 	hiddenFile := filepath.Join(tempDir, ".hidden.txt")
 
-	err = os.WriteFile(regularFile, []byte("test content"), 0644)
+	err = os.WriteFile(regularFile, []byte("test content"), 0o644)
 	require.NoError(t, err)
 
-	err = os.WriteFile(hiddenFile, []byte("hidden content"), 0644)
+	err = os.WriteFile(hiddenFile, []byte("hidden content"), 0o644)
 	require.NoError(t, err)
 
 	dialog := NewFileDialogModel(DialogOpen, "Test", tempDir, []string{".txt"})
@@ -331,7 +331,7 @@ func BenchmarkFileDialogLoading(b *testing.B) {
 	// Create many test files
 	for i := 0; i < 100; i++ {
 		filename := filepath.Join(tempDir, fmt.Sprintf("test%d.txt", i))
-		err := os.WriteFile(filename, []byte("test content"), 0644)
+		err := os.WriteFile(filename, []byte("test content"), 0o644)
 		require.NoError(b, err)
 	}
 

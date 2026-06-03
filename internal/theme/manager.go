@@ -2,10 +2,11 @@ package theme
 
 import (
 	"encoding/json"
-	"github.com/Kyanite/noise/internal/config"
 	"os"
 	"path/filepath"
 	"sync"
+
+	"github.com/Kyanite/noise/internal/config"
 )
 
 var (
@@ -28,10 +29,8 @@ func GetManager() *Manager {
 			current:         Default(),
 			themeChangeChan: make(chan Theme, 10), // Buffered channel for theme changes
 		}
-		// Load saved theme preference
-		if err := globalManager.LoadThemePreference(); err != nil {
-			// If loading fails, stick with default theme
-		}
+		// Load saved theme preference; if it fails, keep the default theme.
+		_ = globalManager.LoadThemePreference()
 	})
 	return globalManager
 }
@@ -52,10 +51,8 @@ func (m *Manager) SetTheme(id string) {
 	// Save preference asynchronously with a copy of the current theme name
 	currentThemeName := m.current.Name
 	go func() {
-		if err := m.saveThemePreferenceByName(currentThemeName); err != nil {
-			// Log error but don't fail the theme change
-			// In a real app, you'd use proper logging
-		}
+		// Save preference; ignore errors so the theme change never fails.
+		_ = m.saveThemePreferenceByName(currentThemeName)
 	}()
 }
 
@@ -101,9 +98,7 @@ func (m *Manager) Next() Theme {
 	// Save preference asynchronously with a copy of the current theme name
 	currentThemeName := m.current.Name
 	go func() {
-		if err := m.saveThemePreferenceByName(currentThemeName); err != nil {
-			// Log error but don't fail the theme change
-		}
+		_ = m.saveThemePreferenceByName(currentThemeName)
 	}()
 
 	return m.current
@@ -144,9 +139,7 @@ func (m *Manager) Previous() Theme {
 	// Save preference asynchronously with a copy of the current theme name
 	currentThemeName := m.current.Name
 	go func() {
-		if err := m.saveThemePreferenceByName(currentThemeName); err != nil {
-			// Log error but don't fail the theme change
-		}
+		_ = m.saveThemePreferenceByName(currentThemeName)
 	}()
 
 	return m.current
@@ -189,7 +182,7 @@ func (m *Manager) saveThemePreferenceByName(themeName string) error {
 	}
 
 	configDir := filepath.Join(homeDir, ".config", "noise")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		return err
 	}
 
@@ -213,7 +206,7 @@ func (m *Manager) saveThemePreferenceByName(themeName string) error {
 		return err
 	}
 
-	return os.WriteFile(configFile, data, 0644)
+	return os.WriteFile(configFile, data, 0o644)
 }
 
 // LoadThemePreference loads theme preference from file

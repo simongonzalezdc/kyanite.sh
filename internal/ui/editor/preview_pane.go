@@ -34,8 +34,11 @@ type PreviewPaneModel struct {
 	scrollPos int
 	zoomLevel float64
 
-	// Glamour renderer
-	renderer *glamour.TermRenderer
+	// Glamour renderer. glamour.TermRenderer is not safe for concurrent use,
+	// so renderMutex serializes Render calls in case a debounced (DebounceDelay>0)
+	// preview update renders off the Bubble Tea goroutine while View() renders on it.
+	renderer    *glamour.TermRenderer
+	renderMutex sync.Mutex
 
 	// Styles
 	focusedStyle lipgloss.Style
@@ -107,7 +110,6 @@ func NewPreviewPaneModel() *PreviewPaneModel {
 	renderer, err := glamour.NewTermRenderer(
 		glamour.WithStylePath(styleConfig),
 	)
-
 	if err != nil {
 		// Fallback to basic dark style if custom style fails
 		var fallbackErr error
@@ -728,9 +730,13 @@ func (m *PreviewPaneModel) SetContent(content string) {
 	// Clear render cache for new content
 	m.clearRenderCache()
 
-	// Trigger real-time manager asynchronously if available so SetContent returns promptly
+	// Hand off to the real-time manager, which owns the sync/async decision:
+	// it runs synchronously when DebounceDelay is 0 (deterministic for tests) and
+	// otherwise spawns its own debounced goroutine, so SetContent still returns
+	// promptly. Spawning our own goroutine here raced onContentUpdate's writes to
+	// m.content against View()'s reads of it.
 	if m.realtimeManager != nil {
-		go m.realtimeManager.UpdateContent(content, ChangeSourceExternal)
+		m.realtimeManager.UpdateContent(content, ChangeSourceExternal)
 	}
 }
 
@@ -822,8 +828,11 @@ func (m *PreviewPaneModel) renderContentWithGlamour() (rendered string, err erro
 	// Pre-process content for lyric-specific formatting
 	processedContent := m.preprocessLyricContent()
 
-	// Render with Glamour
+	// Render with Glamour. The renderer is not concurrency-safe, so serialize
+	// access; Render does not call back into the model, so this cannot re-enter.
+	m.renderMutex.Lock()
 	rendered, err = m.renderer.Render(processedContent)
+	m.renderMutex.Unlock()
 	if err != nil {
 		m.lastError = err.Error()
 		return m.renderBasicContent(), err
@@ -859,7 +868,7 @@ func (m *PreviewPaneModel) renderBasicContent() string {
 	for i, line := range lines {
 		// Headers
 		if strings.HasPrefix(line, "# ") {
-			lines[i] = strings.Replace(line, "# ", "“ ", 1)
+			lines[i] = strings.Replace(line, "# ", "“\u009d ", 1)
 		} else if strings.HasPrefix(line, "## ") {
 			lines[i] = strings.Replace(line, "## ", "“‹ ", 1)
 		} else if strings.HasPrefix(line, "### ") {

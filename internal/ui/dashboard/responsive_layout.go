@@ -177,7 +177,7 @@ func (hm *HeaderModel) View() string {
 	status := "[*] 3 Songs, 2 Projects"
 	help := "[F1] Help"
 	quit := "[Q]uit"
-	
+
 	return lipgloss.JoinHorizontal(lipgloss.Left,
 		title,
 		"    ",
@@ -211,7 +211,7 @@ func (fm *FooterModel) View() string {
 	menu := "[ESC] Menu"
 	time := "23:45"
 	version := "v1.0.0"
-	
+
 	return lipgloss.JoinHorizontal(lipgloss.Left,
 		actions,
 		"    ",

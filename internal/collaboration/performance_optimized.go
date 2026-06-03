@@ -232,7 +232,7 @@ func (m *PerformanceOptimizedCollaborationManager) JoinSessionOptimized(sessionI
 	}
 
 	// Fallback to base implementation
-	session, err := m.CollaborationManager.JoinSession(sessionID, userID, username, role)
+	session, err := m.JoinSession(sessionID, userID, username, role)
 	if err != nil {
 		return nil, err
 	}
@@ -383,7 +383,7 @@ func (m *PerformanceOptimizedCollaborationManager) getConcurrentUserCount() int 
 func (m *PerformanceOptimizedCollaborationManager) createSessionWithConnection(conn *db.DB, documentID int, name, createdBy string, settings SessionSettings) (*Session, error) {
 	// This is a simplified implementation
 	// In a real application, this would use the provided connection
-	return m.CollaborationManager.CreateSession(documentID, name, createdBy, settings)
+	return m.CreateSession(documentID, name, createdBy, settings)
 }
 
 // updateAverageOperationTime updates the rolling average operation time

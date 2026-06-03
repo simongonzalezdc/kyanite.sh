@@ -1,3 +1,4 @@
+// Package collaboration provides real-time collaboration session and presence management.
 package collaboration
 
 import (
