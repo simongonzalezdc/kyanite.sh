@@ -727,9 +727,13 @@ func (m *PreviewPaneModel) SetContent(content string) {
 	// Clear render cache for new content
 	m.clearRenderCache()
 
-	// Trigger real-time manager asynchronously if available so SetContent returns promptly
+	// Hand off to the real-time manager, which owns the sync/async decision:
+	// it runs synchronously when DebounceDelay is 0 (deterministic for tests) and
+	// otherwise spawns its own debounced goroutine, so SetContent still returns
+	// promptly. Spawning our own goroutine here raced onContentUpdate's writes to
+	// m.content against View()'s reads of it.
 	if m.realtimeManager != nil {
-		go m.realtimeManager.UpdateContent(content, ChangeSourceExternal)
+		m.realtimeManager.UpdateContent(content, ChangeSourceExternal)
 	}
 }
 
