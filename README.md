@@ -5,7 +5,7 @@ noise.sh is a local-first, AI-assisted TUI that turns inspiration into captured 
 
 ## Quick Start
 ```bash
-git clone https://github.com/Kyanite/noise.sh.git
+git clone https://github.com/simongonzalezdc/noise.sh.git
 cd noise.sh
 ./launch.sh  # macOS/Linux
 # OR

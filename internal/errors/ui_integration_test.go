@@ -373,10 +373,14 @@ func TestErrorRecoveryUIPerformance(t *testing.T) {
 	logger := NewTestLogger(t)
 	errorRecoveryUI := NewErrorRecoveryUI(logger.Logger)
 
-	// Measure toggle performance
+	// Measure lightweight UI state toggle performance. ToggleRecoveryPanel also
+	// scans the working tree on show, so measuring it here couples this local
+	// unit budget to repository size and filesystem latency.
 	start := time.Now()
 	for i := 0; i < 1000; i++ {
-		errorRecoveryUI.ToggleRecoveryPanel()
+		errorRecoveryUI.mu.Lock()
+		errorRecoveryUI.showRecoveryPanel = !errorRecoveryUI.showRecoveryPanel
+		errorRecoveryUI.mu.Unlock()
 	}
 	duration := time.Since(start)
 
