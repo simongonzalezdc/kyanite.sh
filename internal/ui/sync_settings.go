@@ -166,9 +166,9 @@ func (m *SyncSettingsModel) handleSelection() tea.Cmd {
 			return nil
 		}
 		if m.syncServer.IsRunning() {
-			m.syncServer.Stop()
+			_ = m.syncServer.Stop()
 		} else {
-			m.syncServer.Start()
+			_ = m.syncServer.Start()
 		}
 		return nil
 
@@ -232,7 +232,7 @@ func (m *SyncSettingsModel) View() string {
 		}
 
 		label := item.label
-		
+
 		// Update toggle label based on state
 		if item.itemType == syncItemToggle {
 			if m.syncServer != nil && m.syncServer.IsRunning() {

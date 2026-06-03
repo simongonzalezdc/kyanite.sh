@@ -12,20 +12,20 @@ import (
 
 // VoiceIndicatorModel displays the current voice recording status
 type VoiceIndicatorModel struct {
-	state       app.VoiceState
-	duration    time.Duration
-	level       float32 // Audio level 0.0 to 1.0
-	processing  bool
-	error       string
-	width       int
+	state      app.VoiceState
+	duration   time.Duration
+	level      float32 // Audio level 0.0 to 1.0
+	processing bool
+	error      string
+	width      int
 
 	// Styles
-	containerStyle   lipgloss.Style
-	recordingStyle   lipgloss.Style
-	processingStyle  lipgloss.Style
-	errorStyle       lipgloss.Style
-	levelBarStyle    lipgloss.Style
-	levelFillStyle   lipgloss.Style
+	containerStyle  lipgloss.Style
+	recordingStyle  lipgloss.Style
+	processingStyle lipgloss.Style
+	errorStyle      lipgloss.Style
+	levelBarStyle   lipgloss.Style
+	levelFillStyle  lipgloss.Style
 }
 
 // VoiceStateMsg updates the voice indicator state

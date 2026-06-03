@@ -135,11 +135,11 @@ func TestSecurityManager_ValidatePluginFile(t *testing.T) {
 			name: "World-writable file",
 			fileCreator: func(dir string) string {
 				filePath := filepath.Join(dir, "writable.json")
-				if err := os.WriteFile(filePath, []byte("{}"), 0600); err != nil {
+				if err := os.WriteFile(filePath, []byte("{}"), 0o600); err != nil {
 					t.Fatalf("Failed to create world-writable file: %v", err)
 				}
 				// Make it world-writable using chmod
-				if err := os.Chmod(filePath, 0666); err != nil {
+				if err := os.Chmod(filePath, 0o666); err != nil {
 					t.Fatalf("Failed to make file world-writable: %v", err)
 				}
 				return filePath
@@ -234,7 +234,7 @@ func TestSecurityManager_ValidatePluginManifest(t *testing.T) {
 			errorMsg:    "plugin version is required",
 		},
 		{
-			name:        "Invalid ID with path traversal",
+			name: "Invalid ID with path traversal",
 			metadata: &PluginMetadata{
 				ID:          "../../../etc/passwd",
 				Name:        "Malicious Plugin",
@@ -337,7 +337,7 @@ func TestSecurityManager_CalculatePluginHash(t *testing.T) {
 	}
 
 	// Modify the file and recalculate
-	if err := os.WriteFile(filePath, []byte(`{"modified": "content"}`), 0600); err != nil {
+	if err := os.WriteFile(filePath, []byte(`{"modified": "content"}`), 0o600); err != nil {
 		t.Fatalf("Failed to modify file: %v", err)
 	}
 
@@ -458,7 +458,7 @@ func TestSecurityManager_CleanupStalePlugins(t *testing.T) {
 
 	// Create a file with old timestamp
 	oldFile := filepath.Join(testDir, "old_plugin.json")
-	if err := os.WriteFile(oldFile, []byte("{}"), 0600); err != nil {
+	if err := os.WriteFile(oldFile, []byte("{}"), 0o600); err != nil {
 		t.Fatalf("Failed to create old file: %v", err)
 	}
 
@@ -470,7 +470,7 @@ func TestSecurityManager_CleanupStalePlugins(t *testing.T) {
 
 	// Create a recent file
 	recentFile := filepath.Join(testDir, "recent_plugin.json")
-	if err := os.WriteFile(recentFile, []byte("{}"), 0600); err != nil {
+	if err := os.WriteFile(recentFile, []byte("{}"), 0o600); err != nil {
 		t.Fatalf("Failed to create recent file: %v", err)
 	}
 

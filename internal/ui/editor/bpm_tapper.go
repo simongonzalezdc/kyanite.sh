@@ -1,3 +1,4 @@
+// Package editor provides the song editor UI components.
 package editor
 
 import (
@@ -291,7 +292,7 @@ func (m *bpmTapperModel) GetCurrentBPM() int {
 	return m.currentBPM
 }
 
-// Message types for BPM tapper
+// ShowBPMTapperMsg requests display of the BPM tapper.
 type ShowBPMTapperMsg struct {
 	SetBMPCallback func(bpm int)
 }

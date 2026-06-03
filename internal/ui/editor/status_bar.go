@@ -71,13 +71,13 @@ type StatusBarModel struct {
 	rightSectionStyle  lipgloss.Style
 
 	// Status-specific styles
-	autoSaveSavingStyle   lipgloss.Style
-	autoSaveSuccessStyle  lipgloss.Style
-	autoSaveErrorStyle    lipgloss.Style
-	autoSaveIdleStyle     lipgloss.Style
-	modeIndicatorStyle    lipgloss.Style
-	shortcutHintStyle     lipgloss.Style
-	unsavedChangesStyle   lipgloss.Style
+	autoSaveSavingStyle  lipgloss.Style
+	autoSaveSuccessStyle lipgloss.Style
+	autoSaveErrorStyle   lipgloss.Style
+	autoSaveIdleStyle    lipgloss.Style
+	modeIndicatorStyle   lipgloss.Style
+	shortcutHintStyle    lipgloss.Style
+	unsavedChangesStyle  lipgloss.Style
 }
 
 // NewStatusBarModel creates a new status bar model

@@ -278,7 +278,7 @@ func (ui *PerformanceOptimizedUI) SwitchThemeOptimized(themeName string) time.Du
 	newTheme := ui.themeOptimizer.GetTheme(themeName)
 	if newTheme == nil {
 		// Fallback to default theme
-		newTheme = ui.themeOptimizer.GetTheme("default")
+		_ = ui.themeOptimizer.GetTheme("default")
 	}
 
 	// Apply theme atomically
@@ -382,10 +382,7 @@ func (frl *FrameRateLimiter) CanRender() bool {
 	defer frl.mutex.Unlock()
 
 	now := time.Now()
-	if now.Sub(frl.lastRender) >= frl.minInterval {
-		return true
-	}
-	return false
+	return now.Sub(frl.lastRender) >= frl.minInterval
 }
 
 // RecordRender records that a render has occurred

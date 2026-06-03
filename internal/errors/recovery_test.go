@@ -300,7 +300,7 @@ func TestEnhancedBackupManager(t *testing.T) {
 	}
 
 	// Corrupt the backup file and test recovery
-	err = os.WriteFile(backupPath, []byte("invalid json"), 0644)
+	err = os.WriteFile(backupPath, []byte("invalid json"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to corrupt backup file: %v", err)
 	}

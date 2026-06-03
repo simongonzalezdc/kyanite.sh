@@ -221,9 +221,9 @@ func (m *MusicToolsModel) View() string {
 	)
 
 	return lipgloss.NewStyle().
-		Width(m.width - 2).
-		MaxWidth(m.width - 2).
-		MaxHeight(m.height - 2).
+		Width(m.width-2).
+		MaxWidth(m.width-2).
+		MaxHeight(m.height-2).
 		Padding(0, 1).
 		Render(content)
 }

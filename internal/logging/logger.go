@@ -53,7 +53,7 @@ type Logger struct {
 	level      LogLevel
 	showCaller bool
 	callerSkip int
-	tuiMode    bool    // When true, suppress all output to avoid corrupting TUI
+	tuiMode    bool     // When true, suppress all output to avoid corrupting TUI
 	logFile    *os.File // File handle for log file (if any)
 }
 
@@ -77,18 +77,18 @@ func DefaultConfig() *Config {
 
 // New creates a new logger with the given configuration
 func New(cfg *Config) (*Logger, error) {
-	var output io.Writer = cfg.Output
+	output := cfg.Output
 
 	// If log file is specified, create or append to it
 	var logFile *os.File
 	if cfg.LogFile != "" {
 		logDir := filepath.Dir(cfg.LogFile)
-		if err := os.MkdirAll(logDir, 0755); err != nil {
+		if err := os.MkdirAll(logDir, 0o755); err != nil {
 			return nil, errutil.Wrap(err, "create log directory")
 		}
 
 		var err error
-		logFile, err = os.OpenFile(cfg.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		logFile, err = os.OpenFile(cfg.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o666)
 		if err != nil {
 			return nil, errutil.Wrap(err, "open log file")
 		}
@@ -279,7 +279,7 @@ func (l *Logger) log(level LogLevel, v ...interface{}) {
 	}
 
 	message += fmt.Sprint(v...)
-	l.Logger.Print(message)
+	l.Print(message)
 }
 
 // logf logs a formatted message with the specified level
@@ -301,7 +301,7 @@ func (l *Logger) logf(level LogLevel, format string, v ...interface{}) {
 
 	message += fmt.Sprintf(format, v...)
 	if l.Logger != nil {
-		l.Logger.Print(message)
+		l.Print(message)
 	}
 }
 

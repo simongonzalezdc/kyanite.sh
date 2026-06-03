@@ -1,3 +1,4 @@
+//go:build !verify
 // +build !verify
 
 package main
@@ -14,13 +15,13 @@ import (
 
 // BuildMetrics represents build performance data
 type BuildMetrics struct {
-	Platform        string `json:"platform"`
+	Platform         string `json:"platform"`
 	BuildTimeSeconds int    `json:"build_time_seconds"`
 	BinarySizeBytes  int    `json:"binary_size_bytes"`
-	GoVersion       string `json:"go_version"`
-	Timestamp       string `json:"timestamp"`
-	GithubRunID     string `json:"github_run_id"`
-	GithubRunNumber string `json:"github_run_number"`
+	GoVersion        string `json:"go_version"`
+	Timestamp        string `json:"timestamp"`
+	GithubRunID      string `json:"github_run_id"`
+	GithubRunNumber  string `json:"github_run_number"`
 }
 
 // PlatformSummary represents aggregated metrics for a platform
@@ -85,7 +86,6 @@ func analyzeBuildMetrics(metricsDir string) (*AnalysisReport, error) {
 		}
 		return nil
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to walk metrics directory: %w", err)
 	}
@@ -272,7 +272,7 @@ func printReport(report *AnalysisReport) {
 
 	// Sort platforms by average build time
 	type platformStat struct {
-		name string
+		name    string
 		summary PlatformSummary
 	}
 

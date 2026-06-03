@@ -138,7 +138,6 @@ func TestMediaStore(t *testing.T) {
 
 		data := []byte("fake audio data")
 		path, err := ms.SaveVoiceMemo("device123", data)
-
 		if err != nil {
 			t.Fatalf("failed to save voice memo: %v", err)
 		}
@@ -159,7 +158,6 @@ func TestMediaStore(t *testing.T) {
 
 		data := []byte("fake photo data")
 		path, err := ms.SavePhoto("device123", data)
-
 		if err != nil {
 			t.Fatalf("failed to save photo: %v", err)
 		}

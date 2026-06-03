@@ -282,7 +282,7 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "esc":
 			// Cancel voice dictation if active
 			if m.voiceService != nil && m.voiceService.GetState() == app.VoiceStateRecording {
-				m.voiceService.CancelDictation()
+				_ = m.voiceService.CancelDictation()
 				return m, nil
 			}
 			if m.helpMode {
@@ -610,7 +610,6 @@ func (m *RootModel) initializeVoiceService(cfg *config.Config) {
 				}
 				logging.Debugf("Voice setup: %s (%.0f%%)", status, progress*100)
 			})
-
 		if err != nil {
 			logging.Warnf("Failed to create voice service: %v", err)
 			if m.voiceIndicator != nil {
@@ -984,7 +983,7 @@ type initErrorMsg struct {
 	err error
 }
 
-// Message type for screen changes
+// ScreenChangeMsg requests a change to the given screen.
 type ScreenChangeMsg struct {
 	Screen screen
 }
@@ -1237,7 +1236,7 @@ func (m *RootModel) performQuit() tea.Cmd {
 	}
 	// Clean up sync server
 	if m.syncServer != nil {
-		m.syncServer.Stop()
+		_ = m.syncServer.Stop()
 	}
 	// Restore normal logging before exit
 	logging.DisableTUIMode()

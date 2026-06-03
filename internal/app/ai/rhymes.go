@@ -46,7 +46,7 @@ func FindBasicRhymes(word string) []string {
 	}
 
 	var rhymes []string
-	
+
 	// Check if the word matches any ending patterns
 	for ending, words := range rhymeEndings {
 		if strings.HasSuffix(word, ending) {
@@ -57,7 +57,7 @@ func FindBasicRhymes(word string) []string {
 			}
 		}
 	}
-	
+
 	// If no matches found, try to find rhymes by ending
 	if len(rhymes) == 0 {
 		// Extract the ending (last 2-3 characters)
@@ -74,7 +74,7 @@ func FindBasicRhymes(word string) []string {
 			}
 		}
 	}
-	
+
 	// Remove duplicates
 	seen := make(map[string]bool)
 	unique := []string{}
@@ -84,6 +84,6 @@ func FindBasicRhymes(word string) []string {
 			unique = append(unique, r)
 		}
 	}
-	
+
 	return unique
 }

@@ -18,11 +18,11 @@ type VoiceSettingsModel struct {
 	height       int
 
 	// Selection state
-	selectedItem   int
-	items          []voiceSettingItem
+	selectedItem     int
+	items            []voiceSettingItem
 	downloadingModel string
 	downloadProgress float64
-	testRecording  bool
+	testRecording    bool
 
 	// Styles
 	titleStyle       lipgloss.Style
@@ -220,7 +220,6 @@ func (m *VoiceSettingsModel) handleSelection() tea.Cmd {
 				// Progress callback - we can't easily send tea.Msg from here
 				// so progress updates are limited
 			})
-
 			if err != nil {
 				return ModelDownloadProgressMsg{ModelName: modelName, Error: err}
 			}

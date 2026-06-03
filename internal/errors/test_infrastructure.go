@@ -277,7 +277,7 @@ func CreateTestSong(id int, title string) *domain.Song {
 // CreateTestFile creates a test file with the given content
 func CreateTestFile(t *testing.T, dir, filename, content string) string {
 	filePath := filepath.Join(dir, filename)
-	err := os.WriteFile(filePath, []byte(content), 0644)
+	err := os.WriteFile(filePath, []byte(content), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create test file %s: %v", filePath, err)
 	}
@@ -303,7 +303,7 @@ func CreateCorruptedTestFile(t *testing.T, dir, filename string) string {
 		corruptedContent = []byte(`{"invalid": json content}`)
 	}
 
-	err := os.WriteFile(filePath, corruptedContent, 0644)
+	err := os.WriteFile(filePath, corruptedContent, 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create corrupted test file %s: %v", filePath, err)
 	}
@@ -333,7 +333,7 @@ func CreateBackupFile(t *testing.T, backupDir, backupID string, song *domain.Son
 		]
 	}`, song.ID, song.Filepath, song.Metadata.Title)
 
-	err := os.WriteFile(backupPath, []byte(content), 0644)
+	err := os.WriteFile(backupPath, []byte(content), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create backup file %s: %v", backupPath, err)
 	}

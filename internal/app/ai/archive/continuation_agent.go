@@ -1,3 +1,4 @@
+// Package ai provides AI-assisted songwriting services such as rhyme finding and idea generation.
 package ai
 
 import (

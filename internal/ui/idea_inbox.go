@@ -20,14 +20,14 @@ type IdeaInboxModel struct {
 	scrollOffset int
 
 	// Styles
-	titleStyle       lipgloss.Style
-	itemStyle        lipgloss.Style
-	selectedStyle    lipgloss.Style
-	typeStyle        lipgloss.Style
-	timeStyle        lipgloss.Style
-	contentStyle     lipgloss.Style
-	emptyStyle       lipgloss.Style
-	helpStyle        lipgloss.Style
+	titleStyle    lipgloss.Style
+	itemStyle     lipgloss.Style
+	selectedStyle lipgloss.Style
+	typeStyle     lipgloss.Style
+	timeStyle     lipgloss.Style
+	contentStyle  lipgloss.Style
+	emptyStyle    lipgloss.Style
+	helpStyle     lipgloss.Style
 }
 
 // NewIdeaInboxModel creates a new idea inbox model

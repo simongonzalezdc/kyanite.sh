@@ -255,7 +255,6 @@ func (s *Service) ListSongs() ([]string, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, errors.NewFileError("list", s.config.BaseDir, err)
 	}

@@ -39,7 +39,7 @@ func TestDictionaryLoad(t *testing.T) {
 		}
 	}`
 
-	err := os.WriteFile(dictFile, []byte(testDict), 0644)
+	err := os.WriteFile(dictFile, []byte(testDict), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
@@ -79,7 +79,7 @@ func TestGetWordEntry(t *testing.T) {
 		}
 	}`
 
-	err := os.WriteFile(dictFile, []byte(testDict), 0644)
+	err := os.WriteFile(dictFile, []byte(testDict), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
@@ -145,7 +145,7 @@ func TestCountSyllables(t *testing.T) {
 		}
 	}`
 
-	err = os.WriteFile(dictFile, []byte(testDict), 0644)
+	err = os.WriteFile(dictFile, []byte(testDict), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
@@ -233,7 +233,7 @@ func TestFindRhymes(t *testing.T) {
 		}
 	}`
 
-	err := os.WriteFile(dictFile, []byte(testDict), 0644)
+	err := os.WriteFile(dictFile, []byte(testDict), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
@@ -337,7 +337,7 @@ func TestGetStats(t *testing.T) {
 		}
 	}`
 
-	err := os.WriteFile(dictFile, []byte(testDict), 0644)
+	err := os.WriteFile(dictFile, []byte(testDict), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
@@ -412,7 +412,7 @@ func TestSearchWords(t *testing.T) {
 		}
 	}`
 
-	err := os.WriteFile(dictFile, []byte(testDict), 0644)
+	err := os.WriteFile(dictFile, []byte(testDict), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
@@ -479,7 +479,7 @@ func TestGetWordsBySyllableCount(t *testing.T) {
 		}
 	}`
 
-	err := os.WriteFile(dictFile, []byte(testDict), 0644)
+	err := os.WriteFile(dictFile, []byte(testDict), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
@@ -546,7 +546,7 @@ func TestGetWordsByPartOfSpeech(t *testing.T) {
 		}
 	}`
 
-	err := os.WriteFile(dictFile, []byte(testDict), 0644)
+	err := os.WriteFile(dictFile, []byte(testDict), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
@@ -601,7 +601,7 @@ func TestValidateWord(t *testing.T) {
 		}
 	}`
 
-	err := os.WriteFile(dictFile, []byte(testDict), 0644)
+	err := os.WriteFile(dictFile, []byte(testDict), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
@@ -657,7 +657,7 @@ func TestGetRandomWord(t *testing.T) {
 		}
 	}`
 
-	err = os.WriteFile(dictFile, []byte(testDict), 0644)
+	err = os.WriteFile(dictFile, []byte(testDict), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}
@@ -717,7 +717,7 @@ func TestDictionaryConcurrency(t *testing.T) {
 		}
 	}`
 
-	err := os.WriteFile(dictFile, []byte(testDict), 0644)
+	err := os.WriteFile(dictFile, []byte(testDict), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test dictionary file: %v", err)
 	}

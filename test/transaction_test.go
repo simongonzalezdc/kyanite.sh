@@ -382,7 +382,6 @@ func testExecuteInTransaction(t *testing.T, database *db.DB) {
 		// The song addition should be handled by the existing transactional method
 		return nil
 	})
-
 	if err != nil {
 		t.Fatalf("ExecuteInTransaction failed: %v", err)
 	}

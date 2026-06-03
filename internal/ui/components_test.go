@@ -14,7 +14,7 @@ import (
 func TestAnimatedLoadingSpinner(t *testing.T) {
 	t.Run("NewAnimatedLoadingSpinner", func(t *testing.T) {
 		spinner := NewAnimatedLoadingSpinner("Loading...")
-		
+
 		assert.NotNil(t, spinner)
 		assert.NotNil(t, spinner.spinner)
 		assert.NotNil(t, spinner.animation)
@@ -25,28 +25,28 @@ func TestAnimatedLoadingSpinner(t *testing.T) {
 	t.Run("Init", func(t *testing.T) {
 		spinner := NewAnimatedLoadingSpinner("Loading...")
 		cmd := spinner.Init()
-		
+
 		assert.NotNil(t, cmd)
 	})
 
 	t.Run("UpdateWithAnimationTick", func(t *testing.T) {
 		spinner := NewAnimatedLoadingSpinner("Loading...")
 		spinner.Init()
-		
+
 		// Send an animation tick message
 		msg := AnimationTickMsg{}
 		cmd := spinner.Update(msg)
-		
+
 		// Should return a command for continued animation
 		assert.NotNil(t, cmd)
 	})
 
 	t.Run("UpdateWithWindowSize", func(t *testing.T) {
 		spinner := NewAnimatedLoadingSpinner("Loading...")
-		
+
 		msg := tea.WindowSizeMsg{Width: 80, Height: 24}
 		cmd := spinner.Update(msg)
-		
+
 		assert.Nil(t, cmd)
 		assert.Equal(t, 80, spinner.width)
 		assert.Equal(t, 24, spinner.height)
@@ -55,7 +55,7 @@ func TestAnimatedLoadingSpinner(t *testing.T) {
 	t.Run("View", func(t *testing.T) {
 		spinner := NewAnimatedLoadingSpinner("Loading...")
 		spinner.SetSize(80, 24)
-		
+
 		view := spinner.View()
 		assert.NotEmpty(t, view)
 		assert.Contains(t, view, "Loading...")
@@ -64,7 +64,7 @@ func TestAnimatedLoadingSpinner(t *testing.T) {
 	t.Run("SetSize", func(t *testing.T) {
 		spinner := NewAnimatedLoadingSpinner("Loading...")
 		spinner.SetSize(100, 50)
-		
+
 		assert.Equal(t, 100, spinner.width)
 		assert.Equal(t, 50, spinner.height)
 	})
@@ -72,7 +72,7 @@ func TestAnimatedLoadingSpinner(t *testing.T) {
 	t.Run("StartPulseAnimation", func(t *testing.T) {
 		spinner := NewAnimatedLoadingSpinner("Loading...")
 		cmd := spinner.startPulseAnimation()
-		
+
 		assert.NotNil(t, cmd)
 	})
 }
@@ -80,7 +80,7 @@ func TestAnimatedLoadingSpinner(t *testing.T) {
 func TestAnimatedStatusBar(t *testing.T) {
 	t.Run("NewAnimatedStatusBar", func(t *testing.T) {
 		statusBar := NewAnimatedStatusBar("Test message")
-		
+
 		assert.NotNil(t, statusBar)
 		assert.Equal(t, "Test message", statusBar.message)
 		assert.Equal(t, 0.0, statusBar.progress)
@@ -90,39 +90,39 @@ func TestAnimatedStatusBar(t *testing.T) {
 
 	t.Run("SetProgress", func(t *testing.T) {
 		statusBar := NewAnimatedStatusBar("Test message")
-		
+
 		// Test setting progress between 0 and 1
 		statusBar.SetProgress(0.5)
 		assert.Equal(t, 0.5, statusBar.progress)
-		
+
 		// Test setting progress at boundaries
 		statusBar.SetProgress(0.0)
 		assert.Equal(t, 0.0, statusBar.progress)
-		
+
 		statusBar.SetProgress(1.0)
 		assert.Equal(t, 1.0, statusBar.progress)
 	})
 
 	t.Run("SetStatus", func(t *testing.T) {
 		statusBar := NewAnimatedStatusBar("Test message")
-		
+
 		// Test setting different statuses
 		statusBar.SetStatus(StatusSuccess, "Success message")
 		assert.Equal(t, StatusSuccess, statusBar.status)
 		assert.Equal(t, "Success message", statusBar.message)
-		
+
 		statusBar.SetStatus(StatusError, "Error message")
 		assert.Equal(t, StatusError, statusBar.status)
 		assert.Equal(t, "Error message", statusBar.message)
-		
+
 		statusBar.SetStatus(StatusWarning, "Warning message")
 		assert.Equal(t, StatusWarning, statusBar.status)
 		assert.Equal(t, "Warning message", statusBar.message)
-		
+
 		statusBar.SetStatus(StatusLoading, "Loading message")
 		assert.Equal(t, StatusLoading, statusBar.status)
 		assert.Equal(t, "Loading message", statusBar.message)
-		
+
 		statusBar.SetStatus(StatusNormal, "Normal message")
 		assert.Equal(t, StatusNormal, statusBar.status)
 		assert.Equal(t, "Normal message", statusBar.message)
@@ -131,7 +131,7 @@ func TestAnimatedStatusBar(t *testing.T) {
 	t.Run("ViewWithNormalStatus", func(t *testing.T) {
 		statusBar := NewAnimatedStatusBar("Normal message")
 		statusBar.width = 80
-		
+
 		view := statusBar.View()
 		assert.NotEmpty(t, view)
 		assert.Contains(t, view, "Normal message")
@@ -141,7 +141,7 @@ func TestAnimatedStatusBar(t *testing.T) {
 		statusBar := NewAnimatedStatusBar("Success message")
 		statusBar.width = 80
 		statusBar.SetStatus(StatusSuccess, "Success message")
-		
+
 		view := statusBar.View()
 		assert.NotEmpty(t, view)
 		assert.Contains(t, view, "Success message")
@@ -151,7 +151,7 @@ func TestAnimatedStatusBar(t *testing.T) {
 		statusBar := NewAnimatedStatusBar("Error message")
 		statusBar.width = 80
 		statusBar.SetStatus(StatusError, "Error message")
-		
+
 		view := statusBar.View()
 		assert.NotEmpty(t, view)
 		assert.Contains(t, view, "Error message")
@@ -161,7 +161,7 @@ func TestAnimatedStatusBar(t *testing.T) {
 		statusBar := NewAnimatedStatusBar("Progress message")
 		statusBar.width = 80
 		statusBar.SetProgress(0.5)
-		
+
 		view := statusBar.View()
 		assert.NotEmpty(t, view)
 		assert.Contains(t, view, "Progress message")
@@ -173,7 +173,7 @@ func TestAnimatedStatusBar(t *testing.T) {
 func TestAnimatedNotification(t *testing.T) {
 	t.Run("NewAnimatedNotification", func(t *testing.T) {
 		notification := NewAnimatedNotification("Test message", "info", 5*time.Second)
-		
+
 		assert.NotNil(t, notification)
 		assert.Equal(t, "Test message", notification.message)
 		assert.Equal(t, "info", notification.notifType)
@@ -185,7 +185,7 @@ func TestAnimatedNotification(t *testing.T) {
 	t.Run("Init", func(t *testing.T) {
 		notification := NewAnimatedNotification("Test message", "info", 5*time.Second)
 		cmd := notification.Init()
-		
+
 		assert.NotNil(t, cmd)
 		// Verify start time was set
 		assert.False(t, notification.startTime.IsZero())
@@ -194,13 +194,13 @@ func TestAnimatedNotification(t *testing.T) {
 	t.Run("UpdateWithAnimationTick", func(t *testing.T) {
 		notification := NewAnimatedNotification("Test message", "info", 1*time.Millisecond)
 		notification.Init()
-		
+
 		// Wait for duration to pass
 		time.Sleep(2 * time.Millisecond)
-		
+
 		msg := AnimationTickMsg{}
 		cmd := notification.Update(msg)
-		
+
 		assert.NotNil(t, cmd)
 		// Notification should be inactive after duration
 		assert.False(t, notification.active)
@@ -209,7 +209,7 @@ func TestAnimatedNotification(t *testing.T) {
 	t.Run("ViewWhenActive", func(t *testing.T) {
 		notification := NewAnimatedNotification("Test message", "info", 5*time.Second)
 		notification.Init()
-		
+
 		view := notification.View()
 		assert.NotEmpty(t, view)
 		assert.Contains(t, view, "Test message")
@@ -218,21 +218,21 @@ func TestAnimatedNotification(t *testing.T) {
 	t.Run("ViewWhenInactive", func(t *testing.T) {
 		notification := NewAnimatedNotification("Test message", "info", 1*time.Millisecond)
 		notification.Init()
-		
+
 		// Make notification inactive
 		notification.active = false
-		
+
 		view := notification.View()
 		assert.Empty(t, view)
 	})
 
 	t.Run("ViewWithDifferentTypes", func(t *testing.T) {
 		types := []string{"success", "error", "warning", "info"}
-		
+
 		for _, notifType := range types {
 			notification := NewAnimatedNotification("Test message", notifType, 5*time.Second)
 			notification.Init()
-			
+
 			view := notification.View()
 			assert.NotEmpty(t, view)
 			assert.Contains(t, view, "Test message")
@@ -242,10 +242,10 @@ func TestAnimatedNotification(t *testing.T) {
 	t.Run("IsActive", func(t *testing.T) {
 		notification := NewAnimatedNotification("Test message", "info", 5*time.Second)
 		notification.Init()
-		
+
 		// Should be active initially
 		assert.True(t, notification.IsActive())
-		
+
 		// Make inactive
 		notification.active = false
 		assert.False(t, notification.IsActive())
@@ -266,17 +266,17 @@ func TestAccessibilityFeatures(t *testing.T) {
 	t.Run("StatusIndicators", func(t *testing.T) {
 		// Test status bar has different visual indicators for different statuses
 		statusBar := NewAnimatedStatusBar("Test message")
-		
+
 		// Normal status
 		view := statusBar.View()
 		assert.NotEmpty(t, view)
-		
+
 		// Success status
 		statusBar.SetStatus(StatusSuccess, "Success")
 		successView := statusBar.View()
 		assert.NotEmpty(t, successView)
 		assert.NotEqual(t, view, successView)
-		
+
 		// Error status
 		statusBar.SetStatus(StatusError, "Error")
 		errorView := statusBar.View()
@@ -295,7 +295,7 @@ func TestAccessibilityFeatures(t *testing.T) {
 	t.Run("KeyboardNavigationSupport", func(t *testing.T) {
 		// Test that components can handle keyboard navigation messages
 		spinner := NewAnimatedLoadingSpinner("Loading...")
-		
+
 		// Test with tab key (common navigation key)
 		tabKey := tea.KeyMsg{Type: tea.KeyTab}
 		// Should not crash and should handle gracefully
@@ -303,7 +303,7 @@ func TestAccessibilityFeatures(t *testing.T) {
 		assert.NotPanics(t, func() {
 			spinner.Update(tabKey)
 		})
-		
+
 		// Test with escape key
 		escKey := tea.KeyMsg{Type: tea.KeyEsc}
 		// Should not crash and should handle gracefully
@@ -319,12 +319,12 @@ func TestAccessibilityFeatures(t *testing.T) {
 		view := spinner.View()
 		// Should contain the message for screen readers
 		assert.Contains(t, view, "Loading content...")
-		
+
 		statusBar := NewAnimatedStatusBar("Status information")
 		statusView := statusBar.View()
 		// Should contain the status message
 		assert.Contains(t, statusView, "Status information")
-		
+
 		notification := NewAnimatedNotification("Notification message", "info", 5*time.Second)
 		notifView := notification.View()
 		// Should contain the notification message
@@ -334,16 +334,16 @@ func TestAccessibilityFeatures(t *testing.T) {
 	t.Run("ReducedMotionSupport", func(t *testing.T) {
 		// Test that animations can be controlled
 		animationManager := NewAnimationManager()
-		
+
 		// Test default configuration
 		config := animationManager.GetConfig()
 		assert.True(t, config.Enabled)
 		assert.False(t, config.ReducedMotion)
-		
+
 		// Test setting reduced motion
 		config.ReducedMotion = true
 		animationManager.SetConfig(config)
-		
+
 		newConfig := animationManager.GetConfig()
 		assert.True(t, newConfig.ReducedMotion)
 	})
@@ -352,19 +352,19 @@ func TestAccessibilityFeatures(t *testing.T) {
 		// Test that UI components use theme colors with adequate contrast
 		themes := theme.ListThemes()
 		require.Greater(t, len(themes), 0)
-		
+
 		for _, themeID := range themes {
 			th := theme.GetTheme(themeID)
-			
+
 			// Test that text and background colors are different
 			assert.NotEqual(t, th.Text, th.Background, "Text and background should have different colors for theme %s", themeID)
-			
+
 			// Test that primary and background colors are different
 			assert.NotEqual(t, th.Primary, th.Background, "Primary and background should have different colors for theme %s", themeID)
-			
+
 			// Test that success and background colors are different
 			assert.NotEqual(t, th.Success, th.Background, "Success and background should have different colors for theme %s", themeID)
-			
+
 			// Test that error and background colors are different
 			assert.NotEqual(t, th.Error, th.Background, "Error and background should have different colors for theme %s", themeID)
 		}
@@ -383,7 +383,7 @@ func TestAnimationManagerAccessibility(t *testing.T) {
 
 	t.Run("AnimationConfig", func(t *testing.T) {
 		manager := NewAnimationManager()
-		
+
 		// Test default config
 		config := manager.GetConfig()
 		assert.True(t, config.Enabled)
@@ -391,7 +391,7 @@ func TestAnimationManagerAccessibility(t *testing.T) {
 		assert.Equal(t, 0.5, config.DampingRatio)
 		assert.False(t, config.ReducedMotion)
 		assert.Equal(t, 60, config.FrameRate)
-		
+
 		// Test setting config
 		newConfig := AnimationConfig{
 			Enabled:          false,
@@ -401,7 +401,7 @@ func TestAnimationManagerAccessibility(t *testing.T) {
 			FrameRate:        30,
 		}
 		manager.SetConfig(newConfig)
-		
+
 		updatedConfig := manager.GetConfig()
 		assert.False(t, updatedConfig.Enabled)
 		assert.Equal(t, 3.0, updatedConfig.AngularFrequency)
@@ -412,21 +412,21 @@ func TestAnimationManagerAccessibility(t *testing.T) {
 
 	t.Run("AnimationControl", func(t *testing.T) {
 		manager := NewAnimationManager()
-		
+
 		// Test starting animation
 		manager.StartAnimation("test", AnimationFade, 1.0)
 		assert.True(t, manager.IsAnimationActive("test"))
-		
+
 		// Test stopping animation
 		manager.StopAnimation("test")
 		assert.False(t, manager.IsAnimationActive("test"))
-		
+
 		// Test clearing all animations
 		manager.StartAnimation("test1", AnimationFade, 1.0)
 		manager.StartAnimation("test2", AnimationSlide, 1.0)
 		assert.True(t, manager.IsAnimationActive("test1"))
 		assert.True(t, manager.IsAnimationActive("test2"))
-		
+
 		manager.ClearAllAnimations()
 		assert.False(t, manager.IsAnimationActive("test1"))
 		assert.False(t, manager.IsAnimationActive("test2"))
@@ -434,12 +434,12 @@ func TestAnimationManagerAccessibility(t *testing.T) {
 
 	t.Run("ReducedMotionRespectsUserPreference", func(t *testing.T) {
 		manager := NewAnimationManager()
-		
+
 		// Enable reduced motion
 		config := manager.GetConfig()
 		config.ReducedMotion = true
 		manager.SetConfig(config)
-		
+
 		// Start animation - should not actually start when reduced motion is enabled
 		manager.StartAnimation("test", AnimationFade, 1.0)
 		// In a full implementation, this would check that animations are minimized

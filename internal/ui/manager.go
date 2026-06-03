@@ -138,7 +138,7 @@ func NewProjectManagerModel(database *db.DB) *ProjectManagerModel {
 		{
 			Name:        "Poetry Collection",
 			Description: "Collection of poetic works and lyrics",
-			Icon:        "“",
+			Icon:        "“\u009d",
 			Category:    "Literature",
 			SongCount:   0,
 			Tags:        []string{"poetry", "literature", "creative-writing"},
@@ -788,7 +788,7 @@ func (m *ProjectManagerModel) renderCreateProject() string {
 		Foreground(t.Text)
 
 	// Header
-	header := headerStyle.Render("“ Create New Project")
+	header := headerStyle.Render("“\u009d Create New Project")
 	header += "\n\n"
 
 	// Form
@@ -914,8 +914,9 @@ func (m *ProjectManagerModel) renderProjectTemplates() string {
 	return contentStyle.Render(content)
 }
 
-// Compatibility wrapper so existing code (RootModel) that expects ManagerModel/NewManagerModel continues to work.
-// It forwards to the new ProjectManagerModel implementation.
+// ManagerModel is a compatibility wrapper so existing code (RootModel) that expects
+// ManagerModel/NewManagerModel continues to work. It forwards to the new
+// ProjectManagerModel implementation.
 type ManagerModel struct {
 	inner *ProjectManagerModel
 }

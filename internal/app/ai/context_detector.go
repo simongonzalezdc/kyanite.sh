@@ -254,12 +254,6 @@ func (cd *ContextDetector) AnalyzeContent(content string) ContentType {
 		return ContentTypeUnknown
 	}
 
-	nearMixedThreshold := cd.mixedThreshold - 0.1
-
-	if nearMixedThreshold < 0.3 {
-		nearMixedThreshold = 0.3
-	}
-
 	// 1. High-confidence single type detection (pure or largely pure content)
 	if patternRatio == 0 && lyricRatio >= 0.25 {
 		return ContentTypeLyrics

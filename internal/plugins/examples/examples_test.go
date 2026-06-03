@@ -345,7 +345,6 @@ func TestChordAnalyzerPlugin_GetEditorTool(t *testing.T) {
 func TestChordAnalyzerPlugin_GetManifest(t *testing.T) {
 	plugin := NewChordAnalyzerPlugin()
 	manifest, err := plugin.GetManifest()
-
 	if err != nil {
 		t.Errorf("GetManifest should not error: %v", err)
 	}
@@ -600,7 +599,6 @@ func TestMarkdownExportPlugin_GetExportFormat(t *testing.T) {
 func TestMarkdownExportPlugin_GetManifest(t *testing.T) {
 	plugin := NewMarkdownExportPlugin()
 	manifest, err := plugin.GetManifest()
-
 	if err != nil {
 		t.Errorf("GetManifest should not error: %v", err)
 	}

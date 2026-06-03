@@ -246,7 +246,7 @@ func (fcd *FileCorruptionDetector) recoverJSONFile(filePath string, backupPath s
 	}
 
 	// Restore from backup
-	if err := os.WriteFile(filePath, backupContent, 0644); err != nil {
+	if err := os.WriteFile(filePath, backupContent, 0o644); err != nil {
 		return NewFileError("write_recovered", filePath, err)
 	}
 
@@ -269,7 +269,7 @@ func (fcd *FileCorruptionDetector) recoverTextFile(filePath string, backupPath s
 	}
 
 	// Restore from backup
-	if err := os.WriteFile(filePath, backupContent, 0644); err != nil {
+	if err := os.WriteFile(filePath, backupContent, 0o644); err != nil {
 		return NewFileError("write_recovered", filePath, err)
 	}
 
@@ -300,7 +300,6 @@ func (fcd *FileCorruptionDetector) ScanDirectory(dirPath string) ([]string, erro
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, NewFileError("scan_directory", dirPath, err).WithOperation("ScanDirectory").WithComponent("corruption_detector")
 	}
@@ -355,7 +354,7 @@ func NewEnhancedBackupManager(backupDir string, maxBackups int, logger *logging.
 // CreateVerifiedBackup creates a backup and verifies its integrity
 func (ebm *EnhancedBackupManager) CreateVerifiedBackup(song *domain.Song, backupType string) (*BackupInfo, error) {
 	// Create regular backup
-	backupInfo, err := ebm.BackupManager.CreateBackup(song, backupType)
+	backupInfo, err := ebm.CreateBackup(song, backupType)
 	if err != nil {
 		return nil, err
 	}

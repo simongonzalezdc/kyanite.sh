@@ -19,38 +19,38 @@ func Truncate(s string, maxWidth int, suffix string) string {
 	if suffix == "" {
 		suffix = "..."
 	}
-	
+
 	currentWidth := StringWidth(s)
 	if currentWidth <= maxWidth {
 		return s
 	}
-	
+
 	suffixWidth := StringWidth(suffix)
 	targetWidth := maxWidth - suffixWidth
 	if targetWidth < 0 {
 		targetWidth = 0
 	}
-	
+
 	var result strings.Builder
 	var width int
 	gr := uniseg.NewGraphemes(s)
-	
+
 	for gr.Next() {
 		cluster := gr.Str()
 		clusterWidth := uniseg.StringWidth(cluster)
-		
+
 		if width+clusterWidth > targetWidth {
 			break
 		}
-		
+
 		width += clusterWidth
 		result.WriteString(cluster)
 	}
-	
+
 	if width < currentWidth {
 		result.WriteString(suffix)
 	}
-	
+
 	return result.String()
 }
 
@@ -60,40 +60,40 @@ func TruncateLeft(s string, maxWidth int, prefix string) string {
 	if prefix == "" {
 		prefix = "..."
 	}
-	
+
 	currentWidth := StringWidth(s)
 	if currentWidth <= maxWidth {
 		return s
 	}
-	
+
 	prefixWidth := StringWidth(prefix)
 	targetWidth := maxWidth - prefixWidth
 	if targetWidth < 0 {
 		targetWidth = 0
 	}
-	
+
 	// Collect all grapheme clusters
 	var clusters []string
 	gr := uniseg.NewGraphemes(s)
 	for gr.Next() {
 		clusters = append(clusters, gr.Str())
 	}
-	
+
 	// Build from the end
 	var result strings.Builder
 	var width int
-	
+
 	for i := len(clusters) - 1; i >= 0; i-- {
 		cluster := clusters[i]
 		clusterWidth := uniseg.StringWidth(cluster)
-		
+
 		if width+clusterWidth > targetWidth {
 			break
 		}
-		
+
 		width += clusterWidth
 	}
-	
+
 	// Calculate start index
 	startIdx := len(clusters)
 	width = 0
@@ -106,15 +106,15 @@ func TruncateLeft(s string, maxWidth int, prefix string) string {
 		width += clusterWidth
 		startIdx = i
 	}
-	
+
 	if startIdx > 0 {
 		result.WriteString(prefix)
 	}
-	
+
 	for i := startIdx; i < len(clusters); i++ {
 		result.WriteString(clusters[i])
 	}
-	
+
 	return result.String()
 }
 
@@ -125,7 +125,7 @@ func PadRight(s string, width int) string {
 	if currentWidth >= width {
 		return s
 	}
-	
+
 	padding := strings.Repeat(" ", width-currentWidth)
 	return s + padding
 }
@@ -137,7 +137,7 @@ func PadLeft(s string, width int) string {
 	if currentWidth >= width {
 		return s
 	}
-	
+
 	padding := strings.Repeat(" ", width-currentWidth)
 	return padding + s
 }
@@ -149,10 +149,10 @@ func Center(s string, width int) string {
 	if currentWidth >= width {
 		return s
 	}
-	
+
 	totalPadding := width - currentWidth
 	leftPadding := totalPadding / 2
 	rightPadding := totalPadding - leftPadding
-	
+
 	return strings.Repeat(" ", leftPadding) + s + strings.Repeat(" ", rightPadding)
 }

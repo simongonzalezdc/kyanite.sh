@@ -551,10 +551,6 @@ func (ai *PerformanceOptimizedAI) generateCheckResponse(ctx context.Context, con
 // SetKnowledgeBase sets the knowledge base provider
 func (ai *PerformanceOptimizedAI) SetKnowledgeBase(kb interface{}) {
 	ai.knowledgeBase = kb
-	if ai.quickAgent != nil {
-		// This would need to be implemented in the actual QuickIdeaAgent
-		// ai.quickAgent.WithKnowledgeBase(kb)
-	}
 }
 
 // Close cleans up resources

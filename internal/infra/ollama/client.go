@@ -1,3 +1,4 @@
+// Package ollama provides a client for the Ollama AI service.
 package ollama
 
 import (

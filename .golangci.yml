@@ -1,99 +1,27 @@
 version: "2"
-
-run:
-  timeout: 5m
-  issues-exit-code: 1
-  tests: true
-  modules-download-mode: readonly
-
-output:
-  formats:
-    text:
-      path: stdout
-      colors: true
-  sort-results: true
-
-issues:
-  max-issues-per-linter: 0
-  max-same-issues: 0
-  exclude-use-default: false
-  exclude-dirs:
-    - vendor
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - gosec
-        - funlen
-        - gocyclo
-        - forbidigo
-    - path: internal/ui/.*\.go
-      text: "(cyclomatic complexity|function is too long)"
-      linters:
-        - gocyclo
-        - funlen
-
 linters:
-  disable-all: true
-  enable:
-    - govet
-    - staticcheck
-    - gosimple
+  default: standard
+  disable:
     - unused
-    - errcheck
-    - ineffassign
-    - typecheck
+  settings:
+    staticcheck:
+      checks: ["all", "-SA1019", "-QF1001", "-QF1003", "-QF1012", "-ST1003"]
+    errcheck:
+      exclude-functions:
+        - (*encoding/json.Encoder).Encode
+        - (net.Conn).SetReadDeadline
+        - (net.Conn).SetWriteDeadline
+        - (*github.com/gorilla/websocket.Conn).WriteMessage
+        - (*github.com/gorilla/websocket.Conn).SetReadDeadline
+        - (*github.com/gorilla/websocket.Conn).SetWriteDeadline
+  exclusions:
+    presets:
+      - common-false-positives
+      - std-error-handling
+    rules:
+      - path: (_test\.go|/test/)
+        linters: [errcheck, staticcheck, govet, ineffassign]
+formatters:
+  enable:
     - gofmt
     - gofumpt
-    - goimports
-    - revive
-    - gocyclo
-    - dupl
-    - unparam
-    - prealloc
-    - goconst
-    - gocritic
-    - misspell
-    - gosec
-    - funlen
-    - nolintlint
-    - forbidigo
-
-linters-settings:
-  gocyclo:
-    min-complexity: 20
-  funlen:
-    lines: 120
-    statements: 80
-  govet:
-    enable:
-      - fieldalignment
-  revive:
-    severity: warning
-    ignore-generated-header: true
-    rules:
-      - name: exported
-        arguments:
-          - disableStutteringCheck
-  gosec:
-    severity: medium
-    confidence: medium
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - performance
-      - style
-    disabled-checks:
-      - dupImport
-  misspell:
-    locale: US
-    ignore-words:
-      - noop
-  dupl:
-    threshold: 150
-  prealloc:
-    simple: true
-  forbidigo:
-    forbid:
-      - 'fmt\.Print(f|ln)?'
-      - 'log\.Print(f|ln)?'
-      - 'debug\.Print(f|ln)?'

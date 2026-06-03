@@ -51,7 +51,7 @@ func (s *AIService) NewChatSession() *ChatSession {
 	}
 }
 
-// Chat sends a message and streams the response
+// StreamChat sends a message and streams the response
 func (s *AIService) StreamChat(ctx context.Context, message string) (<-chan string, error) {
 	// Create response channel
 	responseChan := make(chan string, 10)

@@ -1,3 +1,4 @@
+// Package examples provides example plugins demonstrating the plugin API.
 package examples
 
 import (

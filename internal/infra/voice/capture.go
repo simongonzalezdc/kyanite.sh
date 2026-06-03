@@ -31,8 +31,8 @@ type AudioFormat struct {
 // DefaultAudioFormat returns the default audio format for Whisper (16kHz mono float32)
 func DefaultAudioFormat() AudioFormat {
 	return AudioFormat{
-		SampleRate: 16000,  // Whisper expects 16kHz
-		Channels:   1,      // Mono
+		SampleRate: 16000,           // Whisper expects 16kHz
+		Channels:   1,               // Mono
 		Format:     malgo.FormatF32, // 32-bit float
 	}
 }
@@ -198,7 +198,7 @@ func (ac *AudioCapture) StartRecording() error {
 	onRecvFrames := func(pOutputSamples, pInputSamples []byte, frameCount uint32) {
 		// Convert bytes to float32 samples
 		samples := bytesToFloat32(pInputSamples)
-		
+
 		// Write to buffer
 		ac.buffer.Write(samples)
 
@@ -256,7 +256,7 @@ func (ac *AudioCapture) StopRecording() ([]float32, error) {
 
 	// Stop and cleanup device
 	if ac.device != nil {
-		ac.device.Stop()
+		_ = ac.device.Stop()
 		ac.device.Uninit()
 		ac.device = nil
 	}
@@ -306,7 +306,7 @@ func (ac *AudioCapture) Close() error {
 	defer ac.mu.Unlock()
 
 	if ac.recording && ac.device != nil {
-		ac.device.Stop()
+		_ = ac.device.Stop()
 		ac.device.Uninit()
 		ac.device = nil
 		ac.recording = false

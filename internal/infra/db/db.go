@@ -331,11 +331,13 @@ type TransactionRepository interface {
 }
 
 // Ensure DB implements the repository interfaces
-var _ SongRepository = (*DB)(nil)
-var _ VersionRepository = (*DB)(nil)
-var _ StatsRepository = (*DB)(nil)
-var _ ProjectRepository = (*DB)(nil)
-var _ TransactionRepository = (*DB)(nil)
+var (
+	_ SongRepository        = (*DB)(nil)
+	_ VersionRepository     = (*DB)(nil)
+	_ StatsRepository       = (*DB)(nil)
+	_ ProjectRepository     = (*DB)(nil)
+	_ TransactionRepository = (*DB)(nil)
+)
 
 // Helper functions for JSON marshaling/unmarshaling
 

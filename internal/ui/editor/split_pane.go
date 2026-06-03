@@ -487,10 +487,7 @@ func (m *SplitPaneModel) rotateTheme(delta int) {
 
 	if cfg, err := config.Load(); err == nil {
 		cfg.UI.Theme = nextID
-		if saveErr := cfg.Save(); saveErr != nil {
-			// Log error but don't fail theme change - theme manager already persisted preference
-			// This is a fallback save to the main config file
-		}
+		_ = cfg.Save()
 	}
 
 	if m.editorPane != nil {

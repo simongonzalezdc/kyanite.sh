@@ -129,7 +129,7 @@ func TestPluginDirectoryCreation(t *testing.T) {
 		// Check if directory exists or can be created
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
 			// Try to create it
-			if err := os.MkdirAll(dir, 0755); err != nil {
+			if err := os.MkdirAll(dir, 0o755); err != nil {
 				t.Errorf("Failed to create plugin directory %s: %v", dir, err)
 			} else {
 				t.Logf("Created plugin directory: %s", dir)

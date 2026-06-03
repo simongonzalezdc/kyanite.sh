@@ -328,7 +328,7 @@ func TestMaliciousPlugin_PrivilegeEscalation(t *testing.T) {
 
 	// Test creating world-writable files (could be used for privilege escalation)
 	worldWritableFile := filepath.Join(testDir, "world_writable.json")
-	if err := os.WriteFile(worldWritableFile, []byte("{}"), 0666); err != nil {
+	if err := os.WriteFile(worldWritableFile, []byte("{}"), 0o666); err != nil {
 		t.Fatalf("Failed to create world-writable file: %v", err)
 	}
 

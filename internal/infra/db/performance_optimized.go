@@ -283,7 +283,6 @@ func (db *PerformanceOptimizedDB) GetSongOptimized(id int) (*domain.Song, error)
 		&song.Metadata.CreatedAt,
 		&song.Metadata.UpdatedAt,
 	)
-
 	if err != nil {
 		dbErr := db.handleDatabaseError("GetSongOptimized", err)
 		if err == sql.ErrNoRows {

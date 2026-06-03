@@ -19,15 +19,15 @@ const (
 
 // Query retry constants
 const (
-	MaxQueryRetries       = 3
-	RetryBackoffBase      = 100 * time.Millisecond
-	QueryTimeout          = 30 * time.Second
-	TransactionTimeout    = 30 * time.Second
+	MaxQueryRetries    = 3
+	RetryBackoffBase   = 100 * time.Millisecond
+	QueryTimeout       = 30 * time.Second
+	TransactionTimeout = 30 * time.Second
 )
 
 // Performance thresholds
 const (
-	SlowQueryThreshold = 1 * time.Second
+	SlowQueryThreshold  = 1 * time.Second
 	HealthCheckInterval = 30 * time.Second
 )
 

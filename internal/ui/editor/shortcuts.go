@@ -446,9 +446,7 @@ func (sm *ShortcutManager) GetBindingsByCategory(category string) []*KeyBinding 
 func (sm *ShortcutManager) GetAllBindings() []*KeyBinding {
 	var bindings []*KeyBinding
 	for _, bList := range sm.bindings {
-		for _, binding := range bList {
-			bindings = append(bindings, binding)
-		}
+		bindings = append(bindings, bList...)
 	}
 	return bindings
 }

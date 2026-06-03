@@ -16,23 +16,23 @@ import (
 
 // Common errors for model management
 var (
-	ErrModelNotFound     = errors.New("model not found")
-	ErrDownloadFailed    = errors.New("model download failed")
-	ErrChecksumMismatch  = errors.New("model checksum mismatch")
-	ErrInvalidModel      = errors.New("invalid model name")
+	ErrModelNotFound    = errors.New("model not found")
+	ErrDownloadFailed   = errors.New("model download failed")
+	ErrChecksumMismatch = errors.New("model checksum mismatch")
+	ErrInvalidModel     = errors.New("invalid model name")
 )
 
 // Model constants
 const (
 	// Model names
-	ModelTinyEN  = "ggml-tiny.en.bin"   // ~75MB, fastest, English only
-	ModelBaseEN  = "ggml-base.en.bin"   // ~142MB, recommended balance
-	ModelSmallEN = "ggml-small.en.bin"  // ~466MB, best accuracy for English
+	ModelTinyEN  = "ggml-tiny.en.bin"  // ~75MB, fastest, English only
+	ModelBaseEN  = "ggml-base.en.bin"  // ~142MB, recommended balance
+	ModelSmallEN = "ggml-small.en.bin" // ~466MB, best accuracy for English
 
 	// Multilingual models (larger, support all languages)
-	ModelTiny  = "ggml-tiny.bin"   // ~75MB
-	ModelBase  = "ggml-base.bin"   // ~142MB
-	ModelSmall = "ggml-small.bin"  // ~466MB
+	ModelTiny  = "ggml-tiny.bin"  // ~75MB
+	ModelBase  = "ggml-base.bin"  // ~142MB
+	ModelSmall = "ggml-small.bin" // ~466MB
 
 	// Download URLs
 	baseDownloadURL = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/"
@@ -40,55 +40,55 @@ const (
 
 // ModelInfo contains information about a whisper model
 type ModelInfo struct {
-	Name        string
-	Size        int64  // Size in bytes
-	SHA256      string // Expected checksum
-	Description string
+	Name         string
+	Size         int64  // Size in bytes
+	SHA256       string // Expected checksum
+	Description  string
 	Multilingual bool
 }
 
 // AvailableModels returns information about all available models
 var AvailableModels = map[string]ModelInfo{
 	ModelTinyEN: {
-		Name:        ModelTinyEN,
-		Size:        75000000,
-		SHA256:      "", // Will be verified after download
-		Description: "Tiny English-only model (~75MB) - Fastest, good for quick dictation",
+		Name:         ModelTinyEN,
+		Size:         75000000,
+		SHA256:       "", // Will be verified after download
+		Description:  "Tiny English-only model (~75MB) - Fastest, good for quick dictation",
 		Multilingual: false,
 	},
 	ModelBaseEN: {
-		Name:        ModelBaseEN,
-		Size:        142000000,
-		SHA256:      "",
-		Description: "Base English-only model (~142MB) - Recommended balance of speed/accuracy",
+		Name:         ModelBaseEN,
+		Size:         142000000,
+		SHA256:       "",
+		Description:  "Base English-only model (~142MB) - Recommended balance of speed/accuracy",
 		Multilingual: false,
 	},
 	ModelSmallEN: {
-		Name:        ModelSmallEN,
-		Size:        466000000,
-		SHA256:      "",
-		Description: "Small English-only model (~466MB) - Best accuracy for English",
+		Name:         ModelSmallEN,
+		Size:         466000000,
+		SHA256:       "",
+		Description:  "Small English-only model (~466MB) - Best accuracy for English",
 		Multilingual: false,
 	},
 	ModelTiny: {
-		Name:        ModelTiny,
-		Size:        75000000,
-		SHA256:      "",
-		Description: "Tiny multilingual model (~75MB) - Fastest, supports 99 languages",
+		Name:         ModelTiny,
+		Size:         75000000,
+		SHA256:       "",
+		Description:  "Tiny multilingual model (~75MB) - Fastest, supports 99 languages",
 		Multilingual: true,
 	},
 	ModelBase: {
-		Name:        ModelBase,
-		Size:        142000000,
-		SHA256:      "",
-		Description: "Base multilingual model (~142MB) - Good balance, 99 languages",
+		Name:         ModelBase,
+		Size:         142000000,
+		SHA256:       "",
+		Description:  "Base multilingual model (~142MB) - Good balance, 99 languages",
 		Multilingual: true,
 	},
 	ModelSmall: {
-		Name:        ModelSmall,
-		Size:        466000000,
-		SHA256:      "",
-		Description: "Small multilingual model (~466MB) - Best accuracy, 99 languages",
+		Name:         ModelSmall,
+		Size:         466000000,
+		SHA256:       "",
+		Description:  "Small multilingual model (~466MB) - Best accuracy, 99 languages",
 		Multilingual: true,
 	},
 }
@@ -101,7 +101,7 @@ type ModelManager struct {
 	modelsDir string
 	logger    *logging.Logger
 	mu        sync.Mutex
-	
+
 	// Active download tracking
 	downloading map[string]bool
 	downloadMu  sync.Mutex
@@ -114,7 +114,7 @@ func NewModelManager(modelsDir string, logger *logging.Logger) (*ModelManager, e
 	}
 
 	// Create models directory if it doesn't exist
-	if err := os.MkdirAll(modelsDir, 0755); err != nil {
+	if err := os.MkdirAll(modelsDir, 0o755); err != nil {
 		return nil, fmt.Errorf("failed to create models directory: %w", err)
 	}
 

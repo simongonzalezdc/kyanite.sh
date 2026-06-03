@@ -130,7 +130,7 @@ type AutoSaveService struct {
 
 	// Internal lifecycle
 	started        bool
-	lifecycleMutex sync.RWMutex // protects started field
+	lifecycleMutex sync.RWMutex   // protects started field
 	wg             sync.WaitGroup // coordinates goroutine shutdown
 
 	// Channels for controlling the service

@@ -5,9 +5,9 @@ import (
 	"sync"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Kyanite/noise/internal/app"
 	"github.com/Kyanite/noise/internal/infra/db"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 // Muse is the main AI companion agent
@@ -15,17 +15,17 @@ type Muse struct {
 	memory   *MemoryManager
 	observer *ContextObserver
 	config   *AgentConfig
-	
+
 	// AI service for generating suggestions
 	aiService *app.AIService
-	
+
 	// Current suggestion
-	currentSuggestion *Suggestion
+	currentSuggestion  *Suggestion
 	lastSuggestionTime time.Time
-	
+
 	// State
 	isActive bool
-	
+
 	mutex sync.RWMutex
 }
 
@@ -34,10 +34,10 @@ func NewMuse(database *db.DB, aiService *app.AIService, config *AgentConfig) *Mu
 	if config == nil {
 		config = DefaultAgentConfig()
 	}
-	
+
 	memory := NewMemoryManager(database, config)
 	observer := NewContextObserver(memory, config)
-	
+
 	return &Muse{
 		memory:    memory,
 		observer:  observer,
@@ -62,7 +62,7 @@ func (m *Muse) OnContentChange(content string) {
 	if !m.isActive {
 		return
 	}
-	
+
 	m.observer.RecordContentChange(content)
 }
 
@@ -92,7 +92,7 @@ func (m *Muse) Update(msg tea.Msg) tea.Cmd {
 	case MuseTickMsg:
 		// Check if we should show a suggestion
 		m.observer.CheckForPause()
-		
+
 		if m.shouldShowSuggestion() {
 			sugg := m.generateSuggestion()
 			if sugg != nil {
@@ -102,12 +102,12 @@ func (m *Muse) Update(msg tea.Msg) tea.Cmd {
 			}
 		}
 		return m.Tick()
-		
+
 	case MuseDismissSuggestionMsg:
 		m.dismissSuggestion()
 		return nil
 	}
-	
+
 	return nil
 }
 
@@ -115,17 +115,17 @@ func (m *Muse) Update(msg tea.Msg) tea.Cmd {
 func (m *Muse) shouldShowSuggestion() bool {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
-	
+
 	// Check cooldown
 	if time.Since(m.lastSuggestionTime) < m.config.SuggestionCooldown {
 		return false
 	}
-	
+
 	// Check if there's already an active suggestion
 	if m.currentSuggestion != nil && time.Now().Before(m.currentSuggestion.ExpiresAt) {
 		return false
 	}
-	
+
 	// Check if user is stuck or needs help
 	return m.observer.IsUserStuck()
 }
@@ -136,10 +136,10 @@ func (m *Muse) generateSuggestion() *Suggestion {
 	if suggType == SuggestionType(-1) {
 		return nil
 	}
-	
+
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	
+
 	suggestion := &Suggestion{
 		ID:         fmt.Sprintf("sugg-%d", time.Now().UnixNano()),
 		Type:       suggType,
@@ -152,39 +152,39 @@ func (m *Muse) generateSuggestion() *Suggestion {
 			{Label: "Dismiss", Key: "esc", ActionID: "dismiss"},
 		},
 	}
-	
+
 	m.currentSuggestion = suggestion
 	m.lastSuggestionTime = time.Now()
-	
+
 	return suggestion
 }
 
 // getSuggestionContent generates content for a suggestion type
 func (m *Muse) getSuggestionContent(suggType SuggestionType) string {
 	state := m.observer.GetProgressState()
-	
+
 	switch suggType {
 	case SuggestNextLine:
 		if state == StateStuck {
 			return "Try continuing with a new thought or exploring a different direction."
 		}
 		return "Ready to continue? Let me help with the next line."
-		
+
 	case SuggestBreak:
 		return "You've been writing for a while. Consider taking a short break."
-		
+
 	case SuggestStructure:
 		return "Consider starting with: [Verse 1] to establish your song structure."
-		
+
 	case SuggestGoal:
 		return "What theme or emotion do you want to explore in this song?"
-		
+
 	case SuggestRhyme:
 		return "Need a rhyme? Press Ctrl+R to open the rhyme finder."
-		
+
 	case SuggestChord:
 		return "Looking for chord ideas? Press Ctrl+K to explore progressions."
-		
+
 	default:
 		return "Need help? Press Ctrl+Space to chat with me."
 	}
@@ -194,11 +194,11 @@ func (m *Muse) getSuggestionContent(suggType SuggestionType) string {
 func (m *Muse) AcceptSuggestion() {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	
+
 	if m.currentSuggestion != nil {
 		// Record acceptance
 		if m.memory != nil {
-			m.memory.RecordEpisode(EpisodicEvent{
+			_ = m.memory.RecordEpisode(EpisodicEvent{
 				EventType: EventTypeSuggestionAccepted,
 				Metadata: map[string]string{
 					"suggestion_type": m.currentSuggestion.Type.String(),
@@ -214,11 +214,11 @@ func (m *Muse) AcceptSuggestion() {
 func (m *Muse) dismissSuggestion() {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	
+
 	if m.currentSuggestion != nil {
 		// Record dismissal
 		if m.memory != nil {
-			m.memory.RecordEpisode(EpisodicEvent{
+			_ = m.memory.RecordEpisode(EpisodicEvent{
 				EventType: EventTypeSuggestionDismissed,
 				Metadata: map[string]string{
 					"suggestion_type": m.currentSuggestion.Type.String(),
@@ -247,14 +247,14 @@ func (m *Muse) GetSessionStats() map[string]interface{} {
 	if m.memory == nil {
 		return nil
 	}
-	
+
 	wm := m.memory.GetWorkingMemory()
-	
+
 	return map[string]interface{}{
-		"session_id":     m.memory.GetSessionID(),
-		"words_written":  wm.WordsWritten,
-		"progress_state": wm.ProgressState.String(),
-		"session_start":  wm.SessionStart,
+		"session_id":       m.memory.GetSessionID(),
+		"words_written":    wm.WordsWritten,
+		"progress_state":   wm.ProgressState.String(),
+		"session_start":    wm.SessionStart,
 		"session_duration": time.Since(wm.SessionStart).String(),
 		"writing_velocity": m.observer.GetWritingVelocity(),
 	}

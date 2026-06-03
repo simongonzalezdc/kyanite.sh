@@ -178,7 +178,7 @@ func (m *EditorPaneModel) Update(msg tea.Msg) (*EditorPaneModel, tea.Cmd) {
 		// Priority 1: AI Overlays (Selection & Escape)
 		if aiModeActive {
 			// Extract selection index
-			var selectIdx int = -1
+			selectIdx := -1
 			if len(kmsg.Runes) > 0 {
 				r := kmsg.Runes[0]
 				if r >= '1' && r <= '3' {

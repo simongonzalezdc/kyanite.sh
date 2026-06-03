@@ -15,7 +15,6 @@ func TestNewBackupManager(t *testing.T) {
 	logger := NewTestLogger(t)
 	tempDir := t.TempDir()
 	backupManager, err := NewBackupManager(tempDir, 10, logger.Logger)
-
 	if err != nil {
 		t.Fatalf("Failed to create backup manager: %v", err)
 	}

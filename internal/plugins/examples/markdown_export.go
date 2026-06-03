@@ -46,10 +46,6 @@ func (p *MarkdownExportPlugin) Initialize(ctx *plugins.PluginContext) error {
 
 	// Register the export format with the plugin manager
 	// In a real implementation, this would be done through the plugin context
-	if ctx != nil {
-		// This is a simplified approach - in reality, the plugin manager
-		// would provide a registration mechanism
-	}
 
 	return nil
 }

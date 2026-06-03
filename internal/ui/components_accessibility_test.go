@@ -52,13 +52,13 @@ func TestAnimatedLoadingSpinner_Accessibility(t *testing.T) {
 	t.Run("ReducedMotionSupport", func(t *testing.T) {
 		// Test that spinner respects reduced motion preferences
 		spinner := NewAnimatedLoadingSpinner("Loading...")
-		
+
 		// Test with animation manager that has reduced motion enabled
 		animationManager := NewAnimationManager()
 		config := animationManager.GetConfig()
 		config.ReducedMotion = true
 		animationManager.SetConfig(config)
-		
+
 		// Should still work with reduced motion
 		view := spinner.View()
 		assert.NotEmpty(t, view)
@@ -144,13 +144,13 @@ func TestAnimatedStatusBar_Accessibility(t *testing.T) {
 	t.Run("ReducedMotionSupport", func(t *testing.T) {
 		// Test that status bar respects reduced motion preferences
 		statusBar := NewAnimatedStatusBar("Test message")
-		
+
 		// Test with animation manager that has reduced motion enabled
 		animationManager := NewAnimationManager()
 		config := animationManager.GetConfig()
 		config.ReducedMotion = true
 		animationManager.SetConfig(config)
-		
+
 		// Should still work with reduced motion
 		view := statusBar.View()
 		assert.NotEmpty(t, view)
@@ -226,13 +226,13 @@ func TestAnimatedNotification_Accessibility(t *testing.T) {
 	t.Run("ReducedMotionSupport", func(t *testing.T) {
 		// Test that notifications respect reduced motion preferences
 		notification := NewAnimatedNotification("Test message", "info", 5*time.Second)
-		
+
 		// Test with animation manager that has reduced motion enabled
 		animationManager := NewAnimationManager()
 		config := animationManager.GetConfig()
 		config.ReducedMotion = true
 		animationManager.SetConfig(config)
-		
+
 		// Should still work with reduced motion
 		view := notification.View()
 		assert.NotEmpty(t, view)
@@ -291,12 +291,12 @@ func TestAnimationManager_Accessibility(t *testing.T) {
 
 		// Test that animations still work but are less intensive
 		manager.StartAnimation("perf-test", AnimationFade, 1.0)
-		
+
 		// Should complete quickly even with reduced motion
 		start := time.Now()
 		cmd := manager.Update()
 		duration := time.Since(start)
-		
+
 		assert.Less(t, duration, 50*time.Millisecond, "Animation update should be fast even with reduced motion")
 		// With reduced motion, animations should still return a command for processing
 		assert.NotNil(t, cmd, "Should return command even with reduced motion for proper processing")
@@ -330,7 +330,7 @@ func TestThemeAccessibility(t *testing.T) {
 	t.Run("ThemeReducedMotionSupport", func(t *testing.T) {
 		// Test that themes work well with reduced motion settings
 		animationManager := NewAnimationManager()
-		
+
 		// Test default configuration
 		config := animationManager.GetConfig()
 		assert.True(t, config.Enabled)

@@ -1,3 +1,4 @@
+// Package collaboration provides real-time collaboration session and presence management.
 package collaboration
 
 import (
@@ -224,7 +225,7 @@ func (m *PresenceIndicatorModel) getRoleIcon(role collaboration.ParticipantRole)
 	case collaboration.RoleEditor:
 		return "[*]"
 	case collaboration.RoleViewer:
-		return "‘ï¸"
+		return "‘\u0081ï¸"
 	default:
 		return ""
 	}

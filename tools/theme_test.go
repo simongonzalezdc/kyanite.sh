@@ -33,7 +33,7 @@ func main() {
 	fmt.Println("\n========================================")
 	fmt.Println("Running Automated Theme Tests")
 	fmt.Println("========================================")
-	
+
 	if !runAutomatedTests() {
 		fmt.Println("WARNING: Some automated tests failed")
 		fmt.Println("Continuing with manual testing...")
@@ -113,17 +113,16 @@ func buildApplication() bool {
 // runAutomatedTests runs the automated theme tests
 func runAutomatedTests() bool {
 	fmt.Println("Running automated theme system tests...")
-	
+
 	cmd := exec.Command("go", "run", "scripts/test_themes.go")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
-	
 	if err != nil {
 		fmt.Printf("Automated tests failed: %v\n", err)
 		return false
 	}
-	
+
 	fmt.Println("✓ Automated tests completed successfully")
 	return true
 }
@@ -160,7 +159,7 @@ func displayThemeInformation() {
 	fmt.Println("  Ctrl+Shift+N - Next theme")
 	fmt.Println("  Ctrl+Shift+P - Previous theme")
 	fmt.Println()
-	
+
 	fmt.Println("Testing Checklist:")
 	fmt.Println("  [ ] Visual appearance matches theme description")
 	fmt.Println("  [ ] Text is readable against background")
@@ -229,7 +228,7 @@ func runThemeDemo() {
 	// Note: This is a simplified demo
 	// In a real implementation, you might use automation tools
 	// or integrate with the application's testing framework
-	
+
 	fmt.Println("Launching application for manual theme cycling...")
 	fmt.Println("Instructions:")
 	fmt.Println("1. When the application launches, use Ctrl+Shift+T to cycle themes")
@@ -238,9 +237,9 @@ func runThemeDemo() {
 	fmt.Println("4. Test basic functionality in each theme")
 	fmt.Println("5. Press Ctrl+Q when done")
 	fmt.Println()
-	
+
 	launchApplication("--debug")
-	
+
 	fmt.Println("\nDemo completed!")
 	fmt.Println("Please provide feedback on any issues you encountered.")
 }

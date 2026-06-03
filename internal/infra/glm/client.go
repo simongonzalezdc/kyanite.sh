@@ -1,3 +1,4 @@
+// Package glm provides a client for the GLM AI service.
 package glm
 
 import (

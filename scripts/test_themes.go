@@ -42,7 +42,7 @@ func main() {
 	fmt.Println("========================================")
 	fmt.Println("Testing Theme Switching Performance")
 	fmt.Println("========================================")
-	
+
 	var totalTime time.Duration
 	for i, themeID := range allThemes {
 		start := time.Now()
@@ -50,9 +50,9 @@ func main() {
 		currentTheme := themeManager.Current()
 		switchTime := time.Since(start)
 		totalTime += switchTime
-		
+
 		fmt.Printf("Theme %d/%d: %s -> %v\n", i+1, len(allThemes), currentTheme.Name, switchTime)
-		
+
 		// Verify theme was set correctly
 		expectedTheme := theme.GetTheme(themeID)
 		if currentTheme.Name != expectedTheme.Name {
@@ -61,10 +61,10 @@ func main() {
 			fmt.Printf("  ✓ Theme applied correctly\n")
 		}
 	}
-	
+
 	avgTime := totalTime / time.Duration(len(allThemes))
 	fmt.Printf("\nAverage theme switching time: %v\n", avgTime)
-	
+
 	if avgTime > 100*time.Millisecond {
 		fmt.Printf("WARNING: Theme switching is slower than recommended (should be < 100ms)\n")
 	} else {
@@ -75,16 +75,16 @@ func main() {
 	fmt.Println("\n========================================")
 	fmt.Println("Testing Theme Cycling")
 	fmt.Println("========================================")
-	
+
 	initialTheme := themeManager.Current().Name
 	fmt.Printf("Starting theme: %s\n", initialTheme)
-	
+
 	// Test Next() function
 	for i := 0; i < len(allThemes); i++ {
 		nextTheme := themeManager.Next()
 		fmt.Printf("Next %d: %s\n", i+1, nextTheme.Name)
 	}
-	
+
 	// Test Previous() function
 	for i := 0; i < len(allThemes); i++ {
 		prevTheme := themeManager.Previous()
@@ -95,17 +95,17 @@ func main() {
 	fmt.Println("\n========================================")
 	fmt.Println("Testing Theme Persistence")
 	fmt.Println("========================================")
-	
+
 	testTheme := "electric-rose"
 	themeManager.SetTheme(testTheme)
 	currentTheme := themeManager.Current()
-	
+
 	if currentTheme.Name != "Electric Rose" {
 		fmt.Printf("ERROR: Failed to set theme: expected Electric Rose, got %s\n", currentTheme.Name)
 	} else {
 		fmt.Printf("✓ Theme set to %s\n", currentTheme.Name)
 	}
-	
+
 	// Test saving preference
 	err := themeManager.SaveThemePreference()
 	if err != nil {
@@ -113,7 +113,7 @@ func main() {
 	} else {
 		fmt.Printf("✓ Theme preference saved\n")
 	}
-	
+
 	// Test loading preference
 	newManager := &theme.Manager{}
 	err = newManager.LoadThemePreference()
@@ -127,7 +127,7 @@ func main() {
 	fmt.Println("\n========================================")
 	fmt.Println("Testing Theme Validation")
 	fmt.Println("========================================")
-	
+
 	// Test with valid theme IDs
 	validThemes := []string{"monochrome", "amber-night", "twilight-mist", "indigo-depths", "forest-path"}
 	for _, themeID := range validThemes {
@@ -138,7 +138,7 @@ func main() {
 			fmt.Printf("✓ Valid theme %s: %s\n", themeID, themeObj.Name)
 		}
 	}
-	
+
 	// Test with invalid theme ID
 	invalidTheme := theme.GetTheme("invalid-theme")
 	defaultTheme := theme.Default()
@@ -152,16 +152,16 @@ func main() {
 	fmt.Println("\n========================================")
 	fmt.Println("Testing Theme Migration")
 	fmt.Println("========================================")
-	
+
 	migrationTests := map[string]string{
-		"slate":          "twilight-mist",
-		"molten-gold":    "sunlight",
-		"clay-roads":     "clay-earth",
-		"iron-storm":     "iron-forge",
-		"jade-tide":      "cyan-wave",
-		"sunset-ember":   "electric-rose",
+		"slate":        "twilight-mist",
+		"molten-gold":  "sunlight",
+		"clay-roads":   "clay-earth",
+		"iron-storm":   "iron-forge",
+		"jade-tide":    "cyan-wave",
+		"sunset-ember": "electric-rose",
 	}
-	
+
 	for oldID, expectedNewID := range migrationTests {
 		// This would test the internal migration function
 		// For now, we'll just verify the new theme exists
@@ -183,7 +183,7 @@ func main() {
 	fmt.Printf("✓ Theme persistence: Working\n")
 	fmt.Printf("✓ Theme validation: Working\n")
 	fmt.Printf("✓ Theme migration: Working\n")
-	
+
 	fmt.Println("\n========================================")
 	fmt.Println("MANUAL TESTING INSTRUCTIONS")
 	fmt.Println("========================================")

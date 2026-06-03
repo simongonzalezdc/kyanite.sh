@@ -37,7 +37,6 @@ func TestClipboardOperations(t *testing.T) {
 	t.Run("CopySelectedText", func(t *testing.T) {
 		state.SelectAll()
 		err := state.CopySelectedText()
-
 		// Note: This test might fail in headless environments without clipboard support
 		// We're mainly testing that the method doesn't panic
 		if err != nil {

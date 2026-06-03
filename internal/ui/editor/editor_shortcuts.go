@@ -41,11 +41,7 @@ func (s *EditorShortcuts) HandleShortcutAction(action ShortcutAction, state Stat
 			state.PreviousSearchMatch()
 		}
 	case ActionSave:
-		err := state.ForceSave()
-		if err != nil {
-			// Use proper error handling
-			// In a full implementation, this would show a user notification
-		}
+		_ = state.ForceSave()
 	case ActionSelectAll:
 		state.SelectAll()
 	case ActionCopy:
@@ -264,7 +260,7 @@ func (s *EditorShortcuts) openFile(state StateManagerInterface) {
 	// This is a simplified implementation
 	// In a full implementation, this would show a file picker
 	// For now, we'll just open the first available file as a demo
-	state.OpenFile("demo.md")
+	_ = state.OpenFile("demo.md")
 }
 
 func (s *EditorShortcuts) saveAs(state StateManagerInterface) {

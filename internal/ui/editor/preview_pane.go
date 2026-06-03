@@ -107,7 +107,6 @@ func NewPreviewPaneModel() *PreviewPaneModel {
 	renderer, err := glamour.NewTermRenderer(
 		glamour.WithStylePath(styleConfig),
 	)
-
 	if err != nil {
 		// Fallback to basic dark style if custom style fails
 		var fallbackErr error
@@ -859,7 +858,7 @@ func (m *PreviewPaneModel) renderBasicContent() string {
 	for i, line := range lines {
 		// Headers
 		if strings.HasPrefix(line, "# ") {
-			lines[i] = strings.Replace(line, "# ", "“ ", 1)
+			lines[i] = strings.Replace(line, "# ", "“\u009d ", 1)
 		} else if strings.HasPrefix(line, "## ") {
 			lines[i] = strings.Replace(line, "## ", "“‹ ", 1)
 		} else if strings.HasPrefix(line, "### ") {

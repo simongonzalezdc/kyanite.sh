@@ -48,10 +48,10 @@ func (s *EditorState) InsertText(text string) {
 	if s.textarea == nil || text == "" {
 		return
 	}
-	
+
 	// Get current content
 	currentText := (*s.textarea).Value()
-	
+
 	// Calculate approximate insertion point based on tracked cursor position
 	lines := strings.Split(currentText, "\n")
 	var offset int
@@ -66,7 +66,7 @@ func (s *EditorState) InsertText(text string) {
 		}
 		offset += col
 	}
-	
+
 	// Clamp offset to valid range
 	if offset > len(currentText) {
 		offset = len(currentText)
@@ -74,11 +74,11 @@ func (s *EditorState) InsertText(text string) {
 	if offset < 0 {
 		offset = 0
 	}
-	
+
 	// Insert text at calculated position
 	newText := currentText[:offset] + text + currentText[offset:]
 	(*s.textarea).SetValue(newText)
-	
+
 	// Update tracked cursor position
 	insertedLines := strings.Split(text, "\n")
 	if len(insertedLines) > 1 {

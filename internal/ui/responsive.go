@@ -254,7 +254,7 @@ const (
 	MenuScrollable
 )
 
-// Global responsive layout manager instance
+// GlobalResponsiveManager is the global responsive layout manager instance.
 var GlobalResponsiveManager = NewResponsiveLayoutManager()
 
 // GetMinimumResolutionOptimizations returns specific optimizations for 80x24 terminals

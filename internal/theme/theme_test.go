@@ -71,7 +71,7 @@ func TestManager_SetTheme(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mgr := GetManager()
 			mgr.SetTheme(tt.themeID)
-			
+
 			if !tt.wantErr {
 				theme := GetTheme(tt.themeID)
 				assert.Equal(t, theme.Name, mgr.Current().Name)
@@ -235,7 +235,7 @@ func TestTheme_HasRequiredFields(t *testing.T) {
 
 			// Check that all required fields are present
 			assert.NotEmpty(t, theme.Name, "Theme name is empty")
-			
+
 			// Check that theme name matches expected name from registry
 			expectedTheme := GetTheme(themeID)
 			assert.Equal(t, expectedTheme.Name, theme.Name, "Theme name should match registry")

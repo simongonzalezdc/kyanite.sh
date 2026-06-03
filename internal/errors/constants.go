@@ -1,3 +1,4 @@
+// Package errors provides error types, reporting, and recovery utilities.
 package errors
 
 import "time"
@@ -16,8 +17,8 @@ const (
 // Recovery constants
 const (
 	// Retry configuration
-	DefaultMaxRetries     = 3
-	DefaultRetryDelay     = 1 * time.Second
+	DefaultMaxRetries      = 3
+	DefaultRetryDelay      = 1 * time.Second
 	DefaultMaxRecoveryTime = 30 * time.Second
 
 	// Backoff configuration

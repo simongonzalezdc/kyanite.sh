@@ -94,16 +94,16 @@ type ToolCall struct {
 
 // SessionSummary represents a summary of a writing session
 type SessionSummary struct {
-	ID                    int64     `json:"id"`
-	SessionID             string    `json:"session_id"`
-	StartedAt             time.Time `json:"started_at"`
-	EndedAt               time.Time `json:"ended_at,omitempty"`
-	Summary               string    `json:"summary,omitempty"`
-	SongsWorkedOn         []int     `json:"songs_worked_on,omitempty"`
-	KeyInsights           []string  `json:"key_insights,omitempty"`
-	SuggestionsAccepted   int       `json:"suggestions_accepted"`
-	SuggestionsDismissed  int       `json:"suggestions_dismissed"`
-	WordsWritten          int       `json:"words_written"`
+	ID                   int64     `json:"id"`
+	SessionID            string    `json:"session_id"`
+	StartedAt            time.Time `json:"started_at"`
+	EndedAt              time.Time `json:"ended_at,omitempty"`
+	Summary              string    `json:"summary,omitempty"`
+	SongsWorkedOn        []int     `json:"songs_worked_on,omitempty"`
+	KeyInsights          []string  `json:"key_insights,omitempty"`
+	SuggestionsAccepted  int       `json:"suggestions_accepted"`
+	SuggestionsDismissed int       `json:"suggestions_dismissed"`
+	WordsWritten         int       `json:"words_written"`
 }
 
 // WorkingMemory holds the current session state
@@ -119,12 +119,12 @@ type WorkingMemory struct {
 
 // EditEvent represents a single edit action
 type EditEvent struct {
-	Timestamp   time.Time `json:"timestamp"`
-	Type        string    `json:"type"` // "insert", "delete", "replace"
-	Position    int       `json:"position"`
-	Length      int       `json:"length"`
-	Content     string    `json:"content,omitempty"`
-	WordsDelta  int       `json:"words_delta"`
+	Timestamp  time.Time `json:"timestamp"`
+	Type       string    `json:"type"` // "insert", "delete", "replace"
+	Position   int       `json:"position"`
+	Length     int       `json:"length"`
+	Content    string    `json:"content,omitempty"`
+	WordsDelta int       `json:"words_delta"`
 }
 
 // SuggestionType represents the type of suggestion
@@ -164,14 +164,14 @@ func (s SuggestionType) String() string {
 
 // Suggestion represents a proactive suggestion from the agent
 type Suggestion struct {
-	ID         string            `json:"id"`
-	Type       SuggestionType    `json:"type"`
-	Content    string            `json:"content"`
-	Confidence float64           `json:"confidence"`
-	Reason     string            `json:"reason"`
+	ID         string             `json:"id"`
+	Type       SuggestionType     `json:"type"`
+	Content    string             `json:"content"`
+	Confidence float64            `json:"confidence"`
+	Reason     string             `json:"reason"`
 	Actions    []SuggestionAction `json:"actions,omitempty"`
-	ExpiresAt  time.Time         `json:"expires_at"`
-	Metadata   map[string]string `json:"metadata,omitempty"`
+	ExpiresAt  time.Time          `json:"expires_at"`
+	Metadata   map[string]string  `json:"metadata,omitempty"`
 }
 
 // SuggestionAction represents an action the user can take on a suggestion
@@ -183,33 +183,33 @@ type SuggestionAction struct {
 
 // UserPreferences holds all learned user preferences
 type UserPreferences struct {
-	PreferredGenres      []string `json:"preferred_genres,omitempty"`
-	TypicalStructure     string   `json:"typical_structure,omitempty"` // "ABABCB", "AABA", etc.
-	LyricStyle           string   `json:"lyric_style,omitempty"`       // "narrative", "abstract", "conversational"
-	ChordPreferences     []string `json:"chord_preferences,omitempty"`
-	WorkingHours         []int    `json:"working_hours,omitempty"` // Hours of day user typically works
-	SuggestionFrequency  string   `json:"suggestion_frequency,omitempty"` // "minimal", "moderate", "eager"
-	PreferredAIVoice     string   `json:"preferred_ai_voice,omitempty"`   // "formal", "casual", "encouraging"
+	PreferredGenres     []string `json:"preferred_genres,omitempty"`
+	TypicalStructure    string   `json:"typical_structure,omitempty"` // "ABABCB", "AABA", etc.
+	LyricStyle          string   `json:"lyric_style,omitempty"`       // "narrative", "abstract", "conversational"
+	ChordPreferences    []string `json:"chord_preferences,omitempty"`
+	WorkingHours        []int    `json:"working_hours,omitempty"`        // Hours of day user typically works
+	SuggestionFrequency string   `json:"suggestion_frequency,omitempty"` // "minimal", "moderate", "eager"
+	PreferredAIVoice    string   `json:"preferred_ai_voice,omitempty"`   // "formal", "casual", "encouraging"
 }
 
 // AgentConfig holds configuration for the Muse agent
 type AgentConfig struct {
 	// Memory settings
-	MaxEpisodicEvents     int           `json:"max_episodic_events"`
-	SessionTimeout        time.Duration `json:"session_timeout"`
-	
+	MaxEpisodicEvents int           `json:"max_episodic_events"`
+	SessionTimeout    time.Duration `json:"session_timeout"`
+
 	// Suggestion settings
-	SuggestionCooldown    time.Duration `json:"suggestion_cooldown"`
-	MinConfidence         float64       `json:"min_confidence"`
-	StuckThreshold        time.Duration `json:"stuck_threshold"`
-	
+	SuggestionCooldown time.Duration `json:"suggestion_cooldown"`
+	MinConfidence      float64       `json:"min_confidence"`
+	StuckThreshold     time.Duration `json:"stuck_threshold"`
+
 	// Chat settings
-	MaxChatHistory        int           `json:"max_chat_history"`
-	ContextWindowSize     int           `json:"context_window_size"`
-	
+	MaxChatHistory    int `json:"max_chat_history"`
+	ContextWindowSize int `json:"context_window_size"`
+
 	// Learning settings
-	LearningEnabled       bool          `json:"learning_enabled"`
-	PreferenceUpdateRate  float64       `json:"preference_update_rate"`
+	LearningEnabled      bool    `json:"learning_enabled"`
+	PreferenceUpdateRate float64 `json:"preference_update_rate"`
 }
 
 // DefaultAgentConfig returns the default agent configuration

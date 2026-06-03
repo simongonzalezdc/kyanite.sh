@@ -1,3 +1,4 @@
+// Package export provides song export formats and services.
 package export
 
 import (

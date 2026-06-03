@@ -478,7 +478,6 @@ func TestHookHandler_Usage(t *testing.T) {
 	// Call the handler
 	testData := HookData{"test": "value"}
 	err := handler(HookContentSave, testData)
-
 	if err != nil {
 		t.Errorf("Handler should not error: %v", err)
 	}

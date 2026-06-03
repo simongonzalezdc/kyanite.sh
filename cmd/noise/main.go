@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Kyanite/noise/internal/config"
 	"github.com/Kyanite/noise/internal/logging"
 	"github.com/Kyanite/noise/internal/plugins"
 	"github.com/Kyanite/noise/internal/ui"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 var (

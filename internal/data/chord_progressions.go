@@ -1,3 +1,4 @@
+// Package data provides static music data such as chord progressions.
 package data
 
 import (

@@ -3,7 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 	"sync"
@@ -71,7 +71,7 @@ func (d *Dictionary) LoadDictionary(filePath string) error {
 	defer d.mutex.Unlock()
 
 	// Read the dictionary file
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return errutil.Wrap(err, "read dictionary file")
 	}
@@ -231,11 +231,6 @@ func (d *Dictionary) countSyllablesHeuristic(word string) int {
 				}
 			}
 
-			// Handle 'y' as vowel when it functions as a vowel
-			if currChar == 'y' && !isVowel && prevWasVowel {
-				// 'y' after vowel is usually a consonant, but can create diphthongs
-				// Don't add extra syllable here as it's handled by main vowel counting
-			}
 		}
 	}
 

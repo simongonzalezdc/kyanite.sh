@@ -407,11 +407,6 @@ func (e *ProsodyEngine) countWordSyllables(word string) int {
 		}
 	}
 
-	// Handle common prefixes/suffixes
-	if strings.HasSuffix(word, "ing") {
-		// Already counted in vowel groups, but ensure it's distinct
-	}
-
 	if count < 1 {
 		count = 1
 	}

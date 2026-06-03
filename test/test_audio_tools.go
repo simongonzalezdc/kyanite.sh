@@ -1,3 +1,4 @@
+// Package noise provides integration test helpers for the noise application.
 package noise
 
 import (

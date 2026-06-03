@@ -18,10 +18,10 @@ const (
 
 // PairedDevice represents a paired device
 type PairedDevice struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	LastSeen  time.Time `json:"last_seen"`
-	PairedAt  time.Time `json:"paired_at"`
+	ID       string    `json:"id"`
+	Name     string    `json:"name"`
+	LastSeen time.Time `json:"last_seen"`
+	PairedAt time.Time `json:"paired_at"`
 }
 
 // PairingManager handles device pairing
@@ -179,7 +179,7 @@ func (pm *PairingManager) cleanupExpiredCodes() {
 func generateNumericCode(length int) string {
 	const digits = "0123456789"
 	code := make([]byte, length)
-	
+
 	// Read random bytes
 	if _, err := rand.Read(code); err != nil {
 		// Fallback to time-based if crypto/rand fails
@@ -189,7 +189,7 @@ func generateNumericCode(length int) string {
 			code[i] = digits[code[i]%10]
 		}
 	}
-	
+
 	return string(code)
 }
 

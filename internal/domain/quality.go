@@ -1,3 +1,4 @@
+// Package domain provides core domain types such as songs and quality metrics.
 package domain
 
 import (

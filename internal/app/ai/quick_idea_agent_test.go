@@ -69,7 +69,6 @@ func TestQuickIdeaAgent_GenerateUnstickMode(t *testing.T) {
 	}
 
 	resp, err := agentWithClient.Generate(ctx, req)
-
 	if err != nil {
 		t.Fatalf("Generate returned error: %v", err)
 	}
@@ -100,7 +99,6 @@ func TestQuickIdeaAgent_GenerateSparkMode(t *testing.T) {
 	}
 
 	resp, err := agentWithClient.Generate(ctx, req)
-
 	if err != nil {
 		t.Fatalf("Generate returned error: %v", err)
 	}
@@ -127,7 +125,6 @@ func TestQuickIdeaAgent_GenerateTweakMode(t *testing.T) {
 	}
 
 	resp, err := agentWithClient.Generate(ctx, req)
-
 	if err != nil {
 		t.Fatalf("Generate returned error: %v", err)
 	}
@@ -154,7 +151,6 @@ func TestQuickIdeaAgent_GenerateCheckMode(t *testing.T) {
 	}
 
 	resp, err := agentWithClient.Generate(ctx, req)
-
 	if err != nil {
 		t.Fatalf("Generate returned error: %v", err)
 	}
@@ -186,7 +182,6 @@ func TestQuickIdeaAgent_GenerateWithFallback(t *testing.T) {
 	}
 
 	resp, err := agentWithClient.Generate(ctx, req)
-
 	if err != nil {
 		t.Fatalf("Generate returned error: %v", err)
 	}
@@ -214,7 +209,6 @@ func TestQuickIdeaAgent_GenerateTimeout(t *testing.T) {
 	}
 
 	resp, err := agentWithClient.Generate(ctx, req)
-
 	if err != nil {
 		t.Fatalf("Generate returned error: %v", err)
 	}
