@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@serwist/build": "^9.5.11",
-    "@serwist/sw": "^9.5.0",
+    "@serwist/sw": "^9.5.11",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
