@@ -10,7 +10,7 @@ require (
 	github.com/charmbracelet/glamour v0.10.0
 	github.com/charmbracelet/harmonica v0.2.0
 	github.com/charmbracelet/lipgloss v1.1.1-0.20250404203927-76690c660834
-	github.com/gen2brain/malgo v0.11.24
+	github.com/gen2brain/malgo v0.11.25
 	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20260121074030-7aa881864730
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.3
