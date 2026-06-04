@@ -27,7 +27,7 @@ jobs:
           go-version-file: go.mod
           cache: false
       - name: Cache Go build
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: |
             ~/go/pkg/mod
@@ -72,7 +72,7 @@ jobs:
           go-version-file: go.mod
           cache: false
       - name: Cache Go build
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: |
             ~/go/pkg/mod
@@ -115,7 +115,7 @@ jobs:
           go-version-file: go.mod
           cache: false
       - name: Cache Go build
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: |
             ~/go/pkg/mod
