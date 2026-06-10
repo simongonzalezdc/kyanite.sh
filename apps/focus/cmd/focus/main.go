@@ -4,20 +4,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/focus/internal/cli"
 	"github.com/kyanite/focus/internal/tui"
-	"github.com/kyanite/focus/pkg/styles"
 )
+
+// ollamaCmd holds a reference to the ollama serve process for cleanup.
+var ollamaCmd *exec.Cmd
 
 func main() {
 	if len(os.Args) > 1 {
@@ -206,7 +208,22 @@ func isOllamaRunning() bool {
 
 func startOllama() error {
 	cmd := exec.Command("ollama", "serve")
-	return cmd.Start()
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	// ollama serve is designed to run as a persistent daemon.
+	// Track the process so we can clean up on exit.
+	ollamaCmd = cmd
+	go func() {
+		sigCh := make(chan os.Signal, 1)
+		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+		<-sigCh
+		if ollamaCmd != nil && ollamaCmd.Process != nil {
+			_ = ollamaCmd.Process.Kill()
+		}
+		os.Exit(0)
+	}()
+	return nil
 }
 
 func isModelAvailable(model string) bool {
@@ -270,122 +287,3 @@ func downloadFile(url, filename string, postInstall func() error) error {
 	return nil
 }
 
-// showEpicIntro shows an epic intro (currently unused - may be used in future for branding)
-func showEpicIntro() {
-	// Clear screen and start the show
-	fmt.Print("\033[2J\033[H")
-
-	introFrames := []struct {
-		art   string
-		color lipgloss.Color
-		delay time.Duration
-	}{
-		{
-			`
-╔══════════════════════════════════════════════════════════════╗
-║                                                              ║
-║    ◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤    ║
-║    ◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣    ║
-║       ◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤       ║
-║       ◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣       ║
-║       ◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤       ║
-║       ◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣       ║
-║                                                              ║
-║            ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡            ║
-║                 ◈◈◈◈◈◈◈◈◈◈◈◈◈◈◈◈◈◈◈◈                 ║
-╚══════════════════════════════════════════════════════════════╝`,
-			styles.SynthwavePink,
-			time.Millisecond * 800,
-		},
-		{
-			`
-▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
-▰                                                              ▰
-▰    ⚡ INITIALIZING NEURAL INTERFACE...                        ▰
-▰    🤖 LOADING AI ASSISTANT...                               ▰
-▰    💫 ACTIVATING VISUAL ENHANCEMENTS...                       ▰
-▰    🌐 CONNECTING TO CHARM LIBRARIES...                       ▰
-▰                                                              ▰
-▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰`,
-			styles.SynthwaveCyan,
-			time.Millisecond * 600,
-		},
-		{
-			`
-██████████████████████████████████████████████████████████████
-██████████████████████████████████████████████████████████████
-██████████████████████████████████████████████████████████████
-████ ▀▄▀▄▀▄ AI ENHANCED PRODUCTIVITY ▄▀▄▀▄▀ ███████████████████
-██████████████████████████████████████████████████████████████
-██████████████████████████████████████████████████████████████`,
-			styles.SynthwaveGreen,
-			time.Millisecond * 400,
-		},
-	}
-
-	for _, frame := range introFrames {
-		// Clear screen
-		fmt.Print("\033[2J\033[H")
-
-		// Render frame with epic styling
-		styled := lipgloss.NewStyle().
-			Foreground(frame.color).
-			Background(styles.DeepSpace).
-			Bold(true).
-			AlignHorizontal(lipgloss.Center).
-			Render(frame.art)
-
-		fmt.Println(styled)
-		time.Sleep(frame.delay)
-	}
-
-	// Final glitch effect
-	glitchSymbols := []string{
-		"⚡⚡⚡ ◈◈◈ ◆◆◆ ◊◊◊ ⚡⚡⚡",
-		"◆◆◆ ◊◊◊ ⚡⚡⚡ ◈◈◈ ◆◆◆",
-		"◈◈◈ ◆◆◆ ◊◊◊ ⚡⚡⚡ ◈◈◈",
-		"◊◊◊ ⚡⚡⚡ ◈◈◈ ◆◆◆ ◊◊◊",
-		"⚡◆◈◊ ◈⚡◆◈ ◊◈◆⚡ ◊⚡◆◈",
-		"◆◈⚡◊ ◆◈◊⚡ ◈⚡◆◊ ◈◆⚡◊",
-		"◈◊⚡◆ ◊◈⚡◆ ◊⚡◆◈ ⚡◈◊◆",
-	}
-
-	for range 10 {
-		fmt.Print("\033[2J\033[H")
-
-		glitchText := glitchSymbols[rand.Intn(len(glitchSymbols))]
-		glitchStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color(fmt.Sprintf("#%02X%02X%02X",
-				rand.Intn(255), rand.Intn(255), rand.Intn(255)))).
-			Background(styles.DeepSpace).
-			Bold(true).
-			AlignHorizontal(lipgloss.Center).
-			Render(glitchText)
-
-		fmt.Println(glitchStyle)
-		time.Sleep(time.Millisecond * 100)
-	}
-
-	// Clear and show ready state
-	fmt.Print("\033[2J\033[H")
-
-	readyText := styles.SynthwaveTitle("🚀 FOCUS.SH SYSTEMS READY")
-	fmt.Println(readyText)
-	fmt.Println()
-
-	readyMsg := styles.HolographicText("AI-powered task management with maximum visual impact achieved.")
-	fmt.Println(readyMsg)
-	fmt.Println()
-
-	controlHint := lipgloss.NewStyle().
-		Foreground(styles.SynthwaveCyan).
-		Background(styles.DarkVoid).
-		Italic(true).
-		Render("💫 Type 'focus --help' to begin your productivity mission")
-	fmt.Println(controlHint)
-
-	time.Sleep(time.Second * 2)
-
-	// Clear for main interface
-	fmt.Print("\033[2J\033[H")
-}

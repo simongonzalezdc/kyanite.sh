@@ -5,6 +5,24 @@ import (
 	"strings"
 )
 
+// sanitizeInput prepares user input for safe inclusion in AI prompts.
+// It truncates to maxRunes runes, escapes any closing delimiter sequences,
+// and wraps the content in delimited sections.
+func sanitizeInput(input string) string {
+	const maxRunes = 2000
+	const openTag = "<user_input>"
+	const closeTag = "</user_input>"
+	const escapedClose = "&lt;/user_input&gt;"
+
+	runes := []rune(input)
+	if len(runes) > maxRunes {
+		runes = runes[:maxRunes]
+	}
+	sanitized := string(runes)
+	sanitized = strings.ReplaceAll(sanitized, closeTag, escapedClose)
+	return openTag + sanitized + closeTag
+}
+
 // PromptBuilder handles construction of AI prompts
 type PromptBuilder struct{}
 
@@ -22,7 +40,8 @@ func (pb *PromptBuilder) BuildParsePrompt(input string) string {
 4. Categories/tags mentioned
 5. Recurrence pattern if mentioned (daily, weekly, monthly, yearly)
 
-Input: "%s"
+Input:
+%s
 
 Respond in JSON format:
 {
@@ -34,7 +53,7 @@ Respond in JSON format:
   "recurrence_interval": 1
 }
 
-Only include fields that are present in the input.`, input)
+Only include fields that are present in the input.`, sanitizeInput(input))
 }
 
 // BuildSuggestPrompt creates a prompt for suggesting new tasks
@@ -55,7 +74,7 @@ Suggest new tasks that:
 3. Address gaps in the current task list
 4. Are actionable and specific
 
-Respond with a simple list of task descriptions, one per line.`, tasksStr)
+Respond with a simple list of task descriptions, one per line.`, sanitizeInput(tasksStr))
 }
 
 // BuildSummaryPrompt creates a prompt for summarizing tasks
@@ -71,7 +90,7 @@ func (pb *PromptBuilder) BuildSummaryPrompt(tasks []string) string {
 Tasks:
 - %s
 
-Provide a concise summary (2-3 paragraphs) that gives the user a clear picture of their task landscape.`, tasksStr)
+Provide a concise summary (2-3 paragraphs) that gives the user a clear picture of their task landscape.`, sanitizeInput(tasksStr))
 }
 
 // BuildChatPrompt creates a prompt for chat assistance
@@ -86,7 +105,8 @@ func (pb *PromptBuilder) BuildChatPrompt(question string, tasks []string) string
 User's tasks:
 - %s
 
-User's question: %s
+User's question:
+%s
 
-Provide a helpful, actionable response.`, tasksStr, question)
+Provide a helpful, actionable response.`, sanitizeInput(tasksStr), sanitizeInput(question))
 }

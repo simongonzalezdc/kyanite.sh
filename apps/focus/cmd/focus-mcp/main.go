@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 )
 
 type mcpServer struct{}
@@ -184,20 +186,56 @@ func (s *mcpServer) handleToolsCall(req request) response {
 }
 
 func (s *mcpServer) runGolangciLint(req request, args map[string]any) response {
+	// Validate and resolve working directory
 	workingDir := "."
 	if dir, ok := args["directory"].(string); ok && dir != "" {
-		workingDir = dir
+		// Reject directory paths containing path separators that escape upward
+		cleaned := filepath.Clean(dir)
+		if strings.Contains(cleaned, "..") {
+			return response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Result: callToolResult{
+					Content: []content{{Type: "text", Text: "Invalid directory: path traversal not allowed"}},
+					IsError: true,
+				},
+			}
+		}
+		info, err := os.Stat(cleaned)
+		if err != nil || !info.IsDir() {
+			return response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Result: callToolResult{
+					Content: []content{{Type: "text", Text: fmt.Sprintf("Invalid directory: %s", dir)}},
+					IsError: true,
+				},
+			}
+		}
+		workingDir = cleaned
 	}
 
 	lintArgs := []string{"run"}
 	if additionalArgs, ok := args["args"].([]any); ok {
 		var argsList []string
 		for _, arg := range additionalArgs {
-			if argStr, ok := arg.(string); ok {
-				argsList = append(argsList, argStr)
+			argStr, ok := arg.(string)
+			if !ok {
+				continue
 			}
+			// Reject flags and path separators in args
+			if strings.HasPrefix(argStr, "-") {
+				continue
+			}
+			if strings.ContainsAny(argStr, "/\\") {
+				// Allow only safe package patterns
+				if argStr != "./..." {
+					continue
+				}
+			}
+			argsList = append(argsList, argStr)
 		}
-		if len(argsList) == 1 && (argsList[0] == "version" || argsList[0] == "--version" || argsList[0] == "-v") {
+		if len(argsList) == 1 && argsList[0] == "version" {
 			lintArgs = []string{"version"}
 		} else {
 			lintArgs = append(lintArgs, argsList...)

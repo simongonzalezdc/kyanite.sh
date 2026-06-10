@@ -41,6 +41,9 @@ type Manager struct {
 	modelAvailable map[string]bool
 	modelMutex     sync.RWMutex
 
+	// Lifecycle
+	done chan struct{}
+
 	// Helper modules
 	promptBuilder *PromptBuilder
 	validator     *TaskValidator
@@ -91,6 +94,7 @@ func New() *Manager {
 		ollamaManager:  NewOllamaManager(ollamaBaseURL, model),
 		cacheMaxSize:   500, // Limit cache to 500 entries
 		modelAvailable: make(map[string]bool),
+		done:           make(chan struct{}),
 	}
 
 	// Set cache path
@@ -108,6 +112,23 @@ func New() *Manager {
 	go manager.periodicCacheSaver()
 
 	return manager
+}
+
+
+// Close stops background goroutines and flushes the cache.
+func (m *Manager) Close() {
+	close(m.done)
+	m.cacheMutex.RLock()
+	needsSave := m.cacheDirty
+	m.cacheMutex.RUnlock()
+	if needsSave {
+		m.cacheMutex.Lock()
+		if m.cacheDirty {
+			m.saveCache()
+			m.cacheDirty = false
+		}
+		m.cacheMutex.Unlock()
+	}
 }
 
 // ParseTask converts natural language to structured task using AI
@@ -1232,23 +1253,29 @@ func (m *Manager) loadCache() {
 	m.cacheDirty = false
 }
 
-// periodicCacheSaver saves cache to disk every 5 minutes
+// periodicCacheSaver saves cache to disk every 5 minutes.
+// It exits when the done channel is closed (via Close()).
 func (m *Manager) periodicCacheSaver() {
 	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
 
-	for range ticker.C {
-		m.cacheMutex.RLock()
-		needsSave := m.cacheDirty
-		m.cacheMutex.RUnlock()
+	for {
+		select {
+		case <-m.done:
+			return
+		case <-ticker.C:
+			m.cacheMutex.RLock()
+			needsSave := m.cacheDirty
+			m.cacheMutex.RUnlock()
 
-		if needsSave {
-			m.cacheMutex.Lock()
-			if m.cacheDirty {
-				m.saveCache()
-				m.cacheDirty = false
+			if needsSave {
+				m.cacheMutex.Lock()
+				if m.cacheDirty {
+					m.saveCache()
+					m.cacheDirty = false
+				}
+				m.cacheMutex.Unlock()
 			}
-			m.cacheMutex.Unlock()
 		}
 	}
 }

@@ -105,7 +105,7 @@ func (om *OllamaManager) IsModelAvailable(modelName string) bool {
 
 	// Simple check if model name appears in output
 	outputStr := string(output)
-	return len(outputStr) > 0 && contains(outputStr, modelName)
+	return len(outputStr) > 0 && strings.Contains(outputStr, modelName)
 }
 
 // PullModel downloads a model
@@ -128,7 +128,3 @@ func (om *OllamaManager) PullModel(modelName string) error {
 	return nil
 }
 
-// contains checks if a string contains a substring (helper function)
-func contains(s, substr string) bool {
-	return strings.Contains(s, substr)
-}

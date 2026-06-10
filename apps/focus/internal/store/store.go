@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/kyanite/focus/pkg/models"
 )
@@ -12,6 +13,7 @@ import (
 // Store handles persistence of tasks
 type Store struct {
 	filePath string
+	mu       sync.Mutex
 }
 
 // New creates a new store instance
@@ -58,7 +60,9 @@ func (s *Store) Load() ([]models.Task, error) {
 
 // Save persists tasks to storage
 func (s *Store) Save(tasks []models.Task) error {
-	// Ensure the directory exists
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	dir := filepath.Dir(s.filePath)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
