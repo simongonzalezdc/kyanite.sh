@@ -28,7 +28,7 @@ type SplashModel struct {
 func NewSplashModel() *SplashModel {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(theme.GetManager().Current().Primary)
+	s.Style = lipgloss.Style{}.Foreground(theme.GetManager().Current().Primary)
 
 	return &SplashModel{
 		spinner:      s,
@@ -92,7 +92,7 @@ func (m *SplashModel) Update(msg tea.Msg) tea.Cmd {
 // View renders the splash screen
 func (m *SplashModel) View() string {
 	t := theme.GetManager().Current()
-	titleStyle := lipgloss.NewStyle().
+	titleStyle := lipgloss.Style{}.
 		Foreground(t.Primary).
 		Bold(true).
 		Align(lipgloss.Center).

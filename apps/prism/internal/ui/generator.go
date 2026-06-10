@@ -1,11 +1,14 @@
 package ui
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/design"
+	appai "github.com/kyanite/prism/internal/ai"
 	"github.com/kyanite/prism/internal/clipboard"
 	"github.com/kyanite/prism/internal/color"
 	"github.com/kyanite/prism/internal/export"
@@ -26,6 +29,9 @@ type GeneratorModel struct {
 	status           string
 	exportMode       bool
 	selectedExport   int
+	aiClient    *appai.Client
+	aiInputMode bool
+	aiInputText string
 	exportFormats    []string
 }
 
@@ -38,6 +44,7 @@ func NewGeneratorModel(tm *theme.Manager) GeneratorModel {
 		selectedRule:   0,
 		rules:          palette.AllRules(),
 		exportFormats:  []string{"JSON", "CSS Variables", "TOML", "Kyanite Theme"},
+		aiClient:       appai.NewClient(),
 	}
 }
 
@@ -58,7 +65,23 @@ func (m GeneratorModel) Update(msg tea.Msg) (GeneratorModel, tea.Cmd) {
 			m.err = ""
 		}
 		return m, nil
+	case AIPaletteGeneratedMsg:
+		if msg.Err != "" {
+			m.err = msg.Err
+			m.status = ""
+		} else {
+			m.generatedPalette = msg.Palette
+			m.err = ""
+			m.status = "✓ AI palette generated"
+		}
+		m.aiInputMode = false
+		return m, nil
 	case tea.KeyMsg:
+		// AI input mode captures text until Enter/Escape
+		if m.aiInputMode {
+			return m.handleAIInput(msg.String())
+		}
+
 		if m.exportMode {
 			return m.handleExportMode(msg.String())
 		}
@@ -76,6 +99,12 @@ func (m GeneratorModel) Update(msg tea.Msg) (GeneratorModel, tea.Cmd) {
 			m.status = ""
 		case "enter", " ":
 			return m, m.generate()
+		case "p":
+			// Enter AI palette input mode
+			m.aiInputMode = true
+			m.aiInputText = ""
+			m.status = ""
+			m.err = ""
 		case "c":
 			if m.generatedPalette != nil {
 				m.copyPalette()
@@ -214,9 +243,9 @@ func (m GeneratorModel) View() string {
 		b.WriteString("\n")
 
 		for i, c := range m.generatedPalette.Colors {
-			swatch := lipgloss.NewStyle().
+			swatch := lipgloss.Style{}.
 				Background(lipgloss.Color(c.Hex)).
-				Padding(0, 2).
+				Padding(design.SpacingNone, design.SpacingS).
 				Render("██")
 
 			line := fmt.Sprintf("%d. %s %s", i+1, swatch, c.Hex)
@@ -226,6 +255,14 @@ func (m GeneratorModel) View() string {
 		b.WriteString("\n")
 	}
 
+	// AI input prompt
+	if m.aiInputMode {
+		b.WriteString(styles.Secondary.Render("AI Palette — describe your palette:"))
+		b.WriteString("\n")
+		prompt := fmt.Sprintf("> %s█", m.aiInputText)
+		b.WriteString(styles.Primary.Render(prompt))
+		b.WriteString("\n\n")
+	}
 	// Export mode menu
 	if m.exportMode {
 		b.WriteString(styles.Secondary.Render("Select Export Format:"))
@@ -258,12 +295,14 @@ func (m GeneratorModel) View() string {
 
 	// Help
 	var help string
-	if m.exportMode {
+	if m.aiInputMode {
+		help = styles.Muted.Render("Type description, Enter: Generate • Esc: Cancel")
+	} else if m.exportMode {
 		help = styles.Muted.Render("↑/↓: Select Format • Enter: Export • Esc: Cancel")
 	} else if m.generatedPalette != nil {
-		help = styles.Muted.Render("↑/↓: Select • Enter: Generate • C: Copy • S: Save • E: Export • Esc: Menu")
+		help = styles.Muted.Render("↑/↓: Select • Enter: Generate • P: AI Palette • C: Copy • S: Save • E: Export • Esc: Menu")
 	} else {
-		help = styles.Muted.Render("↑/↓: Select Rule • Enter: Generate • Esc: Menu")
+		help = styles.Muted.Render("↑/↓: Select Rule • Enter: Generate • P: AI Palette • Esc: Menu")
 	}
 	b.WriteString(help)
 
@@ -278,6 +317,7 @@ type PaletteGeneratedMsg struct {
 	Palette *palette.Palette
 	Err     string
 }
+
 // generate generates a palette
 func (m GeneratorModel) generate() tea.Cmd {
 	return func() tea.Msg {
@@ -292,5 +332,75 @@ func (m GeneratorModel) generate() tea.Cmd {
 		}
 
 		return PaletteGeneratedMsg{Palette: &pal}
+	}
+}
+
+// AIPaletteGeneratedMsg carries the result of an AI palette generation.
+type AIPaletteGeneratedMsg struct {
+	Palette *palette.Palette
+	Err     string
+}
+
+// handleAIInput handles key events while in AI description input mode.
+func (m GeneratorModel) handleAIInput(key string) (GeneratorModel, tea.Cmd) {
+	switch key {
+	case "enter":
+		if strings.TrimSpace(m.aiInputText) == "" {
+			m.aiInputMode = false
+			return m, nil
+		}
+		m.status = "Generating AI palette…"
+		return m, m.generateWithAI(m.aiInputText)
+	case "esc":
+		m.aiInputMode = false
+		m.aiInputText = ""
+		m.status = ""
+	case "backspace":
+		if len(m.aiInputText) > 0 {
+			m.aiInputText = m.aiInputText[:len(m.aiInputText)-1]
+		}
+	default:
+		// Only accept printable characters (single rune keys from bubbletea)
+		if len(key) == 1 {
+			m.aiInputText += key
+		}
+	}
+	return m, nil
+}
+
+// generateWithAI sends a description to the AI client and returns a palette.
+func (m GeneratorModel) generateWithAI(description string) tea.Cmd {
+	return func() tea.Msg {
+		if m.aiClient == nil {
+			return AIPaletteGeneratedMsg{Err: "AI not available"}
+		}
+
+		colors, err := m.aiClient.GeneratePalette(context.Background(), description)
+		if err != nil {
+			return AIPaletteGeneratedMsg{Err: err.Error()}
+		}
+
+		parsedColors := make([]color.Color, 0, len(colors))
+		for _, hex := range colors {
+			c, parseErr := color.ParseHex(hex)
+			if parseErr != nil {
+				continue
+			}
+			parsedColors = append(parsedColors, c)
+		}
+
+		if len(parsedColors) == 0 {
+			return AIPaletteGeneratedMsg{Err: "AI returned no valid colors"}
+		}
+
+		baseColor := parsedColors[0]
+		pal := palette.Palette{
+			Name:        "AI: " + description,
+			Colors:      parsedColors,
+			HarmonyRule: "ai-generated",
+			BaseColor:   baseColor,
+		}
+
+		return AIPaletteGeneratedMsg{Palette: &pal}
 	}
 }

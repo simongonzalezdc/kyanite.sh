@@ -6,11 +6,25 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/design"
 	"github.com/kyanite/prism/internal/clipboard"
 	"github.com/kyanite/prism/internal/color"
 	"github.com/kyanite/prism/internal/theme"
-	"github.com/kyanite/prism/internal/wcag"
 )
+
+// ContrastResult holds the result of a WCAG contrast check.
+type ContrastResult struct {
+	Ratio     float64
+	Level     string
+	PassedAA  bool
+	PassedAAA bool
+}
+
+// ContrastResultMsg carries the result of a contrast check back to Update.
+type ContrastResultMsg struct {
+	Result *ContrastResult
+	Err    string
+}
 
 // CheckerModel represents the WCAG accessibility checker screen
 type CheckerModel struct {
@@ -18,7 +32,7 @@ type CheckerModel struct {
 	styles       Styles
 	foreground   string
 	background   string
-	result       *wcag.ContrastResult
+	result       *ContrastResult
 	err          string
 	status       string
 }
@@ -91,15 +105,15 @@ func (m CheckerModel) View() string {
 	b.WriteString(styles.Primary.Render("Colors to Check:"))
 	b.WriteString("\n")
 
-	fgSwatch := lipgloss.NewStyle().
+	fgSwatch := lipgloss.Style{}.
 		Background(lipgloss.Color(m.foreground)).
-		Padding(0, 2).
+		Padding(design.SpacingNone, design.SpacingS).
 		Render("██")
 	fmt.Fprintf(&b, "Foreground: %s %s\n", fgSwatch, m.foreground)
 
-	bgSwatch := lipgloss.NewStyle().
+	bgSwatch := lipgloss.Style{}.
 		Background(lipgloss.Color(m.background)).
-		Padding(0, 2).
+		Padding(design.SpacingNone, design.SpacingS).
 		Render("██")
 	fmt.Fprintf(&b, "Background: %s %s\n", bgSwatch, m.background)
 
@@ -138,10 +152,10 @@ func (m CheckerModel) View() string {
 		b.WriteString(styles.Secondary.Render("Sample:"))
 		b.WriteString("\n")
 
-		sample := lipgloss.NewStyle().
+		sample := lipgloss.Style{}.
 			Foreground(lipgloss.Color(m.foreground)).
 			Background(lipgloss.Color(m.background)).
-			Padding(1, 2).
+			Padding(design.SpacingXS, design.SpacingS).
 			Render("The quick brown fox jumps over the lazy dog")
 		b.WriteString(sample)
 		b.WriteString("\n\n")
@@ -174,12 +188,7 @@ func (m CheckerModel) View() string {
 	return lipgloss.Place(ScreenWidth, ScreenHeight, lipgloss.Center, lipgloss.Center, content)
 }
 
-// ContrastResultMsg carries the result of a contrast check back to Update.
-type ContrastResultMsg struct {
-	Result *wcag.ContrastResult
-	Err    string
-}
-// check calculates contrast
+// check calculates contrast using the design module
 func (m CheckerModel) check() tea.Cmd {
 	return func() tea.Msg {
 		fg, err := color.ParseHex(m.foreground)
@@ -192,7 +201,24 @@ func (m CheckerModel) check() tea.Cmd {
 			return ContrastResultMsg{Err: "Invalid background color"}
 		}
 
-		result := wcag.Validate(fg, bg)
+		ratio, err := design.ContrastRatio(fg.Hex, bg.Hex)
+		if err != nil {
+			return ContrastResultMsg{Err: "Contrast calculation failed"}
+		}
+
+		passedAA := ratio >= design.ContrastRatioAA
+		passedAAA := ratio >= design.ContrastRatioAAA
+
+		var level string
+		if passedAAA {
+			level = "AAA"
+		} else if passedAA {
+			level = "AA"
+		} else {
+			level = "FAIL"
+		}
+
+		result := ContrastResult{Ratio: ratio, Level: level, PassedAA: passedAA, PassedAAA: passedAAA}
 		return ContrastResultMsg{Result: &result}
 	}
 }

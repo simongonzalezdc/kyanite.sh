@@ -13,12 +13,14 @@ A unified suite of terminal-first creative tools built with Go and the Charm sta
 
 ## Prerequisites
 
-- Go 1.25.5+
+- Go 1.26.0+
+- CGO (for noise — whisper.cpp, malgo, sqlite3)
+- whisper.cpp (for STT — optional, apps work without it)
 
 ## Quick Start
 
 ```bash
-# Build all apps
+# Build all apps + launcher
 make build
 
 # Run a specific app
@@ -27,12 +29,33 @@ go run ./apps/noise/cmd/noise
 go run ./apps/syntax/cmd/syntax
 go run ./apps/prism/cmd/prism
 
+# Run the desktop launcher
+go run ./cmd/kyanite
+
 # Run all tests
 make test
 
 # Lint
 make lint
 ```
+
+## AI Features
+
+All four apps share a unified inference brain (`pkg/ai/`) that provides:
+
+- **LLM**: Ollama on the NUCBox inference server (gemma4:12b on AMD ROCm GPU)
+- **STT**: Local whisper.cpp (whisper-large-v3-turbo on Metal/CPU)
+- **Memory**: PostgreSQL on NUCBox (conversation history, per-app context)
+
+Configuration via environment variables:
+
+```bash
+export KYANITE_OLLAMA_URL=http://nucbox:11434  # Ollama endpoint
+export KYANITE_MODEL=gemma4:12b                # LLM model
+export KYANITE_WHISPER_MODEL=~/.local/share/.../ggml-large-v3-turbo.bin  # STT model
+```
+
+All apps work fully offline when the inference server is unreachable.
 
 ## Project Structure
 
@@ -44,9 +67,13 @@ kyanite.sh/
     noise/             # github.com/kyanite/noise
     syntax/            # github.com/kyanite/syntax
     prism/             # github.com/kyanite/prism
-  tools/               # Shared release and lint tooling
+  pkg/
+    design/            # github.com/kyanite/design (themes, tokens, WCAG, icons)
+    ai/                # github.com/kyanite/ai (unified inference brain)
+  cmd/
+    kyanite/           # Desktop launcher TUI
+  desktop/             # macOS .app bundle + Linux .desktop entry
   .goreleaser.yaml     # Multi-binary release config
-```
 
 ## Development
 

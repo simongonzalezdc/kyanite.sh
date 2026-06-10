@@ -46,30 +46,30 @@ func NewBPMTapperModel() *bpmTapperModel {
 		maxHistory: 8,
 		tapHistory: make([]bool, 8),
 
-		containerStyle: lipgloss.NewStyle().
+		containerStyle: lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Accent).
 			Background(t.Background).
 			Padding(1, 2),
 
-		headerStyle: lipgloss.NewStyle().
+		headerStyle: lipgloss.Style{}.
 			Bold(true).
 			Foreground(t.Accent).
 			Align(lipgloss.Center).
 			MarginBottom(1),
 
-		bpmStyle: lipgloss.NewStyle().
+		bpmStyle: lipgloss.Style{}.
 			Foreground(t.Primary).
 			Bold(true).
 			Align(lipgloss.Center).
 			MarginBottom(1),
 
-		tapStyle: lipgloss.NewStyle().
+		tapStyle: lipgloss.Style{}.
 			Foreground(t.Success).
 			Align(lipgloss.Center).
 			MarginBottom(1),
 
-		instructionStyle: lipgloss.NewStyle().
+		instructionStyle: lipgloss.Style{}.
 			Foreground(t.Secondary).
 			Align(lipgloss.Center).
 			MarginTop(1),

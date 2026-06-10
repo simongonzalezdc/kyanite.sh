@@ -107,35 +107,35 @@ func NewAudioModel() *AudioModel {
 	}
 
 	// Initialize styles with theme
-	model.containerStyle = lipgloss.NewStyle().
+	model.containerStyle = lipgloss.Style{}.
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Secondary)
-	model.headerStyle = lipgloss.NewStyle().
+	model.headerStyle = lipgloss.Style{}.
 		Bold(true).
 		Foreground(t.Primary).
 		Padding(0, 1)
-	model.sectionStyle = lipgloss.NewStyle().
+	model.sectionStyle = lipgloss.Style{}.
 		Bold(true).
 		Foreground(t.Secondary).
 		Padding(0, 1)
-	model.buttonStyle = lipgloss.NewStyle().
+	model.buttonStyle = lipgloss.Style{}.
 		Foreground(t.Text).
 		Background(t.Background).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Secondary).
 		Padding(0, 1)
-	model.activeButtonStyle = lipgloss.NewStyle().
+	model.activeButtonStyle = lipgloss.Style{}.
 		Foreground(t.Background).
 		Background(t.Primary).
 		Bold(true).
 		Padding(0, 1)
-	model.statusStyle = lipgloss.NewStyle().
+	model.statusStyle = lipgloss.Style{}.
 		Foreground(t.Text).
 		Background(t.Background).
-		Border(lipgloss.NormalBorder()).
+		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Secondary).
 		Padding(0, 1)
-	model.helpStyle = lipgloss.NewStyle().
+	model.helpStyle = lipgloss.Style{}.
 		Foreground(t.Text).
 		Background(t.Background).
 		Border(lipgloss.RoundedBorder()).

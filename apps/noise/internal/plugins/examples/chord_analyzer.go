@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kyanite/design/icons"
 	"github.com/kyanite/noise/internal/plugins"
 )
 
@@ -190,7 +191,7 @@ func (p *ChordAnalyzerPlugin) GetEditorTool() *plugins.EditorTool {
 		ID:          "chord_analyzer",
 		Name:        "Analyze Chords",
 		Description: "Analyze chords and provide theory insights",
-		Icon:        "â™ª",
+		Icon:        icons.GetIcon("music"),
 		Handler: func(content string) (string, error) {
 			analysis, err := p.AnalyzeChords(content)
 			if err != nil {

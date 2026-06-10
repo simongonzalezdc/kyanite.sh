@@ -364,7 +364,7 @@ func (m *Model) getTaskStyle(index int, task models.Task) string {
 			Background(styles.DarkVoid).
 			Bold(true).
 			Padding(0, 1).
-			Border(lipgloss.NormalBorder()).
+			Border(lipgloss.RoundedBorder()).
 			BorderForeground(styles.SynthwaveCyan)
 	} else {
 		prefix = "  "

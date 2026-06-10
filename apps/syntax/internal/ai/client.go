@@ -1,3 +1,4 @@
+// Deprecated: Use brain_client.go with pkg/ai instead.
 package ai
 
 import (

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"github.com/kyanite/focus/pkg/styles"
 	"fmt"
 	"strings"
 
@@ -93,7 +94,7 @@ func simpleInteractiveHandler(cmd *cobra.Command, args []string) {
 
 	// Show success message
 	successStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00FF66")).
+		Foreground(styles.GetSuccess()).
 		Bold(true).
 		Render("✅ Task created successfully!")
 

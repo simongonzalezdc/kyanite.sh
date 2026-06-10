@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/focus/pkg/styles"
 )
 
 // GlowStyler provides enhanced styling using Glow and Lip Gloss
@@ -51,16 +52,16 @@ func (gs *GlowStyler) RenderTaskWithGlow(id, description, status, priority strin
 	// Create enhanced task styling
 	taskStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#00FFF0")).
+		BorderForeground(styles.GetAccent()).
 		Padding(0, 1).
 		MarginBottom(1)
 
 	content := fmt.Sprintf("%s %s %s | %s | %s",
 		lipgloss.NewStyle().Foreground(lipgloss.Color(statusColor)).Render(statusIcon),
 		lipgloss.NewStyle().Foreground(lipgloss.Color(priorityColor)).Render(priorityIcon),
-		lipgloss.NewStyle().Foreground(lipgloss.Color("#FF71CE")).Bold(true).Render(fmt.Sprintf("Task %d", index)),
-		lipgloss.NewStyle().Foreground(lipgloss.Color("#00FFF0")).Render(id),
-		lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")).Italic(true).Render(description),
+		lipgloss.NewStyle().Foreground(styles.GetAccent()).Bold(true).Render(fmt.Sprintf("Task %d", index)),
+		lipgloss.NewStyle().Foreground(styles.GetAccent()).Render(id),
+		lipgloss.NewStyle().Foreground(styles.GetForeground()).Italic(true).Render(description),
 	)
 
 	return taskStyle.Render(content)
@@ -70,20 +71,20 @@ func (gs *GlowStyler) RenderTaskWithGlow(id, description, status, priority strin
 func (gs *GlowStyler) RenderHeaderWithGlow(title, subtitle string) string {
 	// Create enhanced header styling
 	headerStyle := lipgloss.NewStyle().
-		Border(lipgloss.DoubleBorder()).
-		BorderForeground(lipgloss.Color("#FF71CE")).
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(styles.GetAccent()).
 		Padding(1, 2).
 		MarginBottom(1)
 
 	// Title styling
 	titleStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FF71CE")).
+		Foreground(styles.GetAccent()).
 		Bold(true).
 		Render(title)
 
 	// Subtitle styling
 	subtitleStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00FFF0")).
+		Foreground(styles.GetAccent()).
 		Render(subtitle)
 
 	content := fmt.Sprintf("%s\n%s", titleStyle, subtitleStyle)
@@ -100,8 +101,8 @@ func (gs *GlowStyler) RenderSectionWithGlow(title string, content string, accent
 
 	// Content styling
 	contentStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#2D3748")). // Dark text for light theme
-		Background(lipgloss.Color("#F7FAFC")). // Light panel background
+		Foreground(styles.GetForeground()). // Dark text
+		Background(styles.GetPanel()). // Panel background
 		Padding(1, 2).
 		Width(80).
 		Render(content)
@@ -114,8 +115,8 @@ func (gs *GlowStyler) RenderSectionWithGlow(title string, content string, accent
 func (gs *GlowStyler) RenderSuccessWithGlow(message string) string {
 	successStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#00FF66")).
-		Foreground(lipgloss.Color("#00FF66")).
+		BorderForeground(styles.GetSuccess()).
+		Foreground(styles.GetSuccess()).
 		Bold(true).
 		Padding(0, 2).
 		MarginTop(1)
@@ -127,8 +128,8 @@ func (gs *GlowStyler) RenderSuccessWithGlow(message string) string {
 func (gs *GlowStyler) RenderErrorWithGlow(message string) string {
 	errorStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#FF0040")).
-		Foreground(lipgloss.Color("#FF0040")).
+		BorderForeground(styles.GetError()).
+		Foreground(styles.GetError()).
 		Bold(true).
 		Padding(0, 2).
 		MarginTop(1)
@@ -140,8 +141,8 @@ func (gs *GlowStyler) RenderErrorWithGlow(message string) string {
 func (gs *GlowStyler) RenderInfoWithGlow(message string) string {
 	infoStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#00FFF0")).
-		Foreground(lipgloss.Color("#00FFF0")).
+		BorderForeground(styles.GetAccent()).
+		Foreground(styles.GetAccent()).
 		Padding(0, 2).
 		MarginTop(1)
 
@@ -161,26 +162,26 @@ func (gs *GlowStyler) RenderProgressBarWithGlow(current, total int, label string
 	// Filled portion
 	filled := strings.Repeat("█", filledWidth)
 	progressBar.WriteString(lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00FF66")).
+		Foreground(styles.GetSuccess()).
 		Render(filled))
 
 	// Empty portion
 	empty := strings.Repeat("░", barWidth-filledWidth)
 	progressBar.WriteString(lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#CBD5E0")). // Light grey for light theme instead of #808080
+		Foreground(styles.GetBorder()). // Grey for empty portion
 		Render(empty))
 
 	progressBar.WriteString("]")
 
 	// Progress text
 	progressText := fmt.Sprintf("%s %d/%d (%.1f%%)",
-		lipgloss.NewStyle().Foreground(lipgloss.Color("#FF71CE")).Render(label),
+		lipgloss.NewStyle().Foreground(styles.GetAccent()).Render(label),
 		current, total, percentage*100)
 
 	// Combine with styling
 	barStyle := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("#00FFF0")).
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(styles.GetAccent()).
 		Padding(0, 1).
 		MarginTop(1)
 
@@ -192,7 +193,7 @@ func (gs *GlowStyler) RenderProgressBarWithGlow(current, total int, label string
 func (gs *GlowStyler) RenderSeparatorWithGlow(char string) string {
 	separator := strings.Repeat(char, 50)
 	sepStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00FFF0")).
+		Foreground(styles.GetAccent()).
 		Bold(true)
 	return sepStyle.Render(separator)
 }

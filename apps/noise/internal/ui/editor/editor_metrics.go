@@ -159,7 +159,7 @@ func (m *EditorMetrics) RenderFallbackStatusBar(state StateManagerInterface, sho
 	// Get current theme
 	t := theme.GetManager().Current()
 
-	statusStyle := lipgloss.NewStyle().
+	statusStyle := lipgloss.Style{}.
 		Foreground(t.Text).
 		Background(t.Background).
 		Padding(0, 1).

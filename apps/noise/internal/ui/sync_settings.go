@@ -58,32 +58,32 @@ func NewSyncSettingsModel(syncServer *sync.SyncServer, cfg *config.SyncConfig) *
 		syncServer:   syncServer,
 		config:       cfg,
 		selectedItem: 0,
-		titleStyle: lipgloss.NewStyle().
+		titleStyle: lipgloss.Style{}.
 			Bold(true).
 			Foreground(t.Primary).
 			MarginBottom(1),
-		itemStyle: lipgloss.NewStyle().
+		itemStyle: lipgloss.Style{}.
 			Foreground(t.Text).
 			PaddingLeft(2),
-		selectedStyle: lipgloss.NewStyle().
+		selectedStyle: lipgloss.Style{}.
 			Foreground(t.Background).
 			Background(t.Primary).
 			Bold(true).
 			PaddingLeft(2),
-		descriptionStyle: lipgloss.NewStyle().
+		descriptionStyle: lipgloss.Style{}.
 			Foreground(t.Secondary).
 			PaddingLeft(4),
-		codeStyle: lipgloss.NewStyle().
+		codeStyle: lipgloss.Style{}.
 			Foreground(t.Accent).
 			Bold(true).
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Secondary).
 			Padding(0, 2),
-		urlStyle: lipgloss.NewStyle().
+		urlStyle: lipgloss.Style{}.
 			Foreground(t.Primary),
-		errorStyle: lipgloss.NewStyle().
+		errorStyle: lipgloss.Style{}.
 			Foreground(t.Error),
-		successStyle: lipgloss.NewStyle().
+		successStyle: lipgloss.Style{}.
 			Foreground(t.Success),
 	}
 

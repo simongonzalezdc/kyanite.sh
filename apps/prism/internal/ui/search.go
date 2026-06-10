@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/design"
 	"github.com/kyanite/prism/internal/clipboard"
 	"github.com/kyanite/prism/internal/color"
 	"github.com/kyanite/prism/internal/theme"
@@ -120,9 +121,9 @@ func (m SearchModel) View() string {
 				cursor = "▸ "
 			}
 
-			swatch := lipgloss.NewStyle().
+			swatch := lipgloss.Style{}.
 				Background(lipgloss.Color(result.Hex)).
-				Padding(0, 2).
+				Padding(design.SpacingNone, design.SpacingS).
 				Render("██")
 
 			line := fmt.Sprintf("%s%s %s - %s", cursor, swatch, result.Name, result.Hex)
@@ -171,6 +172,7 @@ func (m SearchModel) View() string {
 type SearchResultsMsg struct {
 	Results []color.NamedColor
 }
+
 // search performs the color search
 func (m SearchModel) search() tea.Cmd {
 	query := m.textInput.Value()

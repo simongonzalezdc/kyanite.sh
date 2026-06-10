@@ -326,7 +326,7 @@ func (dm *DashboardModel) View() string {
 	}
 
 	// Constrain content to available height
-	contentStyle := lipgloss.NewStyle().
+	contentStyle := lipgloss.Style{}.
 		MaxHeight(contentHeight).
 		MaxWidth(dm.width)
 	content = contentStyle.Render(content)
@@ -336,7 +336,7 @@ func (dm *DashboardModel) View() string {
 
 	// CRITICAL: Constrain final output to exact terminal dimensions
 	// This prevents overflow that causes rendering artifacts
-	finalStyle := lipgloss.NewStyle().
+	finalStyle := lipgloss.Style{}.
 		Width(dm.width).
 		Height(dm.height).
 		MaxWidth(dm.width).
@@ -387,12 +387,12 @@ func (dm *DashboardModel) renderSimplifiedView() string {
 	panelHeight := dm.height - 6 // Leave room for header, footer, hint
 
 	// Apply constraints to panels
-	themeView := lipgloss.NewStyle().
+	themeView := lipgloss.Style{}.
 		MaxWidth(panelWidth).
 		MaxHeight(panelHeight).
 		Render(dm.themeManager.View())
 
-	actionsView := lipgloss.NewStyle().
+	actionsView := lipgloss.Style{}.
 		MaxWidth(panelWidth).
 		MaxHeight(panelHeight).
 		Render(dm.quickActions.View())
@@ -401,7 +401,7 @@ func (dm *DashboardModel) renderSimplifiedView() string {
 	topRow := lipgloss.JoinHorizontal(lipgloss.Top, themeView, actionsView)
 
 	// Add hint for expanding the view
-	expandHint := lipgloss.NewStyle().
+	expandHint := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Align(lipgloss.Center).
 		MaxWidth(dm.width).

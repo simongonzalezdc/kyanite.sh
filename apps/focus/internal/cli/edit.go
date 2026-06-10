@@ -241,7 +241,7 @@ func showEditError(message string) {
 		Background(styles.DarkVoid).
 		Bold(true).
 		Padding(1, 2).
-		Border(lipgloss.DoubleBorder()).
+		Border(lipgloss.RoundedBorder()).
 		BorderForeground(styles.SynthwaveRed).
 		Render(fmt.Sprintf("❌ EDIT FAILED\n\n%s", message))
 	fmt.Println(errorBox)

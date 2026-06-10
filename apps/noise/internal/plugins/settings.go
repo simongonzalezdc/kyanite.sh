@@ -124,14 +124,14 @@ func (m *PluginSettingsModel) renderEmptyState() string {
 	content := strings.Builder{}
 
 	t := theme.GetManager().Current()
-	titleStyle := lipgloss.NewStyle().
+	titleStyle := lipgloss.Style{}.
 		Foreground(t.Primary).
 		Bold(true).
 		Width(m.width)
 	title := titleStyle.Render("Plugin Manager")
 	content.WriteString(title + "\n\n")
 
-	emptyState := lipgloss.NewStyle().
+	emptyState := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Align(lipgloss.Center).
 		Width(m.width - 4).
@@ -148,7 +148,7 @@ func (m *PluginSettingsModel) renderPluginList() string {
 	content := strings.Builder{}
 
 	t := theme.GetManager().Current()
-	titleStyle := lipgloss.NewStyle().
+	titleStyle := lipgloss.Style{}.
 		Foreground(t.Primary).
 		Bold(true).
 		Width(m.width)
@@ -171,13 +171,13 @@ func (m *PluginSettingsModel) renderPluginList() string {
 		t := theme.GetManager().Current()
 		var style lipgloss.Style
 		if i == m.selectedPlugin {
-			style = lipgloss.NewStyle().
+			style = lipgloss.Style{}.
 				Background(t.Primary).
 				Foreground(t.Background).
 				Width(m.width-4).
 				Padding(0, 1)
 		} else {
-			style = lipgloss.NewStyle().
+			style = lipgloss.Style{}.
 				Foreground(t.Text).
 				Width(m.width-4).
 				Padding(0, 1)
@@ -190,7 +190,7 @@ func (m *PluginSettingsModel) renderPluginList() string {
 			statusColor = t.Success
 		}
 
-		statusStyled := lipgloss.NewStyle().Foreground(statusColor).Render(status)
+		statusStyled := lipgloss.Style{}.Foreground(statusColor).Render(status)
 
 		line := fmt.Sprintf("%s [%s] v%s",
 			plugin.Metadata().Name,
@@ -202,7 +202,7 @@ func (m *PluginSettingsModel) renderPluginList() string {
 
 	// Help text
 	t = theme.GetManager().Current()
-	help := lipgloss.NewStyle().
+	help := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Width(m.width).
 		Padding(1).
@@ -224,7 +224,7 @@ func (m *PluginSettingsModel) renderPluginDetails() string {
 	}
 
 	metadata := plugin.Metadata()
-	titleStyle := lipgloss.NewStyle().
+	titleStyle := lipgloss.Style{}.
 		Foreground(t.Primary).
 		Bold(true).
 		Width(m.width)
@@ -232,7 +232,7 @@ func (m *PluginSettingsModel) renderPluginDetails() string {
 	content.WriteString(title + "\n\n")
 
 	// Plugin information
-	info := lipgloss.NewStyle().
+	info := lipgloss.Style{}.
 		Foreground(t.Text).
 		Width(m.width - 4).
 		Padding(1).
@@ -259,7 +259,7 @@ Loaded:      %s
 	// Capabilities
 	if len(metadata.Capabilities) > 0 {
 		capabilities := strings.Join(m.formatCapabilities(metadata.Capabilities), ", ")
-		caps := lipgloss.NewStyle().
+		caps := lipgloss.Style{}.
 			Foreground(t.Text).
 			Width(m.width - 4).
 			Padding(1).
@@ -273,7 +273,7 @@ Loaded:      %s
 
 	// Help text
 	t = theme.GetManager().Current()
-	help := lipgloss.NewStyle().
+	help := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Width(m.width).
 		Padding(1).
@@ -295,7 +295,7 @@ func (m *PluginSettingsModel) renderPluginActions(plugin Plugin) string {
 		action = "Enable Plugin"
 	}
 
-	return lipgloss.NewStyle().
+	return lipgloss.Style{}.
 		Width(m.width - 4).
 		Padding(1).
 		Render(fmt.Sprintf("Actions: [%s]", action))

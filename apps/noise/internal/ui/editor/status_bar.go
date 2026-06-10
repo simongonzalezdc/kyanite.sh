@@ -117,44 +117,44 @@ func NewStatusBarModel() *StatusBarModel {
 	t := theme.GetManager().Current()
 
 	// Initialize styles
-	model.leftSectionStyle = lipgloss.NewStyle().
+	model.leftSectionStyle = lipgloss.Style{}.
 		Foreground(t.Text).
 		Background(t.Background).
 		Padding(0, 1)
 
-	model.centerSectionStyle = lipgloss.NewStyle().
+	model.centerSectionStyle = lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Background(t.Background).
 		Padding(0, 1)
 
-	model.rightSectionStyle = lipgloss.NewStyle().
+	model.rightSectionStyle = lipgloss.Style{}.
 		Foreground(t.Text).
 		Background(t.Background).
 		Padding(0, 1)
 
-	model.autoSaveSavingStyle = lipgloss.NewStyle().
+	model.autoSaveSavingStyle = lipgloss.Style{}.
 		Foreground(t.Accent).
 		Bold(true)
 
-	model.autoSaveSuccessStyle = lipgloss.NewStyle().
+	model.autoSaveSuccessStyle = lipgloss.Style{}.
 		Foreground(t.Success)
 
-	model.autoSaveErrorStyle = lipgloss.NewStyle().
+	model.autoSaveErrorStyle = lipgloss.Style{}.
 		Foreground(t.Error).
 		Bold(true)
 
-	model.autoSaveIdleStyle = lipgloss.NewStyle().
+	model.autoSaveIdleStyle = lipgloss.Style{}.
 		Foreground(t.Text)
 
-	model.modeIndicatorStyle = lipgloss.NewStyle().
+	model.modeIndicatorStyle = lipgloss.Style{}.
 		Foreground(t.Error).
 		Bold(true)
 
-	model.shortcutHintStyle = lipgloss.NewStyle().
+	model.shortcutHintStyle = lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Italic(true)
 
-	model.unsavedChangesStyle = lipgloss.NewStyle().
+	model.unsavedChangesStyle = lipgloss.Style{}.
 		Foreground(t.Accent).
 		Bold(true)
 
@@ -482,7 +482,7 @@ func (m *StatusBarModel) renderMinimalView() string {
 	content = m.centerSectionStyle.Render(content)
 
 	// Use lipgloss to properly constrain width (handles ANSI codes correctly)
-	constrainedStyle := lipgloss.NewStyle().
+	constrainedStyle := lipgloss.Style{}.
 		Width(m.width).
 		MaxWidth(m.width)
 	return constrainedStyle.Render(content)
@@ -499,7 +499,7 @@ func (m *StatusBarModel) renderCompactView() string {
 	fullContent := leftSection + "|" + centerSection + "|" + rightSection
 
 	// Use lipgloss to properly constrain width (handles ANSI codes correctly)
-	constrainedStyle := lipgloss.NewStyle().
+	constrainedStyle := lipgloss.Style{}.
 		Width(m.width).
 		MaxWidth(m.width)
 	return constrainedStyle.Render(fullContent)
@@ -535,7 +535,7 @@ func (m *StatusBarModel) renderFullView() string {
 	fullContent := leftSection.Content + leftSpacer + centerSection.Content + rightSpacer + rightSection.Content
 
 	// Use lipgloss to properly constrain width (handles ANSI codes correctly)
-	constrainedStyle := lipgloss.NewStyle().
+	constrainedStyle := lipgloss.Style{}.
 		Width(m.width).
 		MaxWidth(m.width)
 	return constrainedStyle.Render(fullContent)
@@ -708,22 +708,22 @@ func (m *StatusBarModel) getContentTypeStyle(contentType string) lipgloss.Style 
 	switch strings.ToLower(contentType) {
 	case "lyrics":
 		t := theme.GetManager().Current()
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(t.Success).
 			Bold(true)
 	case "patterns":
 		t := theme.GetManager().Current()
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(t.Accent).
 			Bold(true)
 	case "mixed":
 		t := theme.GetManager().Current()
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(t.Error).
 			Bold(true)
 	default:
 		t := theme.GetManager().Current()
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(t.Text).
 			Bold(true)
 	}
@@ -734,22 +734,22 @@ func (m *StatusBarModel) getCompactContentTypeStyle(contentType string) lipgloss
 	switch strings.ToLower(contentType) {
 	case "lyrics":
 		t := theme.GetManager().Current()
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(t.Success).
 			Bold(true)
 	case "patterns":
 		t := theme.GetManager().Current()
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(t.Accent).
 			Bold(true)
 	case "mixed":
 		t := theme.GetManager().Current()
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(t.Error).
 			Bold(true)
 	default:
 		t := theme.GetManager().Current()
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(t.Text)
 	}
 }
@@ -758,12 +758,12 @@ func (m *StatusBarModel) getCompactContentTypeStyle(contentType string) lipgloss
 func (m *StatusBarModel) getKnowledgeBaseStatusStyle(available bool) lipgloss.Style {
 	if available {
 		t := theme.GetManager().Current()
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(t.Success).
 			Bold(true)
 	} else {
 		t := theme.GetManager().Current()
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(t.Text).
 			Italic(true)
 	}

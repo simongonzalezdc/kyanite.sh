@@ -315,8 +315,8 @@ func TestChordAnalyzerPlugin_GetEditorTool(t *testing.T) {
 		t.Errorf("Expected tool name 'Analyze Chords', got '%s'", tool.Name)
 	}
 
-	if tool.Icon != "â™ª" {
-		t.Errorf("Expected tool icon 'â™ª', got '%s'", tool.Icon)
+	if tool.Icon != "♪" {
+		t.Errorf("Expected tool icon '♪', got '%s'", tool.Icon)
 	}
 
 	if tool.Handler == nil {

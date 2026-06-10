@@ -26,7 +26,7 @@ func NewAnimatedLoadingSpinner(message string) *AnimatedLoadingSpinner {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 	t := theme.GetManager().Current()
-	s.Style = lipgloss.NewStyle().Foreground(t.Primary)
+	s.Style = lipgloss.Style{}.Foreground(t.Primary)
 
 	return &AnimatedLoadingSpinner{
 		spinner:   s,
@@ -82,7 +82,7 @@ func (als *AnimatedLoadingSpinner) View() string {
 	t := theme.GetManager().Current()
 
 	// Create animated spinner style
-	spinnerStyle := lipgloss.NewStyle().
+	spinnerStyle := lipgloss.Style{}.
 		Foreground(t.Primary).
 		Align(lipgloss.Center).
 		Width(als.width).
@@ -212,15 +212,15 @@ func (asb *AnimatedStatusBar) View() string {
 
 	switch asb.status {
 	case StatusSuccess:
-		baseStyle = lipgloss.NewStyle().Foreground(t.Success)
+		baseStyle = lipgloss.Style{}.Foreground(t.Success)
 	case StatusError:
-		baseStyle = lipgloss.NewStyle().Foreground(t.Error)
+		baseStyle = lipgloss.Style{}.Foreground(t.Error)
 	case StatusWarning:
-		baseStyle = lipgloss.NewStyle().Foreground(t.Warning)
+		baseStyle = lipgloss.Style{}.Foreground(t.Warning)
 	case StatusLoading:
-		baseStyle = lipgloss.NewStyle().Foreground(t.Primary)
+		baseStyle = lipgloss.Style{}.Foreground(t.Primary)
 	default:
-		baseStyle = lipgloss.NewStyle().Foreground(t.Text)
+		baseStyle = lipgloss.Style{}.Foreground(t.Text)
 	}
 
 	// Apply animation effects
@@ -339,11 +339,11 @@ func (an *AnimatedNotification) View() string {
 	if slideProgress < 1.0 {
 		// Sliding in from top
 		marginTop := int((1 - slideProgress) * 5)
-		style = lipgloss.NewStyle().MarginTop(marginTop)
+		style = lipgloss.Style{}.MarginTop(marginTop)
 	} else if fadeProgress > 0 {
 		// Fading out
 		opacity := uint((1 - fadeProgress) * 255)
-		style = lipgloss.NewStyle().Foreground(lipgloss.Color(fmt.Sprintf("#%02x%02x%02x", opacity, opacity, opacity)))
+		style = lipgloss.Style{}.Foreground(lipgloss.Color(fmt.Sprintf("#%02x%02x%02x", opacity, opacity, opacity)))
 	}
 
 	// Style based on notification type

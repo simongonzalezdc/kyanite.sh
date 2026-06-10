@@ -7,6 +7,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/design"
 	"github.com/kyanite/prism/internal/clipboard"
 	"github.com/kyanite/prism/internal/color"
 	"github.com/kyanite/prism/internal/palette"
@@ -78,6 +79,7 @@ func (m WheelModel) Update(msg tea.Msg) (WheelModel, tea.Cmd) {
 // View renders the color wheel
 func (m WheelModel) View() string {
 	styles := NewStyles(m.themeManager.CurrentTheme())
+	t := styles.Theme
 
 	var b strings.Builder
 
@@ -103,10 +105,10 @@ func (m WheelModel) View() string {
 	b.WriteString(styles.Primary.Render("Current Color:"))
 	b.WriteString("\n")
 
-	swatch := lipgloss.NewStyle().
+	swatch := styles.ColorSwatch.
 		Background(lipgloss.Color(currentColor.Hex)).
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Padding(1, 4).
+		Foreground(t.Text).
+		Padding(design.SpacingXS, design.SpacingM).
 		Render("████")
 	b.WriteString(swatch)
 	fmt.Fprintf(&b, "  %s", currentColor.Hex)
@@ -156,8 +158,7 @@ func (m WheelModel) renderColorBar() string {
 		hue := float64(i) * 360.0 / float64(width)
 		c := color.NewFromHSL(hue, 100, 50)
 
-		style := lipgloss.NewStyle().
-			Background(lipgloss.Color(c.Hex))
+		swatchStyle := lipgloss.Style{}.Background(lipgloss.Color(c.Hex))
 
 		// Highlight current hue
 		char := "█"
@@ -165,7 +166,7 @@ func (m WheelModel) renderColorBar() string {
 			char = "▓"
 		}
 
-		bar.WriteString(style.Render(char))
+		bar.WriteString(swatchStyle.Render(char))
 	}
 
 	return bar.String()
@@ -173,9 +174,9 @@ func (m WheelModel) renderColorBar() string {
 
 // renderColorLine renders a color swatch with info
 func (m WheelModel) renderColorLine(label string, c color.Color) string {
-	swatch := lipgloss.NewStyle().
+	swatch := lipgloss.Style{}.
 		Background(lipgloss.Color(c.Hex)).
-		Padding(0, 2).
+		Padding(design.SpacingNone, design.SpacingS).
 		Render("██")
 
 	return fmt.Sprintf("%s %s %s\n", swatch, c.Hex, label)

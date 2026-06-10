@@ -1,6 +1,7 @@
 package dashboard
 
 import (
+	"github.com/kyanite/design/icons"
 	"github.com/kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -30,8 +31,8 @@ func NewQuickActionsModel() *QuickActionsModel {
 	actions := []Action{
 		{ID: "new", Title: "New Song", Description: "Create a new song", Icon: "[+]", Shortcut: "1", Animated: true},
 		{ID: "open", Title: "Open Project", Description: "Browse existing projects", Icon: "[O]", Shortcut: "2", Animated: true},
-		{ID: "ai", Title: "AI Brainstorm", Description: "Get AI assistance", Icon: "[AI]", Shortcut: "3", Animated: true},
-		{ID: "export", Title: "Export", Description: "Export your work", Icon: "[E]", Shortcut: "4", Animated: true},
+		{ID: "ai", Title: "AI Brainstorm", Description: "Get AI assistance", Icon: icons.GetIcon("ai"), Shortcut: "3", Animated: true},
+		{ID: "export", Title: "Export", Description: "Export your work", Icon: icons.GetIcon("export"), Shortcut: "4", Animated: true},
 		{ID: "theory", Title: "Theory Tools", Description: "Music theory reference", Icon: "[T]", Shortcut: "5", Animated: true},
 		{ID: "audio", Title: "Audio Tools", Description: "Metronome & playback", Icon: "[A]", Shortcut: "6", Animated: true},
 	}
@@ -247,13 +248,13 @@ func (m *QuickActionsModel) View() string {
 		rows = append(rows, lipgloss.JoinHorizontal(lipgloss.Left, row...))
 	}
 
-	title := lipgloss.NewStyle().
+	title := lipgloss.Style{}.
 		Foreground(t.Primary).
 		Bold(true).
 		Render("Quick Actions")
 
 	// Add mouse hint
-	mouseHint := lipgloss.NewStyle().
+	mouseHint := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Faint(true).
 		Render("Click to select")
@@ -265,7 +266,7 @@ func (m *QuickActionsModel) View() string {
 	)
 
 	// Use allocated panel dimensions directly
-	return lipgloss.NewStyle().
+	return lipgloss.Style{}.
 		Width(m.width-2).
 		MaxWidth(m.width-2).
 		MaxHeight(m.height-2).
@@ -285,7 +286,7 @@ func (m *QuickActionsModel) renderActionCard(action Action, selected, hovered bo
 	cardWidth := (m.width / cols) - 6
 
 	// Base card style
-	baseStyle := lipgloss.NewStyle().
+	baseStyle := lipgloss.Style{}.
 		Width(cardWidth).
 		Height(5).
 		Border(lipgloss.RoundedBorder()).
@@ -313,11 +314,11 @@ func (m *QuickActionsModel) renderActionCard(action Action, selected, hovered bo
 	}
 
 	content := lipgloss.JoinVertical(lipgloss.Left,
-		lipgloss.NewStyle().Bold(true).Render(action.Icon+" "+action.Title),
+		lipgloss.Style{}.Bold(true).Render(action.Icon+" "+action.Title),
 		"",
-		lipgloss.NewStyle().Faint(true).Render(action.Description),
+		lipgloss.Style{}.Faint(true).Render(action.Description),
 		"",
-		lipgloss.NewStyle().Align(lipgloss.Right).Render("["+action.Shortcut+"]"),
+		lipgloss.Style{}.Align(lipgloss.Right).Render("["+action.Shortcut+"]"),
 	)
 
 	return baseStyle.Render(content)

@@ -134,7 +134,7 @@ type RootModel struct {
 func NewRootModel(pluginManager *plugins.DefaultManager) *RootModel {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(theme.GetManager().Current().Primary)
+	s.Style = lipgloss.Style{}.Foreground(theme.GetManager().Current().Primary)
 
 	return &RootModel{
 		currentScreen:     screenSplash,
@@ -818,7 +818,7 @@ func (m *RootModel) View() string {
 	// CRITICAL: Constrain all output to terminal dimensions
 	// This prevents rendering artifacts from content overflow
 	if m.width > 0 && m.height > 0 {
-		constrainStyle := lipgloss.NewStyle().
+		constrainStyle := lipgloss.Style{}.
 			Width(m.width).
 			Height(m.height).
 			MaxWidth(m.width).
@@ -831,7 +831,7 @@ func (m *RootModel) View() string {
 		toastView := m.toast.View()
 		if toastView != "" {
 			// Position toasts at the top of the screen
-			toastStyle := lipgloss.NewStyle().
+			toastStyle := lipgloss.Style{}.
 				MarginTop(1).
 				Align(lipgloss.Right).
 				Width(m.width)
@@ -885,7 +885,7 @@ func (m *RootModel) renderSettings() string {
 
 // renderLoading renders the loading screen
 func (m *RootModel) renderLoading() string {
-	loadingStyle := lipgloss.NewStyle().
+	loadingStyle := lipgloss.Style{}.
 		Foreground(theme.GetManager().Current().Primary).
 		Bold(true).
 		Align(lipgloss.Center).
@@ -913,21 +913,21 @@ func (m *RootModel) renderDashboard() string {
 func (m *RootModel) renderQuitConfirmation() string {
 	t := theme.GetManager().Current()
 
-	dialogStyle := lipgloss.NewStyle().
+	dialogStyle := lipgloss.Style{}.
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Warning).
 		Background(t.Background).
 		Padding(1, 3).
 		Align(lipgloss.Center)
 
-	titleStyle := lipgloss.NewStyle().
+	titleStyle := lipgloss.Style{}.
 		Foreground(t.Warning).
 		Bold(true)
 
-	textStyle := lipgloss.NewStyle().
+	textStyle := lipgloss.Style{}.
 		Foreground(t.Text)
 
-	hintStyle := lipgloss.NewStyle().
+	hintStyle := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		MarginTop(1)
 

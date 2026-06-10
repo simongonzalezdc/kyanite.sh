@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/kyanite/design/icons"
 	"github.com/kyanite/noise/internal/logging"
 	"github.com/kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
@@ -60,37 +61,37 @@ func NewOnboardingModel() *OnboardingModel {
 		height:      24,
 		steps:       defaultOnboardingSteps(),
 
-		containerStyle: lipgloss.NewStyle().
+		containerStyle: lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Primary).
 			Padding(2, 4),
 
-		titleStyle: lipgloss.NewStyle().
+		titleStyle: lipgloss.Style{}.
 			Foreground(t.Primary).
 			Bold(true).
 			MarginBottom(1),
 
-		descriptionStyle: lipgloss.NewStyle().
+		descriptionStyle: lipgloss.Style{}.
 			Foreground(t.Text),
 
-		tipStyle: lipgloss.NewStyle().
+		tipStyle: lipgloss.Style{}.
 			Foreground(t.Accent).
 			MarginTop(1).
 			MarginLeft(2),
 
-		hintStyle: lipgloss.NewStyle().
+		hintStyle: lipgloss.Style{}.
 			Foreground(t.Secondary).
 			Italic(true).
 			MarginTop(2),
 
-		progressStyle: lipgloss.NewStyle().
+		progressStyle: lipgloss.Style{}.
 			Foreground(t.Secondary),
 
-		progressDotActive: lipgloss.NewStyle().
+		progressDotActive: lipgloss.Style{}.
 			Foreground(t.Primary).
 			Bold(true),
 
-		progressDotDone: lipgloss.NewStyle().
+		progressDotDone: lipgloss.Style{}.
 			Foreground(t.Success),
 	}
 
@@ -103,7 +104,7 @@ func defaultOnboardingSteps() []OnboardingStep {
 		{
 			Title:       "Welcome to noise.sh",
 			Description: "Your personal music production notebook.\nCapture ideas, write lyrics, and organize your creative workflow.",
-			Icon:        "♪",
+			Icon:        icons.GetIcon("music"),
 			Tips: []string{
 				"Press Tab to switch between panes",
 				"Press ? to see all keyboard shortcuts",
@@ -218,11 +219,11 @@ func (m *OnboardingModel) View() string {
 		}
 	}
 	progress := strings.Join(dots, " ")
-	content.WriteString(lipgloss.NewStyle().MarginBottom(2).Render(progress))
+	content.WriteString(lipgloss.Style{}.MarginBottom(2).Render(progress))
 	content.WriteString("\n\n")
 
 	// Icon and title
-	icon := lipgloss.NewStyle().
+	icon := lipgloss.Style{}.
 		Foreground(theme.GetManager().Current().Primary).
 		Bold(true).
 		Render(step.Icon)
@@ -320,37 +321,37 @@ func (m *OnboardingModel) SetDimensions(width, height int) {
 func (m *OnboardingModel) UpdateTheme() {
 	t := theme.GetManager().Current()
 
-	m.containerStyle = lipgloss.NewStyle().
+	m.containerStyle = lipgloss.Style{}.
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Primary).
 		Padding(2, 4)
 
-	m.titleStyle = lipgloss.NewStyle().
+	m.titleStyle = lipgloss.Style{}.
 		Foreground(t.Primary).
 		Bold(true).
 		MarginBottom(1)
 
-	m.descriptionStyle = lipgloss.NewStyle().
+	m.descriptionStyle = lipgloss.Style{}.
 		Foreground(t.Text)
 
-	m.tipStyle = lipgloss.NewStyle().
+	m.tipStyle = lipgloss.Style{}.
 		Foreground(t.Accent).
 		MarginTop(1).
 		MarginLeft(2)
 
-	m.hintStyle = lipgloss.NewStyle().
+	m.hintStyle = lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Italic(true).
 		MarginTop(2)
 
-	m.progressStyle = lipgloss.NewStyle().
+	m.progressStyle = lipgloss.Style{}.
 		Foreground(t.Secondary)
 
-	m.progressDotActive = lipgloss.NewStyle().
+	m.progressDotActive = lipgloss.Style{}.
 		Foreground(t.Primary).
 		Bold(true)
 
-	m.progressDotDone = lipgloss.NewStyle().
+	m.progressDotDone = lipgloss.Style{}.
 		Foreground(t.Success)
 }
 

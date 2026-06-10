@@ -124,7 +124,7 @@ func NewSplitPaneModel(database *db.DB, aiService *app.AIService) *SplitPaneMode
 		cancel:          cancel,
 		shortcutManager: NewShortcutManager(),
 		museAgent:       museAgent,
-		dividerStyle: lipgloss.NewStyle().
+		dividerStyle: lipgloss.Style{}.
 			Foreground(t.Secondary),
 		sketchLayout: NewSketchLayout(),
 		draftLayout:  NewDraftLayout(),
@@ -328,10 +328,10 @@ func (m *SplitPaneModel) renderDefaultLayout() string {
 
 	// Render panes
 	editorView := m.editorPane.View()
-	editorView = lipgloss.NewStyle().Width(leftWidth).Height(m.height).Render(editorView)
+	editorView = lipgloss.Style{}.Width(leftWidth).Height(m.height).Render(editorView)
 
 	previewView := m.previewPane.View()
-	previewView = lipgloss.NewStyle().Width(rightWidth).Height(m.height).Render(previewView)
+	previewView = lipgloss.Style{}.Width(rightWidth).Height(m.height).Render(previewView)
 
 	// Create divider
 	divider := m.dividerStyle.Render("|")

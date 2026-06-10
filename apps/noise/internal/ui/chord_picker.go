@@ -67,39 +67,39 @@ func NewChordPickerModel() *ChordPickerModel {
 		loaded:        false,
 		animationTime: time.Now(),
 
-		containerStyle: lipgloss.NewStyle().
+		containerStyle: lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Primary).
 			Background(t.Background).
 			Padding(1, 2),
 
-		headerStyle: lipgloss.NewStyle().
+		headerStyle: lipgloss.Style{}.
 			Bold(true).
 			Foreground(t.Primary).
 			Align(lipgloss.Center).
 			MarginBottom(1),
 
-		selectedStyle: lipgloss.NewStyle().
+		selectedStyle: lipgloss.Style{}.
 			Background(t.Primary).
 			Foreground(t.Background).
 			Bold(true).
 			Padding(0, 1),
 
-		normalStyle: lipgloss.NewStyle().
+		normalStyle: lipgloss.Style{}.
 			Foreground(t.Text).
 			Padding(0, 1),
 
-		moodStyle: lipgloss.NewStyle().
+		moodStyle: lipgloss.Style{}.
 			Foreground(t.Accent).
 			Bold(true).
 			Padding(0, 1),
 
-		descriptionStyle: lipgloss.NewStyle().
+		descriptionStyle: lipgloss.Style{}.
 			Foreground(t.Secondary).
 			Italic(true).
 			MarginLeft(2),
 
-		instructionStyle: lipgloss.NewStyle().
+		instructionStyle: lipgloss.Style{}.
 			Foreground(t.Text).
 			Align(lipgloss.Center).
 			MarginTop(1),

@@ -88,7 +88,7 @@ func (m *MainModel) renderNotesEditor() string {
 			Foreground(synthYellow).
 			Background(styles.GetBoxStyle().GetBackground()).
 			Padding(1).
-			BorderStyle(lipgloss.NormalBorder()).
+			BorderStyle(lipgloss.RoundedBorder()).
 			BorderForeground(synthBlue).
 			Width(70).
 			Render(currentNotes)
@@ -200,7 +200,7 @@ func (m *MainModel) renderSettingsView() string {
 			Foreground(synthCyan).
 			Background(styles.GetBoxStyle().GetBackground()).
 			Padding(0, 1).
-			BorderStyle(lipgloss.NormalBorder()).
+			BorderStyle(lipgloss.RoundedBorder()).
 			BorderForeground(synthBlue).
 			Render(setting))
 		b.WriteString("\n")

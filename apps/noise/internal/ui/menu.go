@@ -45,22 +45,22 @@ func NewMenuModel() *MenuModel {
 
 	// Create custom delegate with theme styling
 	delegate := list.NewDefaultDelegate()
-	delegate.Styles.SelectedTitle = lipgloss.NewStyle().
+	delegate.Styles.SelectedTitle = lipgloss.Style{}.
 		Foreground(t.Background).
 		Background(t.Primary).
 		Bold(true).
 		Padding(0, 1)
-	delegate.Styles.SelectedDesc = lipgloss.NewStyle().
+	delegate.Styles.SelectedDesc = lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Background(t.Primary).
 		Padding(0, 1)
-	delegate.Styles.DimmedTitle = lipgloss.NewStyle().
+	delegate.Styles.DimmedTitle = lipgloss.Style{}.
 		Foreground(t.Secondary)
-	delegate.Styles.DimmedDesc = lipgloss.NewStyle().
+	delegate.Styles.DimmedDesc = lipgloss.Style{}.
 		Foreground(t.Secondary)
-	delegate.Styles.NormalTitle = lipgloss.NewStyle().
+	delegate.Styles.NormalTitle = lipgloss.Style{}.
 		Foreground(t.Text)
-	delegate.Styles.NormalDesc = lipgloss.NewStyle().
+	delegate.Styles.NormalDesc = lipgloss.Style{}.
 		Foreground(t.Secondary)
 
 	l := list.New(items, delegate, 0, 0)
@@ -264,7 +264,7 @@ func titleGradient(text string, t theme.Theme) string {
 		if colorIdx >= colorCount {
 			colorIdx = colorCount - 1
 		}
-		style := lipgloss.NewStyle().Foreground(colors[colorIdx])
+		style := lipgloss.Style{}.Foreground(colors[colorIdx])
 		result += style.Render(string(char))
 	}
 

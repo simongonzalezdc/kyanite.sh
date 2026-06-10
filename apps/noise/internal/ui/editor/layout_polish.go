@@ -42,34 +42,34 @@ func (l *PolishLayout) Render(editorContent string, previewContent string, theor
 	critiqueWidth := l.width - editorWidth - previewWidth - theoryWidth - 3 // -3 for dividers
 
 	// Create editor pane (40% width) - NO border since editorContent already has one
-	editorStyle := lipgloss.NewStyle().
+	editorStyle := lipgloss.Style{}.
 		Width(editorWidth).
 		Height(l.height)
 
 	editorPane := editorStyle.Render(editorContent)
 
 	// Create preview pane (20% width) - NO border since previewContent already has one
-	previewStyle := lipgloss.NewStyle().
+	previewStyle := lipgloss.Style{}.
 		Width(previewWidth).
 		Height(l.height)
 
 	previewPane := previewStyle.Render(previewContent)
 
 	// Create theory pane (20% width) - needs border since it's custom content
-	theoryStyle := lipgloss.NewStyle().
+	theoryStyle := lipgloss.Style{}.
 		Width(theoryWidth).
 		Height(l.height).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Success)
 
-	theoryTitle := lipgloss.NewStyle().
+	theoryTitle := lipgloss.Style{}.
 		Bold(true).
 		Foreground(t.Success).
 		Align(lipgloss.Center).
 		Width(theoryWidth - 4).
 		Render("Theory Tools")
 
-	theoryPaneContent := lipgloss.NewStyle().
+	theoryPaneContent := lipgloss.Style{}.
 		Width(theoryWidth - 4).
 		Height(l.height - 6).
 		Render(theoryContent)
@@ -79,20 +79,20 @@ func (l *PolishLayout) Render(editorContent string, previewContent string, theor
 	)
 
 	// Create critique pane (20% width) - needs border since it's custom content
-	critiqueStyle := lipgloss.NewStyle().
+	critiqueStyle := lipgloss.Style{}.
 		Width(critiqueWidth).
 		Height(l.height).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Warning)
 
-	critiqueTitle := lipgloss.NewStyle().
+	critiqueTitle := lipgloss.Style{}.
 		Bold(true).
 		Foreground(t.Warning).
 		Align(lipgloss.Center).
 		Width(critiqueWidth - 4).
 		Render("AI Critique")
 
-	critiquePaneContent := lipgloss.NewStyle().
+	critiquePaneContent := lipgloss.Style{}.
 		Width(critiqueWidth - 4).
 		Height(l.height - 6).
 		Render(critiqueContent)
@@ -102,7 +102,7 @@ func (l *PolishLayout) Render(editorContent string, previewContent string, theor
 	)
 
 	// Create dividers
-	dividerStyle := lipgloss.NewStyle().
+	dividerStyle := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Render("|")
 

@@ -1,6 +1,7 @@
 package dashboard
 
 import (
+	"github.com/kyanite/design/icons"
 	"github.com/kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -27,7 +28,7 @@ type MusicToolsModel struct {
 func NewMusicToolsModel() *MusicToolsModel {
 	tools := []MusicTool{
 		{ID: "chords", Title: "Chord Progressions", Icon: "[C]", Description: "Common chord progressions"},
-		{ID: "scales", Title: "Scale Reference", Icon: "[S]", Description: "Musical scales and modes"},
+		{ID: "scales", Title: "Scale Reference", Icon: icons.GetIcon("settings"), Description: "Musical scales and modes"},
 		{ID: "rhymes", Title: "Rhyme Dictionary", Icon: "[R]", Description: "Find rhyming words"},
 		{ID: "templates", Title: "Song Templates", Icon: "[T]", Description: "Song structure templates"},
 	}
@@ -163,7 +164,7 @@ func (m *MusicToolsModel) View() string {
 
 	t := theme.GetManager().Current()
 
-	title := lipgloss.NewStyle().
+	title := lipgloss.Style{}.
 		Foreground(t.Primary).
 		Bold(true).
 		Render("Music Tools")
@@ -171,7 +172,7 @@ func (m *MusicToolsModel) View() string {
 	// Render tool items
 	var itemViews []string
 	for i, tool := range m.tools {
-		itemStyle := lipgloss.NewStyle().Foreground(t.Text)
+		itemStyle := lipgloss.Style{}.Foreground(t.Text)
 
 		if i == m.selected {
 			itemStyle = itemStyle.
@@ -188,7 +189,7 @@ func (m *MusicToolsModel) View() string {
 	}
 
 	// Open theory tools button
-	buttonStyle := lipgloss.NewStyle().
+	buttonStyle := lipgloss.Style{}.
 		Padding(0, 1).
 		MarginTop(1)
 
@@ -206,7 +207,7 @@ func (m *MusicToolsModel) View() string {
 	openButton := buttonStyle.Render("[Open Theory Tools]")
 
 	// Mouse hint
-	mouseHint := lipgloss.NewStyle().
+	mouseHint := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Faint(true).
 		Render("Click or use Ctrl+Shift+C/S/R/T")
@@ -220,7 +221,7 @@ func (m *MusicToolsModel) View() string {
 		mouseHint,
 	)
 
-	return lipgloss.NewStyle().
+	return lipgloss.Style{}.
 		Width(m.width-2).
 		MaxWidth(m.width-2).
 		MaxHeight(m.height-2).

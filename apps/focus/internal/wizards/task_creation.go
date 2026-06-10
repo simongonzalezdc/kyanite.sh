@@ -7,6 +7,7 @@ import (
 
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/focus/pkg/styles"
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/models"
@@ -15,11 +16,11 @@ import (
 
 var (
 	accentStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF71CE")).
+			Foreground(styles.GetAccent()).
 			Bold(true)
 
 	successStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#00FF66")).
+			Foreground(styles.GetSuccess()).
 			Bold(true)
 )
 

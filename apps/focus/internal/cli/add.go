@@ -81,7 +81,7 @@ func showValidationError(message string) {
 		Background(styles.DarkVoid).
 		Bold(true).
 		Padding(1, 2).
-		Border(lipgloss.DoubleBorder()).
+		Border(lipgloss.RoundedBorder()).
 		BorderForeground(styles.SynthwaveRed).
 		Render(fmt.Sprintf("❌ VALIDATION ERROR\n\n%s", message))
 	fmt.Println(errorBox)
@@ -93,7 +93,7 @@ func showAddError() {
 		Background(styles.DarkVoid).
 		Bold(true).
 		Padding(1, 2).
-		Border(lipgloss.DoubleBorder()).
+		Border(lipgloss.RoundedBorder()).
 		BorderForeground(styles.SynthwaveRed).
 		Render("❌ MISSION CREATION FAILED\n\nPlease provide a task description:\nfocus add \"Your mission here\"")
 	fmt.Println(errorBox)

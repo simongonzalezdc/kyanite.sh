@@ -6,6 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/design"
 	"github.com/kyanite/prism/internal/theme"
 )
 
@@ -90,12 +91,10 @@ func (m MenuModel) View() string {
 	var b strings.Builder
 
 	// Title
-	title := lipgloss.NewStyle().
-		Foreground(lipgloss.Color(m.themeManager.CurrentTheme().Primary)).
-		Bold(true).
-		Padding(1).
+	title := styles.Title.
+		Padding(design.SpacingXS).
 		Align(lipgloss.Center).
-		Width(60).
+		Width(ContentWidthNarrow).
 		Render("╔═══════════════════════════════════════╗\n║         PRISM.SH v1.0.0              ║\n║    Color Palette Design Tool          ║\n╚═══════════════════════════════════════╝")
 
 	b.WriteString(title)

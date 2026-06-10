@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/kyanite/noise/internal/logging"
+	"github.com/kyanite/design"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -83,12 +84,12 @@ func NewErrorRecoveryUI(logger *logging.Logger) *ErrorRecoveryUI {
 	// Initialize spinner
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	s.Style = lipgloss.Style{}.Foreground(design.DefaultTheme().Accent)
 
 	// Create progress bar style
-	progressStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00FF00")).
-		Background(lipgloss.Color("#333333")).
+	progressStyle := lipgloss.Style{}.
+		Foreground(design.DefaultTheme().Success).
+		Background(design.DefaultTheme().Panel).
 		Padding(0, 1).
 		Margin(0, 1)
 
@@ -473,25 +474,26 @@ func (eru *ErrorRecoveryUI) renderStatusBar() string {
 	health := eru.GetSystemHealth()
 
 	// Health indicator
-	var healthColor string
+	dt := design.DefaultTheme()
+	var healthColor lipgloss.Color
 	var healthIcon string
 
 	switch {
 	case health.OverallScore >= 80:
-		healthColor = "#00FF00"
+		healthColor = dt.Success
 		healthIcon = "[o]"
 	case health.OverallScore >= 60:
-		healthColor = "#FFA500"
+		healthColor = dt.Warning
 		healthIcon = "[o]"
 	case health.OverallScore >= 40:
-		healthColor = "#FF6600"
+		healthColor = dt.Warning
 		healthIcon = "[o]"
 	default:
-		healthColor = "#FF0000"
+		healthColor = dt.Error
 		healthIcon = "[o]"
 	}
 
-	healthIndicator := lipgloss.NewStyle().
+	healthIndicator := lipgloss.Style{}.
 		Foreground(lipgloss.Color(healthColor)).
 		Bold(true).
 		Render(fmt.Sprintf("%s %d%%", healthIcon, health.OverallScore))
@@ -507,8 +509,8 @@ func (eru *ErrorRecoveryUI) renderStatusBar() string {
 
 	var recoveryIndicator string
 	if pendingOps > 0 {
-		recoveryIndicator = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFA500")).
+		recoveryIndicator = lipgloss.Style{}.
+			Foreground(design.DefaultTheme().Warning).
 			Render(fmt.Sprintf("[!] %d recovery operations available (press 'r' to view)", pendingOps))
 	}
 
@@ -526,9 +528,9 @@ func (eru *ErrorRecoveryUI) renderRecoveryPanel() string {
 	var sections []string
 
 	// Header
-	header := lipgloss.NewStyle().
+	header := lipgloss.Style{}.
 		Bold(true).
-		Foreground(lipgloss.Color("#00BFFF")).
+		Foreground(design.DefaultTheme().Accent).
 		Render("[TOOLS] Error Recovery Panel")
 	sections = append(sections, header)
 
@@ -543,15 +545,15 @@ func (eru *ErrorRecoveryUI) renderRecoveryPanel() string {
 		operationsSection := eru.renderOperationsSection(operations)
 		sections = append(sections, operationsSection)
 	} else {
-		noOps := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#00FF00")).
-			Render("âœ… No recovery operations needed")
+		noOps := lipgloss.Style{}.
+			Foreground(design.DefaultTheme().Success).
+			Render("✅ No recovery operations needed")
 		sections = append(sections, noOps)
 	}
 
 	// Footer
-	footer := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#888888")).
+	footer := lipgloss.Style{}.
+		Foreground(design.DefaultTheme().Muted).
 		Render("Press 'r' to close - Up/Down to navigate - Enter to execute - Ctrl+R to refresh")
 	sections = append(sections, footer)
 
@@ -597,6 +599,7 @@ func (eru *ErrorRecoveryUI) renderHealthSection(health SystemHealthStatus) strin
 // renderOperationsSection renders the recovery operations section
 func (eru *ErrorRecoveryUI) renderOperationsSection(operations []RecoveryOperation) string {
 	var lines []string
+	dt := design.DefaultTheme()
 
 	lines = append(lines, "Recovery Operations:")
 
@@ -605,24 +608,24 @@ func (eru *ErrorRecoveryUI) renderOperationsSection(operations []RecoveryOperati
 
 		// Status indicator
 		var statusIcon string
-		var statusColor string
+		var statusColor lipgloss.Color
 
 		switch op.Status {
 		case StatusPending:
-			statusIcon = "â³"
-			statusColor = "#FFA500"
+			statusIcon = "⏳"
+			statusColor = dt.Warning
 		case StatusRunning:
-			statusIcon = "”„"
-			statusColor = "#00BFFF"
+			statusIcon = "🔄"
+			statusColor = dt.Accent
 		case StatusCompleted:
-			statusIcon = "âœ…"
-			statusColor = "#00FF00"
+			statusIcon = "✅"
+			statusColor = dt.Success
 		case StatusFailed:
-			statusIcon = "â\u009dŒ"
-			statusColor = "#FF0000"
+			statusIcon = "❌"
+			statusColor = dt.Error
 		case StatusCancelled:
 			statusIcon = "[v]"
-			statusColor = "#888888"
+			statusColor = dt.Muted
 		}
 
 		// Progress bar for running operations
@@ -644,13 +647,13 @@ func (eru *ErrorRecoveryUI) renderOperationsSection(operations []RecoveryOperati
 
 		// Apply selection styling
 		if selected {
-			line = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#FFFF00")).
-				Background(lipgloss.Color("#333333")).
+			line = lipgloss.Style{}.
+				Foreground(design.DefaultTheme().Warning).
+				Background(design.DefaultTheme().Panel).
 				Padding(0, 1).
 				Render(line)
 		} else {
-			line = lipgloss.NewStyle().
+			line = lipgloss.Style{}.
 				Foreground(lipgloss.Color(statusColor)).
 				Render(line)
 		}

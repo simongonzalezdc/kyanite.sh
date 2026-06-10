@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	"github.com/kyanite/design/icons"
 )
 
 // PresenceManager handles user presence tracking and notifications
@@ -473,35 +475,35 @@ func (pm *PresenceManager) presenceStatusToIndicator(status PresenceStatus) Pres
 		return PresenceIndicator{
 			Status:  StatusOnline,
 			Color:   "green",
-			Icon:    "[*]",
+			Icon:    icons.GetIcon("online"),
 			Tooltip: "Online",
 		}
 	case StatusAway:
 		return PresenceIndicator{
 			Status:  StatusAway,
 			Color:   "yellow",
-			Icon:    "[~]",
+			Icon:    icons.GetIcon("away"),
 			Tooltip: "Away",
 		}
 	case StatusBusy:
 		return PresenceIndicator{
 			Status:  StatusBusy,
 			Color:   "red",
-			Icon:    "[!]",
+			Icon:    icons.GetIcon("busy"),
 			Tooltip: "Busy",
 		}
 	case StatusOffline:
 		return PresenceIndicator{
 			Status:  StatusOffline,
 			Color:   "gray",
-			Icon:    "[ ]",
+			Icon:    icons.GetIcon("offline"),
 			Tooltip: "Offline",
 		}
 	default:
 		return PresenceIndicator{
 			Status:  StatusOffline,
 			Color:   "gray",
-			Icon:    "[ ]",
+			Icon:    icons.GetIcon("offline"),
 			Tooltip: "Unknown",
 		}
 	}

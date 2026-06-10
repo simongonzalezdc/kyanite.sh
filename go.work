@@ -5,4 +5,7 @@ use (
 	./apps/noise
 	./apps/prism
 	./apps/syntax
+	./cmd/kyanite
+	./pkg/ai
+	./pkg/design
 )

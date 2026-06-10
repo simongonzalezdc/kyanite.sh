@@ -576,7 +576,7 @@ func (m *MainModel) recreateStyles() {
 		Blink(true).
 		Italic(true).
 		Padding(0, 2).
-		BorderStyle(lipgloss.DoubleBorder()).
+		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(styles.GetBorder())
 
 	statusBarStyle = lipgloss.NewStyle().
@@ -1477,7 +1477,7 @@ func (m *MainModel) renderStats() string {
 		Background(styles.GetBoxStyle().GetBackground()).
 		Padding(1, 2).
 		Margin(1).
-		BorderStyle(lipgloss.DoubleBorder()).
+		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(synthPink).
 		BorderTop(true).
 		BorderBottom(true).

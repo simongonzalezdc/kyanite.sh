@@ -270,7 +270,7 @@ func showBulkDeleteWarning(tasks []models.Task) {
 		Background(styles.DarkVoid).
 		Bold(true).
 		Padding(1, 2).
-		Border(lipgloss.DoubleBorder()).
+		Border(lipgloss.RoundedBorder()).
 		BorderForeground(styles.SynthwaveYellow).
 		Render(fmt.Sprintf("⚠️  WARNING: You are about to delete %d task(s)\n\nThis action cannot be undone!", len(tasks)))
 	fmt.Println(warningBox)
@@ -313,7 +313,7 @@ func showBulkError(message string) {
 		Background(styles.DarkVoid).
 		Bold(true).
 		Padding(1, 2).
-		Border(lipgloss.DoubleBorder()).
+		Border(lipgloss.RoundedBorder()).
 		BorderForeground(styles.SynthwaveRed).
 		Render(fmt.Sprintf("❌ BULK OPERATION FAILED\n\n%s", message))
 	fmt.Println(errorBox)

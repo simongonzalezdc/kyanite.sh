@@ -67,27 +67,27 @@ func NewEditorPaneModel(textarea textarea.Model, aiService *app.AIService) *Edit
 		chordPicker: NewChordPickerModel(aiService),
 		bpmTapper:   NewBPMTapperModel(),
 
-		focusedStyle: lipgloss.NewStyle().
+		focusedStyle: lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Primary),
-		blurredStyle: lipgloss.NewStyle().
+		blurredStyle: lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Secondary),
-		borderStyle: lipgloss.NewStyle().
+		borderStyle: lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Secondary),
-		lineNumberStyle: lipgloss.NewStyle().
+		lineNumberStyle: lipgloss.Style{}.
 			Foreground(t.Secondary).
 			Width(4).
 			Align(lipgloss.Right),
-		cursorLineStyle: lipgloss.NewStyle().
+		cursorLineStyle: lipgloss.Style{}.
 			Background(t.Background),
-		selectionStyle: lipgloss.NewStyle().
+		selectionStyle: lipgloss.Style{}.
 			Background(t.Background),
-		searchMatchStyle: lipgloss.NewStyle().
+		searchMatchStyle: lipgloss.Style{}.
 			Background(t.Accent).
 			Foreground(t.Background),
-		autoSaveStyle: lipgloss.NewStyle().
+		autoSaveStyle: lipgloss.Style{}.
 			Foreground(t.Success).
 			Bold(true),
 	}
@@ -374,7 +374,7 @@ func (m *EditorPaneModel) View() string {
 	title += modeStr
 
 	t := theme.GetManager().Current()
-	titleStyle := lipgloss.NewStyle().
+	titleStyle := lipgloss.Style{}.
 		Bold(true).
 		Foreground(t.Text).
 		Background(t.Background).

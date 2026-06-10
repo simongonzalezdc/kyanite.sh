@@ -33,11 +33,11 @@ func NewSyncStatusModel(syncServer *sync.SyncServer) *SyncStatusModel {
 
 	return &SyncStatusModel{
 		syncServer: syncServer,
-		runningStyle: lipgloss.NewStyle().
+		runningStyle: lipgloss.Style{}.
 			Foreground(t.Success),
-		stoppedStyle: lipgloss.NewStyle().
+		stoppedStyle: lipgloss.Style{}.
 			Foreground(t.Secondary),
-		deviceStyle: lipgloss.NewStyle().
+		deviceStyle: lipgloss.Style{}.
 			Foreground(t.Accent),
 	}
 }

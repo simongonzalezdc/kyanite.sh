@@ -494,7 +494,7 @@ func (a *EditorAI) renderBrainstormOverlay(width int) string {
 
 	t := theme.GetManager().Current()
 	// Create overlay style
-	overlayStyle := lipgloss.NewStyle().
+	overlayStyle := lipgloss.Style{}.
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Accent).
 		Padding(0, 1).
@@ -502,7 +502,7 @@ func (a *EditorAI) renderBrainstormOverlay(width int) string {
 		Background(t.Background)
 
 	// Create title
-	titleStyle := lipgloss.NewStyle().
+	titleStyle := lipgloss.Style{}.
 		Bold(true).
 		Foreground(t.Primary).
 		Align(lipgloss.Center)
@@ -520,7 +520,7 @@ func (a *EditorAI) renderBrainstormOverlay(width int) string {
 
 	// Create instructions
 	instructions := "Press 1-3 to select, Esc to cancel"
-	instructionStyle := lipgloss.NewStyle().
+	instructionStyle := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Align(lipgloss.Center).
 		Italic(true)
@@ -541,7 +541,7 @@ func (a *EditorAI) renderContinueOverlay(width int) string {
 
 	t := theme.GetManager().Current()
 	// Create overlay style
-	overlayStyle := lipgloss.NewStyle().
+	overlayStyle := lipgloss.Style{}.
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Accent).
 		Padding(0, 1).
@@ -549,7 +549,7 @@ func (a *EditorAI) renderContinueOverlay(width int) string {
 		Background(t.Background)
 
 	// Create title
-	titleStyle := lipgloss.NewStyle().
+	titleStyle := lipgloss.Style{}.
 		Bold(true).
 		Foreground(t.Accent).
 		Align(lipgloss.Center)
@@ -567,7 +567,7 @@ func (a *EditorAI) renderContinueOverlay(width int) string {
 
 	// Create instructions
 	instructions := "Press 1-3 to select, Esc to write manually"
-	instructionStyle := lipgloss.NewStyle().
+	instructionStyle := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Align(lipgloss.Center).
 		Italic(true)
@@ -588,7 +588,7 @@ func (a *EditorAI) renderVariationOverlay(width int) string {
 
 	t := theme.GetManager().Current()
 	// Create overlay style
-	overlayStyle := lipgloss.NewStyle().
+	overlayStyle := lipgloss.Style{}.
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Success).
 		Padding(0, 1).
@@ -596,7 +596,7 @@ func (a *EditorAI) renderVariationOverlay(width int) string {
 		Background(t.Background)
 
 	// Create title
-	titleStyle := lipgloss.NewStyle().
+	titleStyle := lipgloss.Style{}.
 		Bold(true).
 		Foreground(t.Success).
 		Align(lipgloss.Center)
@@ -604,7 +604,7 @@ func (a *EditorAI) renderVariationOverlay(width int) string {
 	title := titleStyle.Render("Variations for:")
 
 	// Show original text
-	originalStyle := lipgloss.NewStyle().
+	originalStyle := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Italic(true)
 
@@ -621,7 +621,7 @@ func (a *EditorAI) renderVariationOverlay(width int) string {
 
 	// Create instructions
 	instructions := "Press 1-3 to replace, Enter to keep original, Esc to cancel"
-	instructionStyle := lipgloss.NewStyle().
+	instructionStyle := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Align(lipgloss.Center).
 		Italic(true)

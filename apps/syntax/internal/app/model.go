@@ -5,6 +5,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/kyanite/design"
 	"github.com/kyanite/syntax/internal/ai"
 	"github.com/kyanite/syntax/internal/editor"
 	"github.com/kyanite/syntax/internal/location"
@@ -12,7 +13,6 @@ import (
 	"github.com/kyanite/syntax/internal/spellcheck"
 	"github.com/kyanite/syntax/internal/storage"
 	"github.com/kyanite/syntax/internal/story"
-	"github.com/kyanite/syntax/internal/theme"
 )
 
 // Screen represents different app screens
@@ -52,9 +52,9 @@ type Model struct {
 	// ============================================================
 	// Theme State - Visual styling and appearance
 	// ============================================================
-	ThemeManager *theme.Manager // Manages theme switching
-	CurrentTheme theme.Theme    // Active theme
-	Styles       theme.Styles   // Computed styles from theme
+	ThemeManager *Manager        // Manages theme switching
+	CurrentTheme design.Theme    // Active theme
+	Styles       Styles          // Computed styles from theme
 
 	// ============================================================
 	// Project State - Story projects and data
@@ -81,7 +81,7 @@ type Model struct {
 	// ============================================================
 	// Feature Integrations - AI and spell checking
 	// ============================================================
-	AIClient     *ai.Client           // AI assistant client
+	AIClient     ai.Provider          // AI assistant client
 	AISuggestion *ai.Suggestion       // Current AI suggestion
 	AIGenerating bool                 // Whether AI is generating
 	SpellChecker *spellcheck.Checker  // Spell check integration
@@ -119,14 +119,14 @@ type AutoSaveCompleteMsg struct {
 
 // NewModel creates a new root model
 func NewModel() Model {
-	themeManager := theme.NewManager("monochrome")
+	themeManager := NewManager("monochrome")
 	currentTheme := themeManager.GetCurrent()
 
 	return Model{
 		CurrentScreen: ScreenWelcome,
 		ThemeManager:  themeManager,
 		CurrentTheme:  currentTheme,
-		Styles:        currentTheme.ApplyTheme(),
+		Styles:        applyTheme(currentTheme),
 		SelectedIndex: 0,
 		SaveStatus:    SaveStatusSaved,
 		LastSaveTime:  time.Now(),
@@ -248,7 +248,7 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "ctrl+shift+t":
 		// Cycle theme
 		m.CurrentTheme = m.ThemeManager.NextTheme()
-		m.Styles = m.CurrentTheme.ApplyTheme()
+		m.Styles = applyTheme(m.CurrentTheme)
 		m.Message = fmt.Sprintf("Theme: %s", m.CurrentTheme.Name)
 		return m, nil
 

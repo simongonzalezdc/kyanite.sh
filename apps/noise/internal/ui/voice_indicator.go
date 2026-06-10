@@ -42,19 +42,19 @@ func NewVoiceIndicatorModel() *VoiceIndicatorModel {
 
 	return &VoiceIndicatorModel{
 		state: app.VoiceStateIdle,
-		containerStyle: lipgloss.NewStyle().
+		containerStyle: lipgloss.Style{}.
 			Padding(0, 1),
-		recordingStyle: lipgloss.NewStyle().
+		recordingStyle: lipgloss.Style{}.
 			Foreground(t.Error). // Red for recording
 			Bold(true),
-		processingStyle: lipgloss.NewStyle().
+		processingStyle: lipgloss.Style{}.
 			Foreground(t.Warning). // Yellow for processing
 			Bold(true),
-		errorStyle: lipgloss.NewStyle().
+		errorStyle: lipgloss.Style{}.
 			Foreground(t.Error),
-		levelBarStyle: lipgloss.NewStyle().
+		levelBarStyle: lipgloss.Style{}.
 			Foreground(t.Secondary),
-		levelFillStyle: lipgloss.NewStyle().
+		levelFillStyle: lipgloss.Style{}.
 			Foreground(t.Primary),
 	}
 }
@@ -214,7 +214,7 @@ func (sb *VoiceStatusBar) View() string {
 
 	// Show availability hint
 	if sb.available {
-		style := lipgloss.NewStyle().Foreground(t.Secondary)
+		style := lipgloss.Style{}.Foreground(t.Secondary)
 		return style.Render(fmt.Sprintf("[MIC] %s: Dictate", sb.shortcut))
 	}
 

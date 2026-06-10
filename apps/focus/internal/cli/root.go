@@ -4,8 +4,10 @@ import (
 	"fmt"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/design"
 	"github.com/kyanite/focus/internal/command"
 	"github.com/kyanite/focus/internal/tui"
+	"github.com/kyanite/focus/pkg/styles"
 	pterm "github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -14,21 +16,21 @@ import (
 var globalHistory = command.NewHistory()
 
 var (
-	focusBlue   = lipgloss.Color("#00FFFF")
-	focusGreen  = lipgloss.Color("#00FF66")
-	focusPurple = lipgloss.Color("#B967C7")
-	accentColor = lipgloss.Color("#FFC0CB")
+	focusBlue   = design.DefaultTheme().Secondary
+	focusGreen  = design.DefaultTheme().Success
+	focusPurple = design.DefaultTheme().Accent
+	accentColor = design.DefaultTheme().Border
 
 	headerStyle = lipgloss.NewStyle().
-			Foreground(focusBlue).
+			Foreground(styles.GetAccent()).
 			Bold(true).
 			AlignHorizontal(lipgloss.Center)
 
 	boxStyle = lipgloss.NewStyle().
-			Foreground(accentColor).
-			Border(lipgloss.DoubleBorder()).
-			BorderForeground(focusBlue).
-			Padding(1).
+			Foreground(styles.GetAccent()).
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(styles.GetAccent()).
+			Padding(design.SpacingS).
 			Width(80)
 )
 
@@ -37,14 +39,14 @@ var rootCmd = &cobra.Command{
 	Short: "🌟 focus.sh - Kyanite Suite Task Manager",
 	Long: boxStyle.Render(
 		headerStyle.Render("🌟 W E L C O M E   T O   F O C U S . S H 🌟") + "\n\n" +
-			lipgloss.NewStyle().Foreground(focusGreen).Render(
+			lipgloss.NewStyle().Foreground(styles.GetSuccess()).Render(
 				"🚀 Part of the Kyanite Creative Suite\n"+
 					"✨ Professional task management with AI assistance\n"+
 					"🌈 Clean, focused productivity experience\n\n"+
 					"Controls: A(dd) | C(omplete) | L(ist) | J(ournal) | T(heme) | ?(help)") + "\n" +
-			lipgloss.NewStyle().Foreground(focusBlue).Render(
+			lipgloss.NewStyle().Foreground(styles.GetAccent()).Render(
 				"────────────────────────────────────────────────────────────────────────────────") + "\n" +
-			lipgloss.NewStyle().Foreground(focusPurple).Render(
+			lipgloss.NewStyle().Foreground(styles.GetAccent()).Render(
 				"💡 Part of Kyanite Suite: noise.sh (music) | focus.sh (tasks) | syntax.sh (writing) | prism.sh (visual) | wave.sh (audio)")),
 	Run: func(cmd *cobra.Command, args []string) {
 		// Launch directly into TUI dashboard

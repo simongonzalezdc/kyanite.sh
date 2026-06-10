@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/design"
 	"github.com/kyanite/focus/internal/theme"
 	"github.com/kyanite/focus/pkg/config"
 	"github.com/kyanite/focus/pkg/styles"
@@ -17,12 +18,8 @@ var themeCmd = &cobra.Command{
 	Long: `Switch between different visual themes.
 Available Kyanite Themes:
   - amber-night: Warm amber glow with deep contrast (default)
-  - twilight-mist: Soft purple and gray evening mist
   - indigo-depths: Deep blue indigo with subtle accents  
   - forest-path: Natural green and brown forest tones
-  - clay-earth: Rich earthy terracotta and clay colors
-  - iron-forge: Industrial grays with metallic accents
-  - sunlight: Bright warm yellow and white daylight
   - cyan-wave: Cool cyan and teal ocean waves
   - electric-rose: Vibrant pink and electric purple
   - monochrome: Clean black and white minimalism`,
@@ -31,7 +28,7 @@ Available Kyanite Themes:
 		themeName := strings.ToLower(args[0])
 
 		// Validate theme exists
-		availableThemes := theme.ListThemes()
+		availableThemes := design.List()
 		validTheme := false
 		for _, t := range availableThemes {
 			if t == themeName {
@@ -61,7 +58,7 @@ Available Kyanite Themes:
 		_ = config.SaveConfig(cfg) // Ignore error for UI command
 
 		fmt.Printf("✨ Theme changed to: %s\n", lipgloss.NewStyle().
-			Foreground(lipgloss.Color(theme.GetManager().Current().Primary)).
+			Foreground(theme.GetManager().Current().Primary).
 			Bold(true).
 			Render(themeName))
 	},

@@ -119,23 +119,23 @@ func NewExportModel(content string) *ExportModel {
 		options:      []ExportFormat{FormatPDF, FormatHTML, FormatPlainText, FormatJSON, FormatMarkdown, FormatChordPro},
 		selected:     0,
 		showProgress: false,
-		focusedStyle: lipgloss.NewStyle().
+		focusedStyle: lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Primary),
-		blurredStyle: lipgloss.NewStyle().
+		blurredStyle: lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Secondary),
-		selectedStyle: lipgloss.NewStyle().
+		selectedStyle: lipgloss.Style{}.
 			Foreground(t.Background).
 			Background(t.Primary).
 			Bold(true).
 			Padding(0, 1),
-		errorStyle: lipgloss.NewStyle().
+		errorStyle: lipgloss.Style{}.
 			Foreground(t.Background).
 			Background(t.Error).
 			Bold(true).
 			Padding(0, 1),
-		successStyle: lipgloss.NewStyle().
+		successStyle: lipgloss.Style{}.
 			Foreground(t.Background).
 			Background(t.Success).
 			Bold(true).
@@ -231,7 +231,7 @@ func (m *ExportModel) View() string {
 	}
 
 	t := theme.GetManager().Current()
-	title := lipgloss.NewStyle().
+	title := lipgloss.Style{}.
 		Foreground(t.Primary).
 		Bold(true).
 		Padding(0, 2).
@@ -269,7 +269,7 @@ func (m *ExportModel) View() string {
 	optionsView := strings.Join(options, "\n")
 
 	// Instructions
-	instructions := lipgloss.NewStyle().
+	instructions := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Render("\nUp/Down: Navigate | Enter: Export | Esc: Back")
 
@@ -277,7 +277,7 @@ func (m *ExportModel) View() string {
 	progressView := ""
 	if m.showProgress {
 		t := theme.GetManager().Current()
-		progressView = lipgloss.NewStyle().
+		progressView = lipgloss.Style{}.
 			Foreground(t.Accent).
 			Render("\n" + m.progressMsg + "...")
 	}

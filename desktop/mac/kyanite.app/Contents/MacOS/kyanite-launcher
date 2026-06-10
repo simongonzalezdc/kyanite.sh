@@ -1,0 +1,21 @@
+#!/bin/bash
+# kyanite.sh macOS desktop launcher
+# Opens Terminal.app and runs the kyanite TUI launcher
+
+APP_DIR="$(cd "$(dirname "$0")" && pwd)"
+BUNDLE_DIR="$(dirname "$(dirname "$APP_DIR")")"
+BIN_DIR="$(dirname "$BUNDLE_DIR")"
+
+# Find the kyanite binary next to the .app bundle
+KYANITE="$BIN_DIR/kyanite"
+if [ ! -x "$KYANITE" ]; then
+	echo "Error: kyanite binary not found at $KYANITE" >&2
+	exit 1
+fi
+
+osascript <<EOF
+tell application "Terminal"
+	activate
+	do script "clear && '$KYANITE'"
+end tell
+EOF

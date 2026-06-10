@@ -142,7 +142,7 @@ func (m *AIAssistantModel) View() string {
 
 	t := theme.GetManager().Current()
 
-	title := lipgloss.NewStyle().
+	title := lipgloss.Style{}.
 		Foreground(t.Primary).
 		Bold(true).
 		Render("AI Assistant")
@@ -153,12 +153,12 @@ func (m *AIAssistantModel) View() string {
 	if statusText != "Ready" {
 		statusColor = t.Warning
 	}
-	status := lipgloss.NewStyle().
+	status := lipgloss.Style{}.
 		Foreground(statusColor).
 		Render("[AI] Status: " + statusText)
 
 	// Quick suggestions
-	suggestionsTitle := lipgloss.NewStyle().
+	suggestionsTitle := lipgloss.Style{}.
 		Foreground(t.Text).
 		Bold(true).
 		Render("[TIP] Quick Suggestions:")
@@ -171,7 +171,7 @@ func (m *AIAssistantModel) View() string {
 
 	var suggestionViews []string
 	for _, suggestion := range suggestions {
-		suggestionView := lipgloss.NewStyle().
+		suggestionView := lipgloss.Style{}.
 			Foreground(t.Text).
 			Faint(true).
 			Render(suggestion)
@@ -179,7 +179,7 @@ func (m *AIAssistantModel) View() string {
 	}
 
 	// Start brainstorm button with hover/selected states
-	buttonStyle := lipgloss.NewStyle().
+	buttonStyle := lipgloss.Style{}.
 		Padding(0, 1).
 		MarginTop(1)
 
@@ -199,7 +199,7 @@ func (m *AIAssistantModel) View() string {
 	startButton := buttonStyle.Render("[Start Brainstorm]")
 
 	// Mouse hint
-	mouseHint := lipgloss.NewStyle().
+	mouseHint := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Faint(true).
 		Render("Click button or press Enter")
@@ -217,7 +217,7 @@ func (m *AIAssistantModel) View() string {
 	)
 
 	// Use allocated panel dimensions directly
-	return lipgloss.NewStyle().
+	return lipgloss.Style{}.
 		Width(m.width-2).
 		MaxWidth(m.width-2).
 		MaxHeight(m.height-2).

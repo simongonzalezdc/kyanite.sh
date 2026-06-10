@@ -66,7 +66,7 @@ func (m *ThemePreviewModel) View() string {
 	currentTheme := m.themes[m.currentIdx]
 
 	// Create theme showcase
-	title := lipgloss.NewStyle().
+	title := lipgloss.Style{}.
 		Foreground(currentTheme.Primary).
 		Bold(true).
 		Align(lipgloss.Center).
@@ -92,7 +92,7 @@ func (m *ThemePreviewModel) View() string {
 	)
 
 	// Use allocated panel dimensions directly
-	return lipgloss.NewStyle().
+	return lipgloss.Style{}.
 		Width(m.width-2).
 		MaxWidth(m.width-2).
 		MaxHeight(m.height-2).
@@ -119,7 +119,7 @@ func (m *ThemePreviewModel) renderColorPalette(t theme.Theme) string {
 	for i := 0; i < len(colors); i += 4 {
 		var row []string
 		for j := i; j < i+4 && j < len(colors); j++ {
-			colorBox := lipgloss.NewStyle().
+			colorBox := lipgloss.Style{}.
 				Background(colors[j].color).
 				Foreground(t.Text).
 				Width(8).
@@ -136,20 +136,20 @@ func (m *ThemePreviewModel) renderColorPalette(t theme.Theme) string {
 }
 
 func (m *ThemePreviewModel) renderSampleElements(t theme.Theme) string {
-	button := lipgloss.NewStyle().
+	button := lipgloss.Style{}.
 		Foreground(t.Text).
 		Background(t.Primary).
 		Padding(0, 2).
 		Bold(true).
 		Render("Primary Button")
 
-	secondary := lipgloss.NewStyle().
+	secondary := lipgloss.Style{}.
 		Foreground(t.Text).
 		Background(t.Secondary).
 		Padding(0, 2).
 		Render("Secondary")
 
-	accent := lipgloss.NewStyle().
+	accent := lipgloss.Style{}.
 		Foreground(t.Background).
 		Background(t.Accent).
 		Padding(0, 2).
@@ -160,7 +160,7 @@ func (m *ThemePreviewModel) renderSampleElements(t theme.Theme) string {
 }
 
 func (m *ThemePreviewModel) renderNavigation() string {
-	nav := lipgloss.NewStyle().
+	nav := lipgloss.Style{}.
 		Foreground(theme.GetManager().Current().Text).
 		Render("<< >> Switch Themes")
 

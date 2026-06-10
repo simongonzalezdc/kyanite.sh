@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=kyanite.sh
+Comment=Charm stack TUI suite — Focus, Noise, Syntax, Prism
+Exec=kyanite
+Icon=kyanite
+Terminal=true
+Type=Application
+Categories=Development;Utility;
+Keywords=tui;charm;bubbletea;go;

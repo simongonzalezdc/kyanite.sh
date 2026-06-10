@@ -239,7 +239,7 @@ func (m *TheoryModel) View() string {
 func (m *TheoryModel) renderHeader() string {
 	t := theme.GetManager().Current()
 	title := titleGradient("[~] Music Theory Tools", t)
-	title = lipgloss.NewStyle().
+	title = lipgloss.Style{}.
 		Width(m.width).
 		Align(lipgloss.Center).
 		Padding(1, 0).
@@ -256,13 +256,13 @@ func (m *TheoryModel) renderTabs() string {
 	for i, name := range m.tabNames {
 		var style lipgloss.Style
 		if i == m.activeTab {
-			style = lipgloss.NewStyle().
+			style = lipgloss.Style{}.
 				Background(t.Primary).
 				Foreground(t.Background).
 				Bold(true).
 				Padding(0, 2)
 		} else {
-			style = lipgloss.NewStyle().
+			style = lipgloss.Style{}.
 				Foreground(t.Secondary).
 				Background(t.Background).
 				Padding(0, 2)
@@ -273,7 +273,7 @@ func (m *TheoryModel) renderTabs() string {
 	}
 
 	tabs := lipgloss.JoinHorizontal(lipgloss.Top, tabItems...)
-	tabs = lipgloss.NewStyle().
+	tabs = lipgloss.Style{}.
 		Width(m.width).
 		Align(lipgloss.Center).
 		Padding(0, 2).
@@ -298,7 +298,7 @@ func (m *TheoryModel) renderContent() string {
 	m.viewport.Width = m.width - 4
 	m.viewport.Height = contentHeight
 
-	return lipgloss.NewStyle().
+	return lipgloss.Style{}.
 		Padding(1, 2).
 		Render(m.viewport.View())
 }
@@ -327,7 +327,7 @@ func (m *TheoryModel) renderScalesTab() string {
 
 	t := theme.GetManager().Current()
 	// Input section
-	inputStyle := lipgloss.NewStyle().Foreground(t.Primary).Bold(true)
+	inputStyle := lipgloss.Style{}.Foreground(t.Primary).Bold(true)
 	content.WriteString(inputStyle.Render("Scale Lookup:\n"))
 	content.WriteString(m.scaleInput.View())
 	content.WriteString("\n\n")
@@ -367,7 +367,7 @@ func (m *TheoryModel) renderChordsTab() string {
 
 	t := theme.GetManager().Current()
 	// Input section
-	inputStyle := lipgloss.NewStyle().Foreground(t.Primary).Bold(true)
+	inputStyle := lipgloss.Style{}.Foreground(t.Primary).Bold(true)
 	content.WriteString(inputStyle.Render("Chord Lookup:\n"))
 	content.WriteString(m.chordInput.View())
 	content.WriteString("\n\n")
@@ -400,7 +400,7 @@ func (m *TheoryModel) renderProgressionsTab() string {
 
 	t := theme.GetManager().Current()
 	// Input section
-	inputStyle := lipgloss.NewStyle().Foreground(t.Primary).Bold(true)
+	inputStyle := lipgloss.Style{}.Foreground(t.Primary).Bold(true)
 	content.WriteString(inputStyle.Render("Chord Progression:\n"))
 	content.WriteString(m.progressionInput.View())
 	content.WriteString("\n\n")
@@ -432,7 +432,7 @@ func (m *TheoryModel) renderAnalysisTab() string {
 
 	t := theme.GetManager().Current()
 	// Input section
-	inputStyle := lipgloss.NewStyle().Foreground(t.Primary).Bold(true)
+	inputStyle := lipgloss.Style{}.Foreground(t.Primary).Bold(true)
 	content.WriteString(inputStyle.Render("Chord Analysis:\n"))
 	content.WriteString(m.analysisInput.View())
 	content.WriteString("\n\n")
@@ -466,7 +466,7 @@ func (m *TheoryModel) renderRhymesTab() string {
 
 	t := theme.GetManager().Current()
 	// Input section
-	inputStyle := lipgloss.NewStyle().Foreground(t.Primary).Bold(true)
+	inputStyle := lipgloss.Style{}.Foreground(t.Primary).Bold(true)
 	content.WriteString(inputStyle.Render("Rhyme Finder:\n"))
 	content.WriteString(m.rhymeInput.View())
 	content.WriteString("\n\n")
@@ -491,7 +491,7 @@ func (m *TheoryModel) renderRhymesTab() string {
 func (m *TheoryModel) renderFooter() string {
 	helpText := m.help.ShortHelpView(m.keys.ShortHelp())
 	t := theme.GetManager().Current()
-	helpText = lipgloss.NewStyle().
+	helpText = lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Padding(0, 2).
 		Render(helpText)

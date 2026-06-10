@@ -25,7 +25,7 @@ type ChatMessage struct {
 type ChatSession struct {
 	messages []ChatMessage
 	provider string
-	client   any // ollama.Client or glm.Client
+	client   any // brain.Client or glm.Client
 	model    string
 }
 
@@ -39,7 +39,7 @@ func (s *AIService) NewChatSession() *ChatSession {
 		client = s.glmClient
 		model = s.config.GLM.Model
 	default:
-		client = s.ollamaClient
+		client = s.brainClient
 		model = s.config.AI.Model
 	}
 
@@ -59,7 +59,7 @@ func (s *AIService) StreamChat(ctx context.Context, message string) (<-chan stri
 	// Determine provider
 	provider := s.config.AI.Provider
 	if provider == "hybrid" {
-		provider = "ollama" // Default hybrid chat to local for speed/privacy
+		provider = "brain" // Default hybrid chat to local for speed/privacy
 	}
 
 	// Start streaming response in goroutine
@@ -69,70 +69,26 @@ func (s *AIService) StreamChat(ctx context.Context, message string) (<-chan stri
 		if provider == "glm" {
 			s.streamGLM(ctx, message, responseChan)
 		} else {
-			s.streamOllama(ctx, message, responseChan)
+			s.streamBrain(ctx, message, responseChan)
 		}
 	}()
 
 	return responseChan, nil
 }
 
-func (s *AIService) streamOllama(ctx context.Context, message string, ch chan<- string) {
-	reqBody := map[string]interface{}{
-		"model":  s.config.AI.Model,
-		"prompt": message,
-		"stream": true,
+func (s *AIService) streamBrain(ctx context.Context, message string, ch chan<- string) {
+	if s.brainClient == nil {
+		ch <- "Error: brain not available (offline mode)"
+		return
 	}
 
-	reqJSON, err := json.Marshal(reqBody)
+	resp, err := s.brainClient.GenerateWithOptions(ctx, message)
 	if err != nil {
-		ch <- fmt.Sprintf("Error marshaling request: %v", err)
-		return
-	}
-	req, err := http.NewRequestWithContext(ctx, "POST", s.config.AI.BaseURL+"/api/generate", bytes.NewReader(reqJSON))
-	if err != nil {
-		ch <- fmt.Sprintf("Error creating request: %v", err)
+		ch <- fmt.Sprintf("Error: %v", err)
 		return
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{Timeout: 60 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		ch <- fmt.Sprintf("Error connecting to Ollama: %v", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		ch <- fmt.Sprintf("Ollama returned error: %s", resp.Status)
-		return
-	}
-
-	decoder := json.NewDecoder(resp.Body)
-	for {
-		var streamResp struct {
-			Response string `json:"response"`
-			Done     bool   `json:"done"`
-		}
-
-		if err := decoder.Decode(&streamResp); err != nil {
-			return
-		}
-
-		if streamResp.Response != "" {
-			ch <- streamResp.Response
-		}
-
-		if streamResp.Done {
-			return
-		}
-
-		select {
-		case <-ctx.Done():
-			return
-		default:
-		}
-	}
+	ch <- resp
 }
 
 func (s *AIService) streamGLM(ctx context.Context, message string, ch chan<- string) {

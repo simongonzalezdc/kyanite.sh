@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"github.com/kyanite/focus/pkg/styles"
 	"fmt"
 	"strings"
 
@@ -33,7 +34,7 @@ func wizardHandler(cmd *cobra.Command, args []string) {
 	err := wizards.TaskCreationWizard()
 	if err != nil {
 		errorStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF0040")).
+			Foreground(styles.GetError()).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error: %v", err))
 
@@ -43,7 +44,7 @@ func wizardHandler(cmd *cobra.Command, args []string) {
 
 	fmt.Println()
 	successStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00FF66")).
+		Foreground(styles.GetSuccess()).
 		Bold(true).
 		Render("🎉 Task creation completed successfully!")
 
@@ -65,7 +66,7 @@ func editWizardHandler(cmd *cobra.Command, args []string) {
 
 	// For now, show a placeholder
 	placeholderStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FF71CE")).
+		Foreground(styles.GetAccent()).
 		Italic(true).
 		Render("🚧 Task loading and saving will be implemented in the next phase")
 

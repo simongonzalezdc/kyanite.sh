@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"github.com/kyanite/focus/pkg/styles"
 	"fmt"
 	"strings"
 	"time"
@@ -89,7 +90,7 @@ func calendarShowHandler(cmd *cobra.Command, args []string) {
 	tasks, err := taskEngine.ListTasks("all")
 	if err != nil {
 		errorStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF0040")).
+			Foreground(styles.GetError()).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error loading tasks: %v", err))
 
@@ -112,7 +113,7 @@ func calendarShowHandler(cmd *cobra.Command, args []string) {
 
 	// Render appropriate view
 	headerStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FF71CE")).
+		Foreground(styles.GetAccent()).
 		Bold(true).
 		Render("📅 focus.sh CALENDAR")
 
@@ -150,7 +151,7 @@ func calendarTodayHandler(cmd *cobra.Command, args []string) {
 	tasks, err := taskEngine.ListTasks("all")
 	if err != nil {
 		errorStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF0040")).
+			Foreground(styles.GetError()).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error loading tasks: %v", err))
 
@@ -167,7 +168,7 @@ func calendarTodayHandler(cmd *cobra.Command, args []string) {
 	renderer := calendar.NewRenderer(theme, 80, 20)
 
 	headerStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FF71CE")).
+		Foreground(styles.GetAccent()).
 		Bold(true).
 		Render("📅 TODAY'S TASKS")
 
@@ -185,7 +186,7 @@ func calendarAddHandler(cmd *cobra.Command, args []string) {
 		parsedDate, err := parseDate(args[1])
 		if err != nil {
 			errorStyle := lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#FF0040")).
+				Foreground(styles.GetError()).
 				Bold(true).
 				Render(fmt.Sprintf("❌ Invalid date format: %v", err))
 
@@ -226,7 +227,7 @@ func calendarAddHandler(cmd *cobra.Command, args []string) {
 	newTask, err := taskEngine.AddTask(parsedTask)
 	if err != nil {
 		errorStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF0040")).
+			Foreground(styles.GetError()).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error adding task: %v", err))
 
@@ -235,7 +236,7 @@ func calendarAddHandler(cmd *cobra.Command, args []string) {
 	}
 
 	successStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00FF66")).
+		Foreground(styles.GetSuccess()).
 		Bold(true).
 		Render("✅ Task added to calendar!")
 
@@ -254,7 +255,7 @@ func calendarListHandler(cmd *cobra.Command, args []string) {
 	tasks, err := taskEngine.ListTasks("all")
 	if err != nil {
 		errorStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF0040")).
+			Foreground(styles.GetError()).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error loading tasks: %v", err))
 
@@ -263,7 +264,7 @@ func calendarListHandler(cmd *cobra.Command, args []string) {
 	}
 
 	headerStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FF71CE")).
+		Foreground(styles.GetAccent()).
 		Bold(true).
 		Render("📅 CALENDAR TASK LIST")
 
@@ -342,7 +343,7 @@ func calendarNavigateHandler(cmd *cobra.Command, args []string) {
 	tasks, err := taskEngine.ListTasks("all")
 	if err != nil {
 		errorStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF0040")).
+			Foreground(styles.GetError()).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error loading tasks: %v", err))
 
@@ -356,7 +357,7 @@ func calendarNavigateHandler(cmd *cobra.Command, args []string) {
 		parsedDate, err := parseDate(args[0])
 		if err != nil {
 			errorStyle := lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#FF0040")).
+				Foreground(styles.GetError()).
 				Bold(true).
 				Render(fmt.Sprintf("❌ Invalid date format: %v", err))
 
@@ -376,7 +377,7 @@ func calendarNavigateHandler(cmd *cobra.Command, args []string) {
 	renderer := calendar.NewRenderer(theme, 80, 20)
 
 	headerStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FF71CE")).
+		Foreground(styles.GetAccent()).
 		Bold(true).
 		Render(fmt.Sprintf("📅 NAVIGATED TO %s", targetDate.Format("2006-01-02")))
 

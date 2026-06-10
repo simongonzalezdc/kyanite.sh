@@ -94,15 +94,15 @@ func NewFileDialogModel(dialogType FileDialogType, title, defaultPath string, al
 		currentDir:   "",
 		selectedFile: "",
 		items:        make([]list.Item, 0),
-		titleStyle: lipgloss.NewStyle().
+		titleStyle: lipgloss.Style{}.
 			Bold(true).
 			Padding(0, 1),
-		borderStyle: lipgloss.NewStyle().
+		borderStyle: lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()),
-		errorStyle: lipgloss.NewStyle().
+		errorStyle: lipgloss.Style{}.
 			Bold(true),
-		infoStyle: lipgloss.NewStyle(),
-		selectedStyle: lipgloss.NewStyle().
+		infoStyle: lipgloss.Style{},
+		selectedStyle: lipgloss.Style{}.
 			Bold(true),
 	}
 

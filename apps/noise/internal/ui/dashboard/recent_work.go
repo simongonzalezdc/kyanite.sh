@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/kyanite/design/icons"
 	"github.com/kyanite/noise/internal/infra/db"
 	"github.com/kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
@@ -211,14 +212,14 @@ func (m *RecentWorkModel) View() string {
 
 	t := theme.GetManager().Current()
 
-	title := lipgloss.NewStyle().
+	title := lipgloss.Style{}.
 		Foreground(t.Primary).
 		Bold(true).
 		Render("Recent Work")
 
 	// Show loading state
 	if m.loading {
-		loadingText := lipgloss.NewStyle().
+		loadingText := lipgloss.Style{}.
 			Foreground(t.Secondary).
 			Faint(true).
 			Render("Loading...")
@@ -229,7 +230,7 @@ func (m *RecentWorkModel) View() string {
 			loadingText,
 		)
 
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Width(m.width-2).
 			MaxWidth(m.width-2).
 			MaxHeight(m.height-2).
@@ -239,7 +240,7 @@ func (m *RecentWorkModel) View() string {
 
 	// Show error state
 	if m.err != nil {
-		errorText := lipgloss.NewStyle().
+		errorText := lipgloss.Style{}.
 			Foreground(t.Error).
 			Render("[X] Could not load recent work")
 
@@ -249,7 +250,7 @@ func (m *RecentWorkModel) View() string {
 			errorText,
 		)
 
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Width(m.width-2).
 			MaxWidth(m.width-2).
 			MaxHeight(m.height-2).
@@ -259,7 +260,7 @@ func (m *RecentWorkModel) View() string {
 
 	// Show empty state
 	if len(m.items) == 0 {
-		emptyText := lipgloss.NewStyle().
+		emptyText := lipgloss.Style{}.
 			Foreground(t.Secondary).
 			Faint(true).
 			Render("No recent work yet")
@@ -270,7 +271,7 @@ func (m *RecentWorkModel) View() string {
 			emptyText,
 		)
 
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Width(m.width-2).
 			MaxWidth(m.width-2).
 			MaxHeight(m.height-2).
@@ -285,7 +286,7 @@ func (m *RecentWorkModel) View() string {
 		timeAgo := formatTimeAgo(item.UpdatedAt)
 
 		// Determine style based on selection/hover state
-		itemStyle := lipgloss.NewStyle().Foreground(t.Text)
+		itemStyle := lipgloss.Style{}.Foreground(t.Text)
 		if i == m.selected {
 			itemStyle = itemStyle.
 				Foreground(t.Background).
@@ -297,9 +298,9 @@ func (m *RecentWorkModel) View() string {
 		}
 
 		// Icon based on type
-		icon := "[~]"
+		icon := icons.GetIcon("music")
 		if item.Type == "project" {
-			icon = "[P]"
+			icon = icons.GetIcon("file")
 		}
 
 		itemText := fmt.Sprintf("%s %s - %s", icon, item.Title, timeAgo)
@@ -307,7 +308,7 @@ func (m *RecentWorkModel) View() string {
 	}
 
 	// Open projects button
-	buttonStyle := lipgloss.NewStyle().
+	buttonStyle := lipgloss.Style{}.
 		Padding(0, 1).
 		MarginTop(1)
 
@@ -325,7 +326,7 @@ func (m *RecentWorkModel) View() string {
 	openButton := buttonStyle.Render("[Open Projects]")
 
 	// Mouse hint
-	mouseHint := lipgloss.NewStyle().
+	mouseHint := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Faint(true).
 		Render("Click to open")
@@ -339,7 +340,7 @@ func (m *RecentWorkModel) View() string {
 		mouseHint,
 	)
 
-	return lipgloss.NewStyle().
+	return lipgloss.Style{}.
 		Width(m.width-2).
 		MaxWidth(m.width-2).
 		MaxHeight(m.height-2).

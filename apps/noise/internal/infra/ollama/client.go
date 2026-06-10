@@ -1,3 +1,4 @@
+// Deprecated: Use infra/brain/client.go with pkg/ai instead.
 // Package ollama provides a client for the Ollama AI service.
 package ollama
 

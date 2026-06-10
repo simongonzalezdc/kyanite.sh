@@ -153,16 +153,16 @@ func NewPreviewPaneModel() *PreviewPaneModel {
 	}
 
 	t := theme.GetManager().Current()
-	model.focusedStyle = lipgloss.NewStyle().
+	model.focusedStyle = lipgloss.Style{}.
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Primary)
-	model.blurredStyle = lipgloss.NewStyle().
+	model.blurredStyle = lipgloss.Style{}.
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Secondary)
-	model.borderStyle = lipgloss.NewStyle().
+	model.borderStyle = lipgloss.Style{}.
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Secondary)
-	model.titleStyle = lipgloss.NewStyle().
+	model.titleStyle = lipgloss.Style{}.
 		Bold(true).
 		Foreground(t.Text).
 		Background(t.Background).
@@ -584,7 +584,7 @@ func (m *PreviewPaneModel) View() string {
 		}
 		progressBar := strings.Repeat("#", int(scrollPercent*20)) + strings.Repeat(".", 20-int(scrollPercent*20))
 		t := theme.GetManager().Current()
-		scrollIndicator = lipgloss.NewStyle().
+		scrollIndicator = lipgloss.Style{}.
 			Foreground(t.Secondary).
 			Align(lipgloss.Center).
 			Width(m.width - 4).
@@ -603,7 +603,7 @@ func (m *PreviewPaneModel) View() string {
 		}
 		if len(statsParts) > 0 {
 			t := theme.GetManager().Current()
-			statsInfo = lipgloss.NewStyle().
+			statsInfo = lipgloss.Style{}.
 				Foreground(t.Secondary).
 				Align(lipgloss.Center).
 				Width(m.width - 4).
@@ -621,7 +621,7 @@ func (m *PreviewPaneModel) View() string {
 	controlsInfo := ""
 	if m.focused {
 		t := theme.GetManager().Current()
-		controlsInfo = lipgloss.NewStyle().
+		controlsInfo = lipgloss.Style{}.
 			Foreground(t.Secondary).
 			Align(lipgloss.Center).
 			Width(m.width - 4).
@@ -898,7 +898,7 @@ func (m *PreviewPaneModel) renderProsodyOverlay(content string) string {
 	lines := strings.Split(content, "\n")
 	t := theme.GetManager().Current()
 
-	syllableStyle := lipgloss.NewStyle().Foreground(t.Accent).Italic(true)
+	syllableStyle := lipgloss.Style{}.Foreground(t.Accent).Italic(true)
 
 	var annotated []string
 	for _, line := range lines {
@@ -935,7 +935,7 @@ func (m *PreviewPaneModel) renderProsodyOverlay(content string) string {
 func (m *PreviewPaneModel) renderError(err error) string {
 	errorMsg := fmt.Sprintf("Error rendering markdown: %s", err.Error())
 	t := theme.GetManager().Current()
-	return lipgloss.NewStyle().
+	return lipgloss.Style{}.
 		Foreground(t.Error).
 		Render("[!]  " + errorMsg)
 }
@@ -1067,11 +1067,11 @@ func (m *PreviewPaneModel) renderTOC() string {
 	tocContent := strings.Join(tocLines, "\n")
 
 	t := theme.GetManager().Current()
-	return lipgloss.NewStyle().
+	return lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Align(lipgloss.Left).
 		Width(m.width-4).
-		Border(lipgloss.NormalBorder()).
+		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Secondary).
 		Padding(0, 1).
 		Render(tocContent)

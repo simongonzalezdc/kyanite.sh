@@ -59,31 +59,31 @@ func NewShortcutsOverlayModel() *ShortcutsOverlayModel {
 		scrollY:    0,
 		categories: defaultShortcuts(),
 
-		overlayStyle: lipgloss.NewStyle().
+		overlayStyle: lipgloss.Style{}.
 			Background(t.Background).
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Primary).
 			Padding(1, 2),
 
-		titleStyle: lipgloss.NewStyle().
+		titleStyle: lipgloss.Style{}.
 			Foreground(t.Primary).
 			Bold(true).
 			MarginBottom(1),
 
-		categoryStyle: lipgloss.NewStyle().
+		categoryStyle: lipgloss.Style{}.
 			Foreground(t.Accent).
 			Bold(true).
 			MarginTop(1),
 
-		keyStyle: lipgloss.NewStyle().
+		keyStyle: lipgloss.Style{}.
 			Foreground(t.Text).
 			Background(t.Secondary).
 			Padding(0, 1),
 
-		descriptionStyle: lipgloss.NewStyle().
+		descriptionStyle: lipgloss.Style{}.
 			Foreground(t.Text),
 
-		hintStyle: lipgloss.NewStyle().
+		hintStyle: lipgloss.Style{}.
 			Foreground(t.Secondary).
 			Italic(true).
 			MarginTop(1),
@@ -292,31 +292,31 @@ func (m *ShortcutsOverlayModel) SetDimensions(width, height int) {
 func (m *ShortcutsOverlayModel) UpdateTheme() {
 	t := theme.GetManager().Current()
 
-	m.overlayStyle = lipgloss.NewStyle().
+	m.overlayStyle = lipgloss.Style{}.
 		Background(t.Background).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Primary).
 		Padding(1, 2)
 
-	m.titleStyle = lipgloss.NewStyle().
+	m.titleStyle = lipgloss.Style{}.
 		Foreground(t.Primary).
 		Bold(true).
 		MarginBottom(1)
 
-	m.categoryStyle = lipgloss.NewStyle().
+	m.categoryStyle = lipgloss.Style{}.
 		Foreground(t.Accent).
 		Bold(true).
 		MarginTop(1)
 
-	m.keyStyle = lipgloss.NewStyle().
+	m.keyStyle = lipgloss.Style{}.
 		Foreground(t.Text).
 		Background(t.Secondary).
 		Padding(0, 1)
 
-	m.descriptionStyle = lipgloss.NewStyle().
+	m.descriptionStyle = lipgloss.Style{}.
 		Foreground(t.Text)
 
-	m.hintStyle = lipgloss.NewStyle().
+	m.hintStyle = lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Italic(true).
 		MarginTop(1)

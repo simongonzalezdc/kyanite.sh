@@ -185,14 +185,14 @@ func (m *SystemInfoModel) View() string {
 
 	t := theme.GetManager().Current()
 
-	title := lipgloss.NewStyle().
+	title := lipgloss.Style{}.
 		Foreground(t.Primary).
 		Bold(true).
 		Render("System Info")
 
 	// Show loading state
 	if m.loading {
-		loadingText := lipgloss.NewStyle().
+		loadingText := lipgloss.Style{}.
 			Foreground(t.Secondary).
 			Faint(true).
 			Render("Loading...")
@@ -203,7 +203,7 @@ func (m *SystemInfoModel) View() string {
 			loadingText,
 		)
 
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Width(m.width-2).
 			MaxWidth(m.width-2).
 			MaxHeight(m.height-2).
@@ -212,7 +212,7 @@ func (m *SystemInfoModel) View() string {
 	}
 
 	// Statistics section
-	statsTitle := lipgloss.NewStyle().
+	statsTitle := lipgloss.Style{}.
 		Foreground(t.Text).
 		Bold(true).
 		Render("[STATS] Statistics:")
@@ -224,7 +224,7 @@ func (m *SystemInfoModel) View() string {
 
 	var statViews []string
 	for _, stat := range stats {
-		statView := lipgloss.NewStyle().
+		statView := lipgloss.Style{}.
 			Foreground(t.Text).
 			Render(stat)
 		statViews = append(statViews, statView)
@@ -232,7 +232,7 @@ func (m *SystemInfoModel) View() string {
 
 	// Storage info
 	storageStr := formatBytes(m.stats.StorageBytes)
-	storage := lipgloss.NewStyle().
+	storage := lipgloss.Style{}.
 		Foreground(t.Text).
 		Render(fmt.Sprintf("[DISK] Storage: %s", storageStr))
 
@@ -243,12 +243,12 @@ func (m *SystemInfoModel) View() string {
 		perfStatus = "Heavy"
 		perfColor = t.Warning
 	}
-	performance := lipgloss.NewStyle().
+	performance := lipgloss.Style{}.
 		Foreground(perfColor).
 		Render(fmt.Sprintf("[PERF] Performance: %s", perfStatus))
 
 	// Open settings button
-	buttonStyle := lipgloss.NewStyle().
+	buttonStyle := lipgloss.Style{}.
 		Padding(0, 1).
 		MarginTop(1)
 
@@ -266,7 +266,7 @@ func (m *SystemInfoModel) View() string {
 	settingsButton := buttonStyle.Render("[Open Settings]")
 
 	// Mouse hint
-	mouseHint := lipgloss.NewStyle().
+	mouseHint := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Faint(true).
 		Render("Click to configure")
@@ -284,7 +284,7 @@ func (m *SystemInfoModel) View() string {
 		mouseHint,
 	)
 
-	return lipgloss.NewStyle().
+	return lipgloss.Style{}.
 		Width(m.width-2).
 		MaxWidth(m.width-2).
 		MaxHeight(m.height-2).

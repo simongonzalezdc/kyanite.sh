@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kyanite/design/icons"
 	"github.com/kyanite/noise/internal/infra/sync"
 	"github.com/kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
@@ -36,31 +37,31 @@ func NewIdeaInboxModel() *IdeaInboxModel {
 
 	return &IdeaInboxModel{
 		ideas: make([]*sync.CapturedIdea, 0),
-		titleStyle: lipgloss.NewStyle().
+		titleStyle: lipgloss.Style{}.
 			Bold(true).
 			Foreground(t.Primary).
 			MarginBottom(1),
-		itemStyle: lipgloss.NewStyle().
+		itemStyle: lipgloss.Style{}.
 			Foreground(t.Text).
 			PaddingLeft(2).
-			Border(lipgloss.NormalBorder(), false, false, true, false).
+			Border(lipgloss.RoundedBorder(), false, false, true, false).
 			BorderForeground(t.Secondary),
-		selectedStyle: lipgloss.NewStyle().
+		selectedStyle: lipgloss.Style{}.
 			Foreground(t.Background).
 			Background(t.Primary).
 			Bold(true).
 			PaddingLeft(2),
-		typeStyle: lipgloss.NewStyle().
+		typeStyle: lipgloss.Style{}.
 			Foreground(t.Accent).
 			Bold(true),
-		timeStyle: lipgloss.NewStyle().
+		timeStyle: lipgloss.Style{}.
 			Foreground(t.Secondary),
-		contentStyle: lipgloss.NewStyle().
+		contentStyle: lipgloss.Style{}.
 			Foreground(t.Text),
-		emptyStyle: lipgloss.NewStyle().
+		emptyStyle: lipgloss.Style{}.
 			Foreground(t.Secondary).
 			Italic(true),
-		helpStyle: lipgloss.NewStyle().
+		helpStyle: lipgloss.Style{}.
 			Foreground(t.Secondary),
 	}
 }
@@ -185,10 +186,10 @@ func (m *IdeaInboxModel) renderIdea(idea *sync.CapturedIdea, selected bool) stri
 		content = fmt.Sprintf("%d BPM", idea.BPM)
 	}
 	if idea.Type == sync.IdeaTypeVoiceMemo {
-		content = "[MIC] Voice memo"
+		content = icons.GetIcon("mic") + " Voice memo"
 	}
 	if idea.Type == sync.IdeaTypePhoto {
-		content = "[IMG] Photo"
+		content = icons.GetIcon("photo") + " Photo"
 	}
 
 	// Format
@@ -202,15 +203,15 @@ func (m *IdeaInboxModel) renderIdea(idea *sync.CapturedIdea, selected bool) stri
 func (m *IdeaInboxModel) getTypeIcon(ideaType sync.IdeaType) string {
 	switch ideaType {
 	case sync.IdeaTypeText:
-		return "[TXT]"
+		return icons.GetIcon("file")
 	case sync.IdeaTypeVoiceMemo:
-		return "[MIC]"
+		return icons.GetIcon("mic")
 	case sync.IdeaTypePhoto:
-		return "[IMG]"
+		return icons.GetIcon("photo")
 	case sync.IdeaTypeTempo:
-		return "[BPM]"
+		return icons.GetIcon("music")
 	default:
-		return "[*]"
+		return icons.GetIcon("info")
 	}
 }
 

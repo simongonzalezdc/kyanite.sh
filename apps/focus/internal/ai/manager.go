@@ -48,6 +48,8 @@ type Manager struct {
 	promptBuilder *PromptBuilder
 	validator     *TaskValidator
 	ollamaManager *OllamaManager
+	brainProvider *BrainProvider
+	providers     []Provider // Ordered provider chain: Brain → Fallback
 }
 
 // cacheEntry represents a cached AI response
@@ -92,10 +94,13 @@ func New() *Manager {
 		promptBuilder:  NewPromptBuilder(),
 		validator:      NewTaskValidator(),
 		ollamaManager:  NewOllamaManager(ollamaBaseURL, model),
+		brainProvider: NewBrainProvider(),
 		cacheMaxSize:   500, // Limit cache to 500 entries
 		modelAvailable: make(map[string]bool),
 		done:           make(chan struct{}),
 	}
+	// Build provider chain: Brain (NUCBox) → Fallback
+	manager.providers = []Provider{manager.brainProvider, NewFallbackProvider()}
 
 	// Set cache path
 	home, err := os.UserHomeDir()
@@ -118,6 +123,9 @@ func New() *Manager {
 // Close stops background goroutines and flushes the cache.
 func (m *Manager) Close() {
 	close(m.done)
+	if m.brainProvider != nil {
+		m.brainProvider.Close()
+	}
 	m.cacheMutex.RLock()
 	needsSave := m.cacheDirty
 	m.cacheMutex.RUnlock()
@@ -145,22 +153,12 @@ func (m *Manager) ParseTask(ctx context.Context, input string) (*ParsedTask, err
 		// For now, just continue with normal processing
 	}
 
-	// Use only qwen2.5:1.5b model
-	m.model = "qwen2.5:1.5b"
-	if result, err := m.parseWithOllama(ctx, input); err == nil {
-		if validated, ok := m.validateResponse(result); ok {
-			// Cache the result
-			m.saveToCache(cacheKey, validated)
-			return validated, nil
-		}
-	}
-
-	// Fallback to OpenRouter with user approval
-	if m.openRouterKey != "" {
-		if m.requestRemoteApproval("task parsing") {
-			if result, err := m.parseWithOpenRouter(ctx, input); err == nil {
+	// Try provider chain first (Brain → Fallback)
+	for _, provider := range m.providers {
+		if provider.IsAvailable() {
+			result, err := provider.ParseTask(ctx, input)
+			if err == nil {
 				if validated, ok := m.validateResponse(result); ok {
-					// Cache the result
 					m.saveToCache(cacheKey, validated)
 					return validated, nil
 				}
@@ -168,7 +166,27 @@ func (m *Manager) ParseTask(ctx context.Context, input string) (*ParsedTask, err
 		}
 	}
 
-	// If both fail, return basic parsing
+	// Legacy fallback: try Ollama directly, then OpenRouter
+	m.model = "qwen2.5:1.5b"
+	if result, err := m.parseWithOllama(ctx, input); err == nil {
+		if validated, ok := m.validateResponse(result); ok {
+			m.saveToCache(cacheKey, validated)
+			return validated, nil
+		}
+	}
+
+	if m.openRouterKey != "" {
+		if m.requestRemoteApproval("task parsing") {
+			if result, err := m.parseWithOpenRouter(ctx, input); err == nil {
+				if validated, ok := m.validateResponse(result); ok {
+					m.saveToCache(cacheKey, validated)
+					return validated, nil
+				}
+			}
+		}
+	}
+
+	// Final fallback: rule-based parsing
 	basicResult := m.basicParse(input)
 	m.saveToCache(cacheKey, basicResult)
 	return basicResult, nil
@@ -264,19 +282,27 @@ func (m *Manager) ChatAssistant(ctx context.Context, question string, tasks []st
 		}
 	}
 
-	// Use only qwen2.5:1.5b model
+	// Try provider chain first (Brain → Fallback)
+	for _, provider := range m.providers {
+		if provider.IsAvailable() {
+			result, err := provider.ChatAssistant(ctx, question, tasks)
+			if err == nil {
+				m.saveToCache(cacheKey, result)
+				return result, nil
+			}
+		}
+	}
+
+	// Legacy fallback: try Ollama directly
 	m.model = "qwen2.5:1.5b"
 	if result, err := m.chatWithOllama(ctx, question, tasks); err == nil {
-		// Cache the result
 		m.saveToCache(cacheKey, result)
 		return result, nil
 	}
 
-	// Fallback to OpenRouter with user approval
 	if m.openRouterKey != "" {
 		if m.requestRemoteApproval("chat assistant") {
 			if result, err := m.chatWithOpenRouter(ctx, question, tasks); err == nil {
-				// Cache the result
 				m.saveToCache(cacheKey, result)
 				return result, nil
 			}

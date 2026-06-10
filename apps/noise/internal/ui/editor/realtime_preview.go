@@ -135,7 +135,7 @@ func NewRealTimePreviewManager(config *PreviewUpdateConfig) *RealTimePreviewMana
 		config:         config,
 		maxHistorySize: 100,
 		updateIndicator: &UpdateIndicator{
-			style: lipgloss.NewStyle().
+			style: lipgloss.Style{}.
 				Foreground(t.Accent).
 				Background(t.Background).
 				Padding(0, 1).

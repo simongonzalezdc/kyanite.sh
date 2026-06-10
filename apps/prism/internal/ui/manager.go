@@ -6,6 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/design"
 	"github.com/kyanite/prism/internal/palette"
 	"github.com/kyanite/prism/internal/storage"
 	"github.com/kyanite/prism/internal/theme"
@@ -103,9 +104,9 @@ func (m ManagerModel) View() string {
 				var swatches strings.Builder
 				swatches.WriteString("  ")
 				for _, c := range pal.Colors {
-					swatch := lipgloss.NewStyle().
+					swatch := lipgloss.Style{}.
 						Background(lipgloss.Color(c.Hex)).
-						Padding(0, 1).
+						Padding(design.SpacingNone, design.SpacingXS).
 						Render("██")
 					swatches.WriteString(swatch)
 					swatches.WriteString(" ")
@@ -138,6 +139,7 @@ type PalettesLoadedMsg struct {
 	Palettes []palette.Palette
 	Err      string
 }
+
 // loadPalettes loads saved palettes
 func (m ManagerModel) loadPalettes() tea.Cmd {
 	return func() tea.Msg {

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"github.com/kyanite/focus/pkg/styles"
 	"fmt"
 	"os"
 	"strconv"
@@ -108,7 +109,7 @@ func configGetHandler(cmd *cobra.Command, args []string) {
 	}
 
 	successStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00FF66")).
+		Foreground(styles.GetSuccess()).
 		Bold(true)
 
 	fmt.Printf("%s %s\n",
@@ -168,7 +169,7 @@ func configSetHandler(cmd *cobra.Command, args []string) {
 	}
 
 	successStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00FF66")).
+		Foreground(styles.GetSuccess()).
 		Bold(true)
 
 	fmt.Printf("%s Configuration updated: %s = %v\n",
@@ -183,11 +184,11 @@ func configListHandler(cmd *cobra.Command, args []string) {
 	}
 
 	headerStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FF71CE")).
+		Foreground(styles.GetAccent()).
 		Bold(true)
 
 	sectionStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00FFF0")).
+		Foreground(styles.GetAccent()).
 		Bold(true)
 
 	fmt.Println(headerStyle.Render("🔧 focus.sh Configuration"))
@@ -229,7 +230,7 @@ func configListHandler(cmd *cobra.Command, args []string) {
 
 func configResetHandler(cmd *cobra.Command, args []string) {
 	confirmStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FF0040")).
+		Foreground(styles.GetError()).
 		Bold(true)
 
 	fmt.Print(confirmStyle.Render("⚠️  WARNING: This will reset all configuration to defaults!"))
@@ -257,7 +258,7 @@ func configResetHandler(cmd *cobra.Command, args []string) {
 	}
 
 	successStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00FF66")).
+		Foreground(styles.GetSuccess()).
 		Bold(true)
 
 	fmt.Println(successStyle.Render("✅ Configuration reset to defaults!"))

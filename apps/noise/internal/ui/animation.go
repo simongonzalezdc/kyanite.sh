@@ -297,28 +297,28 @@ func ApplySlideEffect(base lipgloss.Style, progress float64, direction string) l
 	if progress <= 0 {
 		switch direction {
 		case "left":
-			return lipgloss.NewStyle().
+			return lipgloss.Style{}.
 				MarginLeft(-100).
 				MarginRight(0).
 				MarginTop(0).
 				MarginBottom(0).
 				Padding(0, 1)
 		case "right":
-			return lipgloss.NewStyle().
+			return lipgloss.Style{}.
 				MarginLeft(0).
 				MarginRight(-100).
 				MarginTop(0).
 				MarginBottom(0).
 				Padding(0, 1)
 		case "up":
-			return lipgloss.NewStyle().
+			return lipgloss.Style{}.
 				MarginLeft(0).
 				MarginRight(0).
 				MarginTop(-50).
 				MarginBottom(0).
 				Padding(0, 1)
 		case "down":
-			return lipgloss.NewStyle().
+			return lipgloss.Style{}.
 				MarginLeft(0).
 				MarginRight(0).
 				MarginTop(0).

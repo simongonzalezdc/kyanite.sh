@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/kyanite/design/icons"
 	"github.com/kyanite/noise/internal/theme"
 	"github.com/kyanite/noise/internal/ui/dimension"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -55,16 +56,16 @@ func NewHelpPaneModel(shortcutManager *ShortcutManager) *HelpPaneModel {
 	// Initialize search input
 	searchInput := textinput.New()
 	searchInput.Placeholder = "Search shortcuts..."
-	searchInput.Prompt = "[?] "
-	searchInput.PromptStyle = lipgloss.NewStyle().Foreground(t.Accent)
-	searchInput.TextStyle = lipgloss.NewStyle().Foreground(t.Text)
-	searchInput.Cursor.Style = lipgloss.NewStyle().Foreground(t.Accent)
+	searchInput.Prompt = icons.GetIcon("help") + " "
+	searchInput.PromptStyle = lipgloss.Style{}.Foreground(t.Accent)
+	searchInput.TextStyle = lipgloss.Style{}.Foreground(t.Text)
+	searchInput.Cursor.Style = lipgloss.Style{}.Foreground(t.Accent)
 	searchInput.CharLimit = 50
 	searchInput.Focus()
 
 	// Initialize viewport for scrolling
 	vp := viewport.New(0, 0)
-	vp.Style = lipgloss.NewStyle()
+	vp.Style = lipgloss.Style{}
 
 	model := &HelpPaneModel{
 		shortcutManager: shortcutManager,
@@ -73,32 +74,32 @@ func NewHelpPaneModel(shortcutManager *ShortcutManager) *HelpPaneModel {
 		searchQuery:     "",
 		viewport:        vp,
 		scrollReady:     false,
-		containerStyle: lipgloss.NewStyle().
+		containerStyle: lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Primary),
-		titleStyle: lipgloss.NewStyle().
+		titleStyle: lipgloss.Style{}.
 			Bold(true).
 			Foreground(t.Accent).
 			MarginBottom(1),
-		categoryStyle: lipgloss.NewStyle().
+		categoryStyle: lipgloss.Style{}.
 			Bold(true).
 			Foreground(t.Primary).
 			MarginTop(1).
 			MarginBottom(1),
-		shortcutStyle: lipgloss.NewStyle().
+		shortcutStyle: lipgloss.Style{}.
 			Foreground(t.Accent).
 			Bold(true),
-		descStyle: lipgloss.NewStyle().
+		descStyle: lipgloss.Style{}.
 			Foreground(t.Secondary),
-		borderStyle: lipgloss.NewStyle().
+		borderStyle: lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Secondary),
-		searchInputStyle: lipgloss.NewStyle().
+		searchInputStyle: lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Primary).
 			Width(50).
 			Padding(0, 1),
-		searchResultStyle: lipgloss.NewStyle().Foreground(t.Success),
+		searchResultStyle: lipgloss.Style{}.Foreground(t.Success),
 		compactMode:       false,
 		showMinimalHelp:   false,
 		showShortKeys:     false,
@@ -300,7 +301,7 @@ func (m *HelpPaneModel) performSearch() {
 // renderFullHelp renders the complete help content
 func (m *HelpPaneModel) renderFullHelp() string {
 	title := m.titleStyle.Render("[*] Keyboard Shortcuts Reference")
-	title = lipgloss.NewStyle().Width(m.width - 4).Align(lipgloss.Center).Render(title)
+	title = lipgloss.Style{}.Width(m.width - 4).Align(lipgloss.Center).Render(title)
 
 	var content string
 
@@ -337,7 +338,7 @@ func (m *HelpPaneModel) renderFullHelp() string {
 		t := theme.GetManager().Current()
 		if m.viewport.TotalLineCount() > m.viewport.Height {
 			scrollPct := int(m.viewport.ScrollPercent() * 100)
-			scrollInfo := lipgloss.NewStyle().
+			scrollInfo := lipgloss.Style{}.
 				Foreground(t.Secondary).
 				Render(fmt.Sprintf(" [%d%%]", scrollPct))
 			title = title + scrollInfo
@@ -349,7 +350,7 @@ func (m *HelpPaneModel) renderFullHelp() string {
 	// Add footer with navigation hints
 	var footer string
 	t := theme.GetManager().Current()
-	footerStyle := lipgloss.NewStyle().
+	footerStyle := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Align(lipgloss.Center).
 		Width(m.width - 4)
@@ -379,7 +380,7 @@ func (m *HelpPaneModel) renderFullHelp() string {
 // renderCompactHelp renders compact help content
 func (m *HelpPaneModel) renderCompactHelp() string {
 	title := m.titleStyle.Render("[*] Shortcuts")
-	title = lipgloss.NewStyle().Width(m.width - 4).Align(lipgloss.Center).Render(title)
+	title = lipgloss.Style{}.Width(m.width - 4).Align(lipgloss.Center).Render(title)
 
 	var content string
 
@@ -418,7 +419,7 @@ func (m *HelpPaneModel) renderCompactHelp() string {
 	}
 
 	t := theme.GetManager().Current()
-	footer := lipgloss.NewStyle().
+	footer := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Align(lipgloss.Center).
 		Width(m.width - 4).
@@ -436,13 +437,13 @@ func (m *HelpPaneModel) renderCompactHelp() string {
 // renderMinimalHelp renders minimal help content for very small terminals
 func (m *HelpPaneModel) renderMinimalHelp() string {
 	title := m.titleStyle.Render("? Help")
-	title = lipgloss.NewStyle().Width(m.width - 4).Align(lipgloss.Center).Render(title)
+	title = lipgloss.Style{}.Width(m.width - 4).Align(lipgloss.Center).Render(title)
 
 	var content string
 
 	if m.searchMode {
 		// Render minimal search interface
-		searchTitle := m.categoryStyle.Render("[?]")
+		searchTitle := m.categoryStyle.Render(icons.GetIcon("help"))
 		searchInputView := m.searchInputStyle.Width(20).Render(m.searchInput.View())
 
 		searchContent := lipgloss.JoinVertical(lipgloss.Left, searchTitle, searchInputView)
@@ -475,7 +476,7 @@ func (m *HelpPaneModel) renderMinimalHelp() string {
 	}
 
 	t := theme.GetManager().Current()
-	footer := lipgloss.NewStyle().
+	footer := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Align(lipgloss.Center).
 		Width(m.width - 4).

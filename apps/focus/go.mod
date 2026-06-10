@@ -9,6 +9,8 @@ require (
 	github.com/charmbracelet/lipgloss v1.1.1-0.20250404203927-76690c660834
 	github.com/charmbracelet/log v1.0.0
 	github.com/google/uuid v1.6.0
+	github.com/kyanite/ai v0.0.0
+	github.com/kyanite/design v0.0.0
 	github.com/pterm/pterm v0.12.83
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
@@ -37,6 +39,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/gookit/color v1.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/lib/pq v1.12.3 // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -66,3 +69,7 @@ require (
 )
 
 toolchain go1.26.4
+
+replace github.com/kyanite/design => ../../pkg/design
+
+replace github.com/kyanite/ai => ../../pkg/ai

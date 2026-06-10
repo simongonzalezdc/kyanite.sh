@@ -192,7 +192,7 @@ func (r *ResponsiveLayoutManager) RenderSizeWarning() string {
 	}
 
 	t := theme.GetManager().Current()
-	warningStyle := lipgloss.NewStyle().
+	warningStyle := lipgloss.Style{}.
 		Foreground(t.Error).
 		Background(t.Background).
 		Padding(0, 1).

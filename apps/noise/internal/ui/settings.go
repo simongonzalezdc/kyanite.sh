@@ -972,7 +972,7 @@ func (m *SettingsModel) View() string {
 	}
 
 	// Create main layout
-	mainStyle := lipgloss.NewStyle().
+	mainStyle := lipgloss.Style{}.
 		Width(m.width).
 		Height(m.height).
 		Padding(1)
@@ -981,12 +981,12 @@ func (m *SettingsModel) View() string {
 	t := theme.GetManager().Current()
 
 	// Header
-	headerStyle := lipgloss.NewStyle().
+	headerStyle := lipgloss.Style{}.
 		Foreground(t.Primary).
 		Bold(true).
 		MarginBottom(1)
 	header := headerStyle.Render("Settings")
-	borderStyle := lipgloss.NewStyle().
+	borderStyle := lipgloss.Style{}.
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Primary).
 		Padding(0, 1)
@@ -996,7 +996,7 @@ func (m *SettingsModel) View() string {
 	// Categories section
 	var categoryStyle lipgloss.Style
 	if m.focused == FocusCategories {
-		categoryStyle = lipgloss.NewStyle().
+		categoryStyle = lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Accent).
 			Padding(1).
@@ -1004,7 +1004,7 @@ func (m *SettingsModel) View() string {
 			Width(27).
 			Height(m.height - 8)
 	} else {
-		categoryStyle = lipgloss.NewStyle().
+		categoryStyle = lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Secondary).
 			Padding(1).
@@ -1018,14 +1018,14 @@ func (m *SettingsModel) View() string {
 	// Settings section
 	var settingsStyle lipgloss.Style
 	if m.focused == FocusSettings {
-		settingsStyle = lipgloss.NewStyle().
+		settingsStyle = lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Accent).
 			Padding(1).
 			Width(52).
 			Height(m.height - 8)
 	} else {
-		settingsStyle = lipgloss.NewStyle().
+		settingsStyle = lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Secondary).
 			Padding(1).
@@ -1041,7 +1041,7 @@ func (m *SettingsModel) View() string {
 	// Save message
 	var saveMsg string
 	if m.showSaveMsg {
-		saveMsgStyle := lipgloss.NewStyle().
+		saveMsgStyle := lipgloss.Style{}.
 			Foreground(t.Success).
 			Bold(true)
 		saveMsg = saveMsgStyle.Render("[OK] Settings saved successfully!")
@@ -1077,7 +1077,7 @@ func (m *SettingsModel) renderInstructions() string {
 	}
 
 	t := theme.GetManager().Current()
-	mutedStyle := lipgloss.NewStyle().
+	mutedStyle := lipgloss.Style{}.
 		Foreground(t.Secondary)
 	return mutedStyle.Render(strings.Join(instructions, " - "))
 }
@@ -1094,7 +1094,7 @@ func (c categoryItem) FilterValue() string {
 // Render renders the category item for display in the list
 func (c categoryItem) Render() string {
 	t := theme.GetManager().Current()
-	style := lipgloss.NewStyle().
+	style := lipgloss.Style{}.
 		Foreground(t.Primary).
 		Bold(true).
 		Padding(0, 2)
@@ -1116,15 +1116,15 @@ func (s settingItem) Render() string {
 	t := theme.GetManager().Current()
 
 	// Main setting name and description
-	nameStyle := lipgloss.NewStyle().
+	nameStyle := lipgloss.Style{}.
 		Foreground(t.Text).
 		Bold(true)
 
-	descStyle := lipgloss.NewStyle().
+	descStyle := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Italic(true)
 
-	valueStyle := lipgloss.NewStyle().
+	valueStyle := lipgloss.Style{}.
 		Foreground(t.Accent)
 
 	// Format the value based on type
@@ -1182,10 +1182,10 @@ func (s settingItem) Render() string {
 	content := nameLine + "\n" + descLine + "\n" + valueLine
 
 	// Add padding and border
-	itemStyle := lipgloss.NewStyle().
+	itemStyle := lipgloss.Style{}.
 		Padding(1, 2).
 		MarginBottom(1).
-		Border(lipgloss.NormalBorder()).
+		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Secondary)
 
 	return itemStyle.Render(content)

@@ -3,23 +3,16 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"os/exec"
-	"os/signal"
 	"path/filepath"
-	"runtime"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/kyanite/focus/internal/cli"
 	"github.com/kyanite/focus/internal/tui"
 )
-
-// ollamaCmd holds a reference to the ollama serve process for cleanup.
-var ollamaCmd *exec.Cmd
 
 func main() {
 	if len(os.Args) > 1 {
@@ -37,9 +30,7 @@ func main() {
 		return
 	}
 
-	if err := setupOllama(); err != nil {
-		fmt.Printf("⚠️  Ollama setup issue: %v\n", err)
-	}
+	// AI model is now hosted on NUCBox via pkg/ai Brain — no local Ollama setup needed.
 	fmt.Println("🌌 Loading focus.sh TUI System...")
 	fmt.Println("   ✨ AI-powered task management with professional interface")
 	fmt.Println()
@@ -140,92 +131,6 @@ func runTUIDirectly() error {
 	return tui.StartMainDashboard(tasks)
 }
 
-func setupOllama() error {
-	// Check if ollama is available
-	if _, err := exec.LookPath("ollama"); err != nil {
-		fmt.Println("🤖 Ollama not found. Installing...")
-		if err := installOllama(); err != nil {
-			return fmt.Errorf("could not install ollama: %w", err)
-		}
-	}
-
-	// Check if ollama is running
-	if !isOllamaRunning() {
-		fmt.Println("🚀 Starting Ollama service...")
-		if err := startOllama(); err != nil {
-			fmt.Printf("⚠️  Could not start Ollama: %v\n", err)
-			fmt.Println("💡 You can start it manually with: ollama serve")
-		} else {
-			fmt.Println("✅ Ollama started successfully!")
-		}
-	}
-
-	// Ensure required model is available
-	if !isModelAvailable("qwen2.5:1.5b") {
-		fmt.Println("📥 Downloading qwen2.5:1.5b model (this may take a moment)...")
-		if err := pullModel("qwen2.5:1.5b"); err != nil {
-			fmt.Printf("⚠️  Model download issue: %v\n", err)
-		} else {
-			fmt.Println("✅ AI model ready!")
-		}
-	} else {
-		fmt.Println("✅ AI model already available")
-	}
-
-	return nil
-}
-
-func installOllama() error {
-	fmt.Println("💡 Installing Ollama automatically...")
-
-	// Detect OS and install accordingly
-	switch runtime.GOOS {
-	case "windows":
-		// Download Windows installer
-		return downloadFile("https://ollama.com/download/OllamaSetup.exe", "OllamaSetup.exe", func() error {
-			cmd := exec.Command("OllamaSetup.exe", "/S")
-			return cmd.Run()
-		})
-	case "darwin":
-		// Use Homebrew or download macOS installer
-		return exec.Command("brew", "install", "ollama").Run()
-	default:
-		// Linux download
-		return downloadFile("https://ollama.com/download/ollama-linux-amd64.tgz", "ollama.tgz", func() error {
-			return exec.Command("tar", "xzf", "ollama.tgz").Run()
-		})
-	}
-}
-
-func isOllamaRunning() bool {
-	resp, err := http.Get("http://localhost:11434/api/tags")
-	if err != nil {
-		return false
-	}
-	defer resp.Body.Close()
-	return resp.StatusCode == 200
-}
-
-func startOllama() error {
-	cmd := exec.Command("ollama", "serve")
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-	// ollama serve is designed to run as a persistent daemon.
-	// Track the process so we can clean up on exit.
-	ollamaCmd = cmd
-	go func() {
-		sigCh := make(chan os.Signal, 1)
-		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-		<-sigCh
-		if ollamaCmd != nil && ollamaCmd.Process != nil {
-			_ = ollamaCmd.Process.Kill()
-		}
-		os.Exit(0)
-	}()
-	return nil
-}
-
 func isModelAvailable(model string) bool {
 	resp, err := http.Get("http://localhost:11434/api/tags")
 	if err != nil {
@@ -257,33 +162,3 @@ func pullModel(model string) error {
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
-
-func downloadFile(url, filename string, postInstall func() error) error {
-	fmt.Printf("📥 Downloading from %s...\n", url)
-
-	// Use curl or http client for download
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	out, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	_, err = io.Copy(out, io.LimitReader(resp.Body, 500*1024*1024)) // 500MB max
-	if err != nil {
-		return err
-	}
-
-	// Run post-install step
-	if postInstall != nil {
-		return postInstall()
-	}
-
-	return nil
-}
-

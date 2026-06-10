@@ -1,3 +1,4 @@
+// Deprecated: Model management is now handled by pkg/ai STTClient configuration. Use infra/brain/client.go instead.
 package voice
 
 import (

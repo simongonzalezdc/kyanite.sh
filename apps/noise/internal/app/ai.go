@@ -5,7 +5,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
@@ -13,15 +12,15 @@ import (
 	"github.com/kyanite/noise/internal/config"
 	"github.com/kyanite/noise/internal/constants"
 	"github.com/kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/infra/brain"
 	"github.com/kyanite/noise/internal/infra/glm"
-	"github.com/kyanite/noise/internal/infra/ollama"
 )
 
 // AIService handles AI-powered assistance
 type AIService struct {
 	config       *config.Config
 	quickAgent   *ai.QuickIdeaAgent
-	ollamaClient *ollama.Client
+	brainClient  *brain.Client
 	glmClient    *glm.Client
 }
 
@@ -32,7 +31,7 @@ func NewAIService(cfg *config.Config) *AIService {
 	}
 
 	// Initialize infrastructure clients
-	s.ollamaClient = ollama.NewClient(cfg.AI.BaseURL, cfg.AI.Timeout)
+	s.brainClient = brain.NewClient()
 	glmTimeout := 60 * time.Second
 	s.glmClient = glm.NewClient(cfg.GLM.APIKey, glmTimeout)
 
@@ -45,11 +44,11 @@ func NewAIService(cfg *config.Config) *AIService {
 		client = s.glmClient
 		model = cfg.GLM.Model
 	case "hybrid":
-		// QuickIdeaAgent uses Ollama for fast feedback
-		client = s.ollamaClient
+		// QuickIdeaAgent uses Brain for fast feedback
+		client = s.brainClient
 		model = cfg.AI.Model
-	default: // "ollama"
-		client = s.ollamaClient
+	default: // "ollama" — now routes through Brain
+		client = s.brainClient
 		model = cfg.AI.Model
 	}
 
@@ -137,27 +136,16 @@ func (s *AIService) AnalyzeQuality(song *domain.Song) (*domain.QualityScore, err
 // Implementation moved to ai_chat.go for better organization
 // This method now serves as a clean entry point
 
-// IsAvailable checks if AI services (Ollama) are available
+// IsAvailable checks if AI services are available
 func (s *AIService) IsAvailable() bool {
-	// Check if Ollama is reachable
-	client := &http.Client{Timeout: 2 * time.Second}
-	resp, err := client.Get(s.config.AI.BaseURL + "/api/tags")
-	if err != nil {
-		return false
-	}
-	defer resp.Body.Close()
-
-	return resp.StatusCode == http.StatusOK
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	return s.brainClient.IsAvailable(ctx)
 }
 
 // GetModelStatus returns the status of AI models
 func (s *AIService) GetModelStatus() map[string]interface{} {
-	return map[string]interface{}{
-		"provider":      s.config.AI.Provider,
-		"ollama_url":    s.config.AI.BaseURL,
-		"ollama_status": s.IsAvailable(),
-		"last_check":    time.Now(),
-	}
+	return s.brainClient.GetModelStatus()
 }
 
 // Rapid prototyping methods (Delegated to QuickIdeaAgent)

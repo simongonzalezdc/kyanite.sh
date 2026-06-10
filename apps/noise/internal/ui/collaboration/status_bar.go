@@ -37,15 +37,15 @@ func NewCollaborationStatusBar() *CollaborationStatusBar {
 		isCollaborating:  false,
 		participantCount: 0,
 		showDetails:      false,
-		containerStyle: lipgloss.NewStyle().
+		containerStyle: lipgloss.Style{}.
 			Padding(0, 1).
 			Margin(0, 1),
-		activeStyle: lipgloss.NewStyle().
+		activeStyle: lipgloss.Style{}.
 			Bold(true),
-		inactiveStyle: lipgloss.NewStyle(),
-		conflictStyle: lipgloss.NewStyle().
+		inactiveStyle: lipgloss.Style{},
+		conflictStyle: lipgloss.Style{}.
 			Bold(true),
-		detailsStyle: lipgloss.NewStyle().
+		detailsStyle: lipgloss.Style{}.
 			Italic(true),
 	}
 }

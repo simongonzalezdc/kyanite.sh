@@ -3,74 +3,91 @@ package theme
 import (
 	"testing"
 
-	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/design"
 )
 
-func TestRegistryCount(t *testing.T) {
-	if len(Registry) != 10 {
-		t.Errorf("Expected 10 themes, got %d", len(Registry))
+func TestManagerCurrent(t *testing.T) {
+	m := GetManager()
+	cur := m.Current()
+	if cur.Name == "" {
+		t.Error("Current theme should have a name")
 	}
 }
 
-func TestDefaultTheme(t *testing.T) {
+func TestManagerSetTheme(t *testing.T) {
+	m := GetManager()
+	m.SetTheme("electric-rose")
+	cur := m.Current()
+	if cur.Name != "electric-rose" {
+		t.Errorf("Expected electric-rose, got %s", cur.Name)
+	}
+	// Reset
+	m.SetTheme("amber-night")
+}
+
+func TestManagerNext(t *testing.T) {
+	m := GetManager()
+	m.SetTheme("amber-night")
+	next := m.Next()
+	if next.Name == "" {
+		t.Error("Next theme should have a name")
+	}
+	// Reset
+	m.SetTheme("amber-night")
+}
+
+func TestManagerPrevious(t *testing.T) {
+	m := GetManager()
+	m.SetTheme("amber-night")
+	prev := m.Previous()
+	if prev.Name == "" {
+		t.Error("Previous theme should have a name")
+	}
+	// Reset
+	m.SetTheme("amber-night")
+}
+
+func TestMigrateThemeID(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"synthwave", "electric-rose"},
+		{"light", "monochrome"},
+		{"plain", "amber-night"},
+		{"twilight-mist", "twilight-mist"},
+		{"amber-night", "amber-night"},
+		{"electric-rose", "electric-rose"},
+	}
+	for _, tt := range tests {
+		result := migrateThemeID(tt.input)
+		if result != tt.expected {
+			t.Errorf("migrateThemeID(%q) = %q, want %q", tt.input, result, tt.expected)
+		}
+	}
+}
+
+func TestListThemes(t *testing.T) {
+	themes := ListThemes()
+	if len(themes) < 6 {
+		t.Errorf("Expected at least 6 themes, got %d", len(themes))
+	}
+}
+
+func TestDefault(t *testing.T) {
 	def := Default()
-	if def.Name != "Amber Night" {
-		t.Errorf("Expected default theme 'Amber Night', got '%s'", def.Name)
+	if def.Name != "amber-night" {
+		t.Errorf("Expected amber-night, got %s", def.Name)
 	}
 }
 
-func TestGetThemeByIDAndName(t *testing.T) {
-	// By id
-	t1 := GetTheme("amber-night")
-	if t1.Name != "Amber Night" {
-		t.Errorf("ID amber-night should map to Amber Night, got %s", t1.Name)
-	}
-	// By name
-	t2 := GetThemeByName("Amber Night")
-	if t2.Name != "Amber Night" {
+func TestGetThemeByName(t *testing.T) {
+	t2 := GetThemeByName("amber-night")
+	if t2.Name != "amber-night" {
 		t.Errorf("Name lookup failed, got %s", t2.Name)
 	}
-	// Unknown -> default
-	unk := GetTheme("does-not-exist")
-	if unk.Name != Default().Name {
-		t.Errorf("Unknown id should return default, got %s", unk.Name)
-	}
-}
-
-func TestGetThemeNames(t *testing.T) {
-	names := GetThemeNames()
-	if len(names) != 10 {
-		t.Errorf("Expected 10 theme names, got %d", len(names))
-	}
-	found := false
-	for _, n := range names {
-		if n == "Amber Night" {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Error("Amber Night should be in theme names")
-	}
-}
-
-func TestThemeColorsFormatAndNonEmpty(t *testing.T) {
-	for _, th := range Registry {
-		colors := []string{
-			string(th.Primary), string(th.Secondary), string(th.Accent),
-			string(th.Background), string(th.Text), string(th.Success),
-			string(th.Warning), string(th.Error), string(th.Border), string(th.Panel),
-		}
-		for _, c := range colors {
-			if len(c) == 0 {
-				t.Errorf("Empty color in theme %s", th.Name)
-			}
-			if len(c) != 7 || c[0] != '#' {
-				t.Errorf("Invalid color format in theme %s: %s", th.Name, c)
-			}
-		}
-		// Ensure lipgloss accepts them
-		_ = lipgloss.Color(th.Primary)
-		_ = lipgloss.Color(th.Background)
+	unk := GetThemeByName("does-not-exist")
+	if unk.Name != design.DefaultTheme().Name {
+		t.Errorf("Unknown name should return default, got %s", unk.Name)
 	}
 }

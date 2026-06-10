@@ -40,34 +40,34 @@ func (l *DraftLayout) Render(editorContent string, previewContent string, theory
 	theoryWidth := l.width - editorWidth - previewWidth - 2 // -2 for dividers
 
 	// Create editor pane (50% width) - NO border since editorContent already has one
-	editorStyle := lipgloss.NewStyle().
+	editorStyle := lipgloss.Style{}.
 		Width(editorWidth).
 		Height(l.height)
 
 	editorPane := editorStyle.Render(editorContent)
 
 	// Create preview pane (25% width) - NO border since previewContent already has one
-	previewStyle := lipgloss.NewStyle().
+	previewStyle := lipgloss.Style{}.
 		Width(previewWidth).
 		Height(l.height)
 
 	previewPane := previewStyle.Render(previewContent)
 
 	// Create theory pane (25% width) - this needs a border since it's custom content
-	theoryStyle := lipgloss.NewStyle().
+	theoryStyle := lipgloss.Style{}.
 		Width(theoryWidth).
 		Height(l.height).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Success)
 
-	theoryTitle := lipgloss.NewStyle().
+	theoryTitle := lipgloss.Style{}.
 		Bold(true).
 		Foreground(t.Success).
 		Align(lipgloss.Center).
 		Width(theoryWidth - 4).
 		Render("Theory Tools")
 
-	theoryPaneContent := lipgloss.NewStyle().
+	theoryPaneContent := lipgloss.Style{}.
 		Width(theoryWidth - 4).
 		Height(l.height - 6).
 		Render(theoryContent)
@@ -77,7 +77,7 @@ func (l *DraftLayout) Render(editorContent string, previewContent string, theory
 	)
 
 	// Create dividers
-	dividerStyle := lipgloss.NewStyle().
+	dividerStyle := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Render("|")
 

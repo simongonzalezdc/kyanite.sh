@@ -66,26 +66,26 @@ func NewVoiceSettingsModel(voiceService *app.VoiceService) *VoiceSettingsModel {
 	m := &VoiceSettingsModel{
 		voiceService: voiceService,
 		selectedItem: 0,
-		titleStyle: lipgloss.NewStyle().
+		titleStyle: lipgloss.Style{}.
 			Bold(true).
 			Foreground(t.Primary).
 			MarginBottom(1),
-		itemStyle: lipgloss.NewStyle().
+		itemStyle: lipgloss.Style{}.
 			Foreground(t.Text).
 			PaddingLeft(2),
-		selectedStyle: lipgloss.NewStyle().
+		selectedStyle: lipgloss.Style{}.
 			Foreground(t.Background).
 			Background(t.Primary).
 			Bold(true).
 			PaddingLeft(2),
-		descriptionStyle: lipgloss.NewStyle().
+		descriptionStyle: lipgloss.Style{}.
 			Foreground(t.Secondary).
 			PaddingLeft(4),
-		progressStyle: lipgloss.NewStyle().
+		progressStyle: lipgloss.Style{}.
 			Foreground(t.Accent),
-		errorStyle: lipgloss.NewStyle().
+		errorStyle: lipgloss.Style{}.
 			Foreground(t.Error),
-		successStyle: lipgloss.NewStyle().
+		successStyle: lipgloss.Style{}.
 			Foreground(t.Success),
 	}
 

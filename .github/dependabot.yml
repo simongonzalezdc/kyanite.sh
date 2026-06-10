@@ -16,6 +16,10 @@ updates:
     directory: /apps/prism
     schedule:
       interval: weekly
+  - package-ecosystem: gomod
+    directory: /cmd/kyanite
+    schedule:
+      interval: weekly
   - package-ecosystem: github-actions
     directory: /
     schedule:

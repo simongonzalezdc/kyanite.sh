@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/kyanite/noise/internal/logging"
+	"github.com/kyanite/design"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -323,7 +324,7 @@ func generateNotificationID() string {
 func NewNotificationUIModel(manager *NotificationManager) *NotificationUIModel {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	s.Style = lipgloss.Style{}.Foreground(design.DefaultTheme().Accent)
 
 	return &NotificationUIModel{
 		manager:       manager,
@@ -436,12 +437,12 @@ func (m *NotificationUIModel) renderNotification(notification *Notification, sel
 	content := title + "\n" + message
 
 	// Add border and padding
-	border := lipgloss.NormalBorder()
+	border := lipgloss.RoundedBorder()
 	if selected {
-		border = lipgloss.ThickBorder()
+		border = lipgloss.RoundedBorder()
 	}
 
-	return lipgloss.NewStyle().
+	return lipgloss.Style{}.
 		Border(border).
 		Padding(0, 1).
 		Margin(0, 0, 1, 0).
@@ -489,20 +490,20 @@ func (m *NotificationUIModel) DismissSelected() {
 // Styles for different notification types
 
 var (
-	errorStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF0000")).
+	errorStyle = lipgloss.Style{}.
+			Foreground(design.DefaultTheme().Error).
 			Bold(true)
 
-	warningStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFA500")).
+	warningStyle = lipgloss.Style{}.
+			Foreground(design.DefaultTheme().Warning).
 			Bold(true)
 
-	infoStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#00BFFF")).
+	infoStyle = lipgloss.Style{}.
+			Foreground(design.DefaultTheme().Accent).
 			Bold(false)
 
-	successStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#00FF00")).
+	successStyle = lipgloss.Style{}.
+			Foreground(design.DefaultTheme().Success).
 			Bold(true)
 )
 

@@ -44,17 +44,17 @@ func NewPresenceIndicatorModel() *PresenceIndicatorModel {
 		indicators:  make([]SessionPresenceIndicator, 0),
 		showDetails: false,
 		selected:    0,
-		containerStyle: lipgloss.NewStyle().
+		containerStyle: lipgloss.Style{}.
 			Border(lipgloss.RoundedBorder()).
 			Padding(0, 1),
-		indicatorStyle: lipgloss.NewStyle().
+		indicatorStyle: lipgloss.Style{}.
 			Padding(0, 1).
 			Margin(0, 1),
-		selectedStyle: lipgloss.NewStyle().
+		selectedStyle: lipgloss.Style{}.
 			Padding(0, 1).
 			Margin(0, 1).
-			Foreground(lipgloss.Color("#ffffff")),
-		detailsStyle: lipgloss.NewStyle().
+			Foreground(lipgloss.Color("")),
+		detailsStyle: lipgloss.Style{}.
 			Italic(true),
 	}
 }
@@ -90,7 +90,7 @@ func (m *PresenceIndicatorModel) View() string {
 	}
 
 	t := theme.GetManager().Current()
-	titleStyle := lipgloss.NewStyle().
+	titleStyle := lipgloss.Style{}.
 		Bold(true).
 		Foreground(t.Primary).
 		MarginBottom(1)
@@ -213,7 +213,7 @@ func (m *PresenceIndicatorModel) getColoredIcon(indicator collaboration.Presence
 		color = t.Secondary
 	}
 
-	iconStyle := lipgloss.NewStyle().Foreground(color)
+	iconStyle := lipgloss.Style{}.Foreground(color)
 	return iconStyle.Render(indicator.Icon)
 }
 

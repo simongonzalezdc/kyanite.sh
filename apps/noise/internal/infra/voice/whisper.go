@@ -1,3 +1,4 @@
+// Deprecated: Use infra/brain/client.go with pkg/ai Brain.TranscribePCM() instead.
 //go:build cgo && whisper
 
 package voice

@@ -57,14 +57,14 @@ func NewSyntaxHighlighter() *SyntaxHighlighter {
 	sh.patterns[ElementBlockquote] = regexp.MustCompile(`(?m)^>\s+(.+)$`)
 
 	// Define styles for each element type using current theme.
-	sh.styles[ElementHeader] = lipgloss.NewStyle().Bold(true).Foreground(t.Accent)
-	sh.styles[ElementBold] = lipgloss.NewStyle().Bold(true).Foreground(t.Primary)
-	sh.styles[ElementItalic] = lipgloss.NewStyle().Italic(true).Foreground(t.Secondary)
-	sh.styles[ElementCode] = lipgloss.NewStyle().Background(t.Background).Foreground(t.Success).Padding(0, 1)
-	sh.styles[ElementCodeBlock] = lipgloss.NewStyle().Background(t.Background).Foreground(t.Text)
-	sh.styles[ElementLink] = lipgloss.NewStyle().Foreground(t.Accent).Underline(true)
-	sh.styles[ElementList] = lipgloss.NewStyle().Foreground(t.Secondary)
-	sh.styles[ElementBlockquote] = lipgloss.NewStyle().Foreground(t.Secondary).Italic(true)
+	sh.styles[ElementHeader] = lipgloss.Style{}.Bold(true).Foreground(t.Accent)
+	sh.styles[ElementBold] = lipgloss.Style{}.Bold(true).Foreground(t.Primary)
+	sh.styles[ElementItalic] = lipgloss.Style{}.Italic(true).Foreground(t.Secondary)
+	sh.styles[ElementCode] = lipgloss.Style{}.Background(t.Background).Foreground(t.Success).Padding(0, 1)
+	sh.styles[ElementCodeBlock] = lipgloss.Style{}.Background(t.Background).Foreground(t.Text)
+	sh.styles[ElementLink] = lipgloss.Style{}.Foreground(t.Accent).Underline(true)
+	sh.styles[ElementList] = lipgloss.Style{}.Foreground(t.Secondary)
+	sh.styles[ElementBlockquote] = lipgloss.Style{}.Foreground(t.Secondary).Italic(true)
 
 	return sh
 }

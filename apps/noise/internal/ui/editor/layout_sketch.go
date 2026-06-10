@@ -37,27 +37,27 @@ func (l *SketchLayout) Render(editorContent string, brainstormContent string) st
 	aiPanelWidth := l.width - editorWidth - 1 // -1 for divider
 
 	// Create editor pane (80% width) - NO border since editorContent already has one
-	editorStyle := lipgloss.NewStyle().
+	editorStyle := lipgloss.Style{}.
 		Width(editorWidth).
 		Height(l.height)
 
 	editorPane := editorStyle.Render(editorContent)
 
 	// Create AI panel (20% width) with border
-	aiPanelStyle := lipgloss.NewStyle().
+	aiPanelStyle := lipgloss.Style{}.
 		Width(aiPanelWidth).
 		Height(l.height).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Accent)
 
-	aiPanelTitle := lipgloss.NewStyle().
+	aiPanelTitle := lipgloss.Style{}.
 		Bold(true).
 		Foreground(t.Accent).
 		Align(lipgloss.Center).
 		Width(aiPanelWidth - 4).
 		Render("AI Assistant")
 
-	aiPanelContent := lipgloss.NewStyle().
+	aiPanelContent := lipgloss.Style{}.
 		Width(aiPanelWidth - 4).
 		Height(l.height - 6).
 		Render(brainstormContent)
@@ -67,7 +67,7 @@ func (l *SketchLayout) Render(editorContent string, brainstormContent string) st
 	)
 
 	// Create divider
-	dividerStyle := lipgloss.NewStyle().
+	dividerStyle := lipgloss.Style{}.
 		Foreground(t.Secondary).
 		Render("|")
 

@@ -2,16 +2,19 @@
 
 ## Overview
 
-kyanite.sh is a Go workspace (`go.work`) containing four independent TUI applications built on the Charm stack (Bubble Tea, Lipgloss, Bubbles). Each app is a standalone module under `apps/` with its own `go.mod`, `cmd/`, `internal/`, and test directories.
+kyanite.sh is a Go workspace (`go.work`) containing four independent TUI applications built on the Charm stack (Bubble Tea, Lipgloss, Bubbles). Each app is a standalone module under `apps/` with its own `go.mod`, `cmd/`, `internal/`, and test directories. A shared design module at `pkg/design/` provides unified themes, style tokens, and WCAG validation. A shared AI module at `pkg/ai/` provides a unified inference brain (LLM + STT + memory) consumed by all four apps.
 
 ```
 kyanite.sh/
 ├── go.work              # workspace definition (go 1.26.0)
+├── pkg/design/          # shared design system (themes, tokens, typography, WCAG, icons)
+├── pkg/ai/              # unified inference brain (LLM, STT, memory)
 ├── apps/
 │   ├── focus/           # journaling & productivity (cobra + bubbletea + huh)
 │   ├── noise/           # music creation & voice capture (bubbletea + cgo/whisper.cpp)
 │   ├── syntax/          # interactive fiction editor (bubbletea + custom editor)
 │   └── prism/           # color palette & WCAG contrast tool (bubbletea + lipgloss)
+├── cmd/kyanite/         # desktop launcher (bubbletea TUI menu)
 ├── .github/workflows/   # CI (per-app jobs) + release (goreleaser)
 ├── .golangci.yml
 ├── .goreleaser.yaml
@@ -28,7 +31,7 @@ kyanite.sh/
 | Presentation | `internal/cli`, `internal/tui` | lipgloss rendering, bubbletea models |
 | Application | `internal/engine`, `internal/command` | business logic orchestration |
 | Domain | `pkg/models`, `pkg/validation` | data types, validation rules |
-| AI | `internal/ai` | Ollama integration, prompt management |
+| AI | `internal/ai` | BrainProvider → pkg/ai → NUCBox Ollama, prompt management |
 | Infrastructure | `internal/store`, `internal/repository`, `internal/journal` | SQLite storage, file I/O |
 | Shared | `pkg/config`, `pkg/styles`, `pkg/calendar`, `pkg/utils` | reusable utilities |
 
@@ -42,7 +45,7 @@ Key binaries: `focus` (CLI/TUI), `focus-mcp` (Model Context Protocol server).
 | Presentation | `internal/ui/*` | bubbletea views (dashboard, editor, settings) |
 | Application | `internal/app/*` | AI, theory, knowledge, agent services |
 | Domain | `internal/domain` | core music data types |
-| Infrastructure | `internal/infra/*` | db, files, voice (whisper.cpp via cgo), sync (websocket), ollama |
+| Infrastructure | `internal/infra/*` | db, files, voice (whisper.cpp via cgo), sync (websocket), brain (pkg/ai wrapper) |
 | Collaboration | `internal/collaboration` | real-time multi-user editing |
 
 **CGO dependency**: noise requires `CGO_ENABLED=1` for whisper.cpp, malgo, and sqlite3. This limits cross-compilation to linux/amd64 + linux/arm64.
@@ -56,7 +59,7 @@ Key binaries: `focus` (CLI/TUI), `focus-mcp` (Model Context Protocol server).
 | Application | `internal/app`, `internal/scene` | story compilation, scene management |
 | Domain | `internal/story`, `internal/character`, `internal/location` | narrative data model |
 | Infrastructure | `internal/storage`, `internal/backup`, `internal/export` | file storage, zip backup, markdown export |
-| AI | `internal/ai` | writing assistance |
+| AI | `internal/ai` | BrainClient → pkg/ai → NUCBox Ollama, writing assistance |
 | Support | `internal/spellcheck`, `internal/theme`, `internal/utils` | spell checking, theming, utilities |
 
 ### prism — Color Palette & WCAG Contrast
@@ -68,6 +71,7 @@ Key binaries: `focus` (CLI/TUI), `focus-mcp` (Model Context Protocol server).
 | Application | `internal/app` | app orchestration |
 | Domain | `internal/color`, `internal/palette`, `internal/wcag` | color theory, palette generation, contrast checking |
 | Infrastructure | `internal/storage`, `internal/clipboard`, `internal/export` | file persistence, clipboard, export |
+| AI | `internal/ai` | Brain → pkg/ai → NUCBox Ollama, AI palette generation, accessible color suggestions |
 
 ## Cross-Module Patterns
 
@@ -78,7 +82,7 @@ Key binaries: `focus` (CLI/TUI), `focus-mcp` (Model Context Protocol server).
 | TUI Framework | All apps use Bubble Tea with Lipgloss styling |
 | CLI Framework | focus uses cobra; noise/syntax/prism use custom bubbletea entry |
 | Storage | focus & syntax use file-based JSON; noise uses sqlite3; prism uses file-based JSON |
-| AI Integration | focus & noise & syntax have Ollama-based AI features |
+| AI Integration | All 4 apps use pkg/ai Brain → NUCBox Ollama (LLM) + local whisper.cpp (STT) + NUCBox PostgreSQL (memory) |
 | Theming | Each app has its own theme registry with divergent structures |
 | Error Handling | Raw `fmt.Errorf` with `%w` wrapping (no structured error library) |
 | Testing | Standard `testing` package + `t.TempDir()` for isolation |
@@ -87,25 +91,96 @@ Key binaries: `focus` (CLI/TUI), `focus-mcp` (Model Context Protocol server).
 
 | Area | Issue |
 |---|---|
-| Theme registries | 4 independent copies: focus (11 fields, lipgloss.Color), noise (8 fields, string), syntax (6 fields, string), prism (10 fields, string) |
+| Theme registries | NOW UNIFIED via `pkg/design/` — 11 fields, lipgloss.Color, 6 themes, WCAG AA enforced |
 | Layer boundaries | 20+ Presentation→Infrastructure import violations (noise: 14 files, focus: 6+ files) |
 | Config loading | focus uses viper; others use ad-hoc flag/env parsing |
 | Error types | No shared error types or wrapping conventions |
 | Storage paths | focus uses `~/.focus`; no XDG compliance |
 
-## Shared Module Proposal (Deferred)
+## Shared Design Module (`pkg/design/`)
 
-A future extraction could create `shared/` modules under the workspace:
+The `pkg/design/` module (`github.com/kyanite/design`) provides a unified design system consumed by all 4 apps:
 
-| Module | Contents | Consumers |
+| File | Contents |
+|---|---|
+| `theme.go` | `Theme` struct (11 `lipgloss.Color` fields), `RegisterBuiltIn`/`RegisterCustom`/`Get`/`List` registry |
+| `themes.go` | 6 curated dark-first themes: monochrome, amber-night, indigo-depths, forest-path, cyan-wave, electric-rose |
+| `tokens.go` | `TokenSet` — 10 semantic style tokens + `Extensions` map for app-specific styles |
+| `typography.go` | `TypographySet` — 4 text levels: Title (bold+accent), Heading (bold), Body, Muted (faint) |
+| `wcag.go` | WCAG 2.1 contrast ratio calculation + `ValidateThemeAA` enforcement |
+| `border.go` | `RoundedBox`/`Panel` helpers with rounded borders + spacing constants (0-4) |
+| `icons/` | 3-tier icon system (ASCII/Unicode/NerdFont) + string width utilities |
+
+## Shared AI Module (`pkg/ai/`)
+
+The `pkg/ai/` module (`github.com/kyanite/ai`) provides a unified inference brain consumed by all 4 apps:
+
+| File | Contents |
+|---|---|
+| `brain.go` | `Brain` struct — main entry point with `New(cfg)`, `Generate()`, `Chat()`, `TranscribeFile()`, `TranscribePCM()`, `SaveContext()`, `LoadContext()`, `SaveMessage()`, `LoadConversation()` |
+| `config.go` | `Config` struct with `DefaultConfig(app)` — reads `KYANITE_OLLAMA_URL`, `KYANITE_MODEL`, `KYANITE_WHISPER_BIN`, `KYANITE_DB_HOST` etc. |
+| `llm.go` | `LLMClient` — Ollama `/api/chat` client with `Generate()`, `Chat()`, `IsAvailable()` |
+| `stt.go` | `STTClient` — whisper.cpp subprocess client with `TranscribeFile()`, `TranscribePCM()`, `IsAvailable()` |
+| `memory.go` | `MemoryStore` — PostgreSQL store with `kyanite_context` and `kyanite_conversations` tables |
+| `prompts.go` | Centralized prompt templates: `FocusParsePrompt`, `FocusSuggestPrompt`, `FocusSummarizePrompt`, `NoiseBrainstormPrompt`, `NoiseContextPrompt`, `SyntaxSuggestPrompt`, `PrismPalettePrompt`, `PrismContrastPrompt` |
+| `types.go` | `Message`, `Transcription`, `GenerateOptions`, `ContextEntry` |
+
+### Inference Architecture
+
+```
+Local machine (MacBook Air / Mac Mini):
+  ┌─────────────────────────────┐
+  │  kyanite TUI app             │
+  │  STT: whisper.cpp (local)    │
+  │  LLM: HTTP → nucbox:11434    │
+  └──────────────┬──────────────┘
+                 │ tailnet (encrypted)
+                 ▼
+  ┌──────────────────────────────┐
+  │  NUCBox (Inference Server)   │
+  │  Ollama (gemma4:12b on GPU)  │
+  │  PostgreSQL (memory store)   │
+  └──────────────────────────────┘
+```
+
+### Per-App Integration
+
+| App | Integration Layer | LLM Features | STT |
+|---|---|---|---|
+| focus | `internal/ai/brain_provider.go` (implements Provider interface) | Task parsing, suggestions, summaries, chat | Planned |
+| noise | `internal/infra/brain/client.go` (implements QuickLLMClient interface) | Songwriting brainstorming, quick ideas | Voice capture → Brain.TranscribePCM() |
+| syntax | `internal/ai/brain_client.go` (implements Provider interface) | Writing suggestions (continue/improve/dialogue/description) | Planned |
+| prism | `internal/ai/client.go` (standalone) | Palette generation from descriptions, accessible color suggestions | N/A |
+
+### Environment Variables
+
+| Variable | Default | Purpose |
 |---|---|---|
-| `shared/themes` | Unified Theme type, lipgloss.Color conversion, all palettes | all 4 apps |
-| `shared/config` | koanf-based config loading with XDG paths | all 4 apps |
-| `shared/errors` | Structured error types (eris/fault) | all 4 apps |
-| `shared/storage` | Repository interface + file/json/sqlite implementations | focus, noise, syntax |
-| `shared/ai` | Ollama client, prompt sanitization, response parsing | focus, noise, syntax |
+| `KYANITE_OLLAMA_URL` | `http://nucbox:11434` | Ollama API endpoint |
+| `KYANITE_MODEL` | `gemma4:12b` | LLM model name |
+| `KYANITE_WHISPER_BIN` | `whisper-stream` | whisper.cpp binary |
+| `KYANITE_WHISPER_MODEL` | auto-detected (ggml-large-v3-turbo.bin) | GGML model path |
+| `KYANITE_WHISPER_LANG` | `en` | STT language |
+| `KYANITE_DB_HOST` | `nucbox` | PostgreSQL host |
+| `KYANITE_DB_NAME` | `kyanite` | Database name |
+| `KYANITE_DB_USER` | `kyanite` | Database user |
 
-**Status**: Deferred — requires coordinated changes across all 4 apps. The theme unification alone needs resolving lipgloss.Color vs string type differences.
+### Graceful Degradation
+
+All apps work fully offline:
+- If NUCBox is unreachable: `IsLLMAvailable()` returns false, AI features disabled
+- If whisper.cpp not found: `IsSTTAvailable()` returns false, voice disabled
+- If PostgreSQL unreachable: memory silently skipped, no conversation history
+- Focus falls back through BrainProvider → legacy Ollama → OpenRouter → rule-based parsing
+
+### Remaining Extraction Candidates
+
+| Module | Contents | Priority |
+|---|---|---|
+| `shared/config` | koanf-based config loading with XDG paths | MEDIUM |
+| `shared/errors` | Structured error types (eris/fault) | MEDIUM |
+| `shared/storage` | Repository interface + file/json/sqlite implementations | LOW |
+| `pkg/ai` | Unified inference brain: Ollama LLM client, whisper.cpp STT, PostgreSQL memory, centralized prompts | **DONE** |
 
 ## CI/CD
 
@@ -149,8 +224,8 @@ A future extraction could create `shared/` modules under the workspace:
 
 | Library | Stars | Why | Priority | Apps | Status |
 |---|---|---|---|---|---|
-| **charmbracelet/log** | 3.3k | Replace noise's 425-line hand-rolled logger + focus/syntax bare `log`. Structured, colorful, lipgloss-native, slog handler, TUI-aware. | **HIGH** | all 4 | Ready to adopt |
-| **charmbracelet/fantasy** | 799 | Multi-provider AI agent framework (Ollama, OpenRouter, Anthropic, Gemini, etc.). Would replace focus's hand-rolled `Provider` interface and syntax's raw HTTP Ollama client. Tool support, streaming, structured outputs. | **HIGH** | focus, noise, syntax | Evaluate API stability (WIP) |
+| **charmbracelet/log** | 3.3k | Replace noise's 425-line hand-rolled logger + focus/syntax bare `log`. Structured, colorful, lipgloss-native, slog handler, TUI-aware. | **HIGH** | all 4 | ADOPTED (commit 2128914) |
+| **charmbracelet/fantasy** | 799 | Multi-provider AI agent framework. Replaced by `pkg/ai` which provides unified Brain with Ollama LLM, whisper.cpp STT, and PostgreSQL memory. | ~~HIGH~~ | — | **SUPPLANTED by pkg/ai** |
 | **charmbracelet/ultraviolet** | 351 | Powers Bubble Tea v2. Cell-based diffing renderer, constraint-based layout (Cassowary), universal input. Useful for syntax's editor buffer or prism's color rendering. | MEDIUM | syntax, prism | Watch for bubbletea v2 migration |
 | **charmbracelet/sequin** | 805 | Human-readable ANSI sequence library. Could simplify syntax's editor ANSI handling and prism's terminal output. | MEDIUM | syntax, prism | Evaluate |
 | **charmbracelet/glow** | 26k | Markdown rendering on the CLI. Focus's journal viewer could use rich Markdown rendering. Already have glamour in noise. | LOW | focus | Consider for journal view |
@@ -162,7 +237,7 @@ A future extraction could create `shared/` modules under the workspace:
 
 ### Adoption Roadmap
 
-1. **Phase 1: charmbracelet/log** — Replace all logging across 4 apps. Delete noise's `internal/logging/` package. ~425 lines deleted, ~20 lines added per app.
-2. **Phase 2: charmbracelet/fantasy** — Replace focus's `internal/ai/` provider interface and syntax's `internal/ai/client.go`. Unify AI integration under one multi-provider API. Requires fantasy API stabilization.
+1. **Phase 1: charmbracelet/log** — ✅ DONE. Replaced all logging across 4 apps.
+2. **Phase 2: Unified AI** — ✅ DONE. Built `pkg/ai/` with Ollama LLM client, whisper.cpp STT, PostgreSQL memory, centralized prompts. All 4 apps migrated. Supersedes charmbracelet/fantasy.
 3. **Phase 3: charmbracelet/ultraviolet** — If bubbletea v2 migration happens, ultraviolet provides the rendering primitives. Syntax's editor buffer could use the cell-based renderer directly.
 4. **Phase 4: charmbracelet/sequin + glow** — Polish pass on syntax's ANSI handling and focus's journal rendering.

@@ -3,6 +3,7 @@ package ui
 import (
 	"time"
 
+	"github.com/kyanite/design/icons"
 	"github.com/kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -89,32 +90,32 @@ func NewToastModel() *ToastModel {
 		width:      80,
 		maxVisible: 3,
 
-		infoStyle: lipgloss.NewStyle().
+		infoStyle: lipgloss.Style{}.
 			Foreground(t.Text).
 			Background(t.Background).
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(t.Secondary).
 			Padding(0, 1),
 
-		successStyle: lipgloss.NewStyle().
+		successStyle: lipgloss.Style{}.
 			Foreground(t.Background).
 			Background(t.Success).
 			Bold(true).
 			Padding(0, 1),
 
-		warningStyle: lipgloss.NewStyle().
+		warningStyle: lipgloss.Style{}.
 			Foreground(t.Background).
 			Background(t.Accent).
 			Bold(true).
 			Padding(0, 1),
 
-		errorStyle: lipgloss.NewStyle().
+		errorStyle: lipgloss.Style{}.
 			Foreground(t.Text).
 			Background(t.Error).
 			Bold(true).
 			Padding(0, 1),
 
-		containerStyle: lipgloss.NewStyle().
+		containerStyle: lipgloss.Style{}.
 			Padding(0, 1),
 	}
 }
@@ -185,26 +186,26 @@ func (m *ToastModel) ClearAll() {
 func (m *ToastModel) UpdateTheme() {
 	t := theme.GetManager().Current()
 
-	m.infoStyle = lipgloss.NewStyle().
+	m.infoStyle = lipgloss.Style{}.
 		Foreground(t.Text).
 		Background(t.Background).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Secondary).
 		Padding(0, 1)
 
-	m.successStyle = lipgloss.NewStyle().
+	m.successStyle = lipgloss.Style{}.
 		Foreground(t.Background).
 		Background(t.Success).
 		Bold(true).
 		Padding(0, 1)
 
-	m.warningStyle = lipgloss.NewStyle().
+	m.warningStyle = lipgloss.Style{}.
 		Foreground(t.Background).
 		Background(t.Accent).
 		Bold(true).
 		Padding(0, 1)
 
-	m.errorStyle = lipgloss.NewStyle().
+	m.errorStyle = lipgloss.Style{}.
 		Foreground(t.Text).
 		Background(t.Error).
 		Bold(true).
@@ -268,13 +269,13 @@ func (m *ToastModel) renderToast(toast Toast) string {
 func (m *ToastModel) getIcon(t ToastType) string {
 	switch t {
 	case ToastSuccess:
-		return "[OK]"
+		return icons.GetIcon("success")
 	case ToastWarning:
-		return "[!]"
+		return icons.GetIcon("warning")
 	case ToastError:
-		return "[X]"
+		return icons.GetIcon("error")
 	default:
-		return "[i]"
+		return icons.GetIcon("info")
 	}
 }
 
