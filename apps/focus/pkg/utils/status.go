@@ -1,0 +1,95 @@
+package utils
+
+import (
+	"net/http"
+	"time"
+
+	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/focus/pkg/styles"
+)
+
+// AIStatus represents the status of AI services
+type AIStatus struct {
+	OllamaAvailable bool
+	OpenRouterKey   bool
+	LastCheck       time.Time
+}
+
+var openRouterKey = "" // This would be os.Getenv("OPENROUTER_API_KEY") in real use
+
+// Shared HTTP client for status checks
+var httpClient = &http.Client{
+	Timeout: 3 * time.Second,
+	Transport: &http.Transport{
+		MaxIdleConns:    10,
+		IdleConnTimeout: 30 * time.Second,
+	},
+}
+
+// CheckAIStatus checks the availability of AI services
+func CheckAIStatus() AIStatus {
+	status := AIStatus{
+		LastCheck:     time.Now(),
+		OpenRouterKey: len(openRouterKey) > 0,
+	}
+
+	// Check Ollama availability
+	resp, err := httpClient.Get("http://localhost:11434/api/tags")
+	if err == nil {
+		defer resp.Body.Close()
+		if resp.StatusCode == 200 {
+			status.OllamaAvailable = true
+		}
+	}
+
+	return status
+}
+
+// GetStatusIndicator returns a styled status indicator
+func GetStatusIndicator(status AIStatus) string {
+	switch {
+	case status.OllamaAvailable:
+		return lipgloss.NewStyle().
+			Foreground(styles.GetSuccess()).
+			Bold(true).
+			Render("🤖 AI: Online")
+	case status.OpenRouterKey:
+		return lipgloss.NewStyle().
+			Foreground(styles.GetWarning()).
+			Bold(true).
+			Render("🤖 AI: Remote")
+	default:
+		return lipgloss.NewStyle().
+			Foreground(styles.GetError()).
+			Bold(true).
+			Render("🤖 AI: Offline")
+	}
+}
+
+// StreamStatusWithIndicator shows status with streaming effect
+func StreamStatusWithIndicator(status AIStatus) {
+	statusText := ""
+	var color lipgloss.Color
+
+	switch {
+	case status.OllamaAvailable:
+		statusText = "🤖 AI Systems Online - Local LLM Connected"
+		color = styles.GetSuccess()
+	case status.OpenRouterKey:
+		statusText = "⚠️ AI Systems Limited - Remote API Only"
+		color = styles.GetWarning()
+	default:
+		statusText = "❌ AI Systems Offline - Basic Responses Only"
+		color = styles.GetError()
+	}
+
+	// Stream the status with appropriate color
+	StreamWithTypingEffect(statusText, color)
+}
+
+// Check OpenRouter API key from environment
+func init() {
+	// In a real implementation, this would check the actual environment
+	// For now, we'll assume no key is set
+	openRouterKey = "" // Would be os.Getenv("OPENROUTER_API_KEY")
+}

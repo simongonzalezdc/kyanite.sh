@@ -1,0 +1,90 @@
+---
+description: UX audit checklist for TUI applications - prevents common usability issues
+globs: internal/ui/**/*.go
+alwaysApply: true
+---
+
+# TUI UX Audit Standards
+
+## CRITICAL: Data Safety
+
+Before ANY quit/exit operation, MUST check for unsaved changes:
+
+```go
+// BAD - Direct quit without checking
+case "ctrl+c", "ctrl+q":
+    return m, tea.Quit
+
+// GOOD - Check unsaved changes first
+case "ctrl+c", "ctrl+q":
+    if m.hasUnsavedChanges() {
+        return m.showUnsavedChangesDialog()
+    }
+    return m, tea.Quit
+```
+
+**Audit triggers**: `tea.Quit`, `os.Exit`, quit handlers
+**Check**: Is there a dirty/unsaved state check before exit?
+
+## CRITICAL: Keyboard Input
+
+In text-editing applications, NEVER use single-letter shortcuts:
+
+```go
+// BAD - Intercepts typing
+case "q":  // User can't type "q"
+case "s":  // User can't type "s"
+
+// GOOD - Requires modifier
+case "ctrl+q":
+case "alt+s":
+```
+
+**Audit triggers**: `case "a":` through `case "z":` without modifiers
+**Exception**: Arrow keys, Enter, Esc, Tab are acceptable
+
+## HIGH: Focus Management
+
+After modal/overlay closes, MUST restore focus:
+
+```go
+// BAD - Focus lost after modal
+m.modal.visible = false
+return m, nil
+
+// GOOD - Restore previous focus
+m.modal.visible = false
+m.restoreFocus(m.previousFocus)
+return m, nil
+```
+
+**Audit triggers**: Modal close handlers, overlay dismiss
+**Check**: Is `previousFocus` stored and restored?
+
+## MEDIUM: Feedback
+
+- Loading states MUST have visual indicators
+- Error messages MUST display for at least 5 seconds
+- Success states MUST be communicated
+
+## MEDIUM: Navigation
+
+- Deep navigation MUST have back/escape route
+- Current location SHOULD be visually indicated
+
+## Checklist for New UI Components
+
+1. [ ] Can user type all letters (a-z) in text inputs?
+2. [ ] Is there unsaved changes warning before quit?
+3. [ ] Is focus restored after modals close?
+4. [ ] Are async operations showing loading state?
+5. [ ] Do errors display long enough to read?
+6. [ ] Can user navigate back from any screen?
+
+## Correlated Anti-Patterns
+
+If you find ONE of these issues, check for ALL:
+- Single-letter shortcuts → Check quit confirmation
+- Missing quit confirmation → Check focus management
+- Focus issues → Check modal/overlay handling
+- Modal issues → Check keyboard handling in modals

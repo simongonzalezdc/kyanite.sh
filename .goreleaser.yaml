@@ -1,0 +1,118 @@
+version: 2
+
+project_name: kyanite.sh
+
+before:
+  hooks:
+    - cd apps/focus && go mod tidy
+    - cd apps/noise && go mod tidy
+    - cd apps/syntax && go mod tidy
+    - cd apps/prism && go mod tidy
+
+
+builds:
+  - id: focus
+    main: ./apps/focus/cmd/focus
+    dir: ./apps/focus
+    binary: focus
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+  - id: focus-mcp
+    main: ./apps/focus/cmd/focus-mcp
+    dir: ./apps/focus
+    binary: focus-mcp
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+  - id: noise
+    main: ./apps/noise/cmd/noise
+    dir: ./apps/noise
+    binary: noise
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+
+  - id: syntax
+    main: ./apps/syntax/cmd/syntax
+    dir: ./apps/syntax
+    binary: syntax
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+  - id: prism
+    main: ./apps/prism/cmd/prism
+    dir: ./apps/prism
+    binary: prism
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: focus
+    builds: [focus, focus-mcp]
+    format: tar.gz
+    name_template: "{{ .ProjectName }}_focus_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+  - id: noise
+    builds: [noise]
+    format: tar.gz
+    name_template: "{{ .ProjectName }}_noise_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  - id: syntax
+    builds: [syntax]
+    format: tar.gz
+    name_template: "{{ .ProjectName }}_syntax_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+  - id: prism
+    builds: [prism]
+    format: tar.gz
+    name_template: "{{ .ProjectName }}_prism_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"

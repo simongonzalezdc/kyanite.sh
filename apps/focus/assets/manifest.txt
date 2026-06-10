@@ -1,0 +1,14 @@
+assets/sounds/
+cyberspace-effect.wav
+notification-soft.wav
+focus-timer-beep.wav
+
+assets/effects/
+glitch-static.png
+neon-glow.png  
+matrix-fallback.gif
+
+assets/themes/
+cyberpunk-theme.json
+minimal-theme.json
+oceanic-theme.json

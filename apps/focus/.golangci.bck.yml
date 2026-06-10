@@ -1,0 +1,49 @@
+run:
+  timeout: 5m
+  tests: true
+  allow-parallel-runners: true
+  concurrency: 4
+
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - ineffassign
+    - unused
+    - gosimple
+    - revive
+    - typecheck
+    - gocritic
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  revive:
+    rules:
+      - name: exported
+      - name: var-naming
+      - name: indent-error-flow
+      - name: error-return
+      - name: time-naming
+  gocritic:
+    enabled-checks:
+      - ifElseChain
+      - paramTypeCombine
+      - rangeExprCopy
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+        - revive
+        - gocritic
+    - path: ^cmd/|^test/
+      linters:
+        - errcheck

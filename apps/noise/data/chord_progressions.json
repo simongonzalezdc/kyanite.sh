@@ -1,0 +1,164 @@
+{
+  "progressions": [
+    {
+      "id": "pop-classic",
+      "name": "Pop Classic",
+      "chords": ["C", "G", "Am", "F"],
+      "mood": "happy",
+      "description": "Upbeat, singalong friendly",
+      "genre": "Pop"
+    },
+    {
+      "id": "emotional-journey",
+      "name": "Emotional Journey",
+      "chords": ["Am", "F", "C", "G"],
+      "mood": "sad",
+      "description": "Melancholic, introspective",
+      "genre": "Ballad"
+    },
+    {
+      "id": "blues-standard",
+      "name": "Blues Standard",
+      "chords": ["E7", "A7", "E7", "B7"],
+      "mood": "chill",
+      "description": "Classic blues progression",
+      "genre": "Blues"
+    },
+    {
+      "id": "tension-builder",
+      "name": "Tension Builder",
+      "chords": ["Dm", "G7", "Cmaj7", "Fmaj7"],
+      "mood": "tense",
+      "description": "Jazz-influenced tension",
+      "genre": "Jazz"
+    },
+    {
+      "id": "folk-simplicity",
+      "name": "Folk Simplicity",
+      "chords": ["G", "C", "D"],
+      "mood": "chill",
+      "description": "Simple, acoustic-friendly",
+      "genre": "Folk"
+    },
+    {
+      "id": "minor-drama",
+      "name": "Minor Drama",
+      "chords": ["Am", "Dm", "E", "Am"],
+      "mood": "tense",
+      "description": "Dark, dramatic",
+      "genre": "Classical"
+    },
+    {
+      "id": "happy-major",
+      "name": "Happy Major",
+      "chords": ["C", "F", "G", "C"],
+      "mood": "happy",
+      "description": "Bright, optimistic",
+      "genre": "Pop"
+    },
+    {
+      "id": "sad-ballad",
+      "name": "Sad Ballad",
+      "chords": ["Em", "C", "G", "D"],
+      "mood": "sad",
+      "description": "Emotional storytelling",
+      "genre": "Ballad"
+    },
+    {
+      "id": "jazz-smooth",
+      "name": "Jazz Smooth",
+      "chords": ["Cmaj7", "Am7", "Dm7", "G7"],
+      "mood": "chill",
+      "description": "Sophisticated lounge",
+      "genre": "Jazz"
+    },
+    {
+      "id": "rock-energy",
+      "name": "Rock Energy",
+      "chords": ["A", "D", "E", "A"],
+      "mood": "happy",
+      "description": "Driving, powerful",
+      "genre": "Rock"
+    },
+    {
+      "id": "acoustic-dream",
+      "name": "Acoustic Dream",
+      "chords": ["D", "Bm", "G", "A"],
+      "mood": "chill",
+      "description": "Gentle, flowing",
+      "genre": "Acoustic"
+    },
+    {
+      "id": "electronic-pulse",
+      "name": "Electronic Pulse",
+      "chords": ["Am", "G", "C", "F"],
+      "mood": "tense",
+      "description": "Synth-driven tension",
+      "genre": "Electronic"
+    },
+    {
+      "id": "country-road",
+      "name": "Country Road",
+      "chords": ["G", "D", "Em", "C"],
+      "mood": "happy",
+      "description": "Nostalgic, traveling",
+      "genre": "Country"
+    },
+    {
+      "id": "soulful-moan",
+      "name": "Soulful Moan",
+      "chords": ["Cm", "G7", "Cm", "F7"],
+      "mood": "sad",
+      "description": "Deep, emotional",
+      "genre": "Soul"
+    },
+    {
+      "id": "reggae-vibe",
+      "name": "Reggae Vibe",
+      "chords": ["Dm", "G", "C", "A"],
+      "mood": "chill",
+      "description": "Island relaxation",
+      "genre": "Reggae"
+    },
+    {
+      "id": "mystery-walk",
+      "name": "Mystery Walk",
+      "chords": ["Bm", "Em", "G", "D"],
+      "mood": "tense",
+      "description": "Suspenseful journey",
+      "genre": "Cinematic"
+    },
+    {
+      "id": "summer-day",
+      "name": "Summer Day",
+      "chords": ["E", "A", "B", "E"],
+      "mood": "happy",
+      "description": "Bright, carefree",
+      "genre": "Pop"
+    },
+    {
+      "id": "rainy-night",
+      "name": "Rainy Night",
+      "chords": ["F#m", "D", "A", "E"],
+      "mood": "sad",
+      "description": "Reflective, melancholic",
+      "genre": "Ballad"
+    },
+    {
+      "id": "funk-groove",
+      "name": "Funk Groove",
+      "chords": ["Dm7", "G7", "Cmaj7", "Dm7"],
+      "mood": "chill",
+      "description": "Smooth, danceable",
+      "genre": "Funk"
+    },
+    {
+      "id": "epic-journey",
+      "name": "Epic Journey",
+      "chords": ["C", "Am", "F", "G", "Em", "Dm"],
+      "mood": "tense",
+      "description": "Grand, cinematic arc",
+      "genre": "Cinematic"
+    }
+  ]
+}

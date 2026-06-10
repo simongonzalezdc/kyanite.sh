@@ -1,0 +1,26 @@
+---
+description: Standards for Go TUI development using Bubble Tea and Lipgloss
+globs: internal/ui/**/*.go, internal/app/**/*.go
+alwaysApply: false
+---
+
+# Go TUI Standards (Bubble Tea & Lipgloss)
+
+## Error Handling
+- **NEVER** swallow errors with `_ =`.
+- **ALWAYS** check errors and log them or return them.
+- Use `internal/errors` package for consistent error reporting.
+
+## Bubble Tea (Elm Architecture)
+- Keep `Update` functions pure; use `tea.Cmd` for side effects.
+- Use `internal/ui/common` for shared components.
+- Ensure `View` functions are performant and avoid unnecessary re-renders.
+
+## Lipgloss Styling
+- Define styles as constants or variables outside of the `View` loop.
+- Use the project's theme system (`internal/theme`) for colors and gradients.
+- Ensure accessibility in terminal output (contrast, clear focus states).
+
+## Performance
+- Use `internal/ui/performance_optimized.go` patterns for heavy rendering.
+- Avoid `time.Sleep` in the main UI thread; use `tea.Tick` or `tea.Every`.

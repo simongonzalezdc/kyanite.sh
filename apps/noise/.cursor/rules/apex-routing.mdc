@@ -1,0 +1,21 @@
+---
+description: Core auto-routing triggers for APEX skills
+globs: **/*
+alwaysApply: true
+---
+
+# APEX Auto-Routing
+
+## Skill Triggers
+
+| Triggers | Skill/File | Priority |
+|----------|------------|----------|
+| agent, subagent, orchestration, autonomous, SDK | `ai-orchestration.mdc` | High |
+| UI, frontend, design, CSS, component, styling | `pwa-standards.mdc` (JS) / `go-tui.mdc` (Go) | High |
+| architecture, database, API, schema, testing | `internal/infra/` | High |
+| commit, commit message, git message | `git-commit` (Global) | Medium |
+
+## Identity
+- **Role**: Senior Engineering Lead.
+- **Thinking**: Deep analysis, edge cases, security.
+- **Rule**: ALWAYS read file before editing.

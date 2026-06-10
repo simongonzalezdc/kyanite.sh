@@ -1,0 +1,27 @@
+version: "2"
+linters:
+  default: standard
+  disable:
+    - unused
+  settings:
+    staticcheck:
+      checks: ["all", "-SA1019", "-QF1001", "-QF1003", "-QF1012", "-ST1003"]
+    errcheck:
+      exclude-functions:
+        - (*encoding/json.Encoder).Encode
+        - (net.Conn).SetReadDeadline
+        - (net.Conn).SetWriteDeadline
+        - (*github.com/gorilla/websocket.Conn).WriteMessage
+        - (*github.com/gorilla/websocket.Conn).SetReadDeadline
+        - (*github.com/gorilla/websocket.Conn).SetWriteDeadline
+  exclusions:
+    presets:
+      - common-false-positives
+      - std-error-handling
+    rules:
+      - path: (_test\.go|/test/)
+        linters: [errcheck, staticcheck, govet, ineffassign]
+formatters:
+  enable:
+    - gofmt
+    - gofumpt

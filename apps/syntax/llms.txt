@@ -1,0 +1,12 @@
+# Syntax.sh
+
+> Developer shell tooling in Go — AI-assisted coding workflows and CLI utilities.
+
+## What it is
+A Go CLI of developer utilities and AI-assisted coding workflows for a faster dev loop.
+
+## Install / use
+Build from source with Go (`go build ./...`).
+
+## Links
+- Repository: https://github.com/simongonzalezdc/Syntax.sh
