@@ -1,0 +1,32 @@
+{
+  "$schema": "https://charm.land/crush.json",
+  "lsp": {
+    "go": {
+      "command": "gopls",
+      "enabled": true
+    },
+    "typescript": {
+      "command": "typescript-language-server",
+      "args": ["--stdio"],
+      "enabled": true
+    },
+    "javascript": {
+      "command": "typescript-language-server",
+      "args": ["--stdio"],
+      "enabled": true
+    },
+    "python": {
+      "command": "pyright",
+      "args": ["--stdio"],
+      "enabled": true
+    }
+  },
+  "mcp": {
+    "golangci-lint": {
+      "type": "stdio",
+      "command": "./mcp-server",
+      "timeout": 120,
+      "disabled": false
+    }
+  }
+}

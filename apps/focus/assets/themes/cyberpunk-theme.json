@@ -1,0 +1,17 @@
+{
+  "theme": "cyberpunk",
+  "colors": {
+    "primary": "#ff71ce",
+    "secondary": "#00feff", 
+    "accent": "#b967c7",
+    "background": "#0f0a19",
+    "text": "#ffffff",
+    "success": "#00ff66",
+    "error": "#ff0055"
+  },
+  "fonts": {
+    "header": "Courier New",
+    "body": "Consolas", 
+    "mono": "Fira Code"
+  }
+}

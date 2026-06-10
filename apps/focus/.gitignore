@@ -1,0 +1,39 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+/neon*
+/glow_demo*
+/mcp-server
+/mcp-server.exe
+/focus
+/focus.exe
+*.msi
+
+# Local secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Build artifacts
+/build/
+/bin/
+/dist/
+
+# Coverage
+coverage.out
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local agent workspace
+.omx/
