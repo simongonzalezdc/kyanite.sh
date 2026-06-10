@@ -1,11 +1,11 @@
 package config
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
 
+	charmlog "github.com/charmbracelet/log"
 	"github.com/spf13/viper"
 )
 
@@ -179,7 +179,7 @@ func GetConfig() *Config {
 	if !loaded {
 		loadedCfg, err := LoadConfig()
 		if err != nil {
-			log.Printf("Warning: Failed to load config: %v", err)
+			charmlog.Warn("Failed to load config", "err", err)
 			// Return a safe default config to prevent nil dereferences
 			if loadedCfg == nil {
 				return getDefaultConfig()

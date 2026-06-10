@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	charmlog "github.com/charmbracelet/log"
 )
 
 type mcpServer struct{}
@@ -281,7 +282,7 @@ func main() {
 			if err == io.EOF {
 				break
 			}
-			log.Printf("Error decoding request: %v", err)
+			charmlog.Printf("Error decoding request: %v", err)
 			continue
 		}
 
