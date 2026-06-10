@@ -62,6 +62,13 @@ func (b *BrainClient) IsEnabled() bool {
 	return b.brain != nil
 }
 
+// Brain returns the underlying ai.Brain instance, or nil if unavailable.
+// This allows callers (e.g., aipanel) to use StreamChat and other
+// brain-level capabilities directly.
+func (b *BrainClient) Brain() *ai.Brain {
+	return b.brain
+}
+
 // GetSuggestion gets an AI suggestion based on the context.
 // Uses pkg/ai.SyntaxSuggestPrompt for prompt construction.
 func (b *BrainClient) GetSuggestion(ctx context.Context, suggestionType SuggestionType, content string, contextStr string) (*Suggestion, error) {

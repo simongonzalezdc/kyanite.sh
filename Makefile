@@ -23,7 +23,7 @@ desktop: build
 	@echo "Done. Run: open $(BUILD_DIR)/kyanite.app"
 
 test:
-	@for dir in pkg/design pkg/config pkg/ai apps/focus apps/noise apps/syntax apps/prism cmd/kyanite; do \
+	@for dir in pkg/design pkg/config pkg/ai pkg/tui apps/focus apps/noise apps/syntax apps/prism cmd/kyanite; do \
 		echo "Testing $$dir..."; \
 		cd $$dir && go test ./... && cd ../..; \
 	done

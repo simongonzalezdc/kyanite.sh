@@ -48,6 +48,8 @@ func RenderHelp(tm *theme.Manager, width, height int) string {
 	b.WriteString("\n")
 	b.WriteString(renderShortcut(styles, "↑/↓", "Select harmony rule"))
 	b.WriteString(renderShortcut(styles, "Enter", "Generate palette"))
+	b.WriteString(renderShortcut(styles, "P", "AI palette from description"))
+	b.WriteString(renderShortcut(styles, "Ctrl+A", "Toggle AI Design Partner"))
 	b.WriteString(renderShortcut(styles, "C", "Copy palette colors"))
 	b.WriteString(renderShortcut(styles, "S", "Save palette"))
 	b.WriteString(renderShortcut(styles, "E", "Export palette"))

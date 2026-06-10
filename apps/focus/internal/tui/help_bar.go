@@ -30,6 +30,7 @@ func (m *MainModel) renderHelpBar() string {
 			"[G] Journal",
 			"[K] Calendar",
 			"[C] Chat",
+			"[Ctrl+A] AI Dashboard",
 			"[T] Theme",
 			"[S] Settings",
 			"[Tab] Next View",

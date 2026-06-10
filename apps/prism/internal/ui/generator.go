@@ -3,11 +3,13 @@ package ui
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/design"
+	aipanel "github.com/kyanite/tui/aipanel"
 	appai "github.com/kyanite/prism/internal/ai"
 	"github.com/kyanite/prism/internal/clipboard"
 	"github.com/kyanite/prism/internal/color"
@@ -15,6 +17,16 @@ import (
 	"github.com/kyanite/prism/internal/palette"
 	"github.com/kyanite/prism/internal/storage"
 	"github.com/kyanite/prism/internal/theme"
+)
+
+// AIMode represents the current AI panel sub-mode.
+type AIMode int
+
+const (
+	AIModeNone AIMode = iota
+	AIModePalette
+	AIModeMood
+	AIModeA11y
 )
 
 // GeneratorModel represents the palette generator screen
@@ -29,14 +41,22 @@ type GeneratorModel struct {
 	status           string
 	exportMode       bool
 	selectedExport   int
-	aiClient    *appai.Client
-	aiInputMode bool
-	aiInputText string
+	aiClient         *appai.Client
+	aiInputMode      bool
+	aiInputText      string
+	aiMode           AIMode
+	aiPanel          aipanel.Model
+	aiPanelVisible   bool
 	exportFormats    []string
 }
 
 // NewGeneratorModel creates a new generator model
 func NewGeneratorModel(tm *theme.Manager) GeneratorModel {
+	aiClient := appai.NewClient()
+	var panel aipanel.Model
+	if brain := aiClient.Brain(); brain != nil {
+		panel = aipanel.New(brain, ContentWidth, ScreenHeight)
+	}
 	return GeneratorModel{
 		themeManager:   tm,
 		styles:         NewStyles(tm.CurrentTheme()),
@@ -44,7 +64,8 @@ func NewGeneratorModel(tm *theme.Manager) GeneratorModel {
 		selectedRule:   0,
 		rules:          palette.AllRules(),
 		exportFormats:  []string{"JSON", "CSS Variables", "TOML", "Kyanite Theme"},
-		aiClient:       appai.NewClient(),
+		aiClient:       aiClient,
+		aiPanel:        panel,
 	}
 }
 
@@ -55,6 +76,19 @@ func (m GeneratorModel) Init() tea.Cmd {
 
 // Update handles generator messages
 func (m GeneratorModel) Update(msg tea.Msg) (GeneratorModel, tea.Cmd) {
+	// Route aipanel messages first when panel is visible
+	switch msg := msg.(type) {
+	case aipanel.StreamChunk:
+		var cmd tea.Cmd
+		m.aiPanel, cmd = m.aiPanel.Update(msg)
+		return m, cmd
+	case aipanel.ErrorMsg:
+		var cmd tea.Cmd
+		m.aiPanel, cmd = m.aiPanel.Update(msg)
+		m.aiPanelVisible = m.aiPanel.Visible()
+		return m, cmd
+	}
+
 	switch msg := msg.(type) {
 	case PaletteGeneratedMsg:
 		if msg.Err != "" {
@@ -73,6 +107,31 @@ func (m GeneratorModel) Update(msg tea.Msg) (GeneratorModel, tea.Cmd) {
 			m.generatedPalette = msg.Palette
 			m.err = ""
 			m.status = "✓ AI palette generated"
+		}
+		m.aiInputMode = false
+		return m, nil
+	case AIMoodGeneratedMsg:
+		if msg.Err != "" {
+			m.err = msg.Err
+			m.status = ""
+		} else {
+			m.generatedPalette = msg.Palette
+			m.err = ""
+			m.status = "✓ AI mood palette generated"
+		}
+		m.aiInputMode = false
+		return m, nil
+	case AIA11yGeneratedMsg:
+		if msg.Err != "" {
+			m.err = msg.Err
+			m.status = ""
+		} else {
+			m.err = ""
+			m.status = "✓ A11y analysis complete"
+			m.aiPanel = m.aiPanel.StartStream("A11y Analysis")
+			m.aiPanel = m.aiPanel.Toggle() // make visible
+			// Write the analysis text directly into the panel content
+			m.aiPanel.Content() // ensure initialized
 		}
 		m.aiInputMode = false
 		return m, nil
@@ -100,11 +159,28 @@ func (m GeneratorModel) Update(msg tea.Msg) (GeneratorModel, tea.Cmd) {
 		case "enter", " ":
 			return m, m.generate()
 		case "p":
-			// Enter AI palette input mode
+			// Enter AI palette input mode (backward compatible)
 			m.aiInputMode = true
 			m.aiInputText = ""
+			m.aiMode = AIModePalette
+			m.aiPanelVisible = false
 			m.status = ""
 			m.err = ""
+		case "ctrl+a":
+			// Toggle AI panel
+			if m.aiPanelVisible {
+				m.aiPanelVisible = false
+				m.aiPanel = m.aiPanel.Toggle()
+				m.status = ""
+			} else {
+				m.aiInputMode = true
+				m.aiInputText = ""
+				m.aiMode = AIModePalette
+				m.aiPanelVisible = true
+				m.aiPanel = m.aiPanel.Toggle()
+				m.status = ""
+				m.err = ""
+			}
 		case "c":
 			if m.generatedPalette != nil {
 				m.copyPalette()
@@ -202,6 +278,17 @@ func (m *GeneratorModel) exportPalette() {
 	m.err = ""
 }
 
+// resolveAIMode determines the AI sub-mode from the input text prefix.
+func resolveAIMode(input string) (AIMode, string) {
+	if strings.HasPrefix(input, "mood:") {
+		return AIModeMood, strings.TrimSpace(strings.TrimPrefix(input, "mood:"))
+	}
+	if strings.HasPrefix(input, "a11y:") {
+		return AIModeA11y, strings.TrimSpace(strings.TrimPrefix(input, "a11y:"))
+	}
+	return AIModePalette, input
+}
+
 // View renders the generator
 func (m GeneratorModel) View() string {
 	styles := NewStyles(m.themeManager.CurrentTheme())
@@ -255,14 +342,39 @@ func (m GeneratorModel) View() string {
 		b.WriteString("\n")
 	}
 
+	// AI panel (when visible via Ctrl+A)
+	if m.aiPanelVisible {
+		b.WriteString(m.aiPanel.View())
+		b.WriteString("\n")
+	}
+
 	// AI input prompt
 	if m.aiInputMode {
-		b.WriteString(styles.Secondary.Render("AI Palette — describe your palette:"))
+		modeLabel := "AI Palette"
+		switch m.aiMode {
+		case AIModeMood:
+			modeLabel = "AI Mood"
+		case AIModeA11y:
+			modeLabel = "AI A11y"
+		}
+
+		hint := "describe your palette"
+		switch m.aiMode {
+		case AIModeMood:
+			hint = "describe the mood"
+		case AIModeA11y:
+			hint = "paste colors to check"
+		default:
+			hint = "describe your palette (prefix mood: or a11y: to switch mode)"
+		}
+
+		b.WriteString(styles.Secondary.Render(fmt.Sprintf("◆ %s — %s:", modeLabel, hint)))
 		b.WriteString("\n")
 		prompt := fmt.Sprintf("> %s█", m.aiInputText)
 		b.WriteString(styles.Primary.Render(prompt))
 		b.WriteString("\n\n")
 	}
+
 	// Export mode menu
 	if m.exportMode {
 		b.WriteString(styles.Secondary.Render("Select Export Format:"))
@@ -296,13 +408,13 @@ func (m GeneratorModel) View() string {
 	// Help
 	var help string
 	if m.aiInputMode {
-		help = styles.Muted.Render("Type description, Enter: Generate • Esc: Cancel")
+		help = styles.Muted.Render("Type description, Enter: Generate • Esc: Cancel • Prefix mood: or a11y: to switch mode")
 	} else if m.exportMode {
 		help = styles.Muted.Render("↑/↓: Select Format • Enter: Export • Esc: Cancel")
 	} else if m.generatedPalette != nil {
-		help = styles.Muted.Render("↑/↓: Select • Enter: Generate • P: AI Palette • C: Copy • S: Save • E: Export • Esc: Menu")
+		help = styles.Muted.Render("↑/↓: Select • Enter: Generate • P: AI Palette • Ctrl+A: AI Panel • C: Copy • S: Save • E: Export • Esc: Menu")
 	} else {
-		help = styles.Muted.Render("↑/↓: Select Rule • Enter: Generate • P: AI Palette • Esc: Menu")
+		help = styles.Muted.Render("↑/↓: Select Rule • Enter: Generate • P: AI Palette • Ctrl+A: AI Panel • Esc: Menu")
 	}
 	b.WriteString(help)
 
@@ -341,6 +453,18 @@ type AIPaletteGeneratedMsg struct {
 	Err     string
 }
 
+// AIMoodGeneratedMsg carries the result of an AI mood palette generation.
+type AIMoodGeneratedMsg struct {
+	Palette *palette.Palette
+	Err     string
+}
+
+// AIA11yGeneratedMsg carries the result of an AI accessibility analysis.
+type AIA11yGeneratedMsg struct {
+	Analysis *appai.A11yAnalysis
+	Err      string
+}
+
 // handleAIInput handles key events while in AI description input mode.
 func (m GeneratorModel) handleAIInput(key string) (GeneratorModel, tea.Cmd) {
 	switch key {
@@ -349,10 +473,24 @@ func (m GeneratorModel) handleAIInput(key string) (GeneratorModel, tea.Cmd) {
 			m.aiInputMode = false
 			return m, nil
 		}
-		m.status = "Generating AI palette…"
-		return m, m.generateWithAI(m.aiInputText)
+		// Resolve mode from prefix (allows overriding the default mode)
+		resolvedMode, input := resolveAIMode(m.aiInputText)
+		m.aiMode = resolvedMode
+
+		switch m.aiMode {
+		case AIModeMood:
+			m.status = "Generating mood palettes…"
+			return m, m.generateMoodWithAI(input)
+		case AIModeA11y:
+			m.status = "Analyzing accessibility…"
+			return m, m.generateA11yWithAI(input)
+		default:
+			m.status = "Generating AI palette…"
+			return m, m.generateWithAI(input)
+		}
 	case "esc":
 		m.aiInputMode = false
+		m.aiPanelVisible = false
 		m.aiInputText = ""
 		m.status = ""
 	case "backspace":
@@ -367,6 +505,9 @@ func (m GeneratorModel) handleAIInput(key string) (GeneratorModel, tea.Cmd) {
 	}
 	return m, nil
 }
+
+// hexRegex matches hex color codes like #FF5733
+var hexRegex = regexp.MustCompile(`#[0-9A-Fa-f]{6}`)
 
 // generateWithAI sends a description to the AI client and returns a palette.
 func (m GeneratorModel) generateWithAI(description string) tea.Cmd {
@@ -402,5 +543,70 @@ func (m GeneratorModel) generateWithAI(description string) tea.Cmd {
 		}
 
 		return AIPaletteGeneratedMsg{Palette: &pal}
+	}
+}
+
+// generateMoodWithAI sends a mood description and returns the first palette.
+func (m GeneratorModel) generateMoodWithAI(mood string) tea.Cmd {
+	return func() tea.Msg {
+		if m.aiClient == nil {
+			return AIMoodGeneratedMsg{Err: "AI not available"}
+		}
+
+		moodPalettes, err := m.aiClient.GenerateMoodPalettes(context.Background(), mood)
+		if err != nil {
+			return AIMoodGeneratedMsg{Err: err.Error()}
+		}
+
+		// Use the first palette from the mood results
+		first := moodPalettes[0]
+		parsedColors := make([]color.Color, 0, len(first.Colors))
+		for _, hex := range first.Colors {
+			c, parseErr := color.ParseHex(hex)
+			if parseErr != nil {
+				continue
+			}
+			parsedColors = append(parsedColors, c)
+		}
+
+		if len(parsedColors) == 0 {
+			return AIMoodGeneratedMsg{Err: "AI returned no valid colors for mood"}
+		}
+
+		baseColor := parsedColors[0]
+		pal := palette.Palette{
+			Name:        "Mood: " + first.Name,
+			Colors:      parsedColors,
+			HarmonyRule: "ai-mood",
+			BaseColor:   baseColor,
+		}
+
+		return AIMoodGeneratedMsg{Palette: &pal}
+	}
+}
+
+// generateA11yWithAI sends colors for accessibility analysis.
+func (m GeneratorModel) generateA11yWithAI(colorsInput string) tea.Cmd {
+	return func() tea.Msg {
+		if m.aiClient == nil {
+			return AIA11yGeneratedMsg{Err: "AI not available"}
+		}
+
+		// If no explicit colors provided, use the current palette
+		colors := colorsInput
+		if m.generatedPalette != nil && strings.TrimSpace(colors) == "" {
+			hexes := make([]string, len(m.generatedPalette.Colors))
+			for i, c := range m.generatedPalette.Colors {
+				hexes[i] = c.Hex
+			}
+			colors = strings.Join(hexes, ", ")
+		}
+
+		analysis, err := m.aiClient.AnalyzeA11y(context.Background(), colors)
+		if err != nil {
+			return AIA11yGeneratedMsg{Err: err.Error()}
+		}
+
+		return AIA11yGeneratedMsg{Analysis: analysis}
 	}
 }

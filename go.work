@@ -9,4 +9,5 @@ use (
 	./pkg/ai
 	./pkg/design
 	./pkg/config
+	./pkg/tui
 )

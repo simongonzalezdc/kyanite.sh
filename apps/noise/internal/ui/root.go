@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/kyanite/noise/internal/app"
@@ -15,6 +16,8 @@ import (
 	"github.com/kyanite/noise/internal/theme"
 	"github.com/kyanite/noise/internal/ui/dashboard"
 	"github.com/kyanite/noise/internal/ui/editor"
+	"github.com/kyanite/tui/aipanel"
+	"github.com/kyanite/ai"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -128,6 +131,9 @@ type RootModel struct {
 
 	// Toast notification system
 	toast *ToastModel
+
+	// AI Copilot panel
+	aiPanel aipanel.Model
 }
 
 // NewRootModel creates a new root model with initialized state
@@ -237,6 +243,8 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.manager != nil {
 			m.manager.Update(msg)
 		}
+		// Forward size to AI copilot panel
+		m.aiPanel = m.aiPanel.SetSize(msg.Width, msg.Height)
 
 	case ForceRefreshMsg:
 		// Force a complete re-render
@@ -279,6 +287,10 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.voiceService != nil && m.voiceService.IsAvailable() {
 				return m, m.handleVoiceDictation()
 			}
+		case "ctrl+a":
+			// Toggle AI copilot panel
+			m.aiPanel = m.aiPanel.Toggle()
+			return m, nil
 		case "esc":
 			// Cancel voice dictation if active
 			if m.voiceService != nil && m.voiceService.GetState() == app.VoiceStateRecording {
@@ -300,6 +312,43 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Toggle help mode
 			m.helpMode = !m.helpMode
 			return m, nil
+		case "tab":
+			// When AI panel is visible, Tab triggers lyric continuation
+			if m.aiPanel.Visible() && m.currentScreen == screenEditor && m.editor != nil {
+				lyrics := m.editor.GetEditorText()
+				if lyrics != "" {
+					prompt := fmt.Sprintf("Continue these song lyrics. Write 4 more lines that match the style and mood. Current lyrics:\n%s", lyrics)
+					m.aiPanel = m.aiPanel.StartStream("Lyric Continuation")
+					cmds = append(cmds, m.aiPanel.Generate(prompt))
+					return m, tea.Batch(cmds...)
+				}
+			}
+		case "enter":
+			// When AI panel is visible, check for copilot commands in editor
+			if m.aiPanel.Visible() && m.currentScreen == screenEditor && m.editor != nil {
+				text := m.editor.GetEditorText()
+				// Check last line for copilot command prefixes
+				lines := strings.Split(text, "\n")
+				lastLine := ""
+				if len(lines) > 0 {
+					lastLine = strings.TrimSpace(lines[len(lines)-1])
+				}
+				if strings.HasPrefix(lastLine, "chords:") {
+					input := strings.TrimPrefix(lastLine, "chords:")
+					input = strings.TrimSpace(input)
+					prompt := fmt.Sprintf("Suggest 4 chords that go well with: %s. Explain briefly why they work together.", input)
+					m.aiPanel = m.aiPanel.StartStream("Chord Suggestions")
+					cmds = append(cmds, m.aiPanel.Generate(prompt))
+					return m, tea.Batch(cmds...)
+				} else if strings.HasPrefix(lastLine, "mood:") {
+					input := strings.TrimPrefix(lastLine, "mood:")
+					input = strings.TrimSpace(input)
+					prompt := fmt.Sprintf("For a song described as '%s', suggest: key, tempo (BPM), 3 reference songs, and a chord progression. Be creative.", input)
+					m.aiPanel = m.aiPanel.StartStream("Mood Board")
+					cmds = append(cmds, m.aiPanel.Generate(prompt))
+					return m, tea.Batch(cmds...)
+				}
+			}
 		default:
 			// FOCUS TRAPPING: When help mode is active, route keys to help pane only
 			if m.helpMode && m.helpPane != nil {
@@ -443,6 +492,19 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 			}
 		}
+	case aipanel.StreamChunk:
+		var cmd tea.Cmd
+		m.aiPanel, cmd = m.aiPanel.Update(msg)
+		if cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+
+	case aipanel.ErrorMsg:
+		var cmd tea.Cmd
+		m.aiPanel, cmd = m.aiPanel.Update(msg)
+		if cmd != nil {
+			cmds = append(cmds, cmd)
+		}
 	}
 
 	// Update current screen
@@ -528,6 +590,21 @@ func (m *RootModel) initializeChildModels() {
 
 	// Initialize sync service if enabled (auto-creates directories)
 	m.initializeSyncService(cfg)
+
+	// Initialize AI copilot panel
+	var brainPtr *ai.Brain
+	if m.aiService != nil && m.aiService.BrainClient() != nil {
+		brainPtr = m.aiService.BrainClient().Brain()
+	}
+	panelW := m.width
+	panelH := m.height
+	if panelW == 0 {
+		panelW = 80
+	}
+	if panelH == 0 {
+		panelH = 24
+	}
+	m.aiPanel = aipanel.New(brainPtr, panelW, panelH)
 }
 
 // initializeChildModelCommands calls Init() on all child models and returns their commands
@@ -839,6 +916,14 @@ func (m *RootModel) View() string {
 				toastStyle.Render(toastView),
 				content,
 			)
+		}
+	}
+
+	// Render AI copilot panel alongside main content (if visible)
+	if m.aiPanel.Visible() {
+		panelView := m.aiPanel.View()
+		if panelView != "" {
+			content = lipgloss.JoinHorizontal(lipgloss.Top, content, panelView)
 		}
 	}
 

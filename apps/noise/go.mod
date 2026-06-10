@@ -89,3 +89,7 @@ replace github.com/kyanite/design => ../../pkg/design
 require github.com/kyanite/ai v0.0.0
 
 replace github.com/kyanite/ai => ../../pkg/ai
+
+require github.com/kyanite/tui v0.0.0
+
+replace github.com/kyanite/tui => ../../pkg/tui

@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/kyanite/syntax/internal/ai"
 	"github.com/kyanite/syntax/internal/app"
+	"github.com/kyanite/tui/aipanel"
 )
 
 func main() {
@@ -18,6 +19,8 @@ func main() {
 	// Initialize AI client (pkg/ai Brain backend)
 	brainClient := ai.NewBrainClient()
 	m.AIClient = brainClient
+	// Initialize AI writing partner panel (aipanel)
+	m.AIPanel = aipanel.New(brainClient.Brain(), 40, 24)
 
 	// Generate session ID for this invocation
 	sessionID := fmt.Sprintf("syntax-%d", time.Now().Unix())

@@ -161,3 +161,88 @@ func (c *Client) SaveCrossAppContext(ctx context.Context, targetApp, contextType
 	}
 	return c.brain.SaveCrossAppContext(ctx, targetApp, contextType, summary, score)
 }
+
+// Brain returns the underlying AI brain, or nil if unavailable.
+// This is used by the aipanel component for streaming access.
+func (c *Client) Brain() *ai.Brain {
+	return c.brain
+}
+
+// MoodPalette holds a single named palette from a mood generation.
+type MoodPalette struct {
+	Name   string   `json:"name"`
+	Colors []string `json:"colors"`
+}
+
+// MoodPaletteResult holds the result of a mood-based palette generation.
+type MoodPaletteResult struct {
+	Palettes []MoodPalette `json:"palettes"`
+}
+
+// GenerateMoodPalettes generates 3 curated 5-color palettes for a given mood.
+// Each palette is styled differently and named.
+func (c *Client) GenerateMoodPalettes(ctx context.Context, mood string) ([]MoodPalette, error) {
+	if c.brain == nil {
+		return nil, fmt.Errorf("%w: prism client", ai.ErrBrainNotInitialized)
+	}
+
+	if !c.brain.IsLLMAvailable(ctx) {
+		return nil, fmt.Errorf("ai: NUCBox Ollama server unreachable")
+	}
+
+	prompt := ai.PrismMoodPalettePrompt(mood)
+
+	ctx, cancel := context.WithTimeout(ctx, 45*time.Second)
+	defer cancel()
+
+	resp, err := c.brain.Generate(ctx, prompt, ai.WithJSONMode())
+	if err != nil {
+		return nil, fmt.Errorf("ai: mood palette generation failed: %w", err)
+	}
+
+	cleaned := strings.TrimSpace(resp)
+	cleaned = strings.TrimPrefix(cleaned, "```json")
+	cleaned = strings.TrimPrefix(cleaned, "```")
+	cleaned = strings.TrimSuffix(cleaned, "```")
+	cleaned = strings.TrimSpace(cleaned)
+
+	var result MoodPaletteResult
+	if err := json.Unmarshal([]byte(cleaned), &result); err != nil {
+		return nil, fmt.Errorf("ai: failed to parse mood palette response: %w", err)
+	}
+
+	if len(result.Palettes) == 0 {
+		return nil, fmt.Errorf("ai: no palettes returned")
+	}
+
+	return result.Palettes, nil
+}
+
+// A11yAnalysis holds the result of an accessibility analysis.
+type A11yAnalysis struct {
+	Raw string
+}
+
+// AnalyzeA11y analyzes a palette for WCAG 2.1 AA accessibility compliance.
+// Returns the raw analysis text with contrast issues and fix suggestions.
+func (c *Client) AnalyzeA11y(ctx context.Context, colors string) (*A11yAnalysis, error) {
+	if c.brain == nil {
+		return nil, fmt.Errorf("%w: prism client", ai.ErrBrainNotInitialized)
+	}
+
+	if !c.brain.IsLLMAvailable(ctx) {
+		return nil, fmt.Errorf("ai: NUCBox Ollama server unreachable")
+	}
+
+	prompt := ai.PrismA11yCheckPrompt(colors)
+
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	resp, err := c.brain.Generate(ctx, prompt)
+	if err != nil {
+		return nil, fmt.Errorf("ai: a11y analysis failed: %w", err)
+	}
+
+	return &A11yAnalysis{Raw: strings.TrimSpace(resp)}, nil
+}

@@ -17,6 +17,7 @@ import (
 
 	"github.com/kyanite/focus/internal/ai"
 	"github.com/kyanite/focus/internal/theme"
+	"github.com/kyanite/tui/aipanel"
 	"github.com/kyanite/focus/pkg/audio"
 	"github.com/kyanite/focus/pkg/calendar"
 	"github.com/kyanite/focus/pkg/glow"
@@ -108,6 +109,11 @@ type MainModel struct {
 	lastAICheck    time.Time
 	aiThinking     bool // Whether AI is currently responding
 	aiSpinnerFrame int  // Current spinner frame for AI response
+
+	// AI Dashboard panel
+	aiPanel       aipanel.Model
+	aiPanelInput  string // text input for AI panel queries
+	aiPanelActive bool   // whether AI panel input is focused
 
 	// Visual effects
 	glitchCount int
@@ -203,6 +209,7 @@ type keyMap struct {
 	audioToggleKey   key.Binding
 	workDurationKey  key.Binding
 	breakDurationKey key.Binding
+	aiPanelKey       key.Binding
 }
 
 func (k keyMap) ShortHelp() []key.Binding {
@@ -348,6 +355,10 @@ func newKeyMap() keyMap {
 			key.WithKeys("ctrl+s"),
 			key.WithHelp("Ctrl+S", "save"),
 		),
+		aiPanelKey: key.NewBinding(
+			key.WithKeys("ctrl+a"),
+			key.WithHelp("Ctrl+A", "ai dashboard"),
+		),
 	}
 }
 
@@ -424,6 +435,9 @@ func NewMainModel(tasks []DashboardTask) *MainModel {
 		aiThinking:     false,
 		aiSpinnerFrame: 0,
 
+		// AI Dashboard panel
+		aiPanel: aipanel.New(nil, 50, 20),
+
 		// Calendar management
 		calViewMode:     "month",
 		cal:             calendar.New(theme.GetManager().Current().Name),
@@ -441,6 +455,12 @@ func NewMainModel(tasks []DashboardTask) *MainModel {
 
 	// Initialize glow styler for markdown notes
 	m.glowStyler = glow.NewGlowStyler("synthwave")
+
+	// Wire Brain to AI panel for streaming generation
+	bp := ai.NewBrainProvider()
+	if bp != nil && bp.Brain() != nil {
+		m.aiPanel = aipanel.New(bp.Brain(), 50, 20)
+	}
 
 	return m
 }
@@ -791,6 +811,49 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+
+	// Handle AI panel input mode
+	if m.aiPanelActive && m.aiPanel.Visible() {
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			switch {
+			case key.Matches(msg, m.keys.aiPanelKey):
+				// Ctrl+A also closes the panel from input mode
+				m.aiPanel = m.aiPanel.Toggle()
+				m.aiPanelActive = false
+				m.aiPanelInput = ""
+				return m, nil
+			case key.Matches(msg, m.keys.cancelAdd): // Escape
+				m.aiPanelActive = false
+				m.aiPanelInput = ""
+				return m, nil
+			case key.Matches(msg, m.keys.confirmAdd), key.Matches(msg, m.keys.enter):
+				if m.aiPanelInput != "" {
+					// Custom query
+					prompt := m.buildAIQuery(m.aiPanelInput)
+					m.aiPanel = m.aiPanel.StartStream("AI Dashboard")
+					m.aiPanelInput = ""
+					return m, m.aiPanel.Generate(prompt)
+				} else {
+					// Daily briefing (Enter with no input)
+					prompt := m.buildDailyBriefing()
+					m.aiPanel = m.aiPanel.StartStream("Daily Briefing")
+					return m, m.aiPanel.Generate(prompt)
+				}
+			default:
+				// Handle text input for AI panel
+				switch msg.Type {
+				case tea.KeyRunes:
+					m.aiPanelInput += msg.String()
+				case tea.KeyBackspace:
+					if len(m.aiPanelInput) > 0 {
+						m.aiPanelInput = m.aiPanelInput[:len(m.aiPanelInput)-1]
+					}
+				}
+				return m, nil
+			}
+		}
+	}
 	// Handle chat input mode
 	if m.currentView == chatView {
 		switch msg := msg.(type) {
@@ -872,6 +935,12 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case key.Matches(msg, m.keys.palette):
 			m.chatHistory = append(m.chatHistory, "⌨ Command palette coming soon")
+			audio.PlaySound(audio.SoundNavigate)
+			return m, nil
+
+		case key.Matches(msg, m.keys.aiPanelKey):
+			m.aiPanel = m.aiPanel.Toggle()
+			m.aiPanelActive = m.aiPanel.Visible()
 			audio.PlaySound(audio.SoundNavigate)
 			return m, nil
 
@@ -1232,6 +1301,18 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Handle AI status update (thread-safe via message passing)
 		m.aiStatus = msg.status
 		return m, nil
+
+	case aipanel.StreamChunk:
+		// Route stream chunks to the AI panel sub-model
+		var cmd tea.Cmd
+		m.aiPanel, cmd = m.aiPanel.Update(msg)
+		return m, cmd
+
+	case aipanel.ErrorMsg:
+		// Route errors to the AI panel sub-model
+		var cmd tea.Cmd
+		m.aiPanel, cmd = m.aiPanel.Update(msg)
+		return m, cmd
 	}
 
 	return m, nil
@@ -1883,7 +1964,7 @@ func (m *MainModel) renderDashboard() string {
 	}
 	centerContent.WriteString("\n\n")
 	centerContent.WriteString(lipgloss.NewStyle().Foreground(synthBlue).Render(
-		"💡 [ENTER] Focus mode\n💡 [A] Add mission\n💡 [C] Chat assistant\n💡 [D] Complete\n💡 [P] Priority\n💡 [G] Glitch"))
+		"💡 [ENTER] Focus mode\n💡 [A] Add mission\n💡 [C] Chat assistant\n💡 [Ctrl+A] AI Dashboard\n💡 [D] Complete\n💡 [P] Priority\n💡 [G] Glitch"))
 
 	// Right column - Stats and quick actions
 	rightContent.WriteString(m.renderStats())
@@ -1901,6 +1982,7 @@ func (m *MainModel) renderDashboard() string {
 		"[D] Complete task",
 		"[P] Change priority",
 		"[C] Chat assistant",
+		"[Ctrl+A] AI Dashboard",
 		"[F] Focus mode",
 		"[↑/↓] Navigate",
 	}
@@ -2013,14 +2095,45 @@ func (m *MainModel) View() string {
 	// Add help bar at the bottom
 	helpBar := m.renderHelpBar()
 
-	// Combine content and help bar
+	// Render main content, optionally with AI panel as side panel
+	mainContent := lipgloss.JoinVertical(lipgloss.Left,
+		content,
+		helpBar,
+	)
+
+	if m.aiPanel.Visible() {
+		// Update panel dimensions
+		m.aiPanel = m.aiPanel.SetSize(m.width/3, m.height-4)
+
+		// Render AI panel with input indicator
+		panelView := m.aiPanel.View()
+		if m.aiPanelActive {
+			inputLine := lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#f4a261")).
+				Render("> " + m.aiPanelInput + "█")
+			panelView = panelView + "\n" + inputLine
+		}
+
+		// Place panel on the right side
+		mainStyled := lipgloss.NewStyle().
+			Width(m.width * 2 / 3).
+			Render(mainContent)
+		panelStyled := lipgloss.NewStyle().
+			Width(m.width / 3).
+			Render(panelView)
+
+		fullContent := lipgloss.NewStyle().
+			Height(m.height).
+			Width(m.width).
+			Render(lipgloss.JoinHorizontal(lipgloss.Top, mainStyled, panelStyled))
+
+		return fullContent
+	}
+
 	fullContent := lipgloss.NewStyle().
 		Height(m.height).
 		Width(m.width).
-		Render(lipgloss.JoinVertical(lipgloss.Left,
-			content,
-			helpBar,
-		))
+		Render(mainContent)
 
 	return fullContent
 }
@@ -2132,6 +2245,60 @@ func (m *MainModel) renderFilterOverlay() string {
 	return outerContainer
 }
 
+
+// buildDailyBriefing constructs a prompt for the daily productivity briefing.
+func (m *MainModel) buildDailyBriefing() string {
+	now := time.Now()
+	today := now.Format("2006-01-02")
+
+	var dueToday, overdue, completedToday int
+	var high, medium, low int
+	var taskList []string
+
+	for _, t := range m.tasks {
+		taskList = append(taskList, t.Description)
+		switch t.Status {
+		case "completed":
+			completedToday++
+		case "pending":
+			if t.Deadline != nil {
+				if t.Deadline.Format("2006-01-02") == today {
+					dueToday++
+				} else if t.Deadline.Before(now) {
+					overdue++
+				}
+			}
+		}
+		switch t.Priority {
+		case "high":
+			high++
+		case "medium":
+			medium++
+		case "low":
+			low++
+		}
+	}
+
+	return fmt.Sprintf(
+		"Generate a daily productivity briefing. Tasks: %v. Completed today: %d. Due today: %d. Overdue: %d. Priority distribution: high=%d, medium=%d, low=%d. Be concise, 3-5 lines. Suggest one actionable improvement.",
+		taskList, completedToday, dueToday, overdue, high, medium, low,
+	)
+}
+
+// buildAIQuery constructs a prompt for a natural language query to the AI.
+func (m *MainModel) buildAIQuery(query string) string {
+	var recentTasks []string
+	for i, t := range m.tasks {
+		if i >= 5 {
+			break
+		}
+		recentTasks = append(recentTasks, t.Description)
+	}
+	return fmt.Sprintf(
+		"You are a helpful productivity assistant. Answer concisely. Context: %v. Question: %s",
+		recentTasks, query,
+	)
+}
 func StartMainDashboard(tasks []DashboardTask) error {
 	// Kyanite Suite Dashboard Initialization
 	fmt.Println("🌌 Kyanite Suite - focus.sh Dashboard")

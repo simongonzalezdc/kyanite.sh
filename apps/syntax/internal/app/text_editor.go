@@ -150,7 +150,7 @@ func (m Model) viewTextEditor() string {
 	}
 
 	statusBar := m.Styles.StatusBar.Render(fmt.Sprintf(
-		" %s | Line %d:%d | Words: %d%s%s%s%s | Ctrl+F: Find | Ctrl+H: Replace | Ctrl+L: Spell | Ctrl+S: Save | Esc: Exit ",
+		" %s | Line %d:%d | Words: %d%s%s%s%s | Ctrl+F: Find | Ctrl+H: Replace | Ctrl+L: Spell | Ctrl+S: Save | Ctrl+P: AI Panel | Esc: Exit ",
 		mode, line+1, col+1, wordCount, aiStatus, spellStatus, saveStatus, searchInfo))
 	b.WriteString(statusBar)
 
@@ -462,7 +462,34 @@ func (m Model) handleTextEditorKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 		}
-		return m, nil
+	}
+
+	// AI writing partner shortcuts (work in any editor mode when panel is visible)
+	if m.AIPanel.Visible() {
+		switch msg.String() {
+		case "ctrl+space":
+			// Continue Writing: AI generates 3 continuation paragraphs
+			return m.continueWriting()
+		}
+
+		// In normal mode, typed characters go to the AI panel input field
+		// for check:/voice: commands
+		if m.EditorMode == EditorModeNormal {
+			switch msg.String() {
+			case "enter":
+				return m.submitAIPanelCommand()
+			case "backspace":
+				if len(m.AIPanelInput) > 0 {
+					m.AIPanelInput = m.AIPanelInput[:len(m.AIPanelInput)-1]
+				}
+				return m, nil
+			default:
+				if len(msg.String()) == 1 {
+					m.AIPanelInput += msg.String()
+				}
+				return m, nil
+			}
+		}
 	}
 
 	// Mode switching

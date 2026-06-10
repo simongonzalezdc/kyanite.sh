@@ -13,6 +13,7 @@ import (
 	"github.com/kyanite/syntax/internal/spellcheck"
 	"github.com/kyanite/syntax/internal/storage"
 	"github.com/kyanite/syntax/internal/story"
+	"github.com/kyanite/tui/aipanel"
 )
 
 // Screen represents different app screens
@@ -86,6 +87,8 @@ type Model struct {
 	AIGenerating bool                 // Whether AI is generating
 	SpellChecker *spellcheck.Checker  // Spell check integration
 	SessionID    string               // Unique session ID for brain session persistence
+	AIPanel       aipanel.Model       // AI writing partner side panel
+	AIPanelInput  string              // Input for check:/voice: commands in AI panel
 
 	// ============================================================
 	// Auto-save State - Automatic saving and status
@@ -157,11 +160,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
 		m.Height = msg.Height
+		// Resize AI panel to match new terminal dimensions
+		m.AIPanel = m.AIPanel.SetSize(max(msg.Width/3, 40), msg.Height)
 		return m, nil
 
 	case AISuggestionMsg:
 		m = m.HandleAISuggestionMsg(msg)
 		return m, nil
+
+	case aipanel.StreamChunk:
+		var cmd tea.Cmd
+		m.AIPanel, cmd = m.AIPanel.Update(msg)
+		return m, cmd
+
+	case aipanel.ErrorMsg:
+		var cmd tea.Cmd
+		m.AIPanel, cmd = m.AIPanel.Update(msg)
+		return m, cmd
 
 	case AutoSaveTickMsg:
 		// Check if auto-save is needed
@@ -253,6 +268,12 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.Message = fmt.Sprintf("Theme: %s", m.CurrentTheme.Name)
 		return m, nil
 
+	case "ctrl+p":
+		// Toggle AI writing partner panel
+		m.AIPanel = m.AIPanel.Toggle()
+		m.AIPanelInput = ""
+		return m, nil
+
 	case "?", "h":
 		// Show help
 		m.PreviousScreen = m.CurrentScreen
@@ -320,40 +341,48 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 // View renders the current screen
 func (m Model) View() string {
+	var mainView string
 	switch m.CurrentScreen {
 	case ScreenWelcome:
-		return m.viewWelcome()
+		mainView = m.viewWelcome()
 	case ScreenProjectList:
-		return m.viewProjectList()
+		mainView = m.viewProjectList()
 	case ScreenEditor:
-		return m.viewEditor()
+		mainView = m.viewEditor()
 	case ScreenCharacters:
-		return m.viewCharacters()
+		mainView = m.viewCharacters()
 	case ScreenScenes:
-		return m.viewScenes()
+		mainView = m.viewScenes()
 	case ScreenLocations:
-		return m.viewLocations()
+		mainView = m.viewLocations()
 	case ScreenLocationEditor:
-		return m.viewLocationEditor()
+		mainView = m.viewLocationEditor()
 	case ScreenTextEditor:
-		return m.viewTextEditor()
+		mainView = m.viewTextEditor()
 	case ScreenHelp:
-		return m.viewHelp()
+		mainView = m.viewHelp()
 	case ScreenStats:
-		return m.viewStats()
+		mainView = m.viewStats()
 	case ScreenExport:
-		return m.viewExport()
+		mainView = m.viewExport()
 	case ScreenAISuggestion:
-		return m.viewAISuggestion()
+		mainView = m.viewAISuggestion()
 	case ScreenRelationshipMap:
-		return m.viewRelationshipMap()
+		mainView = m.viewRelationshipMap()
 	case ScreenSceneValidation:
-		return m.viewSceneValidation()
+		mainView = m.viewSceneValidation()
 	case ScreenBackups:
-		return m.viewBackups()
+		mainView = m.viewBackups()
 	default:
-		return "Unknown screen"
+		mainView = "Unknown screen"
 	}
+
+	// Overlay AI writing partner panel when visible
+	if m.AIPanel.Visible() {
+		mainView = m.renderWithAIPanel(mainView)
+	}
+
+	return mainView
 }
 
 // ============================================================

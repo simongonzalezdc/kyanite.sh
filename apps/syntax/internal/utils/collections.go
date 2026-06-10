@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"sort"
+
 	"github.com/kyanite/syntax/internal/character"
 	"github.com/kyanite/syntax/internal/location"
 	"github.com/kyanite/syntax/internal/scene"
@@ -16,36 +18,40 @@ func GetSceneAtIndex(scenes map[string]*scene.Scene, index int) *scene.Scene {
 	return sorted[index]
 }
 
-// GetCharacterAtIndex returns the character at the given index
-// Note: Characters don't have a natural sort order, so order may vary
+// GetCharacterAtIndex returns the character at the given index, sorted by name.
 // Returns nil if index is out of bounds
 func GetCharacterAtIndex(characters map[string]*character.Character, index int) *character.Character {
 	if index < 0 || index >= len(characters) {
 		return nil
 	}
 
-	// Convert map to slice
+	// Convert map to slice and sort by name for deterministic order
 	charList := make([]*character.Character, 0, len(characters))
 	for _, char := range characters {
 		charList = append(charList, char)
 	}
+	sort.Slice(charList, func(i, j int) bool {
+		return charList[i].Name < charList[j].Name
+	})
 
 	return charList[index]
 }
 
-// GetLocationAtIndex returns the location at the given index
-// Note: Locations don't have a natural sort order, so order may vary
+// GetLocationAtIndex returns the location at the given index, sorted by name.
 // Returns nil if index is out of bounds
 func GetLocationAtIndex(locations map[string]*location.Location, index int) *location.Location {
 	if index < 0 || index >= len(locations) {
 		return nil
 	}
 
-	// Convert map to slice
+	// Convert map to slice and sort by name for deterministic order
 	locList := make([]*location.Location, 0, len(locations))
 	for _, loc := range locations {
 		locList = append(locList, loc)
 	}
+	sort.Slice(locList, func(i, j int) bool {
+		return locList[i].Name < locList[j].Name
+	})
 
 	return locList[index]
 }
