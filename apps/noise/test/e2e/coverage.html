@@ -1,0 +1,435 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>e2e: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/Kyanite/noise/test/e2e/load_testing_framework.go (83.7%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package e2e
+
+import (
+        "context"
+        "fmt"
+        "sync"
+        "testing"
+        "time"
+
+        "github.com/Kyanite/noise/internal/app"
+        "github.com/Kyanite/noise/internal/app/ai"
+        "github.com/Kyanite/noise/internal/collaboration"
+)
+
+// LoadTestConfig defines configuration for load tests
+type LoadTestConfig struct {
+        ConcurrentUsers      int           `json:"concurrent_users"`
+        OperationsPerUser    int           `json:"operations_per_user"`
+        TestDuration         time.Duration `json:"test_duration"`
+        RampUpTime           time.Duration `json:"ramp_up_time"`
+        TargetSuccessRate    float64       `json:"target_success_rate"`
+        MaxOperationTime     time.Duration `json:"max_operation_time"`
+        EnableAIIntegration  bool          `json:"enable_ai_integration"`
+        EnableCollaboration  bool          `json:"enable_collaboration"`
+}
+
+// DefaultLoadTestConfig returns a default configuration for load testing
+func DefaultLoadTestConfig() LoadTestConfig <span class="cov0" title="0">{
+        return LoadTestConfig{
+                ConcurrentUsers:      5,
+                OperationsPerUser:    10,
+                TestDuration:         30 * time.Second,
+                RampUpTime:           5 * time.Second,
+                TargetSuccessRate:    0.95,
+                MaxOperationTime:     100 * time.Millisecond,
+                EnableAIIntegration:  true,
+                EnableCollaboration:  true,
+        }
+}</span>
+
+// LoadTestResult contains the results of a load test
+type LoadTestResult struct {
+        TotalOperations       int           `json:"total_operations"`
+        SuccessfulOperations  int           `json:"successful_operations"`
+        FailedOperations      int           `json:"failed_operations"`
+        SuccessRate           float64       `json:"success_rate"`
+        AverageOperationTime  time.Duration `json:"average_operation_time"`
+        MinOperationTime      time.Duration `json:"min_operation_time"`
+        MaxOperationTime      time.Duration `json:"max_operation_time"`
+        TotalTestTime         time.Duration `json:"total_test_time"`
+        OperationsPerSecond   float64       `json:"operations_per_second"`
+        AIRequests            int           `json:"ai_requests"`
+        CollaborationSessions int           `json:"collaboration_sessions"`
+        DatabaseOperations    int           `json:"database_operations"`
+        ErrorCounts           map[string]int `json:"error_counts"`
+}
+
+// LoadTester provides a framework for load testing the noise.sh application
+type LoadTester struct {
+        config      LoadTestConfig
+        setup       *E2ETestSetup
+        results     []LoadTestResult
+        resultMutex sync.Mutex
+}
+
+// NewLoadTester creates a new load tester instance
+func NewLoadTester(t *testing.T, config LoadTestConfig) *LoadTester <span class="cov8" title="1">{
+        setup := NewE2ETestSetup(t)
+        
+        return &amp;LoadTester{
+                config:  config,
+                setup:   setup,
+                results: make([]LoadTestResult, 0),
+        }
+}</span>
+
+// RunLoadTest executes a load test with the configured parameters
+func (lt *LoadTester) RunLoadTest(t *testing.T) LoadTestResult <span class="cov8" title="1">{
+        t.Logf("Starting load test with %d concurrent users, %d operations per user", 
+                lt.config.ConcurrentUsers, lt.config.OperationsPerUser)
+        
+        startTime := time.Now()
+        
+        // Channels for coordination
+        userChan := make(chan int, lt.config.ConcurrentUsers)
+        resultChan := make(chan LoadTestResult, lt.config.ConcurrentUsers)
+        
+        // Start users with ramp-up
+        go lt.rampUpUsers(userChan)
+        
+        // Wait group for all users
+        var wg sync.WaitGroup
+        wg.Add(lt.config.ConcurrentUsers)
+        
+        // Launch user goroutines
+        for i := 0; i &lt; lt.config.ConcurrentUsers; i++ </span><span class="cov8" title="1">{
+                go func(userID int) </span><span class="cov8" title="1">{
+                        defer wg.Done()
+                        result := lt.runUserOperations(userID)
+                        resultChan &lt;- result
+                }</span>(&lt;-userChan)
+        }
+        
+        // Wait for all users to complete
+        <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{
+                wg.Wait()
+                close(resultChan)
+        }</span>()
+        
+        // Collect results
+        <span class="cov8" title="1">var combinedResult LoadTestResult
+        var operationTimes []time.Duration
+        errorCounts := make(map[string]int)
+        
+        for result := range resultChan </span><span class="cov8" title="1">{
+                combinedResult.TotalOperations += result.TotalOperations
+                combinedResult.SuccessfulOperations += result.SuccessfulOperations
+                combinedResult.FailedOperations += result.FailedOperations
+                combinedResult.AIRequests += result.AIRequests
+                combinedResult.CollaborationSessions += result.CollaborationSessions
+                combinedResult.DatabaseOperations += result.DatabaseOperations
+                
+                // Track operation times for statistics
+                if result.AverageOperationTime &gt; 0 </span><span class="cov8" title="1">{
+                        operationTimes = append(operationTimes, result.AverageOperationTime)
+                }</span>
+                
+                // Aggregate error counts
+                <span class="cov8" title="1">for errorType, count := range result.ErrorCounts </span><span class="cov0" title="0">{
+                        errorCounts[errorType] += count
+                }</span>
+        }
+        
+        // Calculate final statistics
+        <span class="cov8" title="1">combinedResult.TotalTestTime = time.Since(startTime)
+        
+        if combinedResult.TotalOperations &gt; 0 </span><span class="cov8" title="1">{
+                combinedResult.SuccessRate = float64(combinedResult.SuccessfulOperations) / float64(combinedResult.TotalOperations)
+                combinedResult.OperationsPerSecond = float64(combinedResult.TotalOperations) / combinedResult.TotalTestTime.Seconds()
+        }</span>
+        
+        // Calculate operation time statistics
+        <span class="cov8" title="1">if len(operationTimes) &gt; 0 </span><span class="cov8" title="1">{
+                minTime := operationTimes[0]
+                maxTime := operationTimes[0]
+                totalTime := time.Duration(0)
+                
+                for _, opTime := range operationTimes </span><span class="cov8" title="1">{
+                        totalTime += opTime
+                        if opTime &lt; minTime </span><span class="cov8" title="1">{
+                                minTime = opTime
+                        }</span>
+                        <span class="cov8" title="1">if opTime &gt; maxTime </span><span class="cov0" title="0">{
+                                maxTime = opTime
+                        }</span>
+                }
+                
+                <span class="cov8" title="1">combinedResult.MinOperationTime = minTime
+                combinedResult.MaxOperationTime = maxTime
+                combinedResult.AverageOperationTime = totalTime / time.Duration(len(operationTimes))</span>
+        }
+        
+        <span class="cov8" title="1">combinedResult.ErrorCounts = errorCounts
+        
+        // Store result
+        lt.resultMutex.Lock()
+        lt.results = append(lt.results, combinedResult)
+        lt.resultMutex.Unlock()
+        
+        // Log results
+        t.Logf("Load test completed:")
+        t.Logf("  - Total operations: %d", combinedResult.TotalOperations)
+        t.Logf("  - Success rate: %.2f%%", combinedResult.SuccessRate*100)
+        t.Logf("  - Average operation time: %v", combinedResult.AverageOperationTime)
+        t.Logf("  - Operations per second: %.2f", combinedResult.OperationsPerSecond)
+        t.Logf("  - AI requests: %d", combinedResult.AIRequests)
+        t.Logf("  - Collaboration sessions: %d", combinedResult.CollaborationSessions)
+        
+        return combinedResult</span>
+}
+
+// rampUpUsers gradually starts users to simulate realistic load
+func (lt *LoadTester) rampUpUsers(userChan chan&lt;- int) <span class="cov8" title="1">{
+        if lt.config.ConcurrentUsers &lt;= 1 </span><span class="cov0" title="0">{
+                for i := 0; i &lt; lt.config.ConcurrentUsers; i++ </span><span class="cov0" title="0">{
+                        userChan &lt;- i
+                }</span>
+                <span class="cov0" title="0">return</span>
+        }
+        
+        <span class="cov8" title="1">delay := lt.config.RampUpTime / time.Duration(lt.config.ConcurrentUsers-1)
+        
+        for i := 0; i &lt; lt.config.ConcurrentUsers; i++ </span><span class="cov8" title="1">{
+                userChan &lt;- i
+                if i &lt; lt.config.ConcurrentUsers-1 </span><span class="cov8" title="1">{
+                        time.Sleep(delay)
+                }</span>
+        }
+}
+
+// runUserOperations simulates a single user performing operations
+func (lt *LoadTester) runUserOperations(userID int) LoadTestResult <span class="cov8" title="1">{
+        result := LoadTestResult{
+                ErrorCounts: make(map[string]int),
+        }
+        
+        editorSvc := app.NewEditorService(lt.setup.Database, lt.setup.Database)
+        
+        for j := 0; j &lt; lt.config.OperationsPerUser; j++ </span><span class="cov8" title="1">{
+                opStart := time.Now()
+                
+                // Create a song with unique data
+                songTitle := fmt.Sprintf("Load Test Song %d-%d", userID, j)
+                artistName := fmt.Sprintf("User %d", userID)
+                uniqueFilepath := fmt.Sprintf("/tmp/load_test_%d_%d.txt", userID, j)
+                
+                song, err := editorSvc.CreateSong(songTitle, artistName)
+                if err != nil </span><span class="cov0" title="0">{
+                        result.FailedOperations++
+                        result.ErrorCounts["create_song"]++
+                        continue</span>
+                }
+                
+                // Set unique filepath to avoid constraint violations
+                <span class="cov8" title="1">song.Filepath = uniqueFilepath
+                err = lt.setup.Database.UpdateSong(song)
+                if err != nil </span>{<span class="cov0" title="0">
+                        // Log but don't fail - the song was created successfully
+                }</span>
+                
+                // Add content and save version
+                <span class="cov8" title="1">content := fmt.Sprintf(`# Load Test Song %d-%d
+
+[Verse]
+This is song %d-%d
+Created by user %d
+With test content
+
+[Chorus]
+Load test chorus for song %d-%d
+`, userID, j, userID, j, userID, userID, j)
+                
+                _, err = lt.setup.Database.SaveVersion(song.ID, content, j == lt.config.OperationsPerUser-1, fmt.Sprintf("Version %d", j+1))
+                if err != nil </span><span class="cov0" title="0">{
+                        result.FailedOperations++
+                        result.ErrorCounts["save_version"]++
+                        continue</span>
+                }
+                
+                <span class="cov8" title="1">result.DatabaseOperations++
+                
+                // Test AI integration if enabled
+                if lt.config.EnableAIIntegration </span><span class="cov8" title="1">{
+                        req := ai.QuickRequest{
+                                Mode:    ai.QuickIdeaModeSpark,
+                                Context: "load test theme",
+                                Options: map[string]string{"theme": "testing"},
+                        }
+                        
+                        ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+                        _, err = lt.setup.AIAgent.Generate(ctx, req)
+                        cancel()
+                        
+                        if err != nil </span><span class="cov0" title="0">{
+                                result.ErrorCounts["ai_request"]++
+                        }</span> else<span class="cov8" title="1"> {
+                                result.AIRequests++
+                        }</span>
+                }
+                
+                // Test collaboration if enabled
+                <span class="cov8" title="1">if lt.config.EnableCollaboration &amp;&amp; j%3 == 0 </span><span class="cov8" title="1">{ // Test collaboration less frequently
+                        sessionName := fmt.Sprintf("Load Test Session %d", userID)
+                        session, err := lt.setup.SessionManager.CreateSession(
+                                song.ID, 
+                                sessionName, 
+                                fmt.Sprintf("user%d", userID),
+                                collaboration.SessionSettings{
+                                        MaxParticipants:  3,
+                                        AutoSaveInterval: 30 * time.Second,
+                                        ConflictStrategy: "merge",
+                                        RequireApproval:  false,
+                                },
+                        )
+                        
+                        if err != nil </span><span class="cov0" title="0">{
+                                result.ErrorCounts["create_session"]++
+                        }</span> else<span class="cov8" title="1"> {
+                                result.CollaborationSessions++
+                                
+                                // End the session
+                                lt.setup.SessionManager.EndSession(session.ID)
+                        }</span>
+                }
+                
+                <span class="cov8" title="1">result.SuccessfulOperations++
+                opDuration := time.Since(opStart)
+                result.AverageOperationTime += opDuration
+                
+                // Check if operation exceeded maximum time
+                if opDuration &gt; lt.config.MaxOperationTime </span><span class="cov0" title="0">{
+                        result.ErrorCounts["slow_operation"]++
+                }</span>
+        }
+        
+        <span class="cov8" title="1">result.TotalOperations = result.SuccessfulOperations + result.FailedOperations
+        
+        // Calculate average operation time
+        if result.SuccessfulOperations &gt; 0 </span><span class="cov8" title="1">{
+                result.AverageOperationTime /= time.Duration(result.SuccessfulOperations)
+        }</span>
+        
+        <span class="cov8" title="1">return result</span>
+}
+
+// GetResults returns all load test results
+func (lt *LoadTester) GetResults() []LoadTestResult <span class="cov0" title="0">{
+        lt.resultMutex.Lock()
+        defer lt.resultMutex.Unlock()
+        
+        // Return a copy to prevent external modification
+        results := make([]LoadTestResult, len(lt.results))
+        copy(results, lt.results)
+        return results
+}</span>
+
+// Cleanup cleans up resources used by the load tester
+func (lt *LoadTester) Cleanup() <span class="cov8" title="1">{
+        if lt.setup != nil </span><span class="cov8" title="1">{
+                lt.setup.Cleanup()
+        }</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

@@ -1,0 +1,57 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules
+dist
+build
+
+# Python
+__pycache__/
+.venv/
+venv/
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Binaries
+*.exe
+noise
+noise-app
+noise-new
+noise-test
+noise-dashboard-v2.exe
+noise-dashboard.exe
+performance
+bin/
+
+# Test coverage
+*.out
+autosave_coverage.out
+combined_coverage.out
+coverage.out
+final_coverage.out
+full_coverage.out
+
+# Config files
+*.yaml
+*.yml
+!.github/**/*.yml
+config/
+.env
+.env.*
+*.pem
+*.key
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+data/.noise/
+
+# Local agent workspace
+.omx/

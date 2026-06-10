@@ -1,0 +1,23 @@
+---
+description: Standards for PWA development using Next.js 15+, Tailwind 4, and accessibility
+globs: pwa/src/**/*.{ts,tsx,css}
+alwaysApply: false
+---
+
+# PWA Standards (Next.js & Tailwind)
+
+## Framework & Styling
+- Use Next.js 15+ App Router patterns.
+- Use Tailwind CSS 4 for all styling.
+- **NEVER** use raw hex colors in components; use CSS variables/tokens.
+
+## Accessibility (A11y)
+- **MANDATORY**: Respect `prefers-reduced-motion`.
+- Ensure all interactive elements have visible focus rings.
+- Use semantic HTML elements (`button`, `a`, `nav`, etc.).
+- Maintain high color contrast for readability.
+
+## Local-First & Sync
+- Use `dexie` for local IndexedDB persistence.
+- Ensure offline-first functionality with Service Workers.
+- Follow the sync protocol defined in `docs/guides/pwa-sync.md`.

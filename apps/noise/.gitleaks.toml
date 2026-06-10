@@ -1,0 +1,5 @@
+[allowlist]
+description = "Known false positives for literal editor shortcut labels."
+regexes = [
+  '''keyStr == "ctrl\+shift\+end"''',
+]
