@@ -1,15 +1,27 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
 
+	"github.com/kyanite/ai"
 	"github.com/kyanite/focus/internal/cli"
+	focusai "github.com/kyanite/focus/internal/ai"
 	"github.com/kyanite/focus/internal/tui"
 )
+
+// sessionState holds serializable focus session state for Brain persistence.
+type sessionState struct {
+	TaskCount    int        `json:"task_count"`
+	CurrentView  string     `json:"current_view"`
+	StartedAt    time.Time  `json:"started_at"`
+	CompletedAt  *time.Time `json:"completed_at,omitempty"`
+}
 
 func main() {
 	if len(os.Args) > 1 {
@@ -81,6 +93,31 @@ func findRepoRoot() string {
 
 // Run TUI directly without CLI interference
 func runTUIDirectly() error {
+	// Create BrainProvider for session lifecycle
+	brainProvider := focusai.NewBrainProvider()
+	var brain *ai.Brain
+	if brainProvider != nil {
+		brain = brainProvider.Brain()
+	}
+
+	ctx := context.Background()
+	sessionID := fmt.Sprintf("focus-%d", time.Now().Unix())
+	startedAt := time.Now()
+
+	// On startup: attempt to resume the most recent session
+	if brain != nil && brain.IsMemoryAvailable(ctx) {
+		sessions, err := brain.GetRecentSessions(ctx, 1)
+		if err == nil && len(sessions) > 0 {
+			s := sessions[0]
+			ago := formatTimeAgo(time.Since(s.UpdatedAt))
+			title := s.Title
+			if title == "" {
+				title = s.SessionID
+			}
+			fmt.Printf("Welcome back — last session: %s (%s)\n", title, ago)
+		}
+	}
+
 	// Create sample TUI tasks in the correct DashboardTask format
 	tasks := []tui.DashboardTask{
 		{
@@ -115,6 +152,48 @@ func runTUIDirectly() error {
 		},
 	}
 
+	// Deferred shutdown: save session and cross-app context
+	defer func() {
+		if brain == nil {
+			brainProvider.Close()
+			return
+		}
+
+		completed := 0
+		for _, t := range tasks {
+			if t.Status == "completed" {
+				completed++
+			}
+		}
+
+		// Save session
+		title := fmt.Sprintf("%d tasks, %d completed", len(tasks), completed)
+		state := sessionState{
+			TaskCount:   len(tasks),
+			CurrentView: "dashboard",
+			StartedAt:   startedAt,
+		}
+		if completed > 0 {
+			now := time.Now()
+			state.CompletedAt = &now
+		}
+		if err := brain.SaveSession(ctx, sessionID, title, state); err != nil {
+			log.Printf("focus: save session: %v", err)
+		}
+
+		// Save cross-app context for other kyanite apps
+		if completed > 0 {
+			summary := fmt.Sprintf("Completed %d tasks in focus", completed)
+			for _, targetApp := range []string{"noise", "syntax", "prism"} {
+				if err := brain.SaveCrossAppContext(ctx, targetApp, "task_completion", summary, 0.6); err != nil {
+					log.Printf("focus: save cross-app context for %s: %v", targetApp, err)
+				}
+			}
+		}
+
+		brainProvider.Close()
+	}()
+
 	fmt.Printf("📋 Loaded %d tasks into focus.sh system...\n", len(tasks))
 
 	// Launch the TUI
@@ -126,4 +205,18 @@ func runTUIDirectly() error {
 
 	// Launch actual TUI dashboard
 	return tui.StartMainDashboard(tasks)
+}
+
+// formatTimeAgo returns a human-readable duration string.
+func formatTimeAgo(d time.Duration) string {
+	switch {
+	case d < time.Minute:
+		return "just now"
+	case d < time.Hour:
+		return fmt.Sprintf("%dm ago", int(d.Minutes()))
+	case d < 24*time.Hour:
+		return fmt.Sprintf("%dh ago", int(d.Hours()))
+	default:
+		return fmt.Sprintf("%dd ago", int(d.Hours()/24))
+	}
 }

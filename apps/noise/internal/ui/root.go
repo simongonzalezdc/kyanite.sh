@@ -1243,3 +1243,16 @@ func (m *RootModel) performQuit() tea.Cmd {
 	logging.DisableTUIMode()
 	return tea.Quit
 }
+
+
+// GetCurrentSongTitle returns the title of the current song in the editor, or "" if none.
+func (m *RootModel) GetCurrentSongTitle() string {
+	if m.editor == nil || m.editor.GetSplitPane() == nil {
+		return ""
+	}
+	song := m.editor.GetSplitPane().GetCurrentSong()
+	if song == nil {
+		return ""
+	}
+	return song.Metadata.Title
+}

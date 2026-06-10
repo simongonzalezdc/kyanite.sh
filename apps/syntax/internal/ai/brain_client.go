@@ -17,6 +17,33 @@ type BrainClient struct {
 	mu    sync.Mutex
 }
 
+// GetRecentSessions returns the most recent sessions for the syntax app.
+// Returns nil if the brain or memory is unavailable (best-effort).
+func (b *BrainClient) GetRecentSessions(ctx context.Context, limit int) ([]ai.Session, error) {
+	if b.brain == nil {
+		return nil, nil
+	}
+	return b.brain.GetRecentSessions(ctx, limit)
+}
+
+// SaveSession persists the current session state for resume-on-startup.
+// Silently skipped if the brain or memory is unavailable (best-effort).
+func (b *BrainClient) SaveSession(ctx context.Context, sessionID, title string, state any) error {
+	if b.brain == nil {
+		return nil
+	}
+	return b.brain.SaveSession(ctx, sessionID, title, state)
+}
+
+// SaveCrossAppContext stores a context link for other kyanite apps.
+// Silently skipped if the brain or memory is unavailable (best-effort).
+func (b *BrainClient) SaveCrossAppContext(ctx context.Context, targetApp, contextType, summary string, score float32) error {
+	if b.brain == nil {
+		return nil
+	}
+	return b.brain.SaveCrossAppContext(ctx, targetApp, contextType, summary, score)
+}
+
 // NewBrainClient creates a new AI client backed by pkg/ai.Brain.
 // Falls back to offline mode if the brain cannot be initialized.
 func NewBrainClient() *BrainClient {

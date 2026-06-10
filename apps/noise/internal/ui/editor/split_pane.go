@@ -411,6 +411,15 @@ func (m *SplitPaneModel) SetCurrentSong(song *domain.Song) {
 	}
 }
 
+
+// GetCurrentSong returns the current song being edited, or nil if none.
+func (m *SplitPaneModel) GetCurrentSong() *domain.Song {
+	if m.editorPane == nil {
+		return nil
+	}
+	return m.editorPane.GetSong()
+}
+
 // Cleanup cleans up resources when the model is destroyed
 func (m *SplitPaneModel) Cleanup() {
 	if m.cancel != nil {

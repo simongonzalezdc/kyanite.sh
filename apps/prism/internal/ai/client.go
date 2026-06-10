@@ -133,3 +133,31 @@ func (c *Client) Close() {
 		c.brain.Close()
 	}
 }
+
+
+// SaveSession persists an app session snapshot for "resume where you left off".
+// Best-effort: returns nil if the brain is unavailable.
+func (c *Client) SaveSession(ctx context.Context, sessionID, title string, state any) error {
+	if c.brain == nil {
+		return nil
+	}
+	return c.brain.SaveSession(ctx, sessionID, title, state)
+}
+
+// GetRecentSessions returns the N most recent sessions for this app.
+// Returns nil if the brain is unavailable.
+func (c *Client) GetRecentSessions(ctx context.Context, limit int) ([]ai.Session, error) {
+	if c.brain == nil {
+		return nil, nil
+	}
+	return c.brain.GetRecentSessions(ctx, limit)
+}
+
+// SaveCrossAppContext stores a context link from this app for other apps.
+// Best-effort: returns nil if the brain is unavailable.
+func (c *Client) SaveCrossAppContext(ctx context.Context, targetApp, contextType, summary string, score float32) error {
+	if c.brain == nil {
+		return nil
+	}
+	return c.brain.SaveCrossAppContext(ctx, targetApp, contextType, summary, score)
+}

@@ -1,18 +1,21 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/ai"
+	"github.com/kyanite/config"
 	"github.com/kyanite/design"
 	"github.com/kyanite/design/icons"
-	"github.com/kyanite/config"
 )
 
 var version = "dev"
@@ -34,17 +37,22 @@ var apps = []appEntry{
 // ── Model ───────────────────────────────────────────────────────────
 
 type model struct {
-	cursor  int
-	width   int
-	height  int
-	quitting bool
+	cursor        int
+	width         int
+	height        int
+	quitting      bool
+	recentActivity string // recent sessions from memory
 }
 
 func newModel() model {
 	return model{width: 70, height: 22}
 }
 
-func (m model) Init() tea.Cmd { return nil }
+func (m model) Init() tea.Cmd {
+	return loadRecentActivity
+}
+
+type activityMsg string
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -52,7 +60,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		return m, nil
-
+	case activityMsg:
+		m.recentActivity = string(msg)
+		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
@@ -133,7 +143,13 @@ func (m model) View() string {
 	footer := helpRendered + strings.Repeat(" ", padW) + themeRendered
 
 	// ── Assemble ──
-	content := header + "\n" + sep + "\n\n" + itemBlock + "\n" + sep + "\n" + footer
+	var activityBlock string
+	if m.recentActivity != "" {
+		activityLabel := lipgloss.NewStyle().Foreground(t.Muted).Render("  recent:")
+		activityText := lipgloss.NewStyle().Foreground(t.Text).Render(" " + m.recentActivity)
+		activityBlock = "\n" + activityLabel + activityText + "\n"
+	}
+	content := header + "\n" + sep + "\n\n" + itemBlock + activityBlock + "\n" + sep + "\n" + footer
 	return frame.Render(content)
 }
 
@@ -188,6 +204,43 @@ func isExec(path string) bool {
 		return strings.ToLower(filepath.Ext(path)) == ".exe" && info.Mode().IsRegular()
 	}
 	return info.Mode().IsRegular() && info.Mode()&0111 != 0
+}
+
+// loadRecentActivity attempts to fetch recent session data from memory.
+func loadRecentActivity() tea.Msg {
+	cfg, err := config.Load()
+	if err != nil {
+		return activityMsg("")
+	}
+
+	brainCfg := ai.ConfigFromRoot(cfg, "kyanite")
+	brain, err := ai.New(brainCfg)
+	if err != nil {
+		return activityMsg("")
+	}
+	defer brain.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	if !brain.IsMemoryAvailable(ctx) {
+		return activityMsg("")
+	}
+
+	sessions, err := brain.GetAllRecentSessions(ctx, 5)
+	if err != nil || len(sessions) == 0 {
+		return activityMsg("")
+	}
+
+	var parts []string
+	for _, s := range sessions {
+		label := s.App
+		if s.Title != "" {
+			label = s.App + ": " + s.Title
+		}
+		parts = append(parts, label)
+	}
+	return activityMsg(strings.Join(parts, "  •  "))
 }
 
 // ── Main ────────────────────────────────────────────────────────────

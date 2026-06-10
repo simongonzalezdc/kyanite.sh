@@ -144,6 +144,60 @@ func (b *Brain) IsMemoryAvailable(ctx context.Context) bool {
 	return b.memory != nil && b.memory.IsAvailable(ctx)
 }
 
+// SaveSession persists an app session snapshot for "resume where you left off".
+func (b *Brain) SaveSession(ctx context.Context, sessionID, title string, state any) error {
+	if b.memory == nil {
+		return nil // non-critical
+	}
+	return b.memory.SaveSession(ctx, b.app, sessionID, title, state)
+}
+
+// LoadSession restores a previously saved app session.
+func (b *Brain) LoadSession(ctx context.Context, sessionID string) (*Session, error) {
+	if b.memory == nil {
+		return nil, ErrMemoryUnreachable
+	}
+	return b.memory.LoadSession(ctx, b.app, sessionID)
+}
+
+// GetRecentSessions returns the N most recent sessions for this app.
+func (b *Brain) GetRecentSessions(ctx context.Context, limit int) ([]Session, error) {
+	if b.memory == nil {
+		return nil, nil
+	}
+	return b.memory.GetRecentSessions(ctx, b.app, limit)
+}
+
+// GetAllRecentSessions returns recent sessions across all apps.
+func (b *Brain) GetAllRecentSessions(ctx context.Context, limit int) ([]Session, error) {
+	if b.memory == nil {
+		return nil, nil
+	}
+	return b.memory.GetAllRecentSessions(ctx, limit)
+}
+
+// GetCrossAppContext retrieves relevant context from other apps.
+func (b *Brain) GetCrossAppContext(ctx context.Context, limit int) ([]CrossAppContext, error) {
+	if b.memory == nil {
+		return nil, nil
+	}
+	return b.memory.GetCrossAppContext(ctx, b.app, limit)
+}
+
+// SaveCrossAppContext stores a context link from this app to another.
+func (b *Brain) SaveCrossAppContext(ctx context.Context, targetApp, contextType, summary string, score float32) error {
+	if b.memory == nil {
+		return nil
+	}
+	return b.memory.SaveCrossAppContext(ctx, CrossAppContext{
+		SourceApp:      b.app,
+		TargetApp:      targetApp,
+		ContextType:    contextType,
+		Summary:        summary,
+		RelevanceScore: score,
+	})
+}
+
 // Close releases all resources.
 func (b *Brain) Close() {
 	if b.memory != nil {

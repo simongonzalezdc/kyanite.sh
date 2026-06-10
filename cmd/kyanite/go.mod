@@ -7,6 +7,7 @@ toolchain go1.26.4
 require (
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.1-0.20250404203927-76690c660834
+	github.com/kyanite/ai v0.0.0-00010101000000-000000000000
 	github.com/kyanite/config v0.0.0-00010101000000-000000000000
 	github.com/kyanite/design v0.0.0-00010101000000-000000000000
 )
@@ -29,6 +30,7 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.5 // indirect
+	github.com/lib/pq v1.12.3 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
@@ -48,3 +50,5 @@ require (
 replace github.com/kyanite/design => ../../pkg/design
 
 replace github.com/kyanite/config => ../../pkg/config
+
+replace github.com/kyanite/ai => ../../pkg/ai

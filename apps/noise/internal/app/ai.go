@@ -59,6 +59,12 @@ func NewAIService(cfg *config.Config) *AIService {
 	return s
 }
 
+
+// BrainClient returns the underlying brain client for session/memory operations.
+func (s *AIService) BrainClient() *brain.Client {
+	return s.brainClient
+}
+
 // GetQuickAgent returns the underlying QuickIdeaAgent
 func (s *AIService) GetQuickAgent() *ai.QuickIdeaAgent {
 	return s.quickAgent

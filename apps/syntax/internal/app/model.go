@@ -85,6 +85,7 @@ type Model struct {
 	AISuggestion *ai.Suggestion       // Current AI suggestion
 	AIGenerating bool                 // Whether AI is generating
 	SpellChecker *spellcheck.Checker  // Spell check integration
+	SessionID    string               // Unique session ID for brain session persistence
 
 	// ============================================================
 	// Auto-save State - Automatic saving and status

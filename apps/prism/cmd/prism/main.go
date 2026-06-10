@@ -54,6 +54,15 @@ func main() {
 	// Create the root model
 	m := app.NewModel()
 
+	// Attempt to load the most recent session (best-effort)
+	m.LoadRecentSession()
+
+	// Ensure session is saved and resources are released on exit
+	defer func() {
+		m.SaveCurrentSession()
+		m.Close()
+	}()
+
 	// Create the Bubble Tea program
 	p := tea.NewProgram(
 		m,
