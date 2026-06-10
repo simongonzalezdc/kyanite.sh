@@ -15,7 +15,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/mattn/go-sqlite3 v1.14.32
-	github.com/pelletier/go-toml/v2 v2.2.4
+	github.com/pelletier/go-toml/v2 v2.3.1
 	github.com/rivo/uniseg v0.4.7
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
