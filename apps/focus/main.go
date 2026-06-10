@@ -1,9 +1,10 @@
 package main
 
 import (
-	"log"
 	"os"
 	"os/exec"
+
+	charmlog "github.com/charmbracelet/log"
 )
 
 func main() {
@@ -17,7 +18,7 @@ func main() {
 	case "focus":
 		focusMain()
 	default:
-		log.Fatalf("unknown app: %s", app)
+			charmlog.Fatal("unknown app", "app", app)
 	}
 }
 
@@ -28,6 +29,6 @@ func focusMain() {
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	if err := cmd.Run(); err != nil {
-		log.Fatalf("failed to run focus: %v", err)
+			charmlog.Fatal("failed to run focus", "err", err)
 	}
 }

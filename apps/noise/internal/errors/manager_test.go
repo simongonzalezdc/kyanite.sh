@@ -319,7 +319,7 @@ func TestLogErrorBySeverity(t *testing.T) {
 		{
 			name:             "Critical error",
 			severity:         SeverityCritical,
-			expectedLogLevel: "ERROR",
+			expectedLogLevel: "ERRO",
 		},
 		{
 			name:             "High severity error",
@@ -334,7 +334,7 @@ func TestLogErrorBySeverity(t *testing.T) {
 		{
 			name:             "Low severity error",
 			severity:         SeverityLow,
-			expectedLogLevel: "DEBUG",
+			expectedLogLevel: "DEBU",
 		},
 	}
 

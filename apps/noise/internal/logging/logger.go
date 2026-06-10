@@ -1,14 +1,15 @@
+// Package logging provides debug-aware logging utilities for the application.
+// It wraps charmbracelet/log with TUI-aware suppression and build-tag debug control.
 package logging
 
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
+	charmlog "github.com/charmbracelet/log"
 	"github.com/kyanite/noise/internal/config"
 	errutil "github.com/kyanite/noise/internal/errutil"
 )
@@ -47,14 +48,29 @@ func (l LogLevel) String() string {
 	}
 }
 
-// Logger wraps the standard log package with additional functionality
+func toCharmLevel(l LogLevel) charmlog.Level {
+	switch l {
+	case DEBUG:
+		return charmlog.DebugLevel
+	case INFO:
+		return charmlog.InfoLevel
+	case WARN:
+		return charmlog.WarnLevel
+	case ERROR:
+		return charmlog.ErrorLevel
+	case FATAL:
+		return charmlog.FatalLevel
+	default:
+		return charmlog.InfoLevel
+	}
+}
+
+// Logger wraps charmbracelet/log with TUI-aware suppression.
 type Logger struct {
-	*log.Logger
-	level      LogLevel
-	showCaller bool
-	callerSkip int
-	tuiMode    bool     // When true, suppress all output to avoid corrupting TUI
-	logFile    *os.File // File handle for log file (if any)
+	inner   *charmlog.Logger
+	level   LogLevel
+	tuiMode bool
+	logFile *os.File
 }
 
 // Config holds logger configuration
@@ -93,19 +109,21 @@ func New(cfg *Config) (*Logger, error) {
 			return nil, errutil.Wrap(err, "open log file")
 		}
 
-		// Use multi-writer to write to both file and stdout
+		// Use multi-writer to write to both file and stderr
 		output = io.MultiWriter(cfg.Output, logFile)
 	}
 
-	logger := &Logger{
-		Logger:     log.New(output, "", log.LstdFlags|log.Lmicroseconds),
-		level:      cfg.Level,
-		showCaller: cfg.ShowCaller,
-		callerSkip: 2,
-		logFile:    logFile,
-	}
+	inner := charmlog.NewWithOptions(output, charmlog.Options{
+		ReportTimestamp: true,
+		ReportCaller:    cfg.ShowCaller,
+		Level:           toCharmLevel(cfg.Level),
+	})
 
-	return logger, nil
+	return &Logger{
+		inner:   inner,
+		level:   cfg.Level,
+		logFile: logFile,
+	}, nil
 }
 
 // Close closes the log file if one was opened
@@ -172,11 +190,12 @@ func parseLogLevel(level string) LogLevel {
 // SetLevel sets the minimum log level
 func (l *Logger) SetLevel(level LogLevel) {
 	l.level = level
+	l.inner.SetLevel(toCharmLevel(level))
 }
 
 // SetShowCaller sets whether to show caller information
 func (l *Logger) SetShowCaller(show bool) {
-	l.showCaller = show
+	l.inner.SetReportCaller(show)
 }
 
 // SetTUIMode enables or disables TUI mode (suppresses output when TUI is active)
@@ -191,134 +210,82 @@ func (l *Logger) IsTUIMode() bool {
 
 // Debug logs a debug message
 func (l *Logger) Debug(v ...interface{}) {
-	if l.level <= DEBUG {
-		l.log(DEBUG, v...)
+	if l.tuiMode || l.level > DEBUG {
+		return
 	}
+	l.inner.Debug(fmt.Sprint(v...))
 }
 
 // Debugf logs a formatted debug message
 func (l *Logger) Debugf(format string, v ...interface{}) {
-	if l.level <= DEBUG {
-		l.logf(DEBUG, format, v...)
+	if l.tuiMode || l.level > DEBUG {
+		return
 	}
+	l.inner.Debugf(format, v...)
 }
 
 // Info logs an info message
 func (l *Logger) Info(v ...interface{}) {
-	if l.level <= INFO {
-		l.log(INFO, v...)
+	if l.tuiMode || l.level > INFO {
+		return
 	}
+	l.inner.Info(fmt.Sprint(v...))
 }
 
 // Infof logs a formatted info message
 func (l *Logger) Infof(format string, v ...interface{}) {
-	if l.level <= INFO {
-		l.logf(INFO, format, v...)
+	if l.tuiMode || l.level > INFO {
+		return
 	}
+	l.inner.Infof(format, v...)
 }
 
 // Warn logs a warning message
 func (l *Logger) Warn(v ...interface{}) {
-	if l.level <= WARN {
-		l.log(WARN, v...)
+	if l.tuiMode || l.level > WARN {
+		return
 	}
+	l.inner.Warn(fmt.Sprint(v...))
 }
 
 // Warnf logs a formatted warning message
 func (l *Logger) Warnf(format string, v ...interface{}) {
-	if l.level <= WARN {
-		l.logf(WARN, format, v...)
+	if l.tuiMode || l.level > WARN {
+		return
 	}
+	l.inner.Warnf(format, v...)
 }
 
 // Error logs an error message
 func (l *Logger) Error(v ...interface{}) {
-	if l.level <= ERROR {
-		l.log(ERROR, v...)
+	if l.tuiMode || l.level > ERROR {
+		return
 	}
+	l.inner.Error(fmt.Sprint(v...))
 }
 
 // Errorf logs a formatted error message
 func (l *Logger) Errorf(format string, v ...interface{}) {
-	if l.level <= ERROR {
-		l.logf(ERROR, format, v...)
+	if l.tuiMode || l.level > ERROR {
+		return
 	}
+	l.inner.Errorf(format, v...)
 }
 
 // Fatal logs a fatal message and exits the program
 func (l *Logger) Fatal(v ...interface{}) {
-	if l.level <= FATAL {
-		l.log(FATAL, v...)
+	if !l.tuiMode && l.level <= FATAL {
+		l.inner.Fatal(fmt.Sprint(v...))
 	}
 	os.Exit(1)
 }
 
 // Fatalf logs a formatted fatal message and exits the program
 func (l *Logger) Fatalf(format string, v ...interface{}) {
-	if l.level <= FATAL {
-		l.logf(FATAL, format, v...)
+	if !l.tuiMode && l.level <= FATAL {
+		l.inner.Fatalf(format, v...)
 	}
 	os.Exit(1)
-}
-
-// log logs a message with the specified level
-func (l *Logger) log(level LogLevel, v ...interface{}) {
-	// Suppress output in TUI mode to avoid corrupting terminal
-	if l.tuiMode {
-		return
-	}
-
-	prefix := fmt.Sprintf("[%s] ", level.String())
-
-	var message string
-	if l.showCaller {
-		file, line := l.getCaller()
-		message = fmt.Sprintf("%s%s:%d ", prefix, file, line)
-	} else {
-		message = prefix
-	}
-
-	message += fmt.Sprint(v...)
-	l.Print(message)
-}
-
-// logf logs a formatted message with the specified level
-func (l *Logger) logf(level LogLevel, format string, v ...interface{}) {
-	// Suppress output in TUI mode to avoid corrupting terminal
-	if l.tuiMode {
-		return
-	}
-
-	prefix := fmt.Sprintf("[%s] ", level.String())
-
-	var message string
-	if l.showCaller {
-		file, line := l.getCaller()
-		message = fmt.Sprintf("%s%s:%d ", prefix, file, line)
-	} else {
-		message = prefix
-	}
-
-	message += fmt.Sprintf(format, v...)
-	if l.Logger != nil {
-		l.Print(message)
-	}
-}
-
-// getCaller returns the file and line number of the caller
-func (l *Logger) getCaller() (string, int) {
-	_, file, line, ok := runtime.Caller(l.callerSkip)
-	if !ok {
-		return "unknown", 0
-	}
-
-	// Extract just the filename (not the full path)
-	parts := strings.Split(file, string(os.PathSeparator))
-	if len(parts) > 0 {
-		file = parts[len(parts)-1]
-	}
-
-	return file, line
 }
 
 // Global logger instance
@@ -329,11 +296,12 @@ func init() {
 	cfg := DefaultConfig()
 	logger, err := New(cfg)
 	if err != nil {
-		// Fallback to standard logger if initialization fails
-		// CRITICAL: Use stderr to avoid corrupting Bubble Tea's stdout rendering
+		// Fallback to a minimal charmbracelet logger if initialization fails
+		inner := charmlog.New(os.Stderr)
+		inner.SetLevel(charmlog.InfoLevel)
 		defaultLogger = &Logger{
-			Logger: log.New(os.Stderr, "", log.LstdFlags),
-			level:  INFO,
+			inner: inner,
+			level: INFO,
 		}
 	} else {
 		defaultLogger = logger
