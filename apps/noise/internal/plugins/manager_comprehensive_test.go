@@ -7,8 +7,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Kyanite/noise/internal/config"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/config"
+	"github.com/kyanite/noise/internal/logging"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

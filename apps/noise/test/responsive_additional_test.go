@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Kyanite/noise/internal/ui"
+	"github.com/kyanite/noise/internal/ui"
 )
 
 func TestResponsiveManagerBasics(t *testing.T) {

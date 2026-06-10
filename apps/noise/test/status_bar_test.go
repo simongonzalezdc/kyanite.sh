@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/app"
-	"github.com/Kyanite/noise/internal/ui/editor"
+	"github.com/kyanite/noise/internal/app"
+	"github.com/kyanite/noise/internal/ui/editor"
 	"github.com/charmbracelet/lipgloss"
 )
 

@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/theme"
 )
 
 // Theme Testing Script for noise.sh Kyanite Theme System

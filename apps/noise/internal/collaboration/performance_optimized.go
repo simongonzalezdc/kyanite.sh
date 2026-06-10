@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/infra/db"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/infra/db"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // PerformanceOptimizedCollaborationManager provides collaboration features with performance optimizations

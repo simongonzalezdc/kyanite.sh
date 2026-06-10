@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	errutil "github.com/Kyanite/noise/internal/errutil"
+	errutil "github.com/kyanite/noise/internal/errutil"
 )
 
 // ExportFormatter handles formatting of exports

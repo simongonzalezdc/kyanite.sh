@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/ui/editor"
+	"github.com/kyanite/noise/internal/ui/editor"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

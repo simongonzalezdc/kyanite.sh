@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/config"
+	"github.com/kyanite/noise/internal/config"
 )
 
 // homeEnvKey returns the environment variable key for the home directory

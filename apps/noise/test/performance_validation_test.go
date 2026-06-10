@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/app/ai"
-	"github.com/Kyanite/noise/internal/collaboration"
-	"github.com/Kyanite/noise/internal/infra/db"
-	"github.com/Kyanite/noise/internal/performance"
-	"github.com/Kyanite/noise/internal/theme"
-	"github.com/Kyanite/noise/internal/ui"
+	"github.com/kyanite/noise/internal/app/ai"
+	"github.com/kyanite/noise/internal/collaboration"
+	"github.com/kyanite/noise/internal/infra/db"
+	"github.com/kyanite/noise/internal/performance"
+	"github.com/kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/ui"
 )
 
 // TestPerformanceTargets validates that all performance optimization targets are achieved

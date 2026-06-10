@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kyanite/noise/internal/config"
-	"github.com/Kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/config"
+	"github.com/kyanite/noise/internal/theme"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"

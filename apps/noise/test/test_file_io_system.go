@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/domain"
-	"github.com/Kyanite/noise/internal/infra/files"
+	"github.com/kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/infra/files"
 )
 
 // TestFileIO runs a suite of sub-tests covering the end-to-end file service

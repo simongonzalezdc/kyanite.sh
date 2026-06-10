@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/app"
-	"github.com/Kyanite/noise/internal/infra/db"
+	"github.com/kyanite/noise/internal/app"
+	"github.com/kyanite/noise/internal/infra/db"
 )
 
 // TestAutoSaveServiceCreation tests the creation of an auto-save service

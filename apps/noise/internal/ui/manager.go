@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Kyanite/noise/internal/domain"
-	"github.com/Kyanite/noise/internal/infra/db"
-	"github.com/Kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/infra/db"
+	"github.com/kyanite/noise/internal/theme"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"

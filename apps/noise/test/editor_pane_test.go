@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/app"
-	"github.com/Kyanite/noise/internal/domain"
-	"github.com/Kyanite/noise/internal/infra/db"
-	"github.com/Kyanite/noise/internal/ui/editor"
+	"github.com/kyanite/noise/internal/app"
+	"github.com/kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/infra/db"
+	"github.com/kyanite/noise/internal/ui/editor"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 )

@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/domain"
-	logging "github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/domain"
+	logging "github.com/kyanite/noise/internal/logging"
 )
 
 // TestLogger provides a logger for testing that captures log messages

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kyanite/noise/internal/ui/dimension"
+	"github.com/kyanite/noise/internal/ui/dimension"
 	"github.com/charmbracelet/lipgloss"
 )
 

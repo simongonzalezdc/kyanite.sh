@@ -16,9 +16,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/domain"
-	errutil "github.com/Kyanite/noise/internal/errutil"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/domain"
+	errutil "github.com/kyanite/noise/internal/errutil"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // isTestMode returns true if running in test mode.

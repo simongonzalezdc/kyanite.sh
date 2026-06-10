@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/ui/editor"
+	"github.com/kyanite/noise/internal/ui/editor"
 )
 
 // TestRealTimePreviewManager tests the real-time preview manager functionality

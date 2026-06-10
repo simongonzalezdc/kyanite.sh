@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // Common errors for model management

@@ -12,13 +12,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/app"
-	"github.com/Kyanite/noise/internal/app/ai"
-	"github.com/Kyanite/noise/internal/collaboration"
-	"github.com/Kyanite/noise/internal/domain"
-	"github.com/Kyanite/noise/internal/errors"
-	"github.com/Kyanite/noise/internal/theme"
-	"github.com/Kyanite/noise/internal/ui/editor"
+	"github.com/kyanite/noise/internal/app"
+	"github.com/kyanite/noise/internal/app/ai"
+	"github.com/kyanite/noise/internal/collaboration"
+	"github.com/kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/errors"
+	"github.com/kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/ui/editor"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

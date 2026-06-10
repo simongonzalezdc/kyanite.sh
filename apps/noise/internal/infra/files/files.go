@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/domain"
-	"github.com/Kyanite/noise/internal/errors"
+	"github.com/kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/errors"
 	"gopkg.in/yaml.v3"
 )
 

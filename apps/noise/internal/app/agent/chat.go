@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Kyanite/noise/internal/app"
+	"github.com/kyanite/noise/internal/app"
 )
 
 // ChatHandler manages conversations with the user

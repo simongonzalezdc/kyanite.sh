@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // FileErrorReporter reports errors to a file

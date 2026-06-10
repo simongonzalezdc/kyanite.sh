@@ -18,7 +18,7 @@ mkdir noise.sh && cd noise.sh
 git init
 
 # Initialize Go module
-go mod init github.com/Kyanite/noise.sh
+go mod init github.com/kyanite/noise.sh
 
 # Install core dependencies
 go get github.com/charmbracelet/bubbletea@latest
@@ -114,7 +114,7 @@ import (
     "os"
     
     tea "github.com/charmbracelet/bubbletea"
-    "github.com/Kyanite/noise.sh/internal/ui"
+    "github.com/kyanite/noise.sh/internal/ui"
 )
 
 var (
@@ -334,7 +334,7 @@ import (
     "strings"
     
     "gopkg.in/yaml.v2"
-    "github.com/Kyanite/noise.sh/internal/domain"
+    "github.com/kyanite/noise.sh/internal/domain"
 )
 
 type Parser struct{}
@@ -657,7 +657,7 @@ import (
     "github.com/charmbracelet/lipgloss"
     "github.com/charmbracelet/glamour"
     
-    "github.com/Kyanite/noise.sh/internal/domain"
+    "github.com/kyanite/noise.sh/internal/domain"
 )
 
 type Model struct {

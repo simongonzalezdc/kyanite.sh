@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/harmonica"
 	"github.com/charmbracelet/lipgloss"

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/logging"
 	whisper "github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
 

@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // FeatureState represents the current state of a feature

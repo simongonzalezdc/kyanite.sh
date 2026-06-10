@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Kyanite/noise/internal/config"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/config"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 func TestPluginManager(t *testing.T) {

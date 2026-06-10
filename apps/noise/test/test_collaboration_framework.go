@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/collaboration"
-	"github.com/Kyanite/noise/internal/infra/db"
+	"github.com/kyanite/noise/internal/collaboration"
+	"github.com/kyanite/noise/internal/infra/db"
 )
 
 // TestCollaborationFramework exercises the collaboration managers through a set

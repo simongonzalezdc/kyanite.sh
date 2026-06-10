@@ -1,9 +1,9 @@
 package ui
 
 import (
-	"github.com/Kyanite/noise/internal/app"
-	"github.com/Kyanite/noise/internal/infra/db"
-	"github.com/Kyanite/noise/internal/ui/editor"
+	"github.com/kyanite/noise/internal/app"
+	"github.com/kyanite/noise/internal/infra/db"
+	"github.com/kyanite/noise/internal/ui/editor"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

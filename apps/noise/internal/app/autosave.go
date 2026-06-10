@@ -8,11 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/constants"
-	"github.com/Kyanite/noise/internal/domain"
-	errutil "github.com/Kyanite/noise/internal/errutil"
-	"github.com/Kyanite/noise/internal/infra/db"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/constants"
+	"github.com/kyanite/noise/internal/domain"
+	errutil "github.com/kyanite/noise/internal/errutil"
+	"github.com/kyanite/noise/internal/infra/db"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // AutoSaveStatus represents the current auto-save state

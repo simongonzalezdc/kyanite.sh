@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // SignatureVerifier handles plugin signature verification

@@ -756,13 +756,13 @@ brew install noise.sh
 
 **Direct Download:**
 ```bash
-curl -L https://github.com/Kyanite/noise.sh/releases/latest/download/noise.sh_Linux_x86_64.tar.gz | tar xz
+curl -L https://github.com/kyanite/noise.sh/releases/latest/download/noise.sh_Linux_x86_64.tar.gz | tar xz
 sudo mv noise.sh /usr/local/bin/
 ```
 
 **Go Install:**
 ```bash
-go install github.com/Kyanite/noise.sh@latest
+go install github.com/kyanite/noise.sh@latest
 ```
 
 ### Prerequisites

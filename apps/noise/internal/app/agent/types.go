@@ -6,7 +6,7 @@ package agent
 import (
 	"time"
 
-	"github.com/Kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/domain"
 )
 
 // EventType represents the type of episodic event

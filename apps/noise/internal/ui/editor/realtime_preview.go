@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 )
 

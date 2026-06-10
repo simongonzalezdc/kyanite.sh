@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Kyanite/noise/internal/config"
-	"github.com/Kyanite/noise/internal/logging"
-	"github.com/Kyanite/noise/internal/plugins"
-	"github.com/Kyanite/noise/internal/ui"
+	"github.com/kyanite/noise/internal/config"
+	"github.com/kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/plugins"
+	"github.com/kyanite/noise/internal/ui"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

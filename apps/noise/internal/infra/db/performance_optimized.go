@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/constants"
-	"github.com/Kyanite/noise/internal/domain"
-	appErrors "github.com/Kyanite/noise/internal/errors"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/constants"
+	"github.com/kyanite/noise/internal/domain"
+	appErrors "github.com/kyanite/noise/internal/errors"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // PerformanceOptimizedDB extends the base DB with performance optimizations

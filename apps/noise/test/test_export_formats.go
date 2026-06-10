@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Kyanite/noise/internal/export"
+	"github.com/kyanite/noise/internal/export"
 )
 
 const (

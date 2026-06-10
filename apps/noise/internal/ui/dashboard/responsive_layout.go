@@ -1,7 +1,7 @@
 package dashboard
 
 import (
-	"github.com/Kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 )
 

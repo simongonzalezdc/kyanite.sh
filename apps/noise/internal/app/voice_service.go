@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/config"
-	"github.com/Kyanite/noise/internal/infra/voice"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/config"
+	"github.com/kyanite/noise/internal/infra/voice"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // VoiceService errors

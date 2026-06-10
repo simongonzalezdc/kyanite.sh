@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/logging"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )

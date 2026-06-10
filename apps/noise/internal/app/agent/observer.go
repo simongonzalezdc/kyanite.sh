@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/app/ai"
+	"github.com/kyanite/noise/internal/app/ai"
 )
 
 // ContextObserver monitors user activity and detects writing context

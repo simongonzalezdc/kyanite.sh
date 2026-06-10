@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kyanite/noise/internal/constants"
-	"github.com/Kyanite/noise/internal/domain"
-	appErrors "github.com/Kyanite/noise/internal/errors"
-	errutil "github.com/Kyanite/noise/internal/errutil"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/constants"
+	"github.com/kyanite/noise/internal/domain"
+	appErrors "github.com/kyanite/noise/internal/errors"
+	errutil "github.com/kyanite/noise/internal/errutil"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // InsertSong inserts a new song into the database with comprehensive error handling

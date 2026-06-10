@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Kyanite/noise/internal/app"
-	"github.com/Kyanite/noise/internal/app/ai"
-	"github.com/Kyanite/noise/internal/constants"
-	"github.com/Kyanite/noise/internal/logging"
-	"github.com/Kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/app"
+	"github.com/kyanite/noise/internal/app/ai"
+	"github.com/kyanite/noise/internal/constants"
+	"github.com/kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 )
 

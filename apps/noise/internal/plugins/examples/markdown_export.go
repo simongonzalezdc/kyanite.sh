@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kyanite/noise/internal/plugins"
+	"github.com/kyanite/noise/internal/plugins"
 )
 
 // MarkdownExportPlugin is an example plugin that adds Markdown export functionality

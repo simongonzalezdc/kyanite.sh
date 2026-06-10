@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/domain"
-	"github.com/Kyanite/noise/internal/infra/db"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/infra/db"
+	"github.com/kyanite/noise/internal/logging"
 	"github.com/google/uuid"
 )
 

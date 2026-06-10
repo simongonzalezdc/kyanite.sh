@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	logging "github.com/Kyanite/noise/internal/logging"
+	logging "github.com/kyanite/noise/internal/logging"
 )
 
 // TestNewErrorManager tests the creation of error manager

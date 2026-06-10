@@ -3,7 +3,7 @@ package ui
 import (
 	"time"
 
-	"github.com/Kyanite/noise/internal/ui/dimension"
+	"github.com/kyanite/noise/internal/ui/dimension"
 )
 
 // UI timing constants

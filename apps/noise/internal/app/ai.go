@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kyanite/noise/internal/app/ai"
-	"github.com/Kyanite/noise/internal/config"
-	"github.com/Kyanite/noise/internal/constants"
-	"github.com/Kyanite/noise/internal/domain"
-	"github.com/Kyanite/noise/internal/infra/glm"
-	"github.com/Kyanite/noise/internal/infra/ollama"
+	"github.com/kyanite/noise/internal/app/ai"
+	"github.com/kyanite/noise/internal/config"
+	"github.com/kyanite/noise/internal/constants"
+	"github.com/kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/infra/glm"
+	"github.com/kyanite/noise/internal/infra/ollama"
 )
 
 // AIService handles AI-powered assistance

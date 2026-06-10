@@ -1,0 +1,16 @@
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work.sum
+vendor/
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store

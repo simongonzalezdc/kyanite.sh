@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/config"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/config"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // SyncServer provides an embedded HTTP/WebSocket server for PWA sync

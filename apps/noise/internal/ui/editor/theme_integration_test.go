@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Kyanite/noise/internal/app"
-	"github.com/Kyanite/noise/internal/config"
-	"github.com/Kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/app"
+	"github.com/kyanite/noise/internal/config"
+	"github.com/kyanite/noise/internal/theme"
 	"github.com/charmbracelet/bubbles/textarea"
 )
 

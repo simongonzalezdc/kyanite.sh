@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Kyanite/noise/internal/collaboration"
-	"github.com/Kyanite/noise/internal/theme"
-	"github.com/Kyanite/noise/internal/ui/dimension"
+	"github.com/kyanite/noise/internal/collaboration"
+	"github.com/kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/ui/dimension"
 	"github.com/charmbracelet/lipgloss"
 )
 

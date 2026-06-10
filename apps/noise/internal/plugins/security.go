@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/errutil"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/errutil"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // SecurityManager handles plugin security validation and sandboxing

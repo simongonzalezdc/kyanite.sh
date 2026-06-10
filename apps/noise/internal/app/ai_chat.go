@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // ChatMessage represents a single message in a chat conversation

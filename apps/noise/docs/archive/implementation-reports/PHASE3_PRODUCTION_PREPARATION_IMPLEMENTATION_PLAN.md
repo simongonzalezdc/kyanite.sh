@@ -3204,7 +3204,7 @@ Welcome to noise.sh, a rapid-capture songwriting studio that helps you turn insp
 
 #### Installation
 
-1. **Download the latest release** from [GitHub Releases](https://github.com/Kyanite/noise.sh/releases)
+1. **Download the latest release** from [GitHub Releases](https://github.com/kyanite/noise.sh/releases)
 2. **Extract the archive** to your preferred location
 3. **Add to PATH** (optional but recommended)
 
@@ -3305,8 +3305,8 @@ noise export pattern --output patterns/my-pattern.json
 
 #### Getting Help
 - Press `F1` for in-application help
-- Visit the [documentation](https://github.com/Kyanite/noise.sh/docs)
-- Join our [community forum](https://github.com/Kyanite/noise.sh/discussions)
+- Visit the [documentation](https://github.com/kyanite/noise.sh/docs)
+- Join our [community forum](https://github.com/kyanite/noise.sh/discussions)
 
 ### Best Practices
 

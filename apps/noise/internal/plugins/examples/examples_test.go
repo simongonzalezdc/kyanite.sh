@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/plugins"
+	"github.com/kyanite/noise/internal/plugins"
 )
 
 func TestChordAnalyzerPlugin_NewChordAnalyzerPlugin(t *testing.T) {

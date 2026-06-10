@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kyanite/noise/internal/domain"
-	"github.com/Kyanite/noise/internal/errors"
-	errutil "github.com/Kyanite/noise/internal/errutil"
-	"github.com/Kyanite/noise/internal/infra/db"
-	"github.com/Kyanite/noise/internal/infra/files"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/errors"
+	errutil "github.com/kyanite/noise/internal/errutil"
+	"github.com/kyanite/noise/internal/infra/db"
+	"github.com/kyanite/noise/internal/infra/files"
+	"github.com/kyanite/noise/internal/logging"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )

@@ -7,12 +7,12 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/Kyanite/noise/internal/constants"
-	"github.com/Kyanite/noise/internal/domain"
-	"github.com/Kyanite/noise/internal/errors"
-	errutil "github.com/Kyanite/noise/internal/errutil"
-	"github.com/Kyanite/noise/internal/infra/db"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/constants"
+	"github.com/kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/errors"
+	errutil "github.com/kyanite/noise/internal/errutil"
+	"github.com/kyanite/noise/internal/infra/db"
+	"github.com/kyanite/noise/internal/logging"
 	"gopkg.in/yaml.v3"
 )
 

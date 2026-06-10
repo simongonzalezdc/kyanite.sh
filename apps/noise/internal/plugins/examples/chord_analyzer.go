@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kyanite/noise/internal/plugins"
+	"github.com/kyanite/noise/internal/plugins"
 )
 
 // ChordAnalyzerPlugin is an example plugin that adds chord analysis functionality

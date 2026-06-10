@@ -3,11 +3,11 @@ package editor
 import (
 	"time"
 
-	"github.com/Kyanite/noise/internal/app"
-	"github.com/Kyanite/noise/internal/app/ai"
-	"github.com/Kyanite/noise/internal/domain"
-	"github.com/Kyanite/noise/internal/export"
-	"github.com/Kyanite/noise/internal/infra/files"
+	"github.com/kyanite/noise/internal/app"
+	"github.com/kyanite/noise/internal/app/ai"
+	"github.com/kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/export"
+	"github.com/kyanite/noise/internal/infra/files"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 )

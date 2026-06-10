@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/app"
-	"github.com/Kyanite/noise/internal/ui/editor"
+	"github.com/kyanite/noise/internal/app"
+	"github.com/kyanite/noise/internal/ui/editor"
 )
 
 var ansiEscape = regexp.MustCompile(`\x1b\[[0-9;]*m`)

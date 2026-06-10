@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // PerformanceOptimizedAI provides AI services with caching and performance optimizations

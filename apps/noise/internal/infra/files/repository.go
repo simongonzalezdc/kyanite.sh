@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/Kyanite/noise/internal/domain"
-	"github.com/Kyanite/noise/internal/errors"
+	"github.com/kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/errors"
 )
 
 // FileRepository defines the interface for file-based song persistence operations

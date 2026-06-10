@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	appErrors "github.com/Kyanite/noise/internal/errors"
-	"github.com/Kyanite/noise/internal/logging"
+	appErrors "github.com/kyanite/noise/internal/errors"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 func newTestLogger(t *testing.T) *logging.Logger {

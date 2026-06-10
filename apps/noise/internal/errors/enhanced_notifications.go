@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // ActionableError represents an error with suggested actions

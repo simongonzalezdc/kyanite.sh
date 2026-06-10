@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	errutil "github.com/Kyanite/noise/internal/errutil"
+	errutil "github.com/kyanite/noise/internal/errutil"
 )
 
 // ExportService handles the export functionality.

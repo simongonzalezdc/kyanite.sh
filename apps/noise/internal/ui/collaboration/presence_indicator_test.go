@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Kyanite/noise/internal/collaboration"
+	"github.com/kyanite/noise/internal/collaboration"
 )
 
 func TestPresenceIndicatorModel_NewPresenceIndicatorModel(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/Kyanite/noise/internal/config"
+	"github.com/kyanite/noise/internal/config"
 )
 
 var (

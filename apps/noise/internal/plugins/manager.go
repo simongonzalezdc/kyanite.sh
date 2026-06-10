@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/config"
-	errutil "github.com/Kyanite/noise/internal/errutil"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/config"
+	errutil "github.com/kyanite/noise/internal/errutil"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // DefaultManager is the default implementation of PluginManager

@@ -1,6 +1,6 @@
 package editor
 
-import "github.com/Kyanite/noise/internal/ui/dimension"
+import "github.com/kyanite/noise/internal/ui/dimension"
 
 // PreviewScroll manages scroll state for preview pane
 type PreviewScroll struct {

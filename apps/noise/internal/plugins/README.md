@@ -41,7 +41,7 @@ Create a new Go file that implements the `Plugin` interface:
 package main
 
 import (
-    "github.com/Kyanite/noise/internal/plugins"
+    "github.com/kyanite/noise/internal/plugins"
 )
 
 type MyPlugin struct {

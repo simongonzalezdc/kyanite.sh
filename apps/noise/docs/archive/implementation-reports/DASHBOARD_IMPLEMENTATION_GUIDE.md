@@ -14,8 +14,8 @@ This guide provides the technical specifications and code structure for implemen
 package dashboard
 
 import (
-    "github.com/Kyanite/noise/internal/theme"
-    "github.com/Kyanite/noise/internal/ui"
+    "github.com/kyanite/noise/internal/theme"
+    "github.com/kyanite/noise/internal/ui"
     tea "github.com/charmbracelet/bubbletea"
     "github.com/charmbracelet/lipgloss"
 )
@@ -73,7 +73,7 @@ package dashboard
 
 import (
     "fmt"
-    "github.com/Kyanite/noise/internal/theme"
+    "github.com/kyanite/noise/internal/theme"
     tea "github.com/charmbracelet/bubbletea"
     "github.com/charmbracelet/lipgloss"
 )
@@ -207,7 +207,7 @@ func (m *ThemePreviewModel) renderSampleElements(t theme.Theme) string {
 package dashboard
 
 import (
-    "github.com/Kyanite/noise/internal/ui"
+    "github.com/kyanite/noise/internal/ui"
     tea "github.com/charmbracelet/bubbletea"
     "github.com/charmbracelet/lipgloss"
 )
@@ -346,7 +346,7 @@ func (m *QuickActionsModel) renderActionCard(action Action, selected bool) strin
 package animations
 
 import (
-    "github.com/Kyanite/noise/internal/ui"
+    "github.com/kyanite/noise/internal/ui"
     "github.com/charmbracelet/lipgloss"
 )
 
@@ -776,7 +776,7 @@ package dashboard
 
 import (
     "testing"
-    "github.com/Kyanite/noise/internal/theme"
+    "github.com/kyanite/noise/internal/theme"
 )
 
 func TestDashboardModel(t *testing.T) {
@@ -851,8 +851,8 @@ package integration
 
 import (
     "testing"
-    "github.com/Kyanite/noise/internal/ui"
-    "github.com/Kyanite/noise/internal/ui/dashboard"
+    "github.com/kyanite/noise/internal/ui"
+    "github.com/kyanite/noise/internal/ui/dashboard"
 )
 
 func TestDashboardIntegration(t *testing.T) {

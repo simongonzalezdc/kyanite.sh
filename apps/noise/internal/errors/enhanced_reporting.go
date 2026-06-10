@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // ErrorReportEnhancer enhances error reports with additional context

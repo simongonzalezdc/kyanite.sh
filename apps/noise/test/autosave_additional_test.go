@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/app"
-	"github.com/Kyanite/noise/internal/infra/db"
+	"github.com/kyanite/noise/internal/app"
+	"github.com/kyanite/noise/internal/infra/db"
 )
 
 // helper to create test DB in a temp dir

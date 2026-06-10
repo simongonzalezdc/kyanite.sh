@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/app/knowledge"
+	"github.com/kyanite/noise/internal/app/knowledge"
 )
 
 // TestQuickIdeaAgent_ComprehensiveKnowledgeBaseIntegration tests comprehensive knowledge base integration

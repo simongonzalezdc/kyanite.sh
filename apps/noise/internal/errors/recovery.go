@@ -8,8 +8,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Kyanite/noise/internal/domain"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // FileCorruptionDetector detects corrupted files

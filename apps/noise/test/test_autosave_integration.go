@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/app"
-	"github.com/Kyanite/noise/internal/domain"
-	"github.com/Kyanite/noise/internal/infra/db"
-	"github.com/Kyanite/noise/internal/infra/files"
+	"github.com/kyanite/noise/internal/app"
+	"github.com/kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/infra/db"
+	"github.com/kyanite/noise/internal/infra/files"
 )
 
 // TestAutoSaveIntegration validates the end-to-end auto-save workflow across database,

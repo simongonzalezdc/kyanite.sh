@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/domain"
-	appErrors "github.com/Kyanite/noise/internal/errors"
+	"github.com/kyanite/noise/internal/domain"
+	appErrors "github.com/kyanite/noise/internal/errors"
 )
 
 func TestInsertSongCreatesPersistedRecord(t *testing.T) {

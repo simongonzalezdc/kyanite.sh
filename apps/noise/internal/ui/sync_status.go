@@ -3,8 +3,8 @@ package ui
 import (
 	"fmt"
 
-	"github.com/Kyanite/noise/internal/infra/sync"
-	"github.com/Kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/infra/sync"
+	"github.com/kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )

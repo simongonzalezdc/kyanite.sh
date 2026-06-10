@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kyanite/noise/internal/constants"
+	"github.com/kyanite/noise/internal/constants"
 )
 
 // StubKnowledgeBase provides a stub implementation of the KnowledgeBase interface

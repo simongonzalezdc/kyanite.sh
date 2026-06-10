@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Kyanite/noise/internal/app"
-	"github.com/Kyanite/noise/internal/app/ai"
+	"github.com/kyanite/noise/internal/app"
+	"github.com/kyanite/noise/internal/app/ai"
 )
 
 // Tool represents an AI-callable tool

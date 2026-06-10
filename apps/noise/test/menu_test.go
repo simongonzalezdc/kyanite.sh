@@ -3,7 +3,7 @@ package noise
 import (
 	"testing"
 
-	"github.com/Kyanite/noise/internal/ui"
+	"github.com/kyanite/noise/internal/ui"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

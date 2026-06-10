@@ -1,4 +1,4 @@
-module github.com/Kyanite/noise
+module github.com/kyanite/noise
 
 go 1.25.5
 

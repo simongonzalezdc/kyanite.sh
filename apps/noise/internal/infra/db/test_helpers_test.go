@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/domain"
 )
 
 func newTestConfig(t testing.TB) Config {

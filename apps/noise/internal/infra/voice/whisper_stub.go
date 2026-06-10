@@ -5,7 +5,7 @@ package voice
 import (
 	"errors"
 
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // Common errors for whisper engine

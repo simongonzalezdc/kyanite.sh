@@ -1,6 +1,6 @@
 package errors
 
-import "github.com/Kyanite/noise/internal/logging"
+import "github.com/kyanite/noise/internal/logging"
 
 // Result is a generic result type that can hold either a value or an error
 type Result[T any] struct {

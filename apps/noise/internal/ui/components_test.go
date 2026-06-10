@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

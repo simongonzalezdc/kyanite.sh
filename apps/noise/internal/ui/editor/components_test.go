@@ -3,7 +3,7 @@ package editor
 import (
 	"testing"
 
-	"github.com/Kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/theme"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"

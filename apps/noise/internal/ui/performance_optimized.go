@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 )
 

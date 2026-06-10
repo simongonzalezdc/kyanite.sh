@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /apps/focus
+    schedule:
+      interval: weekly
+  - package-ecosystem: gomod
+    directory: /apps/noise
+    schedule:
+      interval: weekly
+  - package-ecosystem: gomod
+    directory: /apps/syntax
+    schedule:
+      interval: weekly
+  - package-ecosystem: gomod
+    directory: /apps/prism
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

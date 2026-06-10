@@ -5,7 +5,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/Kyanite/noise/internal/config"
+	"github.com/kyanite/noise/internal/config"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

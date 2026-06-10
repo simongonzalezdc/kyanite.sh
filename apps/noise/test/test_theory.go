@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Kyanite/noise/internal/app"
+	"github.com/kyanite/noise/internal/app"
 )
 
 // TestTheoryService tests the theory service functionality

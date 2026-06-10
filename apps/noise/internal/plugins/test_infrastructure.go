@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/config"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/config"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // CreateTestPluginManager creates a plugin manager for testing

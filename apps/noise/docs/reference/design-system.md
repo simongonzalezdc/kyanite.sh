@@ -125,7 +125,7 @@ noise.sh uses a configurable icon system (`internal/ui/icons/`) that supports th
 ### Usage
 
 ```go
-import "github.com/Kyanite/noise/internal/ui/icons"
+import "github.com/kyanite/noise/internal/ui/icons"
 
 // Get current icon set (defaults to ASCII)
 i := icons.Current()
@@ -184,7 +184,7 @@ Stats, Performance, Storage, Tools, Tip
 The icons package includes Unicode-safe string utilities using `rivo/uniseg`:
 
 ```go
-import "github.com/Kyanite/noise/internal/ui/icons"
+import "github.com/kyanite/noise/internal/ui/icons"
 
 // Get display width (handles emoji, CJK, combining chars)
 width := icons.StringWidth("Hello 世界!")  // Returns 11, not 9

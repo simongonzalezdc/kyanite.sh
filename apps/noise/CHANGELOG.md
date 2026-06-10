@@ -91,5 +91,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 |---------|------|------------|
 | 0.1.0 | 2026-01-22 | Initial release with core TUI, AI integration, and music theory tools |
 
-[Unreleased]: https://github.com/Kyanite/noise/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/Kyanite/noise/releases/tag/v0.1.0
+[Unreleased]: https://github.com/kyanite/noise/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/kyanite/noise/releases/tag/v0.1.0

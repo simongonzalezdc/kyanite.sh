@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/app/knowledge"
+	"github.com/kyanite/noise/internal/app/knowledge"
 )
 
 // MockLLMClient implements QuickLLMClient for testing

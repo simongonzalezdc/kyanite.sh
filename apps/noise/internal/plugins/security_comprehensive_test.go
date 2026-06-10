@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/config"
-	"github.com/Kyanite/noise/internal/errors"
-	"github.com/Kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/config"
+	"github.com/kyanite/noise/internal/errors"
+	"github.com/kyanite/noise/internal/logging"
 )
 
 // TestSecurityManagerComprehensive tests all security functionality

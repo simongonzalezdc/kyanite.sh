@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/app"
-	"github.com/Kyanite/noise/internal/app/ai"
-	"github.com/Kyanite/noise/internal/collaboration"
+	"github.com/kyanite/noise/internal/app"
+	"github.com/kyanite/noise/internal/app/ai"
+	"github.com/kyanite/noise/internal/collaboration"
 )
 
 // LoadTestConfig defines configuration for load tests

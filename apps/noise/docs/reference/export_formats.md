@@ -137,7 +137,7 @@ You can bypass the export menu and directly export to specific formats:
 If you're using the export service programmatically:
 
 ```go
-import "github.com/Kyanite/noise/internal/export"
+import "github.com/kyanite/noise/internal/export"
 
 // Create export service
 service := export.NewExportService("/path/to/output/directory")

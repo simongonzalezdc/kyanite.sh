@@ -1,0 +1,8 @@
+go 1.25.5
+
+use (
+	apps/focus
+	apps/noise
+	apps/prism
+	apps/syntax
+)

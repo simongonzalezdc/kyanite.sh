@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kyanite/noise/internal/data"
-	"github.com/Kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/data"
+	"github.com/kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Kyanite/noise/internal/domain"
+	"github.com/kyanite/noise/internal/domain"
 )
 
 // BenchmarkInsertSong measures the performance of song insertion operations

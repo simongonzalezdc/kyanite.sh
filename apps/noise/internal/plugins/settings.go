@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Kyanite/noise/internal/theme"
-	"github.com/Kyanite/noise/internal/ui/dimension"
+	"github.com/kyanite/noise/internal/theme"
+	"github.com/kyanite/noise/internal/ui/dimension"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
