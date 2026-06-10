@@ -1,6 +1,6 @@
 module github.com/kyanite/prism
 
-go 1.25.5
+go 1.26.0
 
 require (
 	github.com/BurntSushi/toml v1.5.0
@@ -33,3 +33,5 @@ require (
 	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 )
+
+toolchain go1.26.4

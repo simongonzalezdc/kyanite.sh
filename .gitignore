@@ -20,3 +20,20 @@ __pycache__/
 coverage.html
 coverage.out
 package-lock.json
+# Secrets and credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+credentials.json
+service-account*.json
+
+# Database files (test fixtures should use t.TempDir)
+*.db
+*.db3
+*.sqlite
+*.sqlite3

@@ -1,6 +1,6 @@
 module github.com/kyanite/syntax
 
-go 1.25.5
+go 1.26.0
 
 require (
 	github.com/adrg/frontmatter v0.2.0
@@ -40,3 +40,5 @@ require (
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
+
+toolchain go1.26.4

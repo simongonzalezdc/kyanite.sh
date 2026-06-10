@@ -1,6 +1,6 @@
 module github.com/kyanite/noise
 
-go 1.25.5
+go 1.26.0
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0
@@ -73,3 +73,5 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 )
+
+toolchain go1.26.4
