@@ -40,6 +40,17 @@ func NewJournalStorage() *JournalStorage {
 	return js
 }
 
+// NewJournalStorageWithPath creates a journal storage instance using a custom directory.
+// This is intended for tests that should not write to the real home directory.
+func NewJournalStorageWithPath(dir string) *JournalStorage {
+	js := &JournalStorage{
+		filePath: filepath.Join(dir, "journal.json"),
+		cacheIdx: make(map[string]int),
+	}
+	_ = js.ensureCached()
+	return js
+}
+
 // ensureCached loads entries into cache if not already loaded
 func (js *JournalStorage) ensureCached() error {
 	js.cacheMutex.Lock()

@@ -41,6 +41,7 @@ full_coverage.out
 config/
 .env
 .env.*
+!.env.example
 *.pem
 *.key
 

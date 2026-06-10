@@ -198,6 +198,7 @@ func (e *Exporter) ListExports() ([]string, error) {
 
 // RemoveExport removes an existing export file
 func (e *Exporter) RemoveExport(filename string) error {
+	filename = filepath.Base(filename)
 	filePath := filepath.Join(e.syntaxDir, filename)
 	return os.Remove(filePath)
 }

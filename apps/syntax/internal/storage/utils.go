@@ -6,12 +6,24 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 	"unicode"
 
 	"github.com/adrg/xdg"
 )
+
+var projectIDRe = regexp.MustCompile(`^proj_[0-9a-f]{16}$`)
+
+// validateProjectID ensures a project ID matches the expected format
+func validateProjectID(id string) error {
+	if !projectIDRe.MatchString(id) {
+		return fmt.Errorf("invalid project ID: %s", id)
+	}
+	return nil
+}
+
 
 // GetDataDir returns the cross-platform data directory
 func GetDataDir() string {

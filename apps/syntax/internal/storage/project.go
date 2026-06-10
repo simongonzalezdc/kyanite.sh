@@ -65,6 +65,9 @@ func CreateProject(title, author, genre string) (*story.Project, error) {
 
 // LoadProject loads a project from its directory
 func LoadProject(projectID string) (*story.Project, error) {
+	if err := validateProjectID(projectID); err != nil {
+		return nil, err
+	}
 	dataDir := GetDataDir()
 	projectDir := filepath.Join(dataDir, projectID)
 

@@ -56,7 +56,35 @@ var (
 	globalConfigMutex sync.RWMutex
 	globalConfig      *Config
 	configLoaded      = false
+	configDirOverride string // for tests to redirect writes away from real home
 )
+
+// SetConfigDirOverride sets a custom config directory (for tests only).
+func SetConfigDirOverride(dir string) {
+	configDirOverride = dir
+}
+
+// getConfigDir returns the config directory, respecting any test override.
+func getConfigDir() string {
+	if configDirOverride != "" {
+		return configDirOverride
+	}
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "."
+	}
+	return filepath.Join(homeDir, ".focus")
+}
+
+// ResetForTest resets all global state for use in tests.
+func ResetForTest() {
+	globalConfigMutex.Lock()
+	globalConfig = nil
+	configLoaded = false
+	configDirOverride = ""
+	globalConfigMutex.Unlock()
+	viper.Reset()
+}
 
 // LoadConfig loads configuration from file
 func LoadConfig() (*Config, error) {
@@ -72,10 +100,7 @@ func LoadConfig() (*Config, error) {
 	viper.SetConfigType("yaml")
 
 	// Add config search paths
-	homeDir, err := os.UserHomeDir()
-	if err == nil {
-		viper.AddConfigPath(filepath.Join(homeDir, ".focus"))
-	}
+	viper.AddConfigPath(getConfigDir())
 
 	// Fallback to current directory
 	viper.AddConfigPath(".")
@@ -92,11 +117,7 @@ func LoadConfig() (*Config, error) {
 				return nil, err
 			}
 			// Point viper to the created file and read again
-			homeDir2, err := os.UserHomeDir()
-			if err != nil {
-				homeDir2 = "."
-			}
-			cfgPath := filepath.Join(homeDir2, ".focus", "config.yaml")
+			cfgPath := filepath.Join(getConfigDir(), "config.yaml")
 			viper.SetConfigFile(cfgPath)
 			if err := viper.ReadInConfig(); err != nil {
 				return nil, err
@@ -127,12 +148,7 @@ func SaveConfig(config *Config) error {
 	viper.Set("ui", config.UI)
 
 	// Ensure config directory exists
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return err
-	}
-
-	configDir := filepath.Join(homeDir, ".focus")
+	configDir := getConfigDir()
 	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		return err
 	}
@@ -259,12 +275,7 @@ func setDefaults() {
 
 // createDefaultConfig creates a default configuration file
 func createDefaultConfig() error {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return err
-	}
-
-	configDir := filepath.Join(homeDir, ".focus")
+	configDir := getConfigDir()
 	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		return err
 	}
@@ -275,11 +286,7 @@ func createDefaultConfig() error {
 
 // GetConfigPath returns the path to the config file
 func GetConfigPath() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		homeDir = "."
-	}
-	return filepath.Join(homeDir, ".focus", "config.yaml")
+	return filepath.Join(getConfigDir(), "config.yaml")
 }
 
 // IsConfigLoaded returns whether configuration has been loaded
