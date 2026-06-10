@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 
 	"github.com/kyanite/prism/internal/palette"
 )
+
+// validID checks that a palette ID contains only safe characters.
+var validID = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 
 // SavePalette saves a palette to disk
 func SavePalette(p palette.Palette) error {
@@ -35,6 +39,9 @@ func SavePalette(p palette.Palette) error {
 // LoadPalette loads a palette from disk
 func LoadPalette(id string) (*palette.Palette, error) {
 
+	if !validID.MatchString(id) {
+		return nil, fmt.Errorf("invalid palette id: %q", id)
+	}
 	configDir, err := GetConfigDir()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get config dir: %w", err)
@@ -94,6 +101,9 @@ func ListPalettes() ([]palette.Palette, error) {
 // DeletePalette deletes a palette from disk
 func DeletePalette(id string) error {
 
+	if !validID.MatchString(id) {
+		return fmt.Errorf("invalid palette id: %q", id)
+	}
 	configDir, err := GetConfigDir()
 	if err != nil {
 		return fmt.Errorf("failed to get config dir: %w", err)

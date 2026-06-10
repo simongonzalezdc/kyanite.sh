@@ -49,6 +49,11 @@ func (m SearchModel) Update(msg tea.Msg) (SearchModel, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+	case SearchResultsMsg:
+		m.results = msg.Results
+		m.selectedResult = 0
+		m.err = ""
+		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
@@ -162,28 +167,20 @@ func (m SearchModel) View() string {
 	return lipgloss.Place(ScreenWidth, ScreenHeight, lipgloss.Center, lipgloss.Center, content)
 }
 
+// SearchResultsMsg carries search results back to Update.
+type SearchResultsMsg struct {
+	Results []color.NamedColor
+}
 // search performs the color search
 func (m SearchModel) search() tea.Cmd {
+	query := m.textInput.Value()
 	return func() tea.Msg {
-		query := m.textInput.Value()
 		if query == "" {
-			m.results = []color.NamedColor{}
-			m.selectedResult = 0
-			return nil
+			return SearchResultsMsg{Results: []color.NamedColor{}}
 		}
 
 		results := color.SearchColors(query)
-		m.results = results
-		m.selectedResult = 0
-		m.err = ""
-
-		if len(results) == 0 {
-			m.status = ""
-		} else {
-			m.status = ""
-		}
-
-		return nil
+		return SearchResultsMsg{Results: results}
 	}
 }
 

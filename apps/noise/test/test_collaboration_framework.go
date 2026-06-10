@@ -65,6 +65,7 @@ func newCollabTestEnv(t *testing.T) *collabTestEnv {
 		invitationManager: collaboration.NewInvitationManager(),
 		conflictResolver:  collaboration.NewConflictResolver(),
 	}
+	env.collabManager.Start()
 
 	env.collabManager.SetUICallbacks(
 		func(event collaboration.SessionUpdateEvent) {

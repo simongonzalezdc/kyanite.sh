@@ -125,6 +125,7 @@ func NewMockCollaborationManager(t *testing.T) *MockCollaborationManager {
 		messages:             make([]CollaborationMessage, 0),
 		testDB:               testDB,
 	}
+	cm.Start()
 
 	// Set up event capture
 	cm.SetUICallbacks(

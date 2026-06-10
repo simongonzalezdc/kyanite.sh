@@ -692,6 +692,7 @@ func (m *RootModel) initializeCollaborationSystem() {
 
 	// Initialize collaboration managers
 	m.collaborationManager = collaboration.NewCollaborationManager(m.database)
+	m.collaborationManager.Start()
 	m.presenceManager = collaboration.NewPresenceManager()
 	m.sessionManager = collaboration.NewSessionManager()
 	m.invitationManager = collaboration.NewInvitationManager()

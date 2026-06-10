@@ -15,11 +15,17 @@ import (
 
 // GetDataDir returns the cross-platform data directory
 func GetDataDir() string {
+	if dir := os.Getenv("SYNTAX_DATA_DIR"); dir != "" {
+		return dir
+	}
 	return filepath.Join(xdg.DataHome, "syntax", "projects")
 }
 
 // GetConfigDir returns the cross-platform config directory
 func GetConfigDir() string {
+	if dir := os.Getenv("SYNTAX_CONFIG_DIR"); dir != "" {
+		return dir
+	}
 	return filepath.Join(xdg.ConfigHome, "syntax")
 }
 

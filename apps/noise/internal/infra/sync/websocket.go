@@ -79,16 +79,27 @@ func (h *WebSocketHub) Run() {
 
 		case message := <-h.broadcast:
 			h.mu.RLock()
+			var toUnregister []*Client
 			for client := range h.clients {
 				select {
 				case client.send <- message:
 				default:
-					// Client's send buffer is full, close connection
-					close(client.send)
-					delete(h.clients, client)
+					// Client's send buffer is full; mark for removal
+					toUnregister = append(toUnregister, client)
 				}
 			}
 			h.mu.RUnlock()
+
+			if len(toUnregister) > 0 {
+				h.mu.Lock()
+				for _, client := range toUnregister {
+					if _, ok := h.clients[client]; ok {
+						close(client.send)
+						delete(h.clients, client)
+					}
+				}
+				h.mu.Unlock()
+			}
 
 		case <-h.done:
 			h.mu.Lock()

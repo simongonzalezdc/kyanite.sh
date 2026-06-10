@@ -105,12 +105,15 @@ func GenerateTriadic(base color.Color) []color.Color {
 	return []color.Color{base, second, third}
 }
 
-// GenerateTetradic creates 4 hues in complementary pairs
+// GenerateTetradic creates 4 hues in a rectangular arrangement: two complementary
+// pairs separated by a different angle (e.g., Base, Base+60°, Base+180°, Base+240°).
+// This produces a richer, less symmetric harmony than Square.
 func GenerateTetradic(base color.Color) []color.Color {
-	// Algorithm: Two pairs of complementary colors
-	// Base, Base+90°, Base+180°, Base+270°
+	// Algorithm: Rectangular arrangement — two complementary pairs
+	// with 60° separation between the first pair, yielding:
+	// Base, Base+60°, Base+180°, Base+240°
 	second := color.NewFromHSL(
-		math.Mod(base.HSL.H+TetradicAngle, 360),
+		math.Mod(base.HSL.H+TetradicRectAngle, 360),
 		base.HSL.S,
 		base.HSL.L,
 	)
@@ -120,7 +123,7 @@ func GenerateTetradic(base color.Color) []color.Color {
 		base.HSL.L,
 	)
 	fourth := color.NewFromHSL(
-		math.Mod(base.HSL.H+TetradicAngle*3, 360),
+		math.Mod(base.HSL.H+ComplementaryAngle+TetradicRectAngle, 360),
 		base.HSL.S,
 		base.HSL.L,
 	)
@@ -145,10 +148,27 @@ func GenerateSplitComplementary(base color.Color) []color.Color {
 	return []color.Color{base, complement1, complement2}
 }
 
-// GenerateSquare creates 4 evenly spaced hues (90° apart)
+// GenerateSquare creates 4 evenly spaced hues (90° apart).
+// Unlike Tetradic (rectangular), Square produces a perfectly symmetric arrangement.
 func GenerateSquare(base color.Color) []color.Color {
-	// Algorithm: Base + hues at +90°, +180°, +270°
-	return GenerateTetradic(base) // Same as tetradic
+	// Algorithm: Base + hues at +90°, +180°, +270° — perfect symmetry
+	second := color.NewFromHSL(
+		math.Mod(base.HSL.H+90.0, 360),
+		base.HSL.S,
+		base.HSL.L,
+	)
+	third := color.NewFromHSL(
+		math.Mod(base.HSL.H+180.0, 360),
+		base.HSL.S,
+		base.HSL.L,
+	)
+	fourth := color.NewFromHSL(
+		math.Mod(base.HSL.H+270.0, 360),
+		base.HSL.S,
+		base.HSL.L,
+	)
+
+	return []color.Color{base, second, third, fourth}
 }
 
 // ValidatePaletteContrast checks if palette meets minimum contrast requirements

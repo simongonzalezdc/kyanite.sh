@@ -37,6 +37,14 @@ func (m ManagerModel) Init() tea.Cmd {
 // Update handles manager messages
 func (m ManagerModel) Update(msg tea.Msg) (ManagerModel, tea.Cmd) {
 	switch msg := msg.(type) {
+	case PalettesLoadedMsg:
+		if msg.Err != "" {
+			m.err = msg.Err
+		} else {
+			m.palettes = msg.Palettes
+			m.err = ""
+		}
+		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
@@ -125,36 +133,36 @@ func (m ManagerModel) View() string {
 	return lipgloss.Place(ScreenWidth, ScreenHeight, lipgloss.Center, lipgloss.Center, content)
 }
 
+// PalettesLoadedMsg carries loaded palettes or an error back to Update.
+type PalettesLoadedMsg struct {
+	Palettes []palette.Palette
+	Err      string
+}
 // loadPalettes loads saved palettes
 func (m ManagerModel) loadPalettes() tea.Cmd {
 	return func() tea.Msg {
 		palettes, err := storage.ListPalettes()
 		if err != nil {
-			m.err = err.Error()
-			return nil
+			return PalettesLoadedMsg{Err: err.Error()}
 		}
 
-		m.palettes = palettes
-		m.err = ""
-		return nil
+		return PalettesLoadedMsg{Palettes: palettes}
 	}
 }
 
 // deletePalette deletes the selected palette
 func (m ManagerModel) deletePalette() tea.Cmd {
+	id := m.palettes[m.selected].ID
 	return func() tea.Msg {
-		if len(m.palettes) == 0 {
-			return nil
+		if err := storage.DeletePalette(id); err != nil {
+			return PalettesLoadedMsg{Err: err.Error()}
 		}
 
-		pal := m.palettes[m.selected]
-		err := storage.DeletePalette(pal.ID)
+		// Reload palettes after successful delete
+		palettes, err := storage.ListPalettes()
 		if err != nil {
-			m.err = err.Error()
-			return nil
+			return PalettesLoadedMsg{Err: err.Error()}
 		}
-
-		// Reload palettes
-		return m.loadPalettes()
+		return PalettesLoadedMsg{Palettes: palettes}
 	}
 }

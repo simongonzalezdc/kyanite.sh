@@ -38,9 +38,6 @@ final_coverage.out
 full_coverage.out
 
 # Config files
-*.yaml
-*.yml
-!.github/**/*.yml
 config/
 .env
 .env.*

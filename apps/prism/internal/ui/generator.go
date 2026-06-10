@@ -49,6 +49,15 @@ func (m GeneratorModel) Init() tea.Cmd {
 // Update handles generator messages
 func (m GeneratorModel) Update(msg tea.Msg) (GeneratorModel, tea.Cmd) {
 	switch msg := msg.(type) {
+	case PaletteGeneratedMsg:
+		if msg.Err != "" {
+			m.err = msg.Err
+			m.generatedPalette = nil
+		} else {
+			m.generatedPalette = msg.Palette
+			m.err = ""
+		}
+		return m, nil
 	case tea.KeyMsg:
 		if m.exportMode {
 			return m.handleExportMode(msg.String())
@@ -264,23 +273,24 @@ func (m GeneratorModel) View() string {
 	return lipgloss.Place(ScreenWidth, ScreenHeight, lipgloss.Center, lipgloss.Center, content)
 }
 
+// PaletteGeneratedMsg carries the result of a palette generation back to Update.
+type PaletteGeneratedMsg struct {
+	Palette *palette.Palette
+	Err     string
+}
 // generate generates a palette
 func (m GeneratorModel) generate() tea.Cmd {
 	return func() tea.Msg {
 		baseColor, err := color.ParseHex(m.baseColorInput)
 		if err != nil {
-			m.err = "Invalid hex color"
-			return nil
+			return PaletteGeneratedMsg{Err: "Invalid hex color"}
 		}
 
 		pal, err := palette.Generate(baseColor, m.rules[m.selectedRule])
 		if err != nil {
-			m.err = err.Error()
-			return nil
+			return PaletteGeneratedMsg{Err: err.Error()}
 		}
 
-		m.generatedPalette = &pal
-		m.err = ""
-		return nil
+		return PaletteGeneratedMsg{Palette: &pal}
 	}
 }

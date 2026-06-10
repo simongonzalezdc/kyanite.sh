@@ -3,6 +3,7 @@ package editor
 import (
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 // Buffer represents an in-memory text buffer
@@ -114,6 +115,7 @@ type DeleteCharCommand struct {
 	Line      int
 	Col       int
 	Deleted   rune   // What was deleted
+	RuneWidth int    // Byte width of the deleted rune
 	WasMerge  bool   // Was this a line merge?
 	PrevLine  string // Previous line content if merge
 	PrevLine2 int    // Previous cursor line
@@ -181,10 +183,10 @@ func (c *DeleteCharCommand) Redo(b *Buffer) {
 			return
 		}
 		line := b.lines[c.Line]
-		if c.Col > 0 && c.Col <= len(line) {
-			b.lines[c.Line] = line[:c.Col-1] + line[c.Col:]
+		if c.Col >= c.RuneWidth && c.Col <= len(line) {
+			b.lines[c.Line] = line[:c.Col-c.RuneWidth] + line[c.Col:]
 			b.cursorLine = c.Line
-			b.cursorCol = c.Col - 1
+			b.cursorCol = c.Col - c.RuneWidth
 		}
 	}
 }
@@ -193,7 +195,7 @@ func (c *DeleteCharCommand) GetCursor() (line, col int) {
 	if c.WasMerge {
 		return c.Line, len(c.PrevLine)
 	}
-	return c.Line, c.Col - 1
+	return c.Line, c.Col - c.RuneWidth
 }
 
 func (c *ReplaceAllCommand) Undo(b *Buffer) {
@@ -393,14 +395,15 @@ func (b *Buffer) DeleteChar() {
 			b.cursorCol = len(line)
 		}
 		if b.cursorCol > 0 {
-			// Get the character being deleted
-			deleted := rune(line[b.cursorCol-1])
+			// Get the full rune being deleted (UTF-8 aware)
+			deleted, runeWidth := utf8.DecodeLastRuneInString(line[:b.cursorCol])
 
 			// Record command for undo
 			cmd := &DeleteCharCommand{
 				Line:      b.cursorLine,
 				Col:       b.cursorCol,
 				Deleted:   deleted,
+				RuneWidth: runeWidth,
 				WasMerge:  false,
 				PrevLine2: b.cursorLine,
 				PrevCol2:  b.cursorCol,
@@ -408,10 +411,10 @@ func (b *Buffer) DeleteChar() {
 			}
 			b.recordCommand(cmd)
 
-			before := line[:b.cursorCol-1]
+			before := line[:b.cursorCol-runeWidth]
 			after := line[b.cursorCol:]
 			b.lines[b.cursorLine] = before + after
-			b.cursorCol--
+			b.cursorCol -= runeWidth
 			b.modified = true
 		}
 	}

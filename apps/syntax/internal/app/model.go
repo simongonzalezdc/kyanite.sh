@@ -6,7 +6,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/kyanite/syntax/internal/ai"
-	_ "github.com/kyanite/syntax/internal/character" // Used in story.Project
 	"github.com/kyanite/syntax/internal/editor"
 	"github.com/kyanite/syntax/internal/location"
 	"github.com/kyanite/syntax/internal/scene"

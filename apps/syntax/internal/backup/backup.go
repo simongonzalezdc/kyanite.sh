@@ -82,9 +82,9 @@ func CreateBackup(projectDir string) error {
 		if err != nil {
 			return err
 		}
-		defer file.Close()
 
 		_, err = io.Copy(zipEntry, file)
+		file.Close()
 		return err
 	})
 
@@ -166,6 +166,12 @@ func RestoreBackup(backupPath, projectDir string) error {
 	for _, file := range zipReader.File {
 		// Create file path
 		filePath := filepath.Join(tempDir, file.Name)
+
+		// Prevent zip-slip: ensure path stays within tempDir
+		if !strings.HasPrefix(filepath.Clean(filePath), filepath.Clean(tempDir)+string(os.PathSeparator)) {
+			os.RemoveAll(tempDir)
+			return fmt.Errorf("invalid file path in backup: %s", file.Name)
+		}
 
 		// Create parent directories
 		if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {

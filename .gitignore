@@ -14,3 +14,9 @@ vendor/
 *.swo
 *~
 .DS_Store
+node_modules/
+__pycache__/
+.venv/
+coverage.html
+coverage.out
+package-lock.json

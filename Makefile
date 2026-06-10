@@ -17,16 +17,19 @@ test:
 	done
 
 lint:
-	golangci-lint run ./apps/...
+	@for app in $(APPS); do \
+		echo "Linting $$app..."; \
+		cd apps/$$app && golangci-lint run ./... && cd ../..; \
+	done
 
 clean:
 	rm -rf $(BUILD_DIR)
 
 release:
-	goreleaser release --rm-dist
+	goreleaser release --clean
 
 snapshot:
-	goreleaser build --snapshot --rm-dist
+	goreleaser build --snapshot --clean
 
 sync:
 	go work sync

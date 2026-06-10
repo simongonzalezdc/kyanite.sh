@@ -41,6 +41,15 @@ func (m CheckerModel) Init() tea.Cmd {
 // Update handles checker messages
 func (m CheckerModel) Update(msg tea.Msg) (CheckerModel, tea.Cmd) {
 	switch msg := msg.(type) {
+	case ContrastResultMsg:
+		if msg.Err != "" {
+			m.err = msg.Err
+			m.result = nil
+		} else {
+			m.result = msg.Result
+			m.err = ""
+		}
+		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter", " ":
@@ -165,25 +174,25 @@ func (m CheckerModel) View() string {
 	return lipgloss.Place(ScreenWidth, ScreenHeight, lipgloss.Center, lipgloss.Center, content)
 }
 
+// ContrastResultMsg carries the result of a contrast check back to Update.
+type ContrastResultMsg struct {
+	Result *wcag.ContrastResult
+	Err    string
+}
 // check calculates contrast
 func (m CheckerModel) check() tea.Cmd {
 	return func() tea.Msg {
 		fg, err := color.ParseHex(m.foreground)
 		if err != nil {
-			m.err = "Invalid foreground color"
-			return nil
+			return ContrastResultMsg{Err: "Invalid foreground color"}
 		}
 
 		bg, err := color.ParseHex(m.background)
 		if err != nil {
-			m.err = "Invalid background color"
-			return nil
+			return ContrastResultMsg{Err: "Invalid background color"}
 		}
 
 		result := wcag.Validate(fg, bg)
-		m.result = &result
-		m.err = ""
-
-		return nil
+		return ContrastResultMsg{Result: &result}
 	}
 }

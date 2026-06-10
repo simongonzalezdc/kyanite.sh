@@ -48,11 +48,14 @@ func NewCollaborationManager(database *db.DB) *CollaborationManager {
 		broadcast:    make(chan CollaborationMessage, 100),
 	}
 
-	// Start event processing
+	return cm
+}
+
+// Start launches the background event and broadcast processing goroutines.
+// The caller decides when to start; the constructor does not auto-start them.
+func (cm *CollaborationManager) Start() {
 	go cm.processEvents()
 	go cm.processBroadcasts()
-
-	return cm
 }
 
 // Session represents a collaborative editing session
@@ -681,6 +684,9 @@ func (cm *CollaborationManager) getPermissionsForRole(role ParticipantRole) Part
 }
 
 func (cm *CollaborationManager) updateUserPresence(userID, username string, status PresenceStatus, sessionID string) {
+	cm.mu.Lock()
+	defer cm.mu.Unlock()
+
 	presence := &UserPresence{
 		UserID:         userID,
 		Username:       username,
@@ -702,26 +708,22 @@ func (cm *CollaborationManager) updateUserPresence(userID, username string, stat
 
 // Database persistence methods
 func (cm *CollaborationManager) persistSession(session *Session) error {
-	// Implementation would use the database to persist session
-	// For now, this is a placeholder
+	// TODO: implement persistence
 	return nil
 }
 
 func (cm *CollaborationManager) persistParticipant(participant *Participant) error {
-	// Implementation would use the database to persist participant
-	// For now, this is a placeholder
+	// TODO: implement persistence
 	return nil
 }
 
 func (cm *CollaborationManager) removeParticipant(sessionID, userID string) error {
-	// Implementation would use the database to remove participant
-	// For now, this is a placeholder
+	// TODO: implement persistence
 	return nil
 }
 
 func (cm *CollaborationManager) persistOperation(operation Operation) error {
-	// Implementation would use the database to persist operation
-	// For now, this is a placeholder
+	// TODO: implement persistence
 	return nil
 }
 

@@ -12,8 +12,8 @@ type FileLock struct {
 	file *os.File
 }
 
-// LockFile acquires an advisory lock on a file
-func LockFile(path string) (*FileLock, error) {
+// lockFile acquires an advisory lock on a file
+func lockFile(path string) (*FileLock, error) {
 	// For now, simple implementation using lock files
 
 	lockPath := path + ".lock"
@@ -28,8 +28,8 @@ func LockFile(path string) (*FileLock, error) {
 	}, nil
 }
 
-// UnlockFile releases a file lock
-func UnlockFile(lock *FileLock) error {
+// unlockFile releases a file lock
+func unlockFile(lock *FileLock) error {
 	if lock == nil {
 		return nil
 	}

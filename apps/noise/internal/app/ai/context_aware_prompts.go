@@ -4,7 +4,20 @@ package ai
 import (
 	"fmt"
 	"strings"
+	"unicode/utf8"
 )
+
+// maxUserContentLen limits how much user-provided text is interpolated into prompts.
+const maxUserContentLen = 2000
+
+// sanitizeUserContent wraps user content in delimited markers and truncates it
+// to prevent prompt injection when interpolating into LLM prompts.
+func sanitizeUserContent(content string) string {
+	if utf8.RuneCountInString(content) > maxUserContentLen {
+		content = string([]rune(content)[:maxUserContentLen])
+	}
+	return "---BEGIN USER CONTENT---\n" + content + "\n---END USER CONTENT---"
+}
 
 // ContextAwarePrompts manages prompts that adapt based on content type
 type ContextAwarePrompts struct {
@@ -365,17 +378,17 @@ func (cap *ContextAwarePrompts) RenderPrompt(contentType ContentType, mode Quick
 		if theme == "" {
 			theme = "creativity"
 		}
-		return fmt.Sprintf(prompt, theme)
+		return fmt.Sprintf(prompt, sanitizeUserContent(theme))
 	case QuickIdeaModeTweak, QuickIdeaModeCheck:
-		return fmt.Sprintf(prompt, strings.TrimSpace(context))
+		return fmt.Sprintf(prompt, sanitizeUserContent(strings.TrimSpace(context)))
 	case QuickIdeaModeUnstick:
 		style := options["style"]
 		if style != "" {
-			return fmt.Sprintf("Style: %s\n", style) + fmt.Sprintf(prompt, strings.TrimSpace(context))
+			return fmt.Sprintf("Style: %s\n", sanitizeUserContent(style)) + fmt.Sprintf(prompt, sanitizeUserContent(strings.TrimSpace(context)))
 		}
-		return fmt.Sprintf(prompt, strings.TrimSpace(context))
+		return fmt.Sprintf(prompt, sanitizeUserContent(strings.TrimSpace(context)))
 	default:
-		return fmt.Sprintf(prompt, strings.TrimSpace(context))
+		return fmt.Sprintf(prompt, sanitizeUserContent(strings.TrimSpace(context)))
 	}
 }
 

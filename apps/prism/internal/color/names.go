@@ -42,15 +42,26 @@ func LoadNamedColors() error {
 	return nil
 }
 
+// ensureDB ensures the color database is loaded and returns it with an active RLock.
+// The caller must defer mu.RUnlock().
+func ensureDB() (*ColorDatabase, error) {
+	mu.RLock()
+	if db != nil {
+		return db, nil
+	}
+	mu.RUnlock()
+	if err := LoadNamedColors(); err != nil {
+		return nil, err
+	}
+	mu.RLock()
+	return db, nil
+}
+
 // SearchColors searches for colors by name (fuzzy search)
 func SearchColors(query string) []NamedColor {
-	mu.RLock()
-	if db == nil {
-		mu.RUnlock()
-		if err := LoadNamedColors(); err != nil {
-			return []NamedColor{}
-		}
-		mu.RLock()
+	db, err := ensureDB()
+	if err != nil {
+		return []NamedColor{}
 	}
 	defer mu.RUnlock()
 
@@ -96,13 +107,9 @@ func SearchColors(query string) []NamedColor {
 
 // GetColorByName returns a color by exact name
 func GetColorByName(name string) (*NamedColor, error) {
-	mu.RLock()
-	if db == nil {
-		mu.RUnlock()
-		if err := LoadNamedColors(); err != nil {
-			return nil, err
-		}
-		mu.RLock()
+	db, err := ensureDB()
+	if err != nil {
+		return nil, err
 	}
 	defer mu.RUnlock()
 
@@ -118,18 +125,15 @@ func GetColorByName(name string) (*NamedColor, error) {
 
 // AllNamedColors returns all named colors
 func AllNamedColors() []NamedColor {
-	mu.RLock()
-	if db == nil {
-		mu.RUnlock()
-		if err := LoadNamedColors(); err != nil {
-			return []NamedColor{}
-		}
-		mu.RLock()
+	db, err := ensureDB()
+	if err != nil {
+		return []NamedColor{}
 	}
 	defer mu.RUnlock()
 
 	return db.Colors
 }
+
 
 // contains checks if a color is in the results
 func contains(results []NamedColor, color NamedColor) bool {

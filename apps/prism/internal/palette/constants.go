@@ -19,4 +19,7 @@ const (
 
 	// SplitComplementaryAngle2 is 210 degrees on the color wheel
 	SplitComplementaryAngle2 = 210.0
+	// TetradicRectAngle is the offset between complementary pairs in a tetradic
+	// (rectangular) harmony. Using 60° gives Base, Base+60°, Base+180°, Base+240°.
+	TetradicRectAngle = 60.0
 )

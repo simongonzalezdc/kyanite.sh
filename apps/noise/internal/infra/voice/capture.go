@@ -4,9 +4,9 @@ package voice
 import (
 	"errors"
 	"fmt"
+	"math"
 	"sync"
 	"time"
-	"unsafe"
 
 	"github.com/kyanite/noise/internal/logging"
 	"github.com/gen2brain/malgo"
@@ -348,5 +348,5 @@ func bytesToFloat32(data []byte) []float32 {
 
 // float32frombits converts a uint32 bit pattern to float32
 func float32frombits(bits uint32) float32 {
-	return *(*float32)(unsafe.Pointer(&bits))
+	return math.Float32frombits(bits)
 }
