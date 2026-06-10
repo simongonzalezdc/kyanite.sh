@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/kyanite/noise/internal/app"
-	"github.com/kyanite/noise/internal/infra/voice"
 	"github.com/kyanite/noise/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -18,11 +17,9 @@ type VoiceSettingsModel struct {
 	height       int
 
 	// Selection state
-	selectedItem     int
-	items            []voiceSettingItem
-	downloadingModel string
-	downloadProgress float64
-	testRecording    bool
+	selectedItem  int
+	items         []voiceSettingItem
+	testRecording bool
 
 	// Styles
 	titleStyle       lipgloss.Style
@@ -44,20 +41,9 @@ type voiceSettingItem struct {
 type voiceItemType int
 
 const (
-	voiceItemModelSelect voiceItemType = iota
-	voiceItemDownload
-	voiceItemTestMic
+	voiceItemTestMic voiceItemType = iota
 	voiceItemBack
 )
-
-// ModelDownloadProgressMsg reports model download progress
-type ModelDownloadProgressMsg struct {
-	ModelName  string
-	Downloaded int64
-	Total      int64
-	Complete   bool
-	Error      error
-}
 
 // NewVoiceSettingsModel creates a new voice settings model
 func NewVoiceSettingsModel(voiceService *app.VoiceService) *VoiceSettingsModel {
@@ -95,29 +81,6 @@ func NewVoiceSettingsModel(voiceService *app.VoiceService) *VoiceSettingsModel {
 
 func (m *VoiceSettingsModel) buildItems() {
 	m.items = []voiceSettingItem{
-		{
-			label:       "Model: Base English (~142MB)",
-			description: "Recommended balance of speed and accuracy",
-			itemType:    voiceItemModelSelect,
-			value:       voice.ModelBaseEN,
-		},
-		{
-			label:       "Model: Tiny English (~75MB)",
-			description: "Fastest, lower accuracy",
-			itemType:    voiceItemModelSelect,
-			value:       voice.ModelTinyEN,
-		},
-		{
-			label:       "Model: Small English (~466MB)",
-			description: "Best accuracy, slower",
-			itemType:    voiceItemModelSelect,
-			value:       voice.ModelSmallEN,
-		},
-		{
-			label:       "Download Selected Model",
-			description: "Download the whisper model if not available",
-			itemType:    voiceItemDownload,
-		},
 		{
 			label:       "Test Microphone",
 			description: "Record a short test to verify audio input",
@@ -158,19 +121,6 @@ func (m *VoiceSettingsModel) Update(msg tea.Msg) (*VoiceSettingsModel, tea.Cmd) 
 		case "esc":
 			return m, func() tea.Msg { return BackToSettingsMsg{} }
 		}
-
-	case ModelDownloadProgressMsg:
-		if msg.Error != nil {
-			m.downloadingModel = ""
-			// Could show error notification
-		} else if msg.Complete {
-			m.downloadingModel = ""
-			m.downloadProgress = 0
-		} else if msg.Total > 0 {
-			m.downloadProgress = float64(msg.Downloaded) / float64(msg.Total)
-		} else {
-			m.downloadProgress = 0
-		}
 	}
 
 	return m, nil
@@ -184,48 +134,6 @@ func (m *VoiceSettingsModel) handleSelection() tea.Cmd {
 	item := m.items[m.selectedItem]
 
 	switch item.itemType {
-	case voiceItemModelSelect:
-		// Select this model
-		if m.voiceService != nil {
-			cfg := m.voiceService.GetConfig()
-			if cfg != nil {
-				cfg.Model = item.value
-			}
-		}
-		return nil
-
-	case voiceItemDownload:
-		if m.voiceService == nil {
-			return nil
-		}
-		cfg := m.voiceService.GetConfig()
-		if cfg == nil {
-			return nil
-		}
-		modelName := cfg.Model
-		if modelName == "" {
-			modelName = voice.ModelBaseEN
-		}
-		m.downloadingModel = modelName
-		m.downloadProgress = 0
-
-		// Start async download
-		return func() tea.Msg {
-			manager := m.voiceService.GetModelManager()
-			if manager == nil {
-				return ModelDownloadProgressMsg{Error: fmt.Errorf("no model manager")}
-			}
-
-			_, err := manager.EnsureModel(modelName, func(downloaded, total int64) {
-				// Progress callback - we can't easily send tea.Msg from here
-				// so progress updates are limited
-			})
-			if err != nil {
-				return ModelDownloadProgressMsg{ModelName: modelName, Error: err}
-			}
-			return ModelDownloadProgressMsg{ModelName: modelName, Complete: true}
-		}
-
 	case voiceItemTestMic:
 		// Test microphone - quick record and playback
 		m.testRecording = !m.testRecording
@@ -261,7 +169,7 @@ func (m *VoiceSettingsModel) View() string {
 
 	// Status
 	if m.voiceService != nil && m.voiceService.IsAvailable() {
-		b.WriteString(m.successStyle.Render("[OK] Voice service ready"))
+		b.WriteString(m.successStyle.Render("[OK] Voice service ready (brain STT)"))
 	} else if m.voiceService != nil {
 		b.WriteString(m.errorStyle.Render("[...] Voice service initializing..."))
 	} else {
@@ -269,23 +177,14 @@ func (m *VoiceSettingsModel) View() string {
 	}
 	b.WriteString("\n\n")
 
-	// Current model
+	// Current config
 	if m.voiceService != nil {
 		cfg := m.voiceService.GetConfig()
 		if cfg != nil {
-			b.WriteString(fmt.Sprintf("Current model: %s\n", cfg.Model))
 			b.WriteString(fmt.Sprintf("Push-to-talk: %s\n", cfg.PushToTalkKey))
 		}
 	}
 	b.WriteString("\n")
-
-	// Download progress
-	if m.downloadingModel != "" {
-		progress := int(m.downloadProgress * 40)
-		bar := strings.Repeat("#", progress) + strings.Repeat("-", 40-progress)
-		b.WriteString(m.progressStyle.Render(fmt.Sprintf("Downloading %s: [%s] %.0f%%\n\n",
-			m.downloadingModel, bar, m.downloadProgress*100)))
-	}
 
 	// Menu items
 	for i, item := range m.items {
@@ -296,24 +195,7 @@ func (m *VoiceSettingsModel) View() string {
 			style = m.itemStyle
 		}
 
-		// Mark current model
-		label := item.label
-		if item.itemType == voiceItemModelSelect && m.voiceService != nil {
-			cfg := m.voiceService.GetConfig()
-			if cfg != nil && cfg.Model == item.value {
-				label = "[*] " + label
-			}
-		}
-
-		// Mark downloaded models
-		if item.itemType == voiceItemModelSelect && m.voiceService != nil {
-			manager := m.voiceService.GetModelManager()
-			if manager != nil && manager.IsModelAvailable(item.value) {
-				label += " [downloaded]"
-			}
-		}
-
-		b.WriteString(style.Render(label))
+		b.WriteString(style.Render(item.label))
 		b.WriteString("\n")
 
 		if item.description != "" {

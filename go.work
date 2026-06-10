@@ -8,4 +8,5 @@ use (
 	./cmd/kyanite
 	./pkg/ai
 	./pkg/design
+	./pkg/config
 )

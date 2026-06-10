@@ -12,6 +12,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/design"
 	"github.com/kyanite/design/icons"
+	"github.com/kyanite/config"
 )
 
 var version = "dev"
@@ -192,9 +193,54 @@ func isExec(path string) bool {
 // ── Main ────────────────────────────────────────────────────────────
 
 func main() {
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "config":
+			handleConfigCommand()
+			return
+		case "version", "-v", "--version":
+			fmt.Printf("kyanite %s\n", version)
+			return
+		case "help", "-h", "--help":
+			fmt.Println("kyanite — unified TUI launcher for the kyanite.sh suite")
+			fmt.Println()
+			fmt.Println("Usage:")
+			fmt.Println("  kyanite              Launch app selector")
+			fmt.Println("  kyanite config init  Create default config file")
+			fmt.Println("  kyanite config show  Show resolved configuration")
+			fmt.Println("  kyanite version      Print version")
+			return
+		default:
+			fmt.Fprintf(os.Stderr, "unknown command: %s\nRun 'kyanite help' for usage.\n", os.Args[1])
+			os.Exit(1)
+		}
+	}
+
 	p := tea.NewProgram(newModel(), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "kyanite: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func handleConfigCommand() {
+	if len(os.Args) < 3 {
+		fmt.Fprintln(os.Stderr, "Usage: kyanite config <init|show>")
+		os.Exit(1)
+	}
+	switch os.Args[2] {
+	case "init":
+		if err := config.Init(); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+	case "show":
+		if err := config.Show(); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+	default:
+		fmt.Fprintf(os.Stderr, "unknown config command: %s\n", os.Args[2])
 		os.Exit(1)
 	}
 }

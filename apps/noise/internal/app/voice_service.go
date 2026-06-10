@@ -17,7 +17,7 @@ import (
 var (
 	ErrVoiceNotAvailable  = errors.New("voice-to-text is not available")
 	ErrVoiceNotEnabled    = errors.New("voice-to-text is not enabled")
-	ErrModelNotReady      = errors.New("whisper model not ready")
+	ErrModelNotReady      = errors.New("STT not ready — brain STT unavailable")
 	ErrAlreadyDictating   = errors.New("already dictating")
 	ErrNotDictating       = errors.New("not dictating")
 	ErrDictationCancelled = errors.New("dictation cancelled")
@@ -57,14 +57,12 @@ func (s VoiceState) String() string {
 	}
 }
 
-// VoiceService provides voice-to-text functionality
+// VoiceService provides voice-to-text functionality via brain STT.
 type VoiceService struct {
-	capture      *voice.AudioCapture
-	brainClient  *brain.Client
-	engine       *voice.WhisperEngine      // Deprecated: kept for fallback
-	modelManager *voice.ModelManager       // Deprecated: kept for UI model management
-	config       *config.VoiceConfig
-	logger       *logging.Logger
+	capture     *voice.AudioCapture
+	brainClient *brain.Client
+	config      *config.VoiceConfig
+	logger      *logging.Logger
 
 	// State
 	state     VoiceState
@@ -76,11 +74,10 @@ type VoiceService struct {
 	onStateChange   func(VoiceState)
 	onTranscription func(TranscriptionResult)
 	onLevelChange   func(float32)
-	onProgress      func(int64, int64) // Model download progress
+	onProgress      func(int64, int64)
 }
 
-// NewVoiceService creates a new voice service
-// The service auto-creates necessary directories and downloads models on first use
+// NewVoiceService creates a new voice service backed by brain STT.
 func NewVoiceService(cfg *config.Config, logger *logging.Logger) (*VoiceService, error) {
 	if logger == nil {
 		logger = logging.GetDefaultLogger()
@@ -88,13 +85,6 @@ func NewVoiceService(cfg *config.Config, logger *logging.Logger) (*VoiceService,
 
 	if !cfg.Voice.Enabled {
 		return nil, ErrVoiceNotEnabled
-	}
-
-	// Auto-create models directory in data dir
-	modelsDir := cfg.GetDataDir() + "/models"
-	modelManager, err := voice.NewModelManager(modelsDir, logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create model manager: %w", err)
 	}
 
 	// Create audio capture
@@ -106,12 +96,11 @@ func NewVoiceService(cfg *config.Config, logger *logging.Logger) (*VoiceService,
 	}
 
 	vs := &VoiceService{
-		capture:      capture,
-		brainClient:  brain.NewClient(),
-		modelManager: modelManager,
-		config:       &cfg.Voice,
-		logger:       logger,
-		state:        VoiceStateIdle,
+		capture:     capture,
+		brainClient: brain.NewClient(),
+		config:      &cfg.Voice,
+		logger:      logger,
+		state:       VoiceStateIdle,
 	}
 
 	// Set up audio level callback
@@ -128,108 +117,35 @@ func NewVoiceService(cfg *config.Config, logger *logging.Logger) (*VoiceService,
 }
 
 // NewVoiceServiceWithAutoSetup creates a voice service with brain-backed STT.
-// Model download is now managed by pkg/ai STTClient — this is kept for
-// backwards-compatible call sites.
 func NewVoiceServiceWithAutoSetup(cfg *config.Config, logger *logging.Logger, onProgress func(status string, progress float64)) (*VoiceService, error) {
 	vs, err := NewVoiceService(cfg, logger)
 	if err != nil {
 		return nil, err
 	}
 
-	// Check if Brain STT is available
-	if vs.brainClient != nil && vs.brainClient.IsSTTAvailable() {
-		if onProgress != nil {
-			onProgress("Voice STT ready (via pkg/ai)", 1.0)
-		}
-		return vs, nil
-	}
-
-	// Fallback: try legacy model download for whisper.cpp direct usage
-	modelName := cfg.Voice.Model
-	if modelName == "" {
-		modelName = voice.ModelBaseEN
-	}
-
-	if vs.modelManager.IsModelAvailable(modelName) {
-		return vs, nil
-	}
-
 	if onProgress != nil {
-		onProgress("Downloading voice model (first-time setup)...", 0)
-	}
-
-	_, err = vs.modelManager.EnsureModel(modelName, func(downloaded, total int64) {
-		if onProgress != nil && total > 0 {
-			progress := float64(downloaded) / float64(total)
-			onProgress(fmt.Sprintf("Downloading %s...", modelName), progress)
-		}
-	})
-
-	if err != nil {
-		if onProgress != nil {
-			onProgress("Model download failed - voice will be unavailable", 0)
-		}
-		logger.Warnf("Failed to download voice model: %v", err)
-	} else {
-		if onProgress != nil {
-			onProgress("Voice model ready", 1.0)
+		if vs.brainClient != nil && vs.brainClient.IsSTTAvailable() {
+			onProgress("Voice STT ready (via brain)", 1.0)
+		} else {
+			onProgress("Voice STT unavailable — brain STT not reachable", 0)
 		}
 	}
 
 	return vs, nil
 }
 
-// Initialize prepares the voice service for transcription.
-// If Brain STT is available, it is used directly. Otherwise, falls back
-// to the legacy whisper.cpp engine.
+// Initialize prepares the voice service for transcription via brain STT.
 func (vs *VoiceService) Initialize() error {
 	vs.mu.Lock()
 	defer vs.mu.Unlock()
 
-	// Prefer Brain STT
 	if vs.brainClient != nil && vs.brainClient.IsSTTAvailable() {
-		vs.logger.Info("Voice service initialized (using Brain STT)")
+		vs.logger.Info("Voice service initialized (using brain STT)")
 		return nil
 	}
 
-	// Fallback: legacy whisper engine
-	if vs.engine != nil {
-		return nil // Already initialized
-	}
-
-	modelName := vs.config.Model
-	if modelName == "" {
-		modelName = voice.ModelBaseEN // Default
-	}
-
-	// Check if model is available, download if not
-	modelPath, err := vs.modelManager.EnsureModel(modelName, func(downloaded, total int64) {
-		callback := vs.onProgress
-		if callback != nil {
-			callback(downloaded, total)
-		}
-	})
-	if err != nil {
-		vs.lastError = err
-		return fmt.Errorf("failed to ensure model: %w", err)
-	}
-
-	// Create whisper engine
-	whisperConfig := voice.DefaultWhisperConfig()
-	whisperConfig.Language = vs.config.Language
-	if whisperConfig.Language == "" {
-		whisperConfig.Language = "en"
-	}
-
-	engine, err := voice.NewWhisperEngine(modelPath, whisperConfig, vs.logger)
-	if err != nil {
-		vs.lastError = err
-		return fmt.Errorf("failed to create whisper engine: %w", err)
-	}
-
-	vs.engine = engine
-	vs.logger.Info("Voice service initialized (using legacy whisper engine)")
-	return nil
+	vs.lastError = ErrModelNotReady
+	return ErrModelNotReady
 }
 
 // IsAvailable returns whether voice-to-text is available
@@ -239,14 +155,14 @@ func (vs *VoiceService) IsAvailable() bool {
 	if !vs.config.Enabled {
 		return false
 	}
-	return vs.brainClient.IsSTTAvailable() || (vs.engine != nil && vs.engine.IsLoaded())
+	return vs.brainClient.IsSTTAvailable()
 }
 
-// IsModelReady returns whether STT is ready (Brain or legacy engine)
+// IsModelReady returns whether brain STT is ready
 func (vs *VoiceService) IsModelReady() bool {
 	vs.mu.Lock()
 	defer vs.mu.Unlock()
-	return vs.brainClient.IsSTTAvailable() || (vs.engine != nil && vs.engine.IsLoaded())
+	return vs.brainClient.IsSTTAvailable()
 }
 
 // GetState returns the current voice service state
@@ -275,7 +191,7 @@ func (vs *VoiceService) StartDictation() error {
 		return ErrVoiceNotEnabled
 	}
 
-	if !vs.brainClient.IsSTTAvailable() && (vs.engine == nil || !vs.engine.IsLoaded()) {
+	if !vs.brainClient.IsSTTAvailable() {
 		return ErrModelNotReady
 	}
 	if vs.state == VoiceStateRecording {
@@ -317,41 +233,25 @@ func (vs *VoiceService) StopDictation() (string, error) {
 	duration := time.Since(vs.startTime)
 	vs.setState(VoiceStateProcessing)
 	brainClient := vs.brainClient
-	engine := vs.engine
 	vs.mu.Unlock()
 
 	vs.logger.Debugf("Processing %d samples (%.1fs of audio)", len(samples), duration.Seconds())
 
-	// Transcribe — prefer Brain, fallback to legacy engine
-	var text string
-	var segments []voice.Segment
-
-	if brainClient != nil && brainClient.IsSTTAvailable() {
-		transcribed, err := brainClient.TranscribePCM(context.Background(), samples)
-		if err != nil {
-			vs.mu.Lock()
-			vs.lastError = err
-			vs.setState(VoiceStateError)
-			vs.mu.Unlock()
-			return "", fmt.Errorf("transcription failed: %w", err)
-		}
-		text = transcribed
-	} else if engine != nil {
-		result, err := engine.Transcribe(samples)
-		if err != nil {
-			vs.mu.Lock()
-			vs.lastError = err
-			vs.setState(VoiceStateError)
-			vs.mu.Unlock()
-			return "", fmt.Errorf("transcription failed: %w", err)
-		}
-		text = result.Text
-		segments = result.Segments
-	} else {
+	// Transcribe via brain STT
+	if brainClient == nil || !brainClient.IsSTTAvailable() {
 		vs.mu.Lock()
 		vs.setState(VoiceStateError)
 		vs.mu.Unlock()
 		return "", ErrModelNotReady
+	}
+
+	transcribed, err := brainClient.TranscribePCM(context.Background(), samples)
+	if err != nil {
+		vs.mu.Lock()
+		vs.lastError = err
+		vs.setState(VoiceStateError)
+		vs.mu.Unlock()
+		return "", fmt.Errorf("transcription failed: %w", err)
 	}
 
 	vs.mu.Lock()
@@ -362,14 +262,13 @@ func (vs *VoiceService) StopDictation() (string, error) {
 	// Notify listeners
 	if callback != nil {
 		callback(TranscriptionResult{
-			Text:     text,
+			Text:     transcribed,
 			Duration: duration,
-			Segments: segments,
 		})
 	}
 
-	vs.logger.Debugf("Transcription complete: %q", text)
-	return text, nil
+	vs.logger.Debugf("Transcription complete: %q", transcribed)
+	return transcribed, nil
 }
 
 // CancelDictation stops recording without transcribing
@@ -450,11 +349,6 @@ func (vs *VoiceService) OnProgress(fn func(downloaded, total int64)) {
 	vs.onProgress = fn
 }
 
-// GetModelManager returns the model manager for UI access
-func (vs *VoiceService) GetModelManager() *voice.ModelManager {
-	return vs.modelManager
-}
-
 // GetConfig returns the voice configuration
 func (vs *VoiceService) GetConfig() *config.VoiceConfig {
 	vs.mu.Lock()
@@ -485,12 +379,6 @@ func (vs *VoiceService) Close() error {
 
 	if vs.capture != nil {
 		if err := vs.capture.Close(); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	if vs.engine != nil {
-		if err := vs.engine.Close(); err != nil {
 			errs = append(errs, err)
 		}
 	}

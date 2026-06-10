@@ -1,13 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/kyanite/focus/internal/cli"
@@ -129,36 +126,4 @@ func runTUIDirectly() error {
 
 	// Launch actual TUI dashboard
 	return tui.StartMainDashboard(tasks)
-}
-
-func isModelAvailable(model string) bool {
-	resp, err := http.Get("http://localhost:11434/api/tags")
-	if err != nil {
-		return false
-	}
-	defer resp.Body.Close()
-
-	var tags struct {
-		Models []struct {
-			Name string `json:"name"`
-		} `json:"models"`
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&tags); err != nil {
-		return false
-	}
-
-	for _, m := range tags.Models {
-		if strings.Contains(m.Name, model) {
-			return true
-		}
-	}
-	return false
-}
-
-func pullModel(model string) error {
-	cmd := exec.Command("ollama", "pull", model)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
 }

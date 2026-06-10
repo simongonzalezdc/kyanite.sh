@@ -217,46 +217,6 @@ func TestBrainNotInitializedErrors(t *testing.T) {
 
 // ── Prompt Tests ─────────────────────────────────────────────────────
 
-func TestFocusParsePrompt(t *testing.T) {
-	p := FocusParsePrompt("Buy groceries tomorrow")
-	if p == "" {
-		t.Error("prompt should not be empty")
-	}
-}
-
-func TestFocusSuggestPrompt(t *testing.T) {
-	p := FocusSuggestPrompt("- Task 1\n- Task 2")
-	if p == "" {
-		t.Error("prompt should not be empty")
-	}
-}
-
-func TestFocusSummarizePrompt(t *testing.T) {
-	p := FocusSummarizePrompt("- Task 1 done\n- Task 2 blocked")
-	if p == "" {
-		t.Error("prompt should not be empty")
-	}
-}
-
-func TestNoiseBrainstormPrompt(t *testing.T) {
-	for _, mode := range []string{"unstick", "spark", "tweak", "check", "unknown"} {
-		p := NoiseBrainstormPrompt(mode, "Test context")
-		if p == "" {
-			t.Errorf("prompt for mode %q should not be empty", mode)
-		}
-	}
-}
-
-func TestNoiseContextPrompt(t *testing.T) {
-	p := NoiseContextPrompt("My Song", "Rock", "Am", "Happy")
-	if p == "" {
-		t.Error("prompt should not be empty")
-	}
-	p = NoiseContextPrompt("", "", "", "")
-	if p == "" {
-		t.Error("prompt should have fallback")
-	}
-}
 
 func TestSyntaxSuggestPrompt(t *testing.T) {
 	for _, typ := range []string{"continue", "improve", "dialogue", "description", "character", "unknown"} {

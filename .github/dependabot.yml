@@ -20,6 +20,14 @@ updates:
     directory: /cmd/kyanite
     schedule:
       interval: weekly
+  - package-ecosystem: gomod
+    directory: /pkg/ai
+    schedule:
+      interval: weekly
+  - package-ecosystem: gomod
+    directory: /pkg/config
+    schedule:
+      interval: weekly
   - package-ecosystem: github-actions
     directory: /
     schedule:

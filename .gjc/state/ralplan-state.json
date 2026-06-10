@@ -1,0 +1,26 @@
+{
+  "run_id": "2026-06-10-2143-de97",
+  "skill": "ralplan",
+  "active": true,
+  "current_phase": "planner",
+  "version": 2,
+  "updated_at": "2026-06-10T21:43:29.539Z",
+  "receipt": {
+    "version": 1,
+    "skill": "ralplan",
+    "owner": "gjc-runtime",
+    "command": "gjc ralplan persist-run-id",
+    "state_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/skill-active-state.json",
+    "storage_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/ralplan-state.json",
+    "mutated_at": "2026-06-10T21:43:29.539Z",
+    "fresh_until": "2026-06-10T22:13:29.539Z",
+    "status": "fresh",
+    "mutation_id": "ralplan:2026-06-10T21:43:29.539Z",
+    "content_sha256": {
+      "algorithm": "sha256",
+      "value": "2ea42721c27138bfa4f1ff7b67d29140c6c3554f6e5d47fc9c63a46336346671",
+      "covered_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/ralplan-state.json",
+      "computed_at": "2026-06-10T21:43:29.540Z"
+    }
+  }
+}

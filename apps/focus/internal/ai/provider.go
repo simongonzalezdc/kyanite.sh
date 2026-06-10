@@ -18,12 +18,3 @@ type Provider interface {
 	// GetName returns the provider name
 	GetName() string
 }
-
-// ProviderType represents different AI provider types
-type ProviderType string
-
-const (
-	ProviderOllama     ProviderType = "ollama"
-	ProviderOpenRouter ProviderType = "openrouter"
-	ProviderFallback   ProviderType = "fallback"
-)

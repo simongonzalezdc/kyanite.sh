@@ -4,6 +4,8 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/kyanite/config"
 )
 
 // Config holds the configuration for the inference brain.
@@ -86,4 +88,27 @@ func defaultWhisperModel() string {
 		}
 	}
 	return "ggml-base.en.bin"
+}
+
+// ConfigFromRoot creates an ai.Config from the unified config Root.
+// Falls back to DefaultConfig if root is nil (no config file loaded).
+func ConfigFromRoot(root *config.Root, app string) Config {
+	if root == nil {
+		return DefaultConfig(app)
+	}
+	return Config{
+		OllamaURL: root.Brain.OllamaURL,
+		Model:     root.Brain.Model,
+		Timeout:   root.Brain.Timeout,
+		WhisperBin:   root.Brain.WhisperBin,
+		WhisperModel: root.Brain.WhisperModel,
+		WhisperLang:  envOr("KYANITE_WHISPER_LANG", "en"),
+		DBHost:     root.Brain.DBHost,
+		DBPort:     root.Brain.DBPort,
+		DBName:     root.Brain.DBName,
+		DBUser:     root.Brain.DBUser,
+		DBPassword: root.Brain.DBPassword,
+		DBSSLMode:  envOr("KYANITE_DB_SSLMODE", "disable"),
+		App: app,
+	}
 }
