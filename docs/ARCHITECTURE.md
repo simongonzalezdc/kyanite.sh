@@ -127,3 +127,42 @@ A future extraction could create `shared/` modules under the workspace:
 | Goroutine leaks | ✅ Close() with done channels in AI manager, collaboration |
 | Race conditions | ✅ sync.Mutex on store, RLock fix on websocket |
 | Secrets scan | ✅ Clean — no leaked credentials |
+
+## Charm Ecosystem Integration
+
+### Currently Used
+
+| Library | Version | Apps | Purpose |
+|---|---|---|---|
+| bubbletea | v1.3.10 | all 4 | Elm-architecture TUI framework |
+| lipgloss | v1.1.1 | all 4 | Terminal styling and layout |
+| bubbles | v1.0.0 | focus, noise, prism | TUI components (list, input, spinner) |
+| huh | v1.0.0 | focus | Terminal forms and prompts |
+| glamour | v1.0.0 | noise | Markdown rendering |
+| harmonica | v0.2.0 | noise | Physics-based animations |
+| colorprofile | v0.4.1 | all (indirect) | Terminal color capability detection |
+| x/ansi | v0.11.6 | all (indirect) | ANSI sequence handling |
+| x/cellbuf | v0.0.15 | all (indirect) | Cell buffer management |
+| x/term | v0.2.2 | all (indirect) | Terminal control |
+
+### Recommended Adoption
+
+| Library | Stars | Why | Priority | Apps | Status |
+|---|---|---|---|---|---|
+| **charmbracelet/log** | 3.3k | Replace noise's 425-line hand-rolled logger + focus/syntax bare `log`. Structured, colorful, lipgloss-native, slog handler, TUI-aware. | **HIGH** | all 4 | Ready to adopt |
+| **charmbracelet/fantasy** | 799 | Multi-provider AI agent framework (Ollama, OpenRouter, Anthropic, Gemini, etc.). Would replace focus's hand-rolled `Provider` interface and syntax's raw HTTP Ollama client. Tool support, streaming, structured outputs. | **HIGH** | focus, noise, syntax | Evaluate API stability (WIP) |
+| **charmbracelet/ultraviolet** | 351 | Powers Bubble Tea v2. Cell-based diffing renderer, constraint-based layout (Cassowary), universal input. Useful for syntax's editor buffer or prism's color rendering. | MEDIUM | syntax, prism | Watch for bubbletea v2 migration |
+| **charmbracelet/sequin** | 805 | Human-readable ANSI sequence library. Could simplify syntax's editor ANSI handling and prism's terminal output. | MEDIUM | syntax, prism | Evaluate |
+| **charmbracelet/glow** | 26k | Markdown rendering on the CLI. Focus's journal viewer could use rich Markdown rendering. Already have glamour in noise. | LOW | focus | Consider for journal view |
+| **charmbracelet/vhs** | 20k | Terminal recording for demos. Could generate GIF demos for README. | LOW | all (docs) | CI integration |
+| **charmbracelet/catwalk** | 732 | LLM model/provider database. Companion to fantasy. | LOW | focus, noise | If fantasy adopted |
+| **charmbracelet/fang** | 1.9k | CLI starter kit. Not needed — already using cobra + bubbletea. | SKIP | — | N/A |
+| **charmbracelet/skate** | 1.8k | Personal KV store. Not applicable. | SKIP | — | N/A |
+| **charmbracelet/soft-serve** | 7k | Self-hosted Git server. Not applicable. | SKIP | — | N/A |
+
+### Adoption Roadmap
+
+1. **Phase 1: charmbracelet/log** — Replace all logging across 4 apps. Delete noise's `internal/logging/` package. ~425 lines deleted, ~20 lines added per app.
+2. **Phase 2: charmbracelet/fantasy** — Replace focus's `internal/ai/` provider interface and syntax's `internal/ai/client.go`. Unify AI integration under one multi-provider API. Requires fantasy API stabilization.
+3. **Phase 3: charmbracelet/ultraviolet** — If bubbletea v2 migration happens, ultraviolet provides the rendering primitives. Syntax's editor buffer could use the cell-based renderer directly.
+4. **Phase 4: charmbracelet/sequin + glow** — Polish pass on syntax's ANSI handling and focus's journal rendering.
