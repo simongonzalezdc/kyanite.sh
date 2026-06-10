@@ -25,7 +25,7 @@ func TestJournalStorage_NewJournalStorage(t *testing.T) {
 }
 
 func TestJournalStorage_SaveAndLoadEntries(t *testing.T) {
-	storage := NewJournalStorage()
+	storage := NewJournalStorageWithPath(t.TempDir())
 
 	// Create test entries
 	entries := []*models.JournalEntry{
@@ -75,15 +75,10 @@ func TestJournalStorage_SaveAndLoadEntries(t *testing.T) {
 			t.Errorf("Expected Content %s, got %s", entry.Content, loaded[i].Content)
 		}
 	}
-
-	// Clean up
-	homeDir, _ := os.UserHomeDir()
-	storageDir := filepath.Join(homeDir, ".focus")
-	os.RemoveAll(storageDir)
 }
 
 func TestJournalStorage_AddEntry(t *testing.T) {
-	storage := NewJournalStorage()
+	storage := NewJournalStorageWithPath(t.TempDir())
 
 	entry := &models.JournalEntry{
 		ID:      "test-add",
@@ -113,11 +108,6 @@ func TestJournalStorage_AddEntry(t *testing.T) {
 	if loaded[0].ID != entry.ID {
 		t.Errorf("Expected ID %s, got %s", entry.ID, loaded[0].ID)
 	}
-
-	// Clean up
-	homeDir, _ := os.UserHomeDir()
-	storageDir := filepath.Join(homeDir, ".focus")
-	os.RemoveAll(storageDir)
 }
 
 func TestJournalStorage_ConcurrentAddsPersistAllEntries(t *testing.T) {
@@ -168,7 +158,7 @@ func TestJournalStorage_ConcurrentAddsPersistAllEntries(t *testing.T) {
 }
 
 func TestJournalStorage_GetEntryByID(t *testing.T) {
-	storage := NewJournalStorage()
+	storage := NewJournalStorageWithPath(t.TempDir())
 
 	entry := &models.JournalEntry{
 		ID:      "test-get",
@@ -200,15 +190,10 @@ func TestJournalStorage_GetEntryByID(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error for non-existent entry")
 	}
-
-	// Clean up
-	homeDir, _ := os.UserHomeDir()
-	storageDir := filepath.Join(homeDir, ".focus")
-	os.RemoveAll(storageDir)
 }
 
 func TestJournalStorage_GetEntryByDate(t *testing.T) {
-	storage := NewJournalStorage()
+	storage := NewJournalStorageWithPath(t.TempDir())
 
 	entry := &models.JournalEntry{
 		ID:      "test-date",
@@ -240,15 +225,10 @@ func TestJournalStorage_GetEntryByDate(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error for non-existent date")
 	}
-
-	// Clean up
-	homeDir, _ := os.UserHomeDir()
-	storageDir := filepath.Join(homeDir, ".focus")
-	os.RemoveAll(storageDir)
 }
 
 func TestJournalStorage_UpdateEntry(t *testing.T) {
-	storage := NewJournalStorage()
+	storage := NewJournalStorageWithPath(t.TempDir())
 
 	entry := &models.JournalEntry{
 		ID:      "test-update",
@@ -290,15 +270,10 @@ func TestJournalStorage_UpdateEntry(t *testing.T) {
 	if retrieved.Content != "Updated content" {
 		t.Errorf("Expected updated content, got %s", retrieved.Content)
 	}
-
-	// Clean up
-	homeDir, _ := os.UserHomeDir()
-	storageDir := filepath.Join(homeDir, ".focus")
-	os.RemoveAll(storageDir)
 }
 
 func TestJournalStorage_SearchEntries(t *testing.T) {
-	storage := NewJournalStorage()
+	storage := NewJournalStorageWithPath(t.TempDir())
 
 	entries := []*models.JournalEntry{
 		{
@@ -374,15 +349,10 @@ func TestJournalStorage_SearchEntries(t *testing.T) {
 	if len(results) != 0 {
 		t.Errorf("Expected 0 results for 'nonexistent', got %d", len(results))
 	}
-
-	// Clean up
-	homeDir, _ := os.UserHomeDir()
-	storageDir := filepath.Join(homeDir, ".focus")
-	os.RemoveAll(storageDir)
 }
 
 func TestJournalStorage_GetEntriesByTag(t *testing.T) {
-	storage := NewJournalStorage()
+	storage := NewJournalStorageWithPath(t.TempDir())
 
 	entries := []*models.JournalEntry{
 		{
@@ -438,15 +408,10 @@ func TestJournalStorage_GetEntriesByTag(t *testing.T) {
 	if len(results) != 0 {
 		t.Errorf("Expected 0 entries for tag 'nonexistent', got %d", len(results))
 	}
-
-	// Clean up
-	homeDir, _ := os.UserHomeDir()
-	storageDir := filepath.Join(homeDir, ".focus")
-	os.RemoveAll(storageDir)
 }
 
 func TestJournalStorage_GetEntriesByDateRange(t *testing.T) {
-	storage := NewJournalStorage()
+	storage := NewJournalStorageWithPath(t.TempDir())
 
 	entries := []*models.JournalEntry{
 		{
@@ -520,15 +485,10 @@ func TestJournalStorage_GetEntriesByDateRange(t *testing.T) {
 	if len(results) != 0 {
 		t.Errorf("Expected 0 entries for empty range, got %d", len(results))
 	}
-
-	// Clean up
-	homeDir, _ := os.UserHomeDir()
-	storageDir := filepath.Join(homeDir, ".focus")
-	os.RemoveAll(storageDir)
 }
 
 func TestJournalStorage_GetAllTags(t *testing.T) {
-	storage := NewJournalStorage()
+	storage := NewJournalStorageWithPath(t.TempDir())
 
 	entries := []*models.JournalEntry{
 		{
@@ -581,20 +541,10 @@ func TestJournalStorage_GetAllTags(t *testing.T) {
 			t.Errorf("Expected tag '%s' not found in tags", expectedTag)
 		}
 	}
-
-	// Clean up
-	homeDir, _ := os.UserHomeDir()
-	storageDir := filepath.Join(homeDir, ".focus")
-	os.RemoveAll(storageDir)
 }
 
 func TestJournalStorage_GetStats(t *testing.T) {
-	storage := NewJournalStorage()
-
-	// Clean up first
-	homeDir, _ := os.UserHomeDir()
-	storageDir := filepath.Join(homeDir, ".focus")
-	os.RemoveAll(storageDir)
+	storage := NewJournalStorageWithPath(t.TempDir())
 
 	entries := []*models.JournalEntry{
 		{
@@ -640,13 +590,10 @@ func TestJournalStorage_GetStats(t *testing.T) {
 	if stats["total_words"] != 8 { // 5 + 3 from content
 		t.Errorf("Expected 8 total words from content, got %d", stats["total_words"])
 	}
-
-	// Clean up
-	os.RemoveAll(storageDir)
 }
 
 func TestJournalStorage_DeleteEntry(t *testing.T) {
-	storage := NewJournalStorage()
+	storage := NewJournalStorageWithPath(t.TempDir())
 
 	entry := &models.JournalEntry{
 		ID:      "test-delete",
@@ -686,9 +633,4 @@ func TestJournalStorage_DeleteEntry(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error when deleting non-existent entry")
 	}
-
-	// Clean up
-	homeDir, _ := os.UserHomeDir()
-	storageDir := filepath.Join(homeDir, ".focus")
-	os.RemoveAll(storageDir)
 }

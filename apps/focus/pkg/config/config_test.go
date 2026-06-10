@@ -7,7 +7,13 @@ import (
 )
 
 func TestLoadConfig(t *testing.T) {
-	// Test loading config with default values
+	ResetForTest()
+	defer ResetForTest()
+
+	tmpDir := t.TempDir()
+	SetConfigDirOverride(tmpDir)
+	defer SetConfigDirOverride("")
+
 	config, err := LoadConfig()
 	if err != nil {
 		t.Fatalf("LoadConfig() failed: %v", err)
@@ -28,9 +34,11 @@ func TestLoadConfig(t *testing.T) {
 }
 
 func TestGetConfigPath(t *testing.T) {
-	// Test that GetConfigPath returns a valid path
-	homeDir, _ := os.UserHomeDir()
-	expectedPath := filepath.Join(homeDir, ".focus", "config.yaml")
+	tmpDir := t.TempDir()
+	SetConfigDirOverride(tmpDir)
+	defer SetConfigDirOverride("")
+
+	expectedPath := filepath.Join(tmpDir, "config.yaml")
 
 	configPath := GetConfigPath()
 
@@ -40,6 +48,13 @@ func TestGetConfigPath(t *testing.T) {
 }
 
 func TestConfigDefaults(t *testing.T) {
+	ResetForTest()
+	defer ResetForTest()
+
+	tmpDir := t.TempDir()
+	SetConfigDirOverride(tmpDir)
+	defer SetConfigDirOverride("")
+
 	config, err := LoadConfig()
 	if err != nil {
 		t.Fatalf("LoadConfig() failed: %v", err)
@@ -112,6 +127,13 @@ func TestConfigValidation(t *testing.T) {
 }
 
 func TestConfigFileHandling(t *testing.T) {
+	ResetForTest()
+	defer ResetForTest()
+
+	tmpDir := t.TempDir()
+	SetConfigDirOverride(tmpDir)
+	defer SetConfigDirOverride("")
+
 	// Create initial config
 	config := &Config{
 		Theme: "Amber Night",
@@ -148,11 +170,10 @@ func TestConfigFileHandling(t *testing.T) {
 		t.Fatalf("SaveConfig() failed: %v", err)
 	}
 
-	// Verify file was created at default path
-	homeDir, _ := os.UserHomeDir()
-	configPath := filepath.Join(homeDir, ".focus", "config.yaml")
+	// Verify file was created at override path
+	configPath := filepath.Join(tmpDir, "config.yaml")
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		t.Error("SaveConfig() should create a config file at default location")
+		t.Error("SaveConfig() should create a config file at override location")
 	}
 
 	// Read config back
@@ -166,6 +187,13 @@ func TestConfigFileHandling(t *testing.T) {
 }
 
 func TestConfigPermissions(t *testing.T) {
+	ResetForTest()
+	defer ResetForTest()
+
+	tmpDir := t.TempDir()
+	SetConfigDirOverride(tmpDir)
+	defer SetConfigDirOverride("")
+
 	// Test that config files have correct permissions
 	config := &Config{
 		Theme: "test",
@@ -180,9 +208,8 @@ func TestConfigPermissions(t *testing.T) {
 		t.Fatalf("SaveConfig() failed: %v", err)
 	}
 
-	// Check file permissions (should be 0644 by default)
-	homeDir, _ := os.UserHomeDir()
-	configPath := filepath.Join(homeDir, ".focus", "config.yaml")
+	// Check file permissions
+	configPath := filepath.Join(tmpDir, "config.yaml")
 
 	info, err := os.Stat(configPath)
 	if err != nil {
@@ -190,20 +217,21 @@ func TestConfigPermissions(t *testing.T) {
 	}
 
 	// File should be readable by user
-	// (Note: exact permissions depend on OS and umask)
 	perm := info.Mode()
 	if perm&0o400 == 0 { // Readable by owner
 		t.Error("Config file should be readable by owner")
 	}
-
-	// Clean up
-	os.Remove(configPath)
 }
 
 func TestConfigDirectoryStructure(t *testing.T) {
-	// Test that config directory structure is correct
-	homeDir, _ := os.UserHomeDir()
-	configDir := filepath.Join(homeDir, ".focus")
+	ResetForTest()
+	defer ResetForTest()
+
+	tmpDir := t.TempDir()
+	SetConfigDirOverride(tmpDir)
+	defer SetConfigDirOverride("")
+
+	configDir := tmpDir
 	configPath := filepath.Join(configDir, "config.yaml")
 
 	// Create config
@@ -221,10 +249,6 @@ func TestConfigDirectoryStructure(t *testing.T) {
 	if _, err := os.Stat(configPath); err != nil {
 		t.Errorf("Config file should exist: %v", err)
 	}
-
-	// Clean up
-	os.Remove(configPath)
-	os.Remove(configDir)
 }
 
 func TestConfigSubStructures(t *testing.T) {
@@ -353,6 +377,16 @@ func TestConfigEdgeCases(t *testing.T) {
 }
 
 func TestConfigUpdate(t *testing.T) {
+	ResetForTest()
+	defer ResetForTest()
+
+	tmpDir := t.TempDir()
+	SetConfigDirOverride(tmpDir)
+	defer SetConfigDirOverride("")
+
+	// Ensure a config is loaded first
+	_, _ = LoadConfig()
+
 	// Test updating configuration values
 	updates := map[string]any{
 		"theme":                      "updated-theme",
@@ -379,6 +413,13 @@ func TestConfigUpdate(t *testing.T) {
 }
 
 func TestGetConfig(t *testing.T) {
+	ResetForTest()
+	defer ResetForTest()
+
+	tmpDir := t.TempDir()
+	SetConfigDirOverride(tmpDir)
+	defer SetConfigDirOverride("")
+
 	// Test GetConfig function
 	config := GetConfig()
 
@@ -394,6 +435,13 @@ func TestGetConfig(t *testing.T) {
 }
 
 func TestConfigDefaultsInAction(t *testing.T) {
+	ResetForTest()
+	defer ResetForTest()
+
+	tmpDir := t.TempDir()
+	SetConfigDirOverride(tmpDir)
+	defer SetConfigDirOverride("")
+
 	// Test that defaults are actually applied
 	config, err := LoadConfig()
 	if err != nil {
@@ -417,6 +465,13 @@ func TestConfigDefaultsInAction(t *testing.T) {
 }
 
 func TestConfigConsistency(t *testing.T) {
+	ResetForTest()
+	defer ResetForTest()
+
+	tmpDir := t.TempDir()
+	SetConfigDirOverride(tmpDir)
+	defer SetConfigDirOverride("")
+
 	// Test that config remains consistent across multiple operations
 	originalConfig, err := LoadConfig()
 	if err != nil {

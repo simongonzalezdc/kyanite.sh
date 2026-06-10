@@ -274,7 +274,7 @@ func downloadFile(url, filename string, postInstall func() error) error {
 	}
 	defer out.Close()
 
-	_, err = io.Copy(out, resp.Body)
+	_, err = io.Copy(out, io.LimitReader(resp.Body, 500*1024*1024)) // 500MB max
 	if err != nil {
 		return err
 	}
