@@ -16,7 +16,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/kyanite/focus/internal/ai"
-	ai_pkg "github.com/kyanite/ai"
+	"github.com/kyanite/focus/internal/di"
 	"github.com/kyanite/focus/internal/theme"
 	"github.com/kyanite/tui/aipanel"
 	"github.com/kyanite/focus/pkg/audio"
@@ -429,14 +429,14 @@ func NewMainModel(tasks []DashboardTask) *MainModel {
 		loadingState: startingUp,
 		spinnerFrame: 0,
 
-		// AI manager initialization
-		aiManager:      ai.New(),
+		// AI manager initialization (singleton from DI)
+		aiManager:      di.NewContainer().GetAIManager(),
 		aiStatus:       "checking",
 		lastAICheck:    time.Now(),
 		aiThinking:     false,
 		aiSpinnerFrame: 0,
 
-		// AI Dashboard panel
+		// AI Dashboard panel (will be wired after theme init)
 		aiPanel: aipanel.New(nil, 50, 20),
 
 		// Calendar management
@@ -457,10 +457,9 @@ func NewMainModel(tasks []DashboardTask) *MainModel {
 	// Initialize glow styler for markdown notes
 	m.glowStyler = glow.NewGlowStyler("synthwave")
 
-	// Wire Brain to AI panel for streaming generation
-	cfg := ai_pkg.DefaultConfig("focus")
-	if brain, _ := ai_pkg.New(cfg); brain != nil {
-		m.aiPanel = aipanel.New(brain, 50, 20)
+	// Wire Brain to AI panel for streaming — reuse the same Brain from the AI manager
+	if m.aiManager != nil && m.aiManager.Brain() != nil {
+		m.aiPanel = aipanel.New(m.aiManager.Brain(), 50, 20)
 	}
 
 	return m

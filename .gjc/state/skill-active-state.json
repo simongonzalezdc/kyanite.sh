@@ -39,20 +39,20 @@
       "skill": "ultragoal",
       "phase": "pending",
       "active": true,
-      "activated_at": "2026-06-11T03:00:43.924Z",
-      "updated_at": "2026-06-11T03:00:43.924Z",
+      "activated_at": "2026-06-11T03:02:59.102Z",
+      "updated_at": "2026-06-11T03:02:59.102Z",
       "session_id": "019eaf69-92d5-7000-914c-6b7dd702f1ea",
       "hud": {
         "version": 1,
         "chips": [
           {
             "label": "goals",
-            "value": "4/9",
+            "value": "6/9",
             "priority": 10
           },
           {
             "label": "current",
-            "value": "G005:Pass 5 — Extract shared AI panel integration",
+            "value": "G007:Pass 7 — Exhaustive clean run 1",
             "priority": 20
           },
           {
@@ -61,7 +61,7 @@
             "priority": 30
           }
         ],
-        "updated_at": "2026-06-11T03:00:43.922Z"
+        "updated_at": "2026-06-11T03:02:59.101Z"
       },
       "receipt": {
         "version": 1,
@@ -70,10 +70,10 @@
         "command": "gjc ultragoal (reconcile)",
         "state_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/skill-active-state.json",
         "storage_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/ultragoal-state.json",
-        "mutated_at": "2026-06-11T03:00:43.917Z",
-        "fresh_until": "2026-06-11T03:30:43.917Z",
+        "mutated_at": "2026-06-11T03:02:59.094Z",
+        "fresh_until": "2026-06-11T03:32:59.094Z",
         "status": "fresh",
-        "mutation_id": "ultragoal:reconcile:2026-06-11T03:00:43.917Z",
+        "mutation_id": "ultragoal:reconcile:2026-06-11T03:02:59.094Z",
         "verb": "reconcile",
         "forced": true,
         "from_phase": "pending",

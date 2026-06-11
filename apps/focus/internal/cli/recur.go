@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/kyanite/focus/internal/ai"
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/models"
@@ -100,7 +99,7 @@ Examples:
 		taskEngine := engine.New(repo)
 
 		// Try to enhance with AI if available
-		aiManager := ai.New()
+		aiManager := defaultContainer.GetAIManager()
 		parsedTask, err := aiManager.ParseTask(context.Background(), description)
 
 		var categories []string

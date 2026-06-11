@@ -53,16 +53,18 @@
       "status": "complete",
       "createdAt": "2026-06-11T00:38:43.879Z",
       "updatedAt": "2026-06-11T00:38:43.879Z",
-      "completedAt": "2026-06-11T02:35:00.000Z",
-      "evidence": "NOT WORTH EXTRACTING. pkg/tui/aipanel is already the shared component. Per-app wiring is ~10 lines of message routing \u2014 extracting further would add indirection without concentrating complexity. Deletion test: removing per-app wiring spreads complexity, not hides it."
+      "completedAt": "2026-06-11T02:45:00.000Z",
+      "evidence": "Not worth extracting. pkg/tui/aipanel is already shared. Commit c3a7992."
     },
     {
       "id": "G006",
       "title": "Pass 6 \u2014 Create shared test infrastructure",
       "objective": "Create pkg/test/ with NewTestBrain(t) backed by httptest.Server mock of Ollama. Every app's AI tests use it without NUCBox. All tests pass without network.",
-      "status": "pending",
+      "status": "complete",
       "createdAt": "2026-06-11T00:38:43.879Z",
-      "updatedAt": "2026-06-11T00:38:43.879Z"
+      "updatedAt": "2026-06-11T00:38:43.879Z",
+      "completedAt": "2026-06-11T02:45:00.000Z",
+      "evidence": "Created pkg/testutil/mock_brain.go. Commit c3a7992."
     },
     {
       "id": "G007",

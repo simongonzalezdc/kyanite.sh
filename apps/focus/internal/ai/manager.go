@@ -293,3 +293,11 @@ func parseSuggestionList(response string) []string {
 	}
 	return out
 }
+
+// Brain returns the underlying Brain instance for direct access (e.g., AI panel streaming).
+func (m *Manager) Brain() *ai.Brain {
+	if m == nil {
+		return nil
+	}
+	return m.brain
+}

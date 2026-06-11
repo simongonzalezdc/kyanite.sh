@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kyanite/focus/internal/ai"
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/styles"
@@ -25,7 +24,7 @@ var suggestCmd = &cobra.Command{
 		// Initialize components
 		repo := repository.NewStoreRepository(utils.GetStoragePath())
 		engine := engine.New(repo)
-		aiManager := ai.New()
+		aiManager := defaultContainer.GetAIManager()
 
 		// Check AI status and show indicator
 		status := utils.CheckAIStatus()
