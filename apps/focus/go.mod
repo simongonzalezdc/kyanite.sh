@@ -10,10 +10,11 @@ require (
 	github.com/charmbracelet/log v1.0.0
 	github.com/google/uuid v1.6.0
 	github.com/kyanite/ai v0.0.0
+	github.com/kyanite/appnames v0.0.0-00010101000000-000000000000
 	github.com/kyanite/cache v0.0.0-00010101000000-000000000000
-	github.com/kyanite/testutil v0.0.0-00010101000000-000000000000
 	github.com/kyanite/config v0.0.0-00010101000000-000000000000
 	github.com/kyanite/design v0.0.0
+	github.com/kyanite/testutil v0.0.0-00010101000000-000000000000
 	github.com/kyanite/tui v0.0.0-00010101000000-000000000000
 	github.com/pterm/pterm v0.12.83
 	github.com/spf13/cobra v1.10.2
@@ -48,7 +49,6 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.5 // indirect
-	github.com/kr/pretty v0.3.1 // indirect
 	github.com/lib/pq v1.12.3 // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
@@ -62,7 +62,6 @@ require (
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/termenv v0.16.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/sahilm/fuzzy v0.1.1 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
@@ -71,7 +70,6 @@ require (
 	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/term v0.40.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
 
 toolchain go1.26.4
@@ -87,3 +85,5 @@ replace github.com/kyanite/config => ../../pkg/config
 replace github.com/kyanite/cache => ../../pkg/cache
 
 replace github.com/kyanite/testutil => ../../pkg/testutil
+
+replace github.com/kyanite/appnames => ../../pkg/appnames

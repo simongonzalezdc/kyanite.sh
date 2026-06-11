@@ -8,7 +8,11 @@ replace github.com/kyanite/ai => ../ai
 
 replace github.com/kyanite/config => ../config
 
+replace github.com/kyanite/appnames => ../appnames
+
 require github.com/kyanite/ai v0.0.0-00010101000000-000000000000
+
+require github.com/kyanite/appnames v0.0.0-00010101000000-000000000000
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
@@ -23,6 +27,6 @@ require (
 	github.com/lib/pq v1.12.3 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
-	go.yaml.in/yaml/v3 v3.0.3 // indirect
-	golang.org/x/sys v0.32.0 // indirect
+	go.yaml.in/yaml/v3 v3.0.4 // indirect
+	golang.org/x/sys v0.42.0 // indirect
 )
