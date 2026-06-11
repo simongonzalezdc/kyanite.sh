@@ -26,3 +26,33 @@ updates:
       interval: weekly
   - package-ecosystem: gomod
     directory: /pkg/config
+    schedule:
+      interval: weekly
+  - package-ecosystem: gomod
+    directory: /pkg/design
+    schedule:
+      interval: weekly
+  - package-ecosystem: gomod
+    directory: /pkg/tui
+    schedule:
+      interval: weekly
+  - package-ecosystem: gomod
+    directory: /pkg/cache
+    schedule:
+      interval: weekly
+  - package-ecosystem: gomod
+    directory: /pkg/session
+    schedule:
+      interval: weekly
+  - package-ecosystem: gomod
+    directory: /pkg/testutil
+    schedule:
+      interval: weekly
+  - package-ecosystem: gomod
+    directory: /pkg/appnames
+    schedule:
+      interval: weekly
+  - package-ecosystem: gomod
+    directory: /pkg/export
+    schedule:
+      interval: weekly
