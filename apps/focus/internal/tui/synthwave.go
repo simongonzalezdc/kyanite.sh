@@ -53,7 +53,7 @@ func NewModel() *Model {
 }
 
 // Tea initialization
-func (m *Model) Init() tea.Cmd {
+func (m Model) Init() tea.Cmd {
 	return tea.Tick(time.Millisecond*100, func(t time.Time) tea.Msg {
 		return TickMsg(t)
 	})
@@ -62,7 +62,7 @@ func (m *Model) Init() tea.Cmd {
 type TickMsg time.Time
 
 // Main update loop
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -104,7 +104,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // Main view rendering
-func (m *Model) View() string {
+func (m Model) View() string {
 	if m.width == 0 || m.height == 0 {
 		return styles.LoadingMessage()
 	}

@@ -144,7 +144,7 @@ func NewRootModel() *RootModel {
 }
 
 // Init initializes the root model
-func (m *RootModel) Init() tea.Cmd {
+func (m RootModel) Init() tea.Cmd {
 	// Enable TUI mode to suppress log output that would corrupt the terminal
 	logging.EnableTUIMode()
 
@@ -187,7 +187,7 @@ func (m *RootModel) initializeApp() tea.Cmd {
 }
 
 // Update handles messages and updates the model
-func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
@@ -799,7 +799,7 @@ func (m *RootModel) updateCurrentScreen(msg tea.Msg) tea.Cmd {
 }
 
 // View renders the current screen
-func (m *RootModel) View() string {
+func (m RootModel) View() string {
 	// Show quit confirmation dialog if active
 	if m.confirmingQuit {
 		return m.renderQuitConfirmation()

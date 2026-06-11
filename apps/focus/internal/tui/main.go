@@ -465,7 +465,7 @@ func NewMainModel(tasks []DashboardTask) *MainModel {
 	return m
 }
 
-func (m *MainModel) Init() tea.Cmd {
+func (m MainModel) Init() tea.Cmd {
 	// Start real-time clock ticker, spinner, and AI status check
 	return tea.Batch(
 		tea.Tick(time.Second, func(t time.Time) tea.Msg { return tickMsg(t) }),
@@ -655,7 +655,7 @@ func (m *MainModel) recreateStyles() {
 		BorderForeground(styles.GetAccent())
 }
 
-func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Handle priority change mode
 	if m.taskEntryMode && m.taskInput == "PRIORITY_MODE" {
 		switch msg := msg.(type) {
@@ -2043,7 +2043,7 @@ func (m *MainModel) renderDashboard() string {
 	return b.String()
 }
 
-func (m *MainModel) View() string {
+func (m MainModel) View() string {
 	if m.quitting {
 		return "\n  Powering down the grid... 🌌\n\n"
 	}

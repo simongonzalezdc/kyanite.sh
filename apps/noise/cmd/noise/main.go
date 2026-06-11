@@ -78,7 +78,7 @@ func main() {
 
 	// Derive session title from the current song if available
 	sessionTitle := fmt.Sprintf("session %s", time.Now().Format("2006-01-02"))
-	if root, ok := finalModel.(*ui.RootModel); ok {
+	if root, ok := finalModel.(ui.RootModel); ok {
 		if songTitle := root.GetCurrentSongTitle(); songTitle != "" {
 			sessionTitle = songTitle
 		}
