@@ -17,11 +17,11 @@ import (
 // Root is the top-level config for the kyanite.sh suite.
 // Loaded from ~/.config/kyanite/config.yaml with env var overrides.
 type Root struct {
-	Brain  BrainConfig `koanf:"brain"`
-	Focus  AppConfig   `koanf:"focus"`
-	Noise  AppConfig   `koanf:"noise"`
-	Syntax AppConfig   `koanf:"syntax"`
-	Prism  AppConfig   `koanf:"prism"`
+	Brain  BrainConfig  `koanf:"brain"`
+	Focus  FocusConfig  `koanf:"focus"`
+	Noise  AppConfig    `koanf:"noise"`
+	Syntax AppConfig    `koanf:"syntax"`
+	Prism  AppConfig    `koanf:"prism"`
 }
 
 // BrainConfig holds inference brain settings.
@@ -47,9 +47,61 @@ type AppConfig struct {
 	PalettesDir string `koanf:"palettes_dir"`
 }
 
+// AIConfig contains AI-related settings (focus app).
+type AIConfig struct {
+	Provider    string  `koanf:"provider"`
+	Model       string  `koanf:"model"`
+	Temperature float64 `koanf:"temperature"`
+	MaxTokens   int     `koanf:"max_tokens"`
+	Timeout     int     `koanf:"timeout"` // seconds
+}
+
+// DashboardConfig contains dashboard-specific settings (focus app).
+type DashboardConfig struct {
+	AutoRefresh     bool `koanf:"auto_refresh"`
+	RefreshInterval int  `koanf:"refresh_interval"` // seconds
+	ShowAnimation   bool `koanf:"show_animation"`
+	CompactMode     bool `koanf:"compact_mode"`
+}
+
+// NotesConfig contains notes-related settings (focus app).
+type NotesConfig struct {
+	DefaultEditor string `koanf:"default_editor"`
+	AutoSave      bool   `koanf:"auto_save"`
+	SaveInterval  int    `koanf:"save_interval"` // minutes
+	Directory     string `koanf:"directory"`
+}
+
+// UIConfig contains user interface settings (focus app).
+type UIConfig struct {
+	TimeFormat    string `koanf:"time_format"` // 12h or 24h
+	DateFormat    string `koanf:"date_format"`
+	ShowHelpTips  bool   `koanf:"show_help_tips"`
+	Notifications bool   `koanf:"notifications"`
+	SoundEffects  bool   `koanf:"sound_effects"`
+}
+
+// FocusConfig is the focus-specific subset. It embeds AppConfig so the
+// shared per-app fields (Theme, *Dir) stay accessible.
+// FocusConfig is the focus-specific config. Inlined AppConfig fields
+// instead of embedding because koanf/v2 does not flatten embedded
+// struct tags, so `Theme` here carries the `koanf:"theme"` tag directly.
+type FocusConfig struct {
+	Theme       string `koanf:"theme"`
+	JournalDir  string `koanf:"journal_dir"`
+	SamplesDir  string `koanf:"samples_dir"`
+	StoriesDir  string `koanf:"stories_dir"`
+	PalettesDir string `koanf:"palettes_dir"`
+	AI          AIConfig         `koanf:"ai"`
+	Dashboard   DashboardConfig  `koanf:"dashboard"`
+	Notes       NotesConfig      `koanf:"notes"`
+	UI          UIConfig         `koanf:"ui"`
+}
+
 // defaults returns the built-in default configuration.
 func defaults() *confmap.Confmap {
 	return confmap.Provider(map[string]interface{}{
+		// Brain
 		"brain.ollama_url":    "http://nucbox:11434",
 		"brain.model":         "gemma4:12b",
 		"brain.timeout":       "60s",
@@ -60,7 +112,27 @@ func defaults() *confmap.Confmap {
 		"brain.db_name":       "kyanite",
 		"brain.db_user":       "kyanite",
 		"brain.db_password":   "",
-		"focus.theme":         "amber-night",
+		// Focus
+		"focus.theme":               "amber-night",
+		"focus.ai.provider":         "ollama",
+		"focus.ai.model":            "llama3",
+		"focus.ai.temperature":      0.7,
+		"focus.ai.max_tokens":       1000,
+		"focus.ai.timeout":          30,
+		"focus.dashboard.auto_refresh":     true,
+		"focus.dashboard.refresh_interval":  5,
+		"focus.dashboard.show_animation":    true,
+		"focus.dashboard.compact_mode":      false,
+		"focus.notes.default_editor":        "auto",
+		"focus.notes.auto_save":             true,
+		"focus.notes.save_interval":         5,
+		"focus.notes.directory":             "",
+		"focus.ui.time_format":              "12h",
+		"focus.ui.date_format":              "2006-01-02",
+		"focus.ui.show_help_tips":           true,
+		"focus.ui.notifications":            false,
+		"focus.ui.sound_effects":            true,
+		// Other apps
 		"noise.theme":         "amber-night",
 		"syntax.theme":        "amber-night",
 		"prism.theme":         "amber-night",
@@ -160,6 +232,28 @@ brain:
 
 focus:
   theme: amber-night
+  ai:
+    provider: ollama
+    model: llama3
+    temperature: 0.7
+    max_tokens: 1000
+    timeout: 30
+  dashboard:
+    auto_refresh: true
+    refresh_interval: 5
+    show_animation: true
+    compact_mode: false
+  notes:
+    default_editor: auto
+    auto_save: true
+    save_interval: 5
+    directory: ""
+  ui:
+    time_format: "12h"
+    date_format: "2006-01-02"
+    show_help_tips: true
+    notifications: false
+    sound_effects: true
 
 noise:
   theme: amber-night
@@ -196,17 +290,21 @@ func Show() error {
 	fmt.Printf("  db_port:       %d\n", cfg.Brain.DBPort)
 	fmt.Printf("  db_name:       %s\n", cfg.Brain.DBName)
 	fmt.Printf("  db_user:       %s\n", cfg.Brain.DBUser)
-	fmt.Printf("\nApps:\n")
+	fmt.Printf("\nFocus (theme=%s):\n", cfg.Focus.Theme)
+	fmt.Printf("  ai:        provider=%s model=%s timeout=%ds\n", cfg.Focus.AI.Provider, cfg.Focus.AI.Model, cfg.Focus.AI.Timeout)
+	fmt.Printf("  dashboard: refresh=%ds animation=%v compact=%v\n", cfg.Focus.Dashboard.RefreshInterval, cfg.Focus.Dashboard.ShowAnimation, cfg.Focus.Dashboard.CompactMode)
+	fmt.Printf("  notes:     editor=%s autosave=%v interval=%dm\n", cfg.Focus.Notes.DefaultEditor, cfg.Focus.Notes.AutoSave, cfg.Focus.Notes.SaveInterval)
+	fmt.Printf("  ui:        time=%s tips=%v sound=%v\n", cfg.Focus.UI.TimeFormat, cfg.Focus.UI.ShowHelpTips, cfg.Focus.UI.SoundEffects)
+	fmt.Printf("\nOther apps:\n")
 	for _, app := range []struct {
-		name string
-		cfg  AppConfig
+		name  string
+		theme string
 	}{
-		{"focus", cfg.Focus},
-		{"noise", cfg.Noise},
-		{"syntax", cfg.Syntax},
-		{"prism", cfg.Prism},
+		{"noise", cfg.Noise.Theme},
+		{"syntax", cfg.Syntax.Theme},
+		{"prism", cfg.Prism.Theme},
 	} {
-		fmt.Printf("  %s: theme=%s\n", app.name, app.cfg.Theme)
+		fmt.Printf("  %s: theme=%s\n", app.name, app.theme)
 	}
 	return nil
 }
