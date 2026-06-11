@@ -72,7 +72,7 @@ func (m *MusicToolsModel) Update(msg tea.Msg) tea.Cmd {
 		case "ctrl+shift+r":
 			m.selected = 2
 			return m.openTheoryTools()
-		case "ctrl+shift+t":
+		case "ctrl+shift+m":
 			m.selected = 3
 			return m.openTheoryTools()
 		}

@@ -66,7 +66,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "q", "ctrl+c":
+		case "ctrl+c", "ctrl+q":
 			return m, tea.Quit
 
 		case "up", "k":
@@ -389,7 +389,7 @@ func (m *Model) renderControls() string {
 		"SPACE: Toggle Glitch",
 		"R: Refresh",
 		"1-4: Switch Views",
-		"Q: Quit",
+		"Ctrl+Q: Quit",
 	}
 
 	controlStyle := lipgloss.NewStyle().

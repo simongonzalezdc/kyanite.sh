@@ -176,7 +176,7 @@ func (hm *HeaderModel) View() string {
 	themeName := theme.GetManager().Current().Name
 	status := "[*] 3 Songs, 2 Projects"
 	help := "[F1] Help"
-	quit := "[Q]uit"
+	quit := "[Ctrl+Q] Quit"
 
 	return lipgloss.JoinHorizontal(lipgloss.Left,
 		title,

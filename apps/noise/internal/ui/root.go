@@ -307,9 +307,14 @@ func (m RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.currentScreen = screenMenu
 				return m, nil
 			}
-		case "f1", "?":
+		case "f1", "?", "ctrl+h":
 			// Toggle help mode
 			m.helpMode = !m.helpMode
+			return m, nil
+		case "ctrl+shift+t":
+			// Cycle theme globally
+			next := theme.GetManager().Next()
+			theme.GetManager().SetTheme(next.Name)
 			return m, nil
 		case "tab":
 			// When AI panel is visible, Tab triggers lyric continuation

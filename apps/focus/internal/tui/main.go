@@ -240,8 +240,8 @@ func newKeyMap() keyMap {
 			key.WithHelp("r", "reset timer"),
 		),
 		quit: key.NewBinding(
-			key.WithKeys("ctrl+c", "q", "ctrl+q"),
-			key.WithHelp("q/Ctrl+Q", "quit"),
+			key.WithKeys("ctrl+c", "ctrl+q"),
+			key.WithHelp("Ctrl+Q", "quit"),
 		),
 		help: key.NewBinding(
 			key.WithKeys("?", "ctrl+h"),
@@ -305,8 +305,8 @@ func newKeyMap() keyMap {
 			key.WithHelp("p", "change priority"),
 		),
 		themeCycle: key.NewBinding(
-			key.WithKeys("ctrl+t"),
-			key.WithHelp("Ctrl+T", "cycle theme"),
+			key.WithKeys("ctrl+shift+t"),
+			key.WithHelp("Ctrl+Shift+T", "cycle theme"),
 		),
 		journalKey: key.NewBinding(
 			key.WithKeys("g"),

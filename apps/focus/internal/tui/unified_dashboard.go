@@ -102,8 +102,8 @@ func DefaultUnifiedKeyMap() UnifiedKeyMap {
 			key.WithHelp("?", "help"),
 		),
 		Quit: key.NewBinding(
-			key.WithKeys("ctrl+c", "Q"),
-			key.WithHelp("Ctrl+C/Q", "quit"),
+			key.WithKeys("ctrl+c", "ctrl+q"),
+			key.WithHelp("Ctrl+Q", "quit"),
 		),
 		Config: key.NewBinding(
 			key.WithKeys("c"),
@@ -490,7 +490,7 @@ func (m UnifiedDashboardModel) renderHelp() string {
   r              → Refresh data
   Esc/q          → Go back
   ?              → Show help
-  Ctrl+C/Q       → Quit application
+  Ctrl+Q         → Quit application
 `
 	return helpText
 }
@@ -526,7 +526,7 @@ func (m UnifiedDashboardModel) renderFooter() string {
 		fmt.Fprintf(&configInfo, "🎨 %s | ", m.config.Theme)
 	}
 	taskCount := fmt.Sprintf("📋 %d tasks", len(m.taskList))
-	return fmt.Sprintf("%s%s | %s | [?]Help [c]Config [t]Theme [r]Refresh [q]Quit", configInfo.String(), taskCount, m.currentView)
+	return fmt.Sprintf("%s%s | %s | [?]Help [c]Config [Ctrl+Shift+T]Theme [r]Refresh [Ctrl+Q]Quit", configInfo.String(), taskCount, m.currentView)
 }
 
 type UnifiedActionMsg struct{ Action UnifiedAction }

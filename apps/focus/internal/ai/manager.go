@@ -34,7 +34,10 @@ type ParsedTask struct {
 func New() *Manager {
 	root, _ := config.Load()
 	cfg := ai.ConfigFromRoot(root, "focus")
-	brain, _ := ai.New(cfg)
+	brain, err := ai.New(cfg)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: brain init failed (AI features offline): %v\n", err)
+	}
 
 	home, _ := os.UserHomeDir()
 	cachePath := filepath.Join(home, ".focus", "ai_cache.json")

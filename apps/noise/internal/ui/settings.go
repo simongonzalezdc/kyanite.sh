@@ -106,7 +106,7 @@ func DefaultKeyMap() KeyMap {
 		Back:  key.NewBinding(key.WithKeys("esc")),
 		Save:  key.NewBinding(key.WithKeys("ctrl+s")),
 		Reset: key.NewBinding(key.WithKeys("ctrl+r")),
-		Quit:  key.NewBinding(key.WithKeys("q", "ctrl+c")),
+		Quit:  key.NewBinding(key.WithKeys("ctrl+c", "ctrl+q")),
 	}
 }
 

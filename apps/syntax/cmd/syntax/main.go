@@ -18,7 +18,10 @@ func main() {
 
 	root, _ := config.Load()
 	cfg := ai.ConfigFromRoot(root, "syntax")
-	brain, _ := ai.New(cfg)
+	brain, err := ai.New(cfg)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: brain init failed (AI features offline): %v\n", err)
+	}
 	m.Brain = brain
 	m.AIPanel = aipanel.New(brain, 40, 24)
 

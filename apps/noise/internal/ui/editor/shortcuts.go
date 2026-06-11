@@ -130,7 +130,7 @@ func (sm *ShortcutManager) initializeDefaultBindings() {
 	sm.registerBinding("ctrl+,", key.NewBinding(key.WithKeys("ctrl+,"), key.WithHelp("ctrl+,", "settings")), "Settings", ContextGlobal, "Application")
 
 	// Theory tools (when available)
-	sm.registerBinding("ctrl+shift+t", key.NewBinding(key.WithKeys("ctrl+shift+t"), key.WithHelp("ctrl+shift+t", "cycle themes")), "Cycle themes", ContextGlobal, "Tools")
+	sm.registerBinding("ctrl+shift+t", key.NewBinding(key.WithKeys("ctrl+shift+t"), key.WithHelp("ctrl+shift+t", "cycle theme")), "Cycle theme", ContextGlobal, "Theme")
 	// Additional theme shortcuts
 	sm.registerBinding("ctrl+shift+n", key.NewBinding(key.WithKeys("ctrl+shift+n"), key.WithHelp("ctrl+shift+n", "next theme")), "Next theme", ContextGlobal, "Tools")
 	sm.registerBinding("ctrl+shift+p", key.NewBinding(key.WithKeys("ctrl+shift+p"), key.WithHelp("ctrl+shift+p", "prev theme")), "Previous theme", ContextGlobal, "Tools")
