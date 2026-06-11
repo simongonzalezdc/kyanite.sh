@@ -4,53 +4,58 @@ import (
 	"context"
 	"strings"
 	"testing"
+
+	"github.com/kyanite/testutil"
 )
 
-func TestAIManager_ParseTask(t *testing.T) {
-	// Skip if not running integration tests
-	if testing.Short() {
-		t.Skip("skipping integration test")
-	}
+// TestAIManager_ParseTask_Mock exercises the AI path via a MockBrain
+// (httptest server). T7-05: replaces the live-network integration
+// test that previously skipped in -short mode.
+func TestAIManager_ParseTask_Mock(t *testing.T) {
+	mb := testutil.NewMockBrain("focus-test")
+	defer mb.Close()
 
-	manager := New()
+	// Queue mock responses for the prompts ParseTask will send.
+	// The mock matches by substring; the parse prompt is the
+	// input the user passed, plus surrounding context, so we
+	// match on the user input itself.
+	mb.SetResponse("Buy milk", `{"description":"Buy milk","priority":"medium","deadline":"","categories":["personal"]}`)
+	mb.SetResponse("Finish report", `{"description":"Finish report","priority":"high","deadline":"2026-06-13T00:00:00Z","categories":["work"]}`)
+	mb.SetResponse("dentist", `{"description":"Call dentist","priority":"high","deadline":"","categories":["health"]}`)
+	mb.SetResponse("team meeting", `{"description":"Schedule team meeting","priority":"medium","deadline":"2026-06-15T00:00:00Z","categories":["work","planning"]}`)
+
+	manager := NewWithBrain(mb.Brain)
+	defer manager.Close()
 
 	tests := []struct {
-		name    string
-		input   string
-		wantErr bool
+		name     string
+		input    string
+		wantDesc string
+		wantPrio string
 	}{
-		{
-			name:    "simple task",
-			input:   "Buy milk",
-			wantErr: false,
-		},
-		{
-			name:    "task with deadline",
-			input:   "Finish report by Friday",
-			wantErr: false,
-		},
-		{
-			name:    "task with priority",
-			input:   "Urgent: Call dentist",
-			wantErr: false,
-		},
-		{
-			name:    "complex task",
-			input:   "Schedule team meeting for next Monday to discuss Q3 goals",
-			wantErr: false,
-		},
+		{"simple task", "Buy milk", "Buy milk", "medium"},
+		{"with deadline", "Finish report", "Finish report", "high"},
+		{"with priority", "Call dentist", "Call dentist", "high"},
+		{"complex task", "Schedule team meeting", "Schedule team meeting", "medium"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := manager.ParseTask(context.Background(), tt.input)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseTask() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			if err != nil {
+				t.Fatalf("ParseTask() error: %v", err)
 			}
-
-			if err == nil && result.Description == "" {
-				t.Errorf("ParseTask() returned empty description")
+			if result == nil {
+				t.Fatal("ParseTask() returned nil")
+			}
+			if result.Description != tt.wantDesc {
+				t.Errorf("Description = %q, want %q", result.Description, tt.wantDesc)
+			}
+			if result.Priority != tt.wantPrio {
+				t.Errorf("Priority = %q, want %q", result.Priority, tt.wantPrio)
+			}
+			if mb.RequestCount == 0 {
+				t.Error("MockBrain saw no requests — AI path not exercised")
 			}
 		})
 	}

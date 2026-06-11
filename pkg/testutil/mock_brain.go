@@ -29,6 +29,13 @@ func NewMockBrain(app string) *MockBrain {
 	}
 
 	mux := http.NewServeMux()
+	// /api/tags is the LLMClient.IsAvailable health probe (T7-05).
+	// MockBrain needs to answer 200 here or the brain reports itself
+	// as unavailable and the manager falls back to basicParse.
+	mux.HandleFunc("/api/tags", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"models":[]}`)
+	})
 	mux.HandleFunc("/api/chat", func(w http.ResponseWriter, r *http.Request) {
 		var req struct {
 			Model    string `json:"model"`
@@ -61,12 +68,20 @@ func NewMockBrain(app string) *MockBrain {
 			}
 		}
 		if response == "" {
-			response = `{"message":{"content":"mock response","role":"assistant"},"done":true}`
+			response = "mock response"
 		}
+		// Wrap in Ollama response format so LLMClient can extract message.content.
+		wrapped, _ := json.Marshal(map[string]any{
+			"message": map[string]string{
+				"content": response,
+				"role":    "assistant",
+			},
+			"done": true,
+		})
 		mb.mu.Unlock()
 
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, response)
+		fmt.Fprint(w, string(wrapped))
 	})
 
 	server := httptest.NewServer(mux)

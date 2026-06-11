@@ -47,6 +47,19 @@ func New() *Manager {
 	}
 }
 
+// NewWithBrain creates a Manager backed by an explicit Brain. Used by
+// tests with pkg/testutil.MockBrain so the AI path is exercised
+// without hitting a real Ollama. The cache is memory-only (no file
+// path) so tests don't pollute a shared on-disk cache. (T7-05)
+func NewWithBrain(brain *ai.Brain) *Manager {
+	return &Manager{
+		brain:         brain,
+		promptBuilder: NewPromptBuilder(),
+		validator:     NewTaskValidator(),
+		cache:         cache.NewLRU(500, 24*time.Hour, ""),
+	}
+}
+
 // Close releases Brain resources and flushes the cache.
 func (m *Manager) Close() {
 	m.cache.Close()
@@ -68,12 +81,21 @@ func (m *Manager) ParseTask(ctx context.Context, input string) (*ParsedTask, err
 		prompt := m.promptBuilder.BuildParsePrompt(input)
 		resp, err := m.brain.Generate(ctx, prompt, ai.WithJSONMode())
 		if err == nil {
-			cleaned := extractJSONFromResponse(resp)
-			var task ParsedTask
-			if jsonErr := json.Unmarshal([]byte(cleaned), &task); jsonErr == nil {
-				if validated, ok := m.validateResponse(&task); ok {
-					m.cache.Set(cacheKey, validated)
-					return validated, nil
+		cleaned := extractJSONFromResponse(resp)
+			// Two-phase unmarshal: LLM may return "deadline":""
+			// which fails time.Time parsing. Strip it first.
+			var raw map[string]json.RawMessage
+			if jsonErr := json.Unmarshal([]byte(cleaned), &raw); jsonErr == nil {
+				if dl, ok := raw["deadline"]; ok && string(dl) == `""` {
+					delete(raw, "deadline")
+				}
+				fixed, _ := json.Marshal(raw)
+				var task ParsedTask
+				if jsonErr = json.Unmarshal(fixed, &task); jsonErr == nil {
+					if validated, ok := m.validateResponse(&task); ok {
+						m.cache.Set(cacheKey, validated)
+						return validated, nil
+					}
 				}
 			}
 		}
