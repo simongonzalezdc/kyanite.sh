@@ -10,6 +10,7 @@ require (
 	github.com/charmbracelet/log v1.0.0
 	github.com/google/uuid v1.6.0
 	github.com/kyanite/ai v0.0.0
+	github.com/kyanite/cache v0.0.0-00010101000000-000000000000
 	github.com/kyanite/config v0.0.0-00010101000000-000000000000
 	github.com/kyanite/design v0.0.0
 	github.com/kyanite/tui v0.0.0-00010101000000-000000000000
@@ -87,3 +88,5 @@ replace github.com/kyanite/ai => ../../pkg/ai
 replace github.com/kyanite/tui => ../../pkg/tui
 
 replace github.com/kyanite/config => ../../pkg/config
+
+replace github.com/kyanite/cache => ../../pkg/cache

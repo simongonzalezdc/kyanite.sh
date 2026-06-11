@@ -2,17 +2,15 @@ package ai
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	ai "github.com/kyanite/ai"
+	"github.com/kyanite/cache"
 	"github.com/kyanite/config"
 )
 
@@ -21,24 +19,7 @@ type Manager struct {
 	brain          *ai.Brain
 	promptBuilder  *PromptBuilder
 	validator      *TaskValidator
-
-	// Cache for AI responses with LRU eviction
-	cache        map[string]cacheEntry
-	cacheHits    map[string]time.Time // Track last access time for LRU
-	cacheMaxSize int
-	cacheMutex   sync.RWMutex
-	cachePath    string
-	cacheDirty   bool // Track if cache needs saving
-
-	done chan struct{}
-}
-
-// cacheEntry represents a cached AI response
-type cacheEntry struct {
-	Response  any       `json:"response"`
-	Timestamp time.Time `json:"timestamp"`
-	ExpiresAt time.Time `json:"expires_at"`
-	AccessCnt int       `json:"access_count"` // Track access count for LRU
+	cache          *cache.LRU
 }
 
 // ParsedTask represents the structured output from the LLM.
@@ -50,71 +31,39 @@ type ParsedTask struct {
 }
 
 // New creates a new AI manager backed by the shared pkg/ai Brain.
-// The Brain is created with DefaultConfig("focus") and may be nil if
-// New fails — callers should treat nil as "AI unavailable" and fall
-// back to rule-based logic gracefully.
 func New() *Manager {
 	root, _ := config.Load()
 	cfg := ai.ConfigFromRoot(root, "focus")
 	brain, _ := ai.New(cfg)
 
-	manager := &Manager{
+	home, _ := os.UserHomeDir()
+	cachePath := filepath.Join(home, ".focus", "ai_cache.json")
+
+	return &Manager{
 		brain:         brain,
 		promptBuilder: NewPromptBuilder(),
 		validator:     NewTaskValidator(),
-		cache:         make(map[string]cacheEntry),
-		cacheHits:     make(map[string]time.Time),
-		cacheMaxSize:  500,
-		done:          make(chan struct{}),
+		cache:         cache.NewLRU(500, 24*time.Hour, cachePath),
 	}
-
-	// Set cache path
-	home, err := os.UserHomeDir()
-	if err != nil {
-		manager.cachePath = "./ai_cache.json"
-	} else {
-		manager.cachePath = filepath.Join(home, ".focus", "ai_cache.json")
-	}
-
-	// Load cache if it exists
-	manager.loadCache()
-
-	// Start background cache saver (saves every 5 minutes)
-	go manager.periodicCacheSaver()
-
-	return manager
 }
 
-// Close stops background goroutines and flushes the cache.
+// Close releases Brain resources and flushes the cache.
 func (m *Manager) Close() {
-	close(m.done)
+	m.cache.Close()
 	if m.brain != nil {
 		m.brain.Close()
-	}
-	m.cacheMutex.RLock()
-	needsSave := m.cacheDirty
-	m.cacheMutex.RUnlock()
-	if needsSave {
-		m.cacheMutex.Lock()
-		if m.cacheDirty {
-			m.saveCache()
-			m.cacheDirty = false
-		}
-		m.cacheMutex.Unlock()
 	}
 }
 
 // ParseTask converts natural language to structured task using the LLM.
 func (m *Manager) ParseTask(ctx context.Context, input string) (*ParsedTask, error) {
-	// Check cache first
-	cacheKey := m.generateCacheKey("parse", input)
-	if cached, found := m.getFromCache(cacheKey); found {
+	cacheKey := cache.GenerateKey("parse", input)
+	if cached, found := m.cache.Get(cacheKey); found {
 		if task, ok := cached.(*ParsedTask); ok {
 			return task, nil
 		}
 	}
 
-	// Try the Brain directly
 	if m.brain != nil && m.brain.IsLLMAvailable(ctx) {
 		prompt := m.promptBuilder.BuildParsePrompt(input)
 		resp, err := m.brain.Generate(ctx, prompt, ai.WithJSONMode())
@@ -123,116 +72,96 @@ func (m *Manager) ParseTask(ctx context.Context, input string) (*ParsedTask, err
 			var task ParsedTask
 			if jsonErr := json.Unmarshal([]byte(cleaned), &task); jsonErr == nil {
 				if validated, ok := m.validateResponse(&task); ok {
-					m.saveToCache(cacheKey, validated)
+					m.cache.Set(cacheKey, validated)
 					return validated, nil
 				}
 			}
 		}
 	}
 
-	// Fallback: rule-based parsing
 	basicResult := m.basicParse(input)
-	m.saveToCache(cacheKey, basicResult)
+	m.cache.Set(cacheKey, basicResult)
 	return basicResult, nil
 }
 
 // SuggestTasks generates contextual task suggestions using the LLM.
 func (m *Manager) SuggestTasks(ctx context.Context, existingTasks []string) ([]string, error) {
-	// Create cache key from tasks
-	taskStr := strings.Join(existingTasks, "|")
-	cacheKey := m.generateCacheKey("suggest", taskStr)
-
-	// Check cache first
-	if cached, found := m.getFromCache(cacheKey); found {
+	cacheKey := cache.GenerateKey("suggest", strings.Join(existingTasks, "|"))
+	if cached, found := m.cache.Get(cacheKey); found {
 		if suggestions, ok := cached.([]string); ok {
 			return suggestions, nil
 		}
 	}
 
-	// Try the Brain directly
 	if m.brain != nil && m.brain.IsLLMAvailable(ctx) {
 		prompt := m.promptBuilder.BuildSuggestPrompt(existingTasks)
 		resp, err := m.brain.Generate(ctx, prompt)
 		if err == nil {
 			suggestions := parseSuggestionList(resp)
 			if len(suggestions) > 0 {
-				m.saveToCache(cacheKey, suggestions)
+				m.cache.Set(cacheKey, suggestions)
 				return suggestions, nil
 			}
 		}
 	}
 
-	// Deterministic fallback suggestions
 	fallback := []string{
 		"Review today's highest-priority task",
 		"Break one blocked item into a smaller next step",
 	}
-	m.saveToCache(cacheKey, fallback)
+	m.cache.Set(cacheKey, fallback)
 	return fallback, nil
 }
 
 // SummarizeTasks generates a summary of tasks using the LLM.
 func (m *Manager) SummarizeTasks(ctx context.Context, tasks []string) (string, error) {
-	// Create cache key from tasks
-	taskStr := strings.Join(tasks, "|")
-	cacheKey := m.generateCacheKey("summary", taskStr)
-
-	// Check cache first
-	if cached, found := m.getFromCache(cacheKey); found {
+	cacheKey := cache.GenerateKey("summary", strings.Join(tasks, "|"))
+	if cached, found := m.cache.Get(cacheKey); found {
 		if summary, ok := cached.(string); ok {
 			return summary, nil
 		}
 	}
 
-	// Try the Brain directly
 	if m.brain != nil && m.brain.IsLLMAvailable(ctx) {
 		prompt := m.promptBuilder.BuildSummaryPrompt(tasks)
 		resp, err := m.brain.Generate(ctx, prompt)
 		if err == nil {
 			summary := strings.TrimSpace(resp)
 			if summary != "" {
-				m.saveToCache(cacheKey, summary)
+				m.cache.Set(cacheKey, summary)
 				return summary, nil
 			}
 		}
 	}
 
-	// Fallback: basic summary
 	summary := m.basicSummary(tasks)
-	m.saveToCache(cacheKey, summary)
+	m.cache.Set(cacheKey, summary)
 	return summary, nil
 }
 
-// ChatAssistant provides help and answers questions about tasks and app usage
-// using the LLM via the shared Brain.
+// ChatAssistant provides help and answers questions about tasks and app usage.
 func (m *Manager) ChatAssistant(ctx context.Context, question string, tasks []string) (string, error) {
-	// Create cache key from question and tasks
-	taskStr := strings.Join(tasks, "|")
-	cacheKey := m.generateCacheKey("chat", question+taskStr)
-
-	// Check cache first
-	if cached, found := m.getFromCache(cacheKey); found {
+	cacheKey := cache.GenerateKey("chat", question+strings.Join(tasks, "|"))
+	if cached, found := m.cache.Get(cacheKey); found {
 		if response, ok := cached.(string); ok {
 			return response, nil
 		}
 	}
 
-	// Try the Brain directly
 	if m.brain != nil && m.brain.IsLLMAvailable(ctx) {
 		prompt := m.promptBuilder.BuildChatPrompt(question, tasks)
 		result, err := m.brain.Generate(ctx, prompt)
 		if err == nil {
 			result = strings.TrimSpace(result)
 			if result != "" {
-				m.saveToCache(cacheKey, result)
+				m.cache.Set(cacheKey, result)
 				return result, nil
 			}
 		}
 	}
 
-	// Fallback response
 	response := m.fallbackChatResponse(question, tasks)
-	m.saveToCache(cacheKey, response)
+	m.cache.Set(cacheKey, response)
 	return response, nil
 }
 
@@ -253,8 +182,7 @@ func (m *Manager) fallbackChatResponse(question string, tasks []string) string {
 	return fmt.Sprintf("AI is currently unavailable. You have %d tasks. Try 'focus --help' to see available commands!", len(tasks))
 }
 
-// GetCrossAppContext retrieves recent context from other kyanite apps (syntax, noise, prism).
-// Returns nil if the brain is unavailable — callers should treat this as best-effort.
+// GetCrossAppContext retrieves recent context from other kyanite apps.
 func (m *Manager) GetCrossAppContext(ctx context.Context, limit int) []ai.CrossAppContext {
 	if m.brain == nil {
 		return nil
@@ -267,7 +195,6 @@ func (m *Manager) GetCrossAppContext(ctx context.Context, limit int) []ai.CrossA
 }
 
 // IsOllamaAvailable reports whether the AI backend is reachable.
-// It checks the shared Brain's LLM availability (NUCBox Ollama).
 func (m *Manager) IsOllamaAvailable() bool {
 	return m.brain != nil && m.brain.IsLLMAvailable(context.Background())
 }
@@ -284,7 +211,6 @@ func (m *Manager) basicParse(input string) *ParsedTask {
 		Priority:    "medium",
 	}
 
-	// Simple keyword-based priority detection
 	lowerInput := strings.ToLower(input)
 	if strings.Contains(lowerInput, "urgent") || strings.Contains(lowerInput, "asap") ||
 		strings.Contains(lowerInput, "critical") || strings.Contains(lowerInput, "emergency") {
@@ -294,7 +220,6 @@ func (m *Manager) basicParse(input string) *ParsedTask {
 		task.Priority = "low"
 	}
 
-	// Simple category detection
 	var categories []string
 	if strings.Contains(lowerInput, "work") || strings.Contains(lowerInput, "job") {
 		categories = append(categories, "work")
@@ -307,7 +232,6 @@ func (m *Manager) basicParse(input string) *ParsedTask {
 	}
 	task.Categories = categories
 
-	// Simple deadline detection
 	if strings.Contains(lowerInput, "today") {
 		task.Deadline = time.Now()
 	} else if strings.Contains(lowerInput, "tomorrow") {
@@ -316,7 +240,6 @@ func (m *Manager) basicParse(input string) *ParsedTask {
 		task.Deadline = time.Now().AddDate(0, 0, 7)
 	}
 
-	// Truncate long descriptions
 	words := strings.Fields(task.Description)
 	if len(words) > 10 {
 		task.Description = strings.Join(words[:10], " ") + "..."
@@ -342,158 +265,7 @@ func (m *Manager) basicSummary(tasks []string) string {
 		len(tasks), completed, pending)
 }
 
-// generateCacheKey creates a unique cache key for a request
-func (m *Manager) generateCacheKey(operation, input string) string {
-	key := fmt.Sprintf("%s:%s", operation, input)
-	hash := md5.Sum([]byte(key))
-	return hex.EncodeToString(hash[:])
-}
-
-// getFromCache retrieves a response from cache if available and not expired
-func (m *Manager) getFromCache(key string) (interface{}, bool) {
-	m.cacheMutex.Lock()
-	defer m.cacheMutex.Unlock()
-
-	entry, exists := m.cache[key]
-	if !exists {
-		return nil, false
-	}
-
-	// Check if entry is expired
-	if time.Now().After(entry.ExpiresAt) {
-		return nil, false
-	}
-
-	// Update access time for LRU
-	m.cacheHits[key] = time.Now()
-	entry.AccessCnt++
-	m.cache[key] = entry
-
-	return entry.Response, true
-}
-
-// saveToCache stores a response in cache with expiration
-func (m *Manager) saveToCache(key string, response interface{}) {
-	m.cacheMutex.Lock()
-	defer m.cacheMutex.Unlock()
-
-	// Evict LRU entry if cache is full
-	if len(m.cache) >= m.cacheMaxSize {
-		m.evictLRUEntryUnsafe()
-	}
-
-	now := time.Now()
-	m.cache[key] = cacheEntry{
-		Response:  response,
-		Timestamp: now,
-		ExpiresAt: now.Add(24 * time.Hour), // Cache for 24 hours
-		AccessCnt: 1,
-	}
-	m.cacheHits[key] = now
-	m.cacheDirty = true // Mark cache as needing save
-}
-
-// evictLRUEntryUnsafe removes the least recently used cache entry
-// Must be called with cacheMutex held
-func (m *Manager) evictLRUEntryUnsafe() {
-	if len(m.cache) == 0 {
-		return
-	}
-
-	// Find LRU entry
-	var oldestKey string
-	var oldestTime time.Time
-	first := true
-
-	for key, accessTime := range m.cacheHits {
-		if first || accessTime.Before(oldestTime) {
-			oldestKey = key
-			oldestTime = accessTime
-			first = false
-		}
-	}
-
-	// Remove oldest entry
-	if oldestKey != "" {
-		delete(m.cache, oldestKey)
-		delete(m.cacheHits, oldestKey)
-	}
-}
-
-// loadCache loads cached responses from file
-func (m *Manager) loadCache() {
-	m.cacheMutex.Lock()
-	defer m.cacheMutex.Unlock()
-
-	data, err := os.ReadFile(m.cachePath)
-	if err != nil {
-		return
-	}
-
-	var cache map[string]cacheEntry
-	if err := json.Unmarshal(data, &cache); err != nil {
-		return
-	}
-
-	// Filter out expired entries and initialize cacheHits
-	now := time.Now()
-	for key, entry := range cache {
-		if now.After(entry.ExpiresAt) {
-			delete(cache, key)
-		} else {
-			m.cacheHits[key] = entry.Timestamp
-		}
-	}
-
-	m.cache = cache
-	m.cacheDirty = false
-}
-
-// periodicCacheSaver saves cache to disk every 5 minutes.
-// It exits when the done channel is closed (via Close()).
-func (m *Manager) periodicCacheSaver() {
-	ticker := time.NewTicker(5 * time.Minute)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-m.done:
-			return
-		case <-ticker.C:
-			m.cacheMutex.RLock()
-			needsSave := m.cacheDirty
-			m.cacheMutex.RUnlock()
-
-			if needsSave {
-				m.cacheMutex.Lock()
-				if m.cacheDirty {
-					m.saveCache()
-					m.cacheDirty = false
-				}
-				m.cacheMutex.Unlock()
-			}
-		}
-	}
-}
-
-// saveCache persists cache to file
-func (m *Manager) saveCache() {
-	// Ensure directory exists
-	dir := filepath.Dir(m.cachePath)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return
-	}
-
-	data, err := json.Marshal(m.cache)
-	if err != nil {
-		return
-	}
-
-	_ = os.WriteFile(m.cachePath, data, 0o644)
-}
-
-// extractJSONFromResponse extracts the first JSON object from a response
-// that may be wrapped in markdown code fences or prose.
+// extractJSONFromResponse extracts the first JSON object from a response.
 func extractJSONFromResponse(response string) string {
 	start := strings.Index(response, "{")
 	end := strings.LastIndex(response, "}")
@@ -505,14 +277,12 @@ func extractJSONFromResponse(response string) string {
 	return response
 }
 
-// parseSuggestionList splits a multi-line LLM response into a clean slice of
-// task suggestions. It strips bullets, numbering, and surrounding whitespace.
+// parseSuggestionList splits a multi-line LLM response into a clean slice.
 func parseSuggestionList(response string) []string {
 	var out []string
 	for _, line := range strings.Split(response, "\n") {
 		cleaned := strings.TrimSpace(line)
 		cleaned = strings.TrimLeft(cleaned, "-*•\t ")
-		// Strip leading numeric list markers like "1." or "1)".
 		if idx := strings.IndexAny(cleaned, ".)"); idx == len(cleaned)-1 {
 			cleaned = ""
 		}

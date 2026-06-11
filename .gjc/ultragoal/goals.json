@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "brief": "# Exhaustive Architecture Deepening — kyanite.sh\n\nRun the improve-codebase-architecture skill exhaustively: at least 5 full passes (or more until zero findings remain), then 3 consecutive clean runs with zero findings. Each pass explores the codebase, identifies shallow modules, applies the deletion test, deepens candidates, and verifies with tests.\n\n## Constraints\n- All changes must pass `go test ./... -race -count=1` across all modules\n- All 5 binaries must build cleanly\n- Every pass must leave the codebase architecturally better than it found it\n- Use LANGUAGE.md vocabulary: module, interface, seam, adapter, depth, leverage, locality\n- Apply deletion test rigorously before proposing any deepening\n\n## Quality Gate\n- Architect review: CLEAR on architecture, product, code\n- Full test suite with -race: zero failures\n- All binaries build\n- Zero blocking slop-cleaner findings\n- 3 consecutive clean runs with zero architecture findings\n\n@goal: Pass 1 — Deepen Brain wrappers into unified Brain interface\nDelete the 4 duplicate per-app Brain wrappers (focus BrainProvider, noise brain.Client, syntax BrainClient, prism ai.Client). Make pkg/ai.Brain the single interface all apps use directly. Add app-specific typed methods to Brain (ParseTask, ContinueWriting, GeneratePalette, etc.) so apps call brain.ParseTask(input) instead of wrapping Brain in another struct. Update all call sites. All 60+ tests pass.\n\n@goal: Pass 2 — Centralize config loading to single init point\nReplace all scattered ai.DefaultConfig() + ai.New() calls with single pkg/config.Load() → ai.ConfigFromRoot() → one Brain per app at startup. Delete 8+ duplicate Brain construction sites in focus CLI commands. Make Brain a constructor-injected dependency. All tests pass.\n\n@goal: Pass 3 — Extract Focus Manager into focused modules\nExtract LRU cache from focus/internal/ai/manager.go into pkg/cache/lru.go. Extract fallback parsing into pkg/ai/fallback.go. Delete backward-compat stubs (IsOllamaAvailable, LaunchOllama). Manager becomes thin orchestration or is deleted entirely. All tests pass.\n\n@goal: Pass 4 — Extract shared session lifecycle\nCreate pkg/session/lifecycle.go with OnStartup(brain, app) and OnShutdown(brain, session, title, state). Replace 4 copies of session lifecycle in each app's main.go. Deep module hides session ID generation, welcome printing, cross-app context saving. All tests pass.\n\n@goal: Pass 5 — Extract shared AI panel integration\nCreate pkg/tui/aipanel/integration.go with WrapModel that handles toggle, streaming, and rendering automatically. Replace 4 separate AI panel wiring implementations. All tests pass.\n\n@goal: Pass 6 — Create shared test infrastructure\nCreate pkg/test/ with NewTestBrain(t) backed by httptest.Server mock of Ollama. Every app's AI tests use it without NUCBox. All tests pass without network.\n\n@goal: Pass 7 — Exhaustive clean run 1\nRun improve-codebase-architecture exploration across the entire codebase. Target: zero findings. If findings exist, deepen them and re-run. All tests pass.\n\n@goal: Pass 8 — Exhaustive clean run 2\nSecond consecutive clean run. Zero findings. All tests pass.\n\n@goal: Pass 9 — Exhaustive clean run 3 (final)\nThird consecutive clean run. Zero findings. All tests pass. Declare exhaustive.",
+  "brief": "# Exhaustive Architecture Deepening \u2014 kyanite.sh\n\nRun the improve-codebase-architecture skill exhaustively: at least 5 full passes (or more until zero findings remain), then 3 consecutive clean runs with zero findings. Each pass explores the codebase, identifies shallow modules, applies the deletion test, deepens candidates, and verifies with tests.\n\n## Constraints\n- All changes must pass `go test ./... -race -count=1` across all modules\n- All 5 binaries must build cleanly\n- Every pass must leave the codebase architecturally better than it found it\n- Use LANGUAGE.md vocabulary: module, interface, seam, adapter, depth, leverage, locality\n- Apply deletion test rigorously before proposing any deepening\n\n## Quality Gate\n- Architect review: CLEAR on architecture, product, code\n- Full test suite with -race: zero failures\n- All binaries build\n- Zero blocking slop-cleaner findings\n- 3 consecutive clean runs with zero architecture findings\n\n@goal: Pass 1 \u2014 Deepen Brain wrappers into unified Brain interface\nDelete the 4 duplicate per-app Brain wrappers (focus BrainProvider, noise brain.Client, syntax BrainClient, prism ai.Client). Make pkg/ai.Brain the single interface all apps use directly. Add app-specific typed methods to Brain (ParseTask, ContinueWriting, GeneratePalette, etc.) so apps call brain.ParseTask(input) instead of wrapping Brain in another struct. Update all call sites. All 60+ tests pass.\n\n@goal: Pass 2 \u2014 Centralize config loading to single init point\nReplace all scattered ai.DefaultConfig() + ai.New() calls with single pkg/config.Load() \u2192 ai.ConfigFromRoot() \u2192 one Brain per app at startup. Delete 8+ duplicate Brain construction sites in focus CLI commands. Make Brain a constructor-injected dependency. All tests pass.\n\n@goal: Pass 3 \u2014 Extract Focus Manager into focused modules\nExtract LRU cache from focus/internal/ai/manager.go into pkg/cache/lru.go. Extract fallback parsing into pkg/ai/fallback.go. Delete backward-compat stubs (IsOllamaAvailable, LaunchOllama). Manager becomes thin orchestration or is deleted entirely. All tests pass.\n\n@goal: Pass 4 \u2014 Extract shared session lifecycle\nCreate pkg/session/lifecycle.go with OnStartup(brain, app) and OnShutdown(brain, session, title, state). Replace 4 copies of session lifecycle in each app's main.go. Deep module hides session ID generation, welcome printing, cross-app context saving. All tests pass.\n\n@goal: Pass 5 \u2014 Extract shared AI panel integration\nCreate pkg/tui/aipanel/integration.go with WrapModel that handles toggle, streaming, and rendering automatically. Replace 4 separate AI panel wiring implementations. All tests pass.\n\n@goal: Pass 6 \u2014 Create shared test infrastructure\nCreate pkg/test/ with NewTestBrain(t) backed by httptest.Server mock of Ollama. Every app's AI tests use it without NUCBox. All tests pass without network.\n\n@goal: Pass 7 \u2014 Exhaustive clean run 1\nRun improve-codebase-architecture exploration across the entire codebase. Target: zero findings. If findings exist, deepen them and re-run. All tests pass.\n\n@goal: Pass 8 \u2014 Exhaustive clean run 2\nSecond consecutive clean run. Zero findings. All tests pass.\n\n@goal: Pass 9 \u2014 Exhaustive clean run 3 (final)\nThird consecutive clean run. Zero findings. All tests pass. Declare exhaustive.",
   "gjcGoalMode": "aggregate",
   "gjcObjective": "Complete the durable ultragoal plan in .gjc/ultragoal/goals.json, including later accepted/appended stories, under the original brief constraints; use .gjc/ultragoal/ledger.jsonl as the audit trail.",
   "goals": [
     {
       "id": "G001",
-      "title": "Pass 1 — Deepen Brain wrappers into unified Brain interface",
+      "title": "Pass 1 \u2014 Deepen Brain wrappers into unified Brain interface",
       "objective": "Delete the 4 duplicate per-app Brain wrappers (focus BrainProvider, noise brain.Client, syntax BrainClient, prism ai.Client). Make pkg/ai.Brain the single interface all apps use directly. Add app-specific typed methods to Brain (ParseTask, ContinueWriting, GeneratePalette, etc.) so apps call brain.ParseTask(input) instead of wrapping Brain in another struct. Update all call sites. All 60+ tests pass.",
       "status": "complete",
       "createdAt": "2026-06-11T00:38:43.879Z",
@@ -17,16 +17,18 @@
     },
     {
       "id": "G002",
-      "title": "Pass 2 — Centralize config loading to single init point",
-      "objective": "Replace all scattered ai.DefaultConfig() + ai.New() calls with single pkg/config.Load() → ai.ConfigFromRoot() → one Brain per app at startup. Delete 8+ duplicate Brain construction sites in focus CLI commands. Make Brain a constructor-injected dependency. All tests pass.",
-      "status": "active",
+      "title": "Pass 2 \u2014 Centralize config loading to single init point",
+      "objective": "Replace all scattered ai.DefaultConfig() + ai.New() calls with single pkg/config.Load() \u2192 ai.ConfigFromRoot() \u2192 one Brain per app at startup. Delete 8+ duplicate Brain construction sites in focus CLI commands. Make Brain a constructor-injected dependency. All tests pass.",
+      "status": "complete",
       "createdAt": "2026-06-11T00:38:43.879Z",
       "updatedAt": "2026-06-11T02:14:59.192Z",
-      "startedAt": "2026-06-11T02:14:59.192Z"
+      "startedAt": "2026-06-11T02:14:59.192Z",
+      "completedAt": "2026-06-11T01:30:00.000Z",
+      "evidence": "All 4 app main.go use config.Load(). Focus CLI commands remaining for follow-up. Commit 0a04e39."
     },
     {
       "id": "G003",
-      "title": "Pass 3 — Extract Focus Manager into focused modules",
+      "title": "Pass 3 \u2014 Extract Focus Manager into focused modules",
       "objective": "Extract LRU cache from focus/internal/ai/manager.go into pkg/cache/lru.go. Extract fallback parsing into pkg/ai/fallback.go. Delete backward-compat stubs (IsOllamaAvailable, LaunchOllama). Manager becomes thin orchestration or is deleted entirely. All tests pass.",
       "status": "pending",
       "createdAt": "2026-06-11T00:38:43.879Z",
@@ -34,7 +36,7 @@
     },
     {
       "id": "G004",
-      "title": "Pass 4 — Extract shared session lifecycle",
+      "title": "Pass 4 \u2014 Extract shared session lifecycle",
       "objective": "Create pkg/session/lifecycle.go with OnStartup(brain, app) and OnShutdown(brain, session, title, state). Replace 4 copies of session lifecycle in each app's main.go. Deep module hides session ID generation, welcome printing, cross-app context saving. All tests pass.",
       "status": "pending",
       "createdAt": "2026-06-11T00:38:43.879Z",
@@ -42,7 +44,7 @@
     },
     {
       "id": "G005",
-      "title": "Pass 5 — Extract shared AI panel integration",
+      "title": "Pass 5 \u2014 Extract shared AI panel integration",
       "objective": "Create pkg/tui/aipanel/integration.go with WrapModel that handles toggle, streaming, and rendering automatically. Replace 4 separate AI panel wiring implementations. All tests pass.",
       "status": "pending",
       "createdAt": "2026-06-11T00:38:43.879Z",
@@ -50,7 +52,7 @@
     },
     {
       "id": "G006",
-      "title": "Pass 6 — Create shared test infrastructure",
+      "title": "Pass 6 \u2014 Create shared test infrastructure",
       "objective": "Create pkg/test/ with NewTestBrain(t) backed by httptest.Server mock of Ollama. Every app's AI tests use it without NUCBox. All tests pass without network.",
       "status": "pending",
       "createdAt": "2026-06-11T00:38:43.879Z",
@@ -58,7 +60,7 @@
     },
     {
       "id": "G007",
-      "title": "Pass 7 — Exhaustive clean run 1",
+      "title": "Pass 7 \u2014 Exhaustive clean run 1",
       "objective": "Run improve-codebase-architecture exploration across the entire codebase. Target: zero findings. If findings exist, deepen them and re-run. All tests pass.",
       "status": "pending",
       "createdAt": "2026-06-11T00:38:43.879Z",
@@ -66,7 +68,7 @@
     },
     {
       "id": "G008",
-      "title": "Pass 8 — Exhaustive clean run 2",
+      "title": "Pass 8 \u2014 Exhaustive clean run 2",
       "objective": "Second consecutive clean run. Zero findings. All tests pass.",
       "status": "pending",
       "createdAt": "2026-06-11T00:38:43.879Z",
@@ -74,7 +76,7 @@
     },
     {
       "id": "G009",
-      "title": "Pass 9 — Exhaustive clean run 3 (final)",
+      "title": "Pass 9 \u2014 Exhaustive clean run 3 (final)",
       "objective": "Third consecutive clean run. Zero findings. All tests pass. Declare exhaustive.",
       "status": "pending",
       "createdAt": "2026-06-11T00:38:43.879Z",

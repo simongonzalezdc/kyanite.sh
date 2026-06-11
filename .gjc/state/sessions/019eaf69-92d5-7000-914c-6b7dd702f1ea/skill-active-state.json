@@ -2,37 +2,37 @@
   "version": 1,
   "active": true,
   "skill": "ultragoal",
-  "phase": "active",
-  "updated_at": "2026-06-11T02:14:59.207Z",
+  "phase": "pending",
+  "updated_at": "2026-06-11T02:51:17.731Z",
   "session_id": "019eaf69-92d5-7000-914c-6b7dd702f1ea",
   "active_skills": [
     {
       "skill": "ultragoal",
-      "phase": "active",
+      "phase": "pending",
       "active": true,
-      "activated_at": "2026-06-11T02:14:59.207Z",
-      "updated_at": "2026-06-11T02:14:59.207Z",
+      "activated_at": "2026-06-11T02:51:17.731Z",
+      "updated_at": "2026-06-11T02:51:17.731Z",
       "session_id": "019eaf69-92d5-7000-914c-6b7dd702f1ea",
       "hud": {
         "version": 1,
         "chips": [
           {
             "label": "goals",
-            "value": "1/9",
+            "value": "2/9",
             "priority": 10
           },
           {
             "label": "current",
-            "value": "G002:Pass 2 — Centralize config loading to single init point",
+            "value": "G003:Pass 3 — Extract Focus Manager into focused modules",
             "priority": 20
           },
           {
             "label": "status",
-            "value": "active",
+            "value": "pending",
             "priority": 30
           }
         ],
-        "updated_at": "2026-06-11T02:14:59.205Z"
+        "updated_at": "2026-06-11T02:51:17.729Z"
       },
       "receipt": {
         "version": 1,
@@ -41,14 +41,14 @@
         "command": "gjc ultragoal (reconcile)",
         "state_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/skill-active-state.json",
         "storage_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/ultragoal-state.json",
-        "mutated_at": "2026-06-11T02:14:59.200Z",
-        "fresh_until": "2026-06-11T02:44:59.200Z",
+        "mutated_at": "2026-06-11T02:51:17.723Z",
+        "fresh_until": "2026-06-11T03:21:17.723Z",
         "status": "fresh",
-        "mutation_id": "ultragoal:reconcile:2026-06-11T02:14:59.200Z",
+        "mutation_id": "ultragoal:reconcile:2026-06-11T02:51:17.723Z",
         "verb": "reconcile",
         "forced": true,
-        "from_phase": "pending",
-        "to_phase": "active"
+        "from_phase": "active",
+        "to_phase": "pending"
       }
     }
   ],

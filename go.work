@@ -10,4 +10,5 @@ use (
 	./pkg/design
 	./pkg/config
 	./pkg/tui
+	./pkg/cache
 )
