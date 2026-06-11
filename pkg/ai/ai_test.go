@@ -5,6 +5,8 @@ import (
 	"errors"
 	"testing"
 	"time"
+
+	"github.com/kyanite/appnames"
 )
 
 // ── Config Tests ─────────────────────────────────────────────────────
@@ -29,7 +31,7 @@ func TestDefaultConfig(t *testing.T) {
 }
 
 func TestDefaultConfigEachApp(t *testing.T) {
-	for _, app := range []string{"focus", "noise", "syntax", "prism"} {
+	for _, app := range appnames.All {
 		cfg := DefaultConfig(app)
 		if cfg.App != app {
 			t.Errorf("expected app %q, got %q", app, cfg.App)

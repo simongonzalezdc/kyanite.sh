@@ -34,7 +34,7 @@ type Config struct {
 	DBSSLMode  string
 
 	// App identity (used for memory namespacing)
-	App string // "focus", "noise", "syntax", or "prism"
+	App string // Use appnames.Focus, appnames.Noise, etc.
 }
 
 // DefaultConfig returns a config with sensible defaults for the kyanite.sh tailnet.

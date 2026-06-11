@@ -5,6 +5,7 @@ go 1.26.0
 toolchain go1.26.4
 
 require (
+	github.com/kyanite/appnames v0.0.0-00010101000000-000000000000
 	github.com/kyanite/config v0.0.0-00010101000000-000000000000
 	github.com/lib/pq v1.12.3
 )
@@ -20,8 +21,10 @@ require (
 	github.com/knadh/koanf/v2 v2.3.5 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
-	go.yaml.in/yaml/v3 v3.0.3 // indirect
-	golang.org/x/sys v0.32.0 // indirect
+	go.yaml.in/yaml/v3 v3.0.4 // indirect
+	golang.org/x/sys v0.42.0 // indirect
 )
 
 replace github.com/kyanite/config => ../../pkg/config
+
+replace github.com/kyanite/appnames => ../../pkg/appnames
