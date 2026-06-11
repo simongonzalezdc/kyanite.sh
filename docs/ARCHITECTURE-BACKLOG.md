@@ -3,7 +3,7 @@
 Generated: 2026-06-11
 Methodology: 10 architect subagents with distinct personas, 180 findings, consolidated and ranked by (Risk × Leverage) / Effort.
 Updated: 2026-06-11 (session 3)
-HEAD: `f50c5c7`
+HEAD: `d0b59ce`
 
 ## Completed
 
@@ -47,12 +47,13 @@ HEAD: `f50c5c7`
 
 **Session 2 net: ~-500 LoC**
 
-### Session 3 (`8953dfb` → `f50c5c7`)
+### Session 3 (`8953dfb` → `d0b59ce`)
 
 - T4-03 (`f50c5c7`): `writeMutex` scoped to DB calls in autosave executeSave/executeSaveWithVersioning/CleanupOldVersions; lastSaveTime data race fixed
 - T4-04 (`f50c5c7`): `flushCache` → `flushCacheLocked` in engine.go + journal_storage.go; all mutations now hold mutex through flush (TOCTOU eliminated)
+- T5-06 (`d0b59ce`): Top-level Bubble Tea models (RootModel, MainModel, synthwave Model) → value receivers; noise/cmd type assertion updated
 
-**Session 3 net: -13 LoC**
+**Session 3 net: -3 LoC**
 
 ---
 
@@ -80,7 +81,7 @@ HEAD: `f50c5c7`
 | T5-03 | Unify ChatMessage/Message types (3 types → 1 in pkg/ai) | 2 hr | ai.Message, app.ChatMessage, agent.ChatMessage — different field counts |
 | T5-04 | Unify error paradigm (sentinels vs structured, not both) | 3 hr | Requires noise/errors/ simplification (already partially done) |
 | T5-05 | Create shared app bootstrapper (`pkg/tui/bootstrap`) | 3 hr | Standardize: flags → config → brain → session → model → run → shutdown |
-| T5-06 | Standardize Bubble Tea model receivers (value vs pointer) | 2 hr | Noise/focus use pointer (non-idiomatic, stale-state risk), syntax/prism use value |
+| ~~T5-06~~ | ~~Standardize Bubble Tea model receivers~~ | ~~2 hr~~ ✅ | Top-level models (RootModel, MainModel, synthwave Model) → value receivers; noise sub-models deferred |
 | T5-07 | Extract shared export infrastructure (`pkg/export`) | 2 hr | Noise: 6-format ExportModel, Prism: palette exporters, Syntax: story exporters |
 | T5-08 | Extract shared toast/notification (`pkg/tui/toast`) | 2 hr | Noise has ToastModel + NotificationManager (overlapping), other apps have nothing |
 
@@ -165,13 +166,12 @@ HEAD: `f50c5c7`
 
 ## Recommended Next Session Order
 
-1. **T5-06** (2 hr) — Bubble Tea model receivers. Mechanical fix, reduces stale-state bugs.
-2. **T5-01** (4 hr) — Unify 4× theme managers. Highest cross-app leverage.
-3. **T6-01..06** (3 hr) — Cross-app UX consistency.
-4. **T5-05** (3 hr) — Shared app bootstrapper.
-5. **T5-08** (2 hr) — Shared toast/notification.
-6. **T5-04 + T5-03** (5 hr) — Error paradigm + message type unification.
-7. Remaining T8 CI, T9 security, T10 data-flow items.
+1. **T5-01** (4 hr) — Unify 4× theme managers. Highest cross-app leverage.
+2. **T6-01..06** (3 hr) — Cross-app UX consistency.
+3. **T5-05** (3 hr) — Shared app bootstrapper.
+4. **T5-08** (2 hr) — Shared toast/notification.
+5. **T5-04 + T5-03** (5 hr) — Error paradigm + message type unification.
+6. Remaining T8 CI, T9 security, T10 data-flow items.
 
 ---
 

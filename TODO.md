@@ -19,13 +19,13 @@
 | `35612b3` | T9-01, T9-02, T9-03 | SSLMode require, file perms 0600/0700, resolvePath containment |
 | `8953dfb` | T7-05 | MockBrain wired to focus AI tests, two-phase JSON unmarshal for empty deadlines |
 | `f50c5c7` | T4-03, T4-04 | TOCTOU race fix (flushCacheLocked) + writeMutex scoped to DB calls; lastSaveTime race fix |
+| `d0b59ce` | T5-06 | Top-level Bubble Tea models → value receivers (RootModel, MainModel, synthwave) |
 
 ## Remaining Backlog (leverage-ranked)
 
 ### Quick Wins (< 1 hr each)
 
-1. **T5-06** (2 hr) — Bubble Tea model receivers (value → pointer)
-2. **T7-04** (1 hr) — pkg/config error-path tests
+1. **T7-04** (1 hr) — pkg/config error-path tests
 
 ### High Leverage (2-4 hr each)
 
