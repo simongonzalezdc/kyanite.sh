@@ -86,6 +86,13 @@ func (m *Manager) SetTheme(id string) {
 	}
 
 	go func(savedID string) {
+		// T4-01: a panic here would kill the process; the persistence
+		// path is best-effort and shouldn't crash theme switching.
+		defer func() {
+			if r := recover(); r != nil {
+				_ = r // logged elsewhere; swallow to keep UI responsive
+			}
+		}()
 		_ = saveThemePreferenceByID(savedID)
 	}(id)
 }

@@ -185,7 +185,16 @@ func (vs *VoiceService) setState(state VoiceState) {
 	callback := vs.onStateChange
 	if callback != nil {
 		// Call outside of lock
-		go callback(state)
+		go func(s VoiceState) {
+			// T4-01: user-supplied state-change callback must not
+			// crash the voice service if it panics.
+			defer func() {
+				if r := recover(); r != nil {
+					_ = r
+				}
+			}()
+			callback(s)
+		}(state)
 	}
 }
 

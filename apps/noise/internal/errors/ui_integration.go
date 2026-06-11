@@ -435,11 +435,18 @@ func (eru *ErrorRecoveryUI) Update(msg tea.Msg) (*ErrorRecoveryUI, tea.Cmd) {
 			if eru.showRecoveryPanel && len(eru.recoveryOperations) > 0 && eru.selectedRecovery < len(eru.recoveryOperations) {
 				operation := eru.recoveryOperations[eru.selectedRecovery]
 				if operation.Status == StatusPending {
-					go func() {
-						if err := eru.ExecuteRecoveryOperation(operation.ID); err != nil {
-							eru.logger.Error("Recovery operation failed", "operation_id", operation.ID, "error", err)
+				go func() {
+					// T4-01: a recovery op that panics must not
+					// crash the error-recovery UI loop.
+					defer func() {
+						if r := recover(); r != nil {
+							eru.logger.Error("Recovery operation panicked", "operation_id", operation.ID, "panic", r)
 						}
 					}()
+					if err := eru.ExecuteRecoveryOperation(operation.ID); err != nil {
+						eru.logger.Error("Recovery operation failed", "operation_id", operation.ID, "error", err)
+					}
+				}()
 				}
 			}
 		case "j", "down":

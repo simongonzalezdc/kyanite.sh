@@ -341,6 +341,13 @@ func (s *Service) notifyWatchers(fullPath string, event FileEvent) {
 	for _, watcher := range watchers {
 		// Use a goroutine to avoid blocking the file operation
 		go func(w FileWatcher) {
+			// T4-01: watcher callbacks are user-supplied; a panic
+			// in one must not propagate to the file-event loop.
+			defer func() {
+				if r := recover(); r != nil {
+					_ = r
+				}
+			}()
 			if w != nil {
 				w.OnFileChanged(fullPath, event)
 			}

@@ -229,6 +229,17 @@ func (s *AutoSaveService) SaveContent(content string) {
 		s.setStatus(AutoSaveSaving)
 		s.invokeStatusCallback(AutoSaveSaving)
 		go func() {
+			// T4-01: bound the unscheduled-save goroutine and recover.
+			// SaveContent is intentionally fire-and-forget, so we can't
+			// pass a real ctx; use a 5s timeout to prevent hang.
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			defer func() {
+				if r := recover(); r != nil {
+					logging.Errorf("Panic in unscheduled autosave: %v", r)
+				}
+			}()
+			_ = ctx // reserved for a future performSave(ctx, content) signature
 			if err := s.performSave(content); err != nil {
 				s.invokeErrorCallback(err)
 			}
