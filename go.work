@@ -12,4 +12,5 @@ use (
 	./pkg/tui
 	./pkg/cache
 	./pkg/session
+	./pkg/testutil
 )

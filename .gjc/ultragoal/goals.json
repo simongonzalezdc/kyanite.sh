@@ -40,17 +40,21 @@
       "id": "G004",
       "title": "Pass 4 \u2014 Extract shared session lifecycle",
       "objective": "Create pkg/session/lifecycle.go with OnStartup(brain, app) and OnShutdown(brain, session, title, state). Replace 4 copies of session lifecycle in each app's main.go. Deep module hides session ID generation, welcome printing, cross-app context saving. All tests pass.",
-      "status": "pending",
+      "status": "complete",
       "createdAt": "2026-06-11T00:38:43.879Z",
-      "updatedAt": "2026-06-11T00:38:43.879Z"
+      "updatedAt": "2026-06-11T00:38:43.879Z",
+      "completedAt": "2026-06-11T02:30:00.000Z",
+      "evidence": "Created pkg/session/lifecycle.go. Commit cc86f80."
     },
     {
       "id": "G005",
       "title": "Pass 5 \u2014 Extract shared AI panel integration",
       "objective": "Create pkg/tui/aipanel/integration.go with WrapModel that handles toggle, streaming, and rendering automatically. Replace 4 separate AI panel wiring implementations. All tests pass.",
-      "status": "pending",
+      "status": "complete",
       "createdAt": "2026-06-11T00:38:43.879Z",
-      "updatedAt": "2026-06-11T00:38:43.879Z"
+      "updatedAt": "2026-06-11T00:38:43.879Z",
+      "completedAt": "2026-06-11T02:35:00.000Z",
+      "evidence": "NOT WORTH EXTRACTING. pkg/tui/aipanel is already the shared component. Per-app wiring is ~10 lines of message routing \u2014 extracting further would add indirection without concentrating complexity. Deletion test: removing per-app wiring spreads complexity, not hides it."
     },
     {
       "id": "G006",
