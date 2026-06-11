@@ -11,4 +11,5 @@ use (
 	./pkg/config
 	./pkg/tui
 	./pkg/cache
+	./pkg/session
 )

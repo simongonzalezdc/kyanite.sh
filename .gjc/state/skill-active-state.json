@@ -39,20 +39,20 @@
       "skill": "ultragoal",
       "phase": "pending",
       "active": true,
-      "activated_at": "2026-06-11T02:51:17.731Z",
-      "updated_at": "2026-06-11T02:51:17.731Z",
+      "activated_at": "2026-06-11T02:59:09.589Z",
+      "updated_at": "2026-06-11T02:59:09.589Z",
       "session_id": "019eaf69-92d5-7000-914c-6b7dd702f1ea",
       "hud": {
         "version": 1,
         "chips": [
           {
             "label": "goals",
-            "value": "2/9",
+            "value": "3/9",
             "priority": 10
           },
           {
             "label": "current",
-            "value": "G003:Pass 3 — Extract Focus Manager into focused modules",
+            "value": "G004:Pass 4 — Extract shared session lifecycle",
             "priority": 20
           },
           {
@@ -61,7 +61,7 @@
             "priority": 30
           }
         ],
-        "updated_at": "2026-06-11T02:51:17.729Z"
+        "updated_at": "2026-06-11T02:59:09.587Z"
       },
       "receipt": {
         "version": 1,
@@ -70,13 +70,13 @@
         "command": "gjc ultragoal (reconcile)",
         "state_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/skill-active-state.json",
         "storage_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/ultragoal-state.json",
-        "mutated_at": "2026-06-11T02:51:17.723Z",
-        "fresh_until": "2026-06-11T03:21:17.723Z",
+        "mutated_at": "2026-06-11T02:59:09.580Z",
+        "fresh_until": "2026-06-11T03:29:09.580Z",
         "status": "fresh",
-        "mutation_id": "ultragoal:reconcile:2026-06-11T02:51:17.723Z",
+        "mutation_id": "ultragoal:reconcile:2026-06-11T02:59:09.580Z",
         "verb": "reconcile",
         "forced": true,
-        "from_phase": "active",
+        "from_phase": "pending",
         "to_phase": "pending"
       }
     }

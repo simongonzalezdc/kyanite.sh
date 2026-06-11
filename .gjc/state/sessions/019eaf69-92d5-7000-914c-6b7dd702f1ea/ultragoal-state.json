@@ -17,7 +17,7 @@
     {
       "id": "G003",
       "title": "Pass 3 — Extract Focus Manager into focused modules",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "G004",
@@ -51,9 +51,9 @@
     }
   ],
   "counts": {
-    "pending": 7,
+    "pending": 6,
     "active": 0,
-    "complete": 2,
+    "complete": 3,
     "failed": 0,
     "blocked": 0,
     "review_blocked": 0,
@@ -63,7 +63,7 @@
   "brief_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/ultragoal/brief.md",
   "goals_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/ultragoal/goals.json",
   "version": 2,
-  "updated_at": "2026-06-11T02:51:17.723Z",
+  "updated_at": "2026-06-11T02:59:09.580Z",
   "receipt": {
     "version": 1,
     "skill": "ultragoal",
@@ -71,22 +71,22 @@
     "command": "gjc ultragoal (reconcile)",
     "state_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/skill-active-state.json",
     "storage_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/ultragoal-state.json",
-    "mutated_at": "2026-06-11T02:51:17.723Z",
-    "fresh_until": "2026-06-11T03:21:17.723Z",
+    "mutated_at": "2026-06-11T02:59:09.580Z",
+    "fresh_until": "2026-06-11T03:29:09.580Z",
     "status": "fresh",
-    "mutation_id": "ultragoal:reconcile:2026-06-11T02:51:17.723Z",
+    "mutation_id": "ultragoal:reconcile:2026-06-11T02:59:09.580Z",
     "verb": "reconcile",
     "forced": true,
-    "from_phase": "active",
+    "from_phase": "pending",
     "to_phase": "pending",
     "content_sha256": {
       "algorithm": "sha256",
-      "value": "195089b9f7cbc34ab801f9c84e7af69414eaa69cfd9c0cdadf928a91b472d909",
+      "value": "72b49a30fbdbc0b89f34699b8676ab9d189a98c7705b7ed3e6d4287c46e18b15",
       "covered_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/ultragoal-state.json",
-      "computed_at": "2026-06-11T02:51:17.725Z"
+      "computed_at": "2026-06-11T02:59:09.582Z"
     }
   },
   "session_id": "019eaf69-92d5-7000-914c-6b7dd702f1ea",
-  "active_goal_id": "G003",
+  "active_goal_id": "G004",
   "gjc_objective": "Complete the durable ultragoal plan in .gjc/ultragoal/goals.json, including later accepted/appended stories, under the original brief constraints; use .gjc/ultragoal/ledger.jsonl as the audit trail."
 }

@@ -30,9 +30,11 @@
       "id": "G003",
       "title": "Pass 3 \u2014 Extract Focus Manager into focused modules",
       "objective": "Extract LRU cache from focus/internal/ai/manager.go into pkg/cache/lru.go. Extract fallback parsing into pkg/ai/fallback.go. Delete backward-compat stubs (IsOllamaAvailable, LaunchOllama). Manager becomes thin orchestration or is deleted entirely. All tests pass.",
-      "status": "pending",
+      "status": "complete",
       "createdAt": "2026-06-11T00:38:43.879Z",
-      "updatedAt": "2026-06-11T00:38:43.879Z"
+      "updatedAt": "2026-06-11T00:38:43.879Z",
+      "completedAt": "2026-06-11T02:00:00.000Z",
+      "evidence": "Extracted pkg/cache/lru.go. Manager 525\u2192295 lines. Commit f092a56."
     },
     {
       "id": "G004",
