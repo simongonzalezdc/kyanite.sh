@@ -2,8 +2,8 @@
 
 Generated: 2026-06-11
 Methodology: 10 architect subagents with distinct personas, 180 findings, consolidated and ranked by (Risk × Leverage) / Effort.
-Updated: 2026-06-11 (session 2)
-HEAD: `8953dfb`
+Updated: 2026-06-11 (session 3)
+HEAD: `f50c5c7`
 
 ## Completed
 
@@ -47,18 +47,25 @@ HEAD: `8953dfb`
 
 **Session 2 net: ~-500 LoC**
 
+### Session 3 (`8953dfb` → `f50c5c7`)
+
+- T4-03 (`f50c5c7`): `writeMutex` scoped to DB calls in autosave executeSave/executeSaveWithVersioning/CleanupOldVersions; lastSaveTime data race fixed
+- T4-04 (`f50c5c7`): `flushCache` → `flushCacheLocked` in engine.go + journal_storage.go; all mutations now hold mutex through flush (TOCTOU eliminated)
+
+**Session 3 net: -13 LoC**
+
 ---
 
 ## Remaining Backlog (Tiers 4-10)
 
-### TIER 4 — Concurrency Bugs (~1.5 hr remaining, HIGH risk)
+### TIER 4 — Concurrency Bugs (all resolved ✅)
 
 | ID | Finding | Files | Effort |
 |----|---------|-------|--------|
 | ~~T4-01~~ | ~~goroutine leaks~~ | ~~noise/autosave.go, theme.go, files.go, voice, errors~~ | ~~2 hr~~ ✅ |
 | ~~T4-02~~ | ~~missing context timeouts on AI ops~~ | ~~focus/cli, tui~~ | ~~30 min~~ ✅ |
-| T4-03 | Mutex held during I/O | noise/autosave.go (SQLite under lock), focus/journal_storage.go (file write under lock) | 1 hr |
-| T4-04 | Engine lock-modify-unlock-flush TOCTOU race | focus/engine.go, journal_storage.go | 30 min |
+| ~~T4-03~~ | ~~Mutex held during I/O~~ | ~~noise/autosave.go, focus/journal_storage.go~~ | ~~1 hr~~ ✅ |
+| ~~T4-04~~ | ~~Engine lock-modify-unlock-flush TOCTOU race~~ | ~~focus/engine.go, journal_storage.go~~ | ~~30 min~~ ✅ |
 | ~~T4-05~~ | ~~AudioPlayer.enabled data race~~ | ~~focus/audio/audio.go~~ | ~~10 min~~ ✅ |
 | ~~T4-06~~ | ~~naked goroutines without recover()~~ | ~~focus/tui, audio, noise/autosave~~ | ~~20 min~~ ✅ |
 
@@ -158,20 +165,19 @@ HEAD: `8953dfb`
 
 ## Recommended Next Session Order
 
-1. **T4-03 + T4-04** (1.5 hr) — Mutex held during I/O + TOCTOU race. Last concurrency bugs.
-2. **T5-06** (2 hr) — Bubble Tea model receivers. Mechanical fix, reduces stale-state bugs.
-3. **T5-01** (4 hr) — Unify 4× theme managers. Highest cross-app leverage.
-4. **T6-01..06** (3 hr) — Cross-app UX consistency.
-5. **T5-05** (3 hr) — Shared app bootstrapper.
-6. **T5-08** (2 hr) — Shared toast/notification.
-7. **T5-04 + T5-03** (5 hr) — Error paradigm + message type unification.
-8. Remaining T8 CI, T9 security, T10 data-flow items.
+1. **T5-06** (2 hr) — Bubble Tea model receivers. Mechanical fix, reduces stale-state bugs.
+2. **T5-01** (4 hr) — Unify 4× theme managers. Highest cross-app leverage.
+3. **T6-01..06** (3 hr) — Cross-app UX consistency.
+4. **T5-05** (3 hr) — Shared app bootstrapper.
+5. **T5-08** (2 hr) — Shared toast/notification.
+6. **T5-04 + T5-03** (5 hr) — Error paradigm + message type unification.
+7. Remaining T8 CI, T9 security, T10 data-flow items.
 
 ---
 
 ## Key Context for Continuation
 
-- **Local repo**: ~/workspaces/archive/personal/kyanite.sh, branch `main`, HEAD `8953dfb`
+- **Local repo**: ~/workspaces/kyanite-labs/kyanite.sh, branch `main`, HEAD `f50c5c7`
 - **GitHub**: pushed to origin/main (8 commits since `073afa6`)
 - **Forgejo**: 18 commits ahead, push pending (NUCBox tailnet down)
 - **9 go.mod files**: apps/{focus,noise,syntax,prism}, pkg/{design,ai,config,tui,cache,session,testutil}, cmd/kyanite

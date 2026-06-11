@@ -1,13 +1,13 @@
 # kyanite.sh Architecture Audit — Session Handoff
 
-## Session: 2026-06-11 (extended)
+## Session: 2026-06-11 (session 3)
 
-**HEAD**: `8953dfb` (8 commits since backlog creation, all pushed to origin)
-**Push**: origin ✅, foge ❌ (NUCBox tailnet still down)
-**Net session**: ~+600/-1100 lines (-500 LoC)
+**HEAD**: `f50c5c7` (1 commit since session 2, not yet pushed to origin)
+**Push**: origin ❌ (needs `git push origin main`), foge ❌ (NUCBox tailnet still down)
+**Net session**: +63/-76 lines (-13 LoC)
 **All tests green** with `-race` across all 4 apps
 
-## Completed This Session
+## Completed This Session (Session 2 + 3)
 
 | Commit | Items | Summary |
 |--------|-------|---------|
@@ -18,15 +18,14 @@
 | `033fddb` | T4-01 | 5 fire-and-forget goroutines: 5s timeout + `defer recover()` |
 | `35612b3` | T9-01, T9-02, T9-03 | SSLMode require, file perms 0600/0700, resolvePath containment |
 | `8953dfb` | T7-05 | MockBrain wired to focus AI tests, two-phase JSON unmarshal for empty deadlines |
+| `f50c5c7` | T4-03, T4-04 | TOCTOU race fix (flushCacheLocked) + writeMutex scoped to DB calls; lastSaveTime race fix |
 
 ## Remaining Backlog (leverage-ranked)
 
 ### Quick Wins (< 1 hr each)
 
-1. **T4-03** (1 hr) — Mutex held during I/O in autosave/journal
-2. **T4-04** (30 min) — TOCTOU race in engine lock-modify-unlock-flush
-3. **T5-06** (2 hr) — Bubble Tea model receivers (value → pointer)
-4. **T7-04** (1 hr) — pkg/config error-path tests
+1. **T5-06** (2 hr) — Bubble Tea model receivers (value → pointer)
+2. **T7-04** (1 hr) — pkg/config error-path tests
 
 ### High Leverage (2-4 hr each)
 
