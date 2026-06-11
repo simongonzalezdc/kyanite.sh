@@ -161,7 +161,7 @@ func (c *LRU) save() {
 		return
 	}
 	_ = os.MkdirAll(filepath.Dir(c.filePath), 0755)
-	_ = os.WriteFile(c.filePath, data, 0644)
+	_ = os.WriteFile(c.filePath, data, 0600)
 }
 
 func (c *LRU) periodicSave() {

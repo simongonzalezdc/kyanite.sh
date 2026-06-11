@@ -87,6 +87,12 @@ func (r *Registry) Formats(category string) []string {
 
 // Export formats data using the named formatter and returns bytes.
 func Export(r *Registry, category, format string, data any) ([]byte, error) {
+	if r == nil {
+		return nil, fmt.Errorf("nil registry")
+	}
+	if data == nil {
+		return nil, fmt.Errorf("nil data for %s/%s", category, format)
+	}
 	f := r.Lookup(category, format)
 	if f == nil {
 		return nil, fmt.Errorf("no formatter for %s/%s (available: %v)", category, format, r.Formats(category))

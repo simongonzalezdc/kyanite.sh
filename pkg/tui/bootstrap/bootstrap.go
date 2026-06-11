@@ -83,7 +83,7 @@ func (a *App) Others() []string {
 // Convenience wrapper that iterates over app.Others().
 // Errors are logged but not propagated — cross-app context is best-effort.
 func (a *App) SaveCrossAppContext(ctx context.Context, contextType, summary string, score float32) {
-	if a == nil || a.Brain == nil {
+	if a == nil || a.Brain == nil || a.Session == nil {
 		return
 	}
 	for _, target := range a.Others() {
