@@ -2,9 +2,12 @@
 
 Generated: 2026-06-11
 Methodology: 10 architect subagents with distinct personas, 180 findings, consolidated and ranked by (Risk × Leverage) / Effort.
-Commit: `22c4d06` (Tiers 1-3 complete)
+Updated: 2026-06-11 (session 2)
+HEAD: `8953dfb`
 
-## Completed (Tiers 1-3)
+## Completed
+
+### Tiers 1-3 (`22c4d06`)
 
 - T1-01: CI Go version 1.25→1.26
 - T1-02: Dual DI containers → single `di.GetContainer()`
@@ -31,31 +34,42 @@ Commit: `22c4d06` (Tiers 1-3 complete)
 
 **Net: -31,443 lines deleted.**
 
+### Session 2 (`073afa6` → `8953dfb`)
+
+- T4-01 (`033fddb`): 5 fire-and-forget goroutines bounded with 5s timeout + `defer recover()`
+- T4-02 (`2d029e5`): 6 AI call sites wrapped with 30s timeout via `cli/withAITimeout()`
+- T4-05 (`e3aa878`): `AudioPlayer.enabled` → `sync/atomic.Bool`
+- T4-06 (`e3aa878`): `defer recover()` on 4 naked goroutines
+- T5-02 (`0167a64` + `361cb28`): Focus dual config → shared `pkg/config`, deleted `focus/pkg/config` (-696 net)
+- T7-05 (`8953dfb`): MockBrain wired to focus AI tests, `NewWithBrain()` DI, two-phase JSON unmarshal
+- T8-02 + T8-03 + T8-05 (`4c7e1c1`): CI: `-race` on all test steps, `pkg-and-cmd` job, `vulncheck` job
+- T9-01 + T9-02 + T9-03 (`35612b3`): SSLMode require, file perms 0600/0700, resolvePath containment
+
+**Session 2 net: ~-500 LoC**
+
 ---
 
 ## Remaining Backlog (Tiers 4-10)
 
-### TIER 4 — Concurrency Bugs (~5 hr, HIGH risk)
+### TIER 4 — Concurrency Bugs (~1.5 hr remaining, HIGH risk)
 
 | ID | Finding | Files | Effort |
 |----|---------|-------|--------|
-| T4-01 | 7 goroutine leaks (fire-and-forget, no cancellation) | noise/autosave.go (3), theme.go, files.go, voice setup, error recovery | 2 hr |
-| T4-02 | 6 missing context timeouts on AI ops (context.Background → hangs if Ollama down) | focus/cli/{add,chat,edit,recur,suggest}.go, tui/main.go | 30 min |
+| ~~T4-01~~ | ~~goroutine leaks~~ | ~~noise/autosave.go, theme.go, files.go, voice, errors~~ | ~~2 hr~~ ✅ |
+| ~~T4-02~~ | ~~missing context timeouts on AI ops~~ | ~~focus/cli, tui~~ | ~~30 min~~ ✅ |
 | T4-03 | Mutex held during I/O | noise/autosave.go (SQLite under lock), focus/journal_storage.go (file write under lock) | 1 hr |
 | T4-04 | Engine lock-modify-unlock-flush TOCTOU race | focus/engine.go, journal_storage.go | 30 min |
-| T4-05 | AudioPlayer.enabled data race (no sync) | focus/audio/audio.go | 10 min |
-| T4-06 | 4 naked goroutines without recover() (panic crashes process) | focus/tui/unified_dashboard.go, audio.go, noise/autosave.go (2) | 20 min |
-
-**T4-02 is the highest ROI** — wrap all AI CLI calls with `context.WithTimeout(ctx, 30*time.Second)`.
+| ~~T4-05~~ | ~~AudioPlayer.enabled data race~~ | ~~focus/audio/audio.go~~ | ~~10 min~~ ✅ |
+| ~~T4-06~~ | ~~naked goroutines without recover()~~ | ~~focus/tui, audio, noise/autosave~~ | ~~20 min~~ ✅ |
 
 ---
 
-### TIER 5 — API Surface Unification (~21 hr, MEDIUM risk, HIGH leverage)
+### TIER 5 — API Surface Unification (~18 hr remaining, MEDIUM risk, HIGH leverage)
 
 | ID | Finding | Effort | Notes |
 |----|---------|--------|-------|
 | T5-01 | Unify 4× theme managers into `pkg/design/manager.go` | 4 hr | Focus: singleton+Once, Noise: persistence+channel, Syntax: constructor, Prism: NextTheme only |
-| T5-02 | Unify focus dual config (delete focus/pkg/config, use shared pkg/config) | 3 hr | Focus has Viper-based local + koanf-based shared, loaded concurrently |
+| ~~T5-02~~ | ~~Unify focus dual config~~ | ~~3 hr~~ | ✅ Deleted `focus/pkg/config`, using shared `pkg/config` |
 | T5-03 | Unify ChatMessage/Message types (3 types → 1 in pkg/ai) | 2 hr | ai.Message, app.ChatMessage, agent.ChatMessage — different field counts |
 | T5-04 | Unify error paradigm (sentinels vs structured, not both) | 3 hr | Requires noise/errors/ simplification (already partially done) |
 | T5-05 | Create shared app bootstrapper (`pkg/tui/bootstrap`) | 3 hr | Standardize: flags → config → brain → session → model → run → shutdown |
@@ -63,7 +77,7 @@ Commit: `22c4d06` (Tiers 1-3 complete)
 | T5-07 | Extract shared export infrastructure (`pkg/export`) | 2 hr | Noise: 6-format ExportModel, Prism: palette exporters, Syntax: story exporters |
 | T5-08 | Extract shared toast/notification (`pkg/tui/toast`) | 2 hr | Noise has ToastModel + NotificationManager (overlapping), other apps have nothing |
 
-**T5-01 and T5-02 are highest leverage** — they eliminate the two biggest sources of cross-app inconsistency.
+**T5-01 is the highest leverage remaining item** — eliminates the biggest source of cross-app inconsistency.
 
 ---
 
@@ -80,7 +94,7 @@ Commit: `22c4d06` (Tiers 1-3 complete)
 
 ---
 
-### TIER 7 — Test Coverage Gaps (~15 hr, MEDIUM risk)
+### TIER 7 — Test Coverage Gaps (~14 hr remaining, MEDIUM risk)
 
 | ID | Finding | Detail |
 |----|---------|--------|
@@ -88,20 +102,20 @@ Commit: `22c4d06` (Tiers 1-3 complete)
 | T7-02 | Focus CLI — 20+ command handlers untested | Only cli_test.go tests imported validation functions |
 | T7-03 | Focus Engine — AddSubtask/RestoreTask/UpdateTask untested | Real parent-child linking, duplicate-ID, timestamp logic |
 | T7-04 | pkg/config — no error-path tests | Missing: malformed YAML, permission errors, directory-as-path |
-| T7-05 | pkg/testutil/mock_brain exists but unused | Focus AI tests still hit network (nucbox:11434) |
+| ~~T7-05~~ | ~~pkg/testutil/mock_brain exists but unused~~ | ~~Focus AI tests still hit network (nucbox:11434)~~ ✅ |
 | T7-06 | Focus store_test.go asserts on unexported filePath field | Tests implementation, not behavior |
 | T7-07 | Focus ai/manager_test.go tests 5 unexported functions | Tests implementation details |
 
 ---
 
-### TIER 8 — Build/CI Hardening (~4 hr, MEDIUM risk)
+### TIER 8 — Build/CI Hardening (~2 hr remaining, MEDIUM risk)
 
 | ID | Finding | Detail |
 |----|---------|--------|
-| T8-02 | Add CI test jobs for pkg modules + cmd/kyanite | CI only tests 4 apps, misses 7 pkg modules |
-| T8-03 | Add -race flag to CI test step | Currently `go test ./...` without -race |
+| ~~T8-02~~ | ~~Add CI test jobs for pkg modules + cmd/kyanite~~ | ~~CI only tests 4 apps, misses 7 pkg modules~~ ✅ |
+| ~~T8-03~~ | ~~Add -race flag to CI test step~~ | ~~Currently `go test ./...` without -race~~ ✅ |
 | T8-04 | Add test coverage enforcement | No -coverprofile, no threshold gate |
-| T8-05 | Add govulncheck step to CI | No vulnerability scanning |
+| ~~T8-05~~ | ~~Add govulncheck step to CI~~ | ~~No vulnerability scanning~~ ✅ |
 | T8-06 | Align dependency versions (go work sync) | x/sys at 3 versions, yaml at 2, pkg/tui has drift |
 | T8-07 | Fix pkg/tui dep drift | lipgloss 1.1.0 vs 1.1.1-pre, runewidth 0.0.16 vs 0.0.20 |
 | T8-08 | Add go.sum for pkg/cache | Missing after extraction |
@@ -112,13 +126,13 @@ Commit: `22c4d06` (Tiers 1-3 complete)
 
 ---
 
-### TIER 9 — Security Hardening (~4 hr, MEDIUM risk)
+### TIER 9 — Security Hardening (~2 hr remaining, MEDIUM risk)
 
 | ID | Finding | Detail |
 |----|---------|--------|
-| T9-01 | PostgreSQL sslmode default to 'require' | Currently 'disable' — cleartext credentials over network |
-| T9-02 | File permissions: 0600/0700 for user data | Config ✅ fixed. Song files, media, DB dirs still world-readable |
-| T9-03 | Noise resolvePath — add path containment check | Absolute paths bypass BaseDir, enabling traversal |
+| ~~T9-01~~ | ~~PostgreSQL sslmode default to 'require'~~ | ~~Currently 'disable' — cleartext credentials over network~~ ✅ |
+| ~~T9-02~~ | ~~File permissions: 0600/0700 for user data~~ | ~~Song files, media, DB dirs still world-readable~~ ✅ |
+| ~~T9-03~~ | ~~Noise resolvePath — add path containment check~~ | ~~Absolute paths bypass BaseDir, enabling traversal~~ ✅ |
 | T9-04 | Noise upload — validate magic bytes, not just Content-Type | Accepts any file with spoofed MIME type |
 | T9-05 | Standardize on modernc.org/sqlite, remove CGO mattn/go-sqlite3 | Dual drivers increase attack surface |
 | T9-06 | Mask pairing codes in logs (Debug, not Info) | Currently logs at Info |
@@ -144,23 +158,26 @@ Commit: `22c4d06` (Tiers 1-3 complete)
 
 ## Recommended Next Session Order
 
-1. **T4-02** (30 min) — Wrap AI calls with timeouts. Immediate safety win.
-2. **T4-05 + T4-06** (30 min) — Audio race + goroutine recover. Quick fixes.
-3. **T8-02 + T8-03 + T8-05** (1 hr) — Add pkg tests + race + vulncheck to CI.
-4. **T5-02** (3 hr) — Delete focus dual config. High leverage.
-5. **T5-01** (4 hr) — Unify theme managers. Highest cross-app consistency win.
-6. **T4-01** (2 hr) — Fix goroutine leaks with context cancellation.
-7. **T9-01 + T9-02 + T9-03** (1.5 hr) — Security quick wins.
+1. **T4-03 + T4-04** (1.5 hr) — Mutex held during I/O + TOCTOU race. Last concurrency bugs.
+2. **T5-06** (2 hr) — Bubble Tea model receivers. Mechanical fix, reduces stale-state bugs.
+3. **T5-01** (4 hr) — Unify 4× theme managers. Highest cross-app leverage.
+4. **T6-01..06** (3 hr) — Cross-app UX consistency.
+5. **T5-05** (3 hr) — Shared app bootstrapper.
+6. **T5-08** (2 hr) — Shared toast/notification.
+7. **T5-04 + T5-03** (5 hr) — Error paradigm + message type unification.
+8. Remaining T8 CI, T9 security, T10 data-flow items.
 
 ---
 
 ## Key Context for Continuation
 
-- **Local repo**: ~/workspaces/archive/personal/kyanite.sh, branch `main`, HEAD `22c4d06`
-- **GitHub**: pushed to origin/main
-- **Forgejo**: still needs retry — NUCBox tailnet was down
+- **Local repo**: ~/workspaces/archive/personal/kyanite.sh, branch `main`, HEAD `8953dfb`
+- **GitHub**: pushed to origin/main (8 commits since `073afa6`)
+- **Forgejo**: 18 commits ahead, push pending (NUCBox tailnet down)
 - **9 go.mod files**: apps/{focus,noise,syntax,prism}, pkg/{design,ai,config,tui,cache,session,testutil}, cmd/kyanite
 - **go.work**: includes all modules + pkg/cache + pkg/session + pkg/testutil
 - **Knowledge stub**: noise's deleted knowledge/ package is stubbed at `internal/app/ai/knowledge_stub.go`
 - **Agent stub**: noise's deleted agent/ package is commented out in `internal/ui/editor/split_pane.go` (museAgent = interface{}(nil))
 - **DI singleton**: focus CLI uses `di.GetContainer()` from helpers.go, provider.go has `GetContainer()` with `sync.Once`
+- **MockBrain**: wraps all responses in Ollama format; `NewWithBrain()` uses memory-only cache
+- **Two-phase unmarshal**: manager.go strips empty `"deadline":""` before parsing into `time.Time`
