@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/kyanite/focus/internal/di"
@@ -52,7 +51,8 @@ var suggestCmd = &cobra.Command{
 
 		// Get AI suggestions with streaming
 		fmt.Println("🧠 Channeling suggestion matrix...")
-		ctx := context.Background()
+		ctx, cancel := withAITimeout()
+		defer cancel()
 
 		// Show streaming AI thinking
 		thinkingText := "Processing..."

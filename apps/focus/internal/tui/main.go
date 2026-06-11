@@ -1320,6 +1320,10 @@ func (m *MainModel) processChatMessage(message string) string {
 		return "🤖 AI manager not initialized"
 	}
 
+	// Bound all AI ops in this call to prevent indefinite hangs if Ollama is down (T4-02)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
 	// Extract task descriptions for context
 	taskDescriptions := make([]string, len(m.tasks))
 	for i, task := range m.tasks {
@@ -1331,7 +1335,7 @@ func (m *MainModel) processChatMessage(message string) string {
 	}
 
 	// Load cross-app context (best-effort, skip if unavailable)
-	if crossApp := m.aiManager.GetCrossAppContext(context.Background(), 3); len(crossApp) > 0 {
+	if crossApp := m.aiManager.GetCrossAppContext(ctx, 3); len(crossApp) > 0 {
 		var summaries []string
 		for _, c := range crossApp {
 			summaries = append(summaries, c.Summary)
@@ -1340,7 +1344,7 @@ func (m *MainModel) processChatMessage(message string) string {
 	}
 
 	// Call real AI
-	response, err := m.aiManager.ChatAssistant(context.Background(), message, taskDescriptions)
+	response, err := m.aiManager.ChatAssistant(ctx, message, taskDescriptions)
 	if err != nil {
 		// Fallback response if AI fails
 		return fmt.Sprintf("🤖 AI unavailable (%s). However, you have %d tasks. Try starting Ollama with: ollama serve", err.Error(), len(m.tasks))

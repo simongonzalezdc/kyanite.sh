@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -152,7 +151,9 @@ Example: focus edit abc123`,
 		// AI-powered enhancement if requested
 		if useAI && description != task.Description {
 			aiManager := di.GetContainer().GetAIManager()
-			parsedTask, err := aiManager.ParseTask(context.Background(), description)
+			ctx, cancel := withAITimeout()
+			defer cancel()
+			parsedTask, err := aiManager.ParseTask(ctx, description)
 			if err == nil {
 				description = parsedTask.Description
 				if parsedTask.Priority != "" {

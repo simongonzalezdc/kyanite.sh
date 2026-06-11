@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -101,7 +100,9 @@ Examples:
 
 		// Try to enhance with AI if available
 		aiManager := di.GetContainer().GetAIManager()
-		parsedTask, err := aiManager.ParseTask(context.Background(), description)
+		ctx, cancel := withAITimeout()
+		defer cancel()
+		parsedTask, err := aiManager.ParseTask(ctx, description)
 
 		var categories []string
 		deadline := time.Now() // Start recurring from today

@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -42,7 +41,9 @@ Example: focus add "Complete the project by Friday"`,
 
 		// AI-powered task parsing
 		var task models.ParsedTask
-		parsedTask, err := aiManager.ParseTask(context.Background(), description)
+		ctx, cancel := withAITimeout()
+		defer cancel()
+		parsedTask, err := aiManager.ParseTask(ctx, description)
 		if err != nil {
 			// Fallback to basic task creation if AI fails
 			task = models.ParsedTask{

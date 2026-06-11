@@ -2,7 +2,6 @@ package cli
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -92,7 +91,8 @@ var chatCmd = &cobra.Command{
 			fmt.Print("\r")                                      // Return to start
 			fmt.Print(aiLabel)
 
-			ctx := context.Background()
+			ctx, cancel := withAITimeout()
+			defer cancel()
 			response, err := aiManager.ChatAssistant(ctx, question, taskDescriptions)
 			if err != nil {
 				errorText := "❌ Sorry, I encountered an error processing your request."
