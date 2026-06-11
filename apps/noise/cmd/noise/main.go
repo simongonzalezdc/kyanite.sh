@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/kyanite/ai"
+	"github.com/kyanite/appnames"
 	kyaniteconfig "github.com/kyanite/config"
 	"github.com/kyanite/noise/internal/config"
 	"github.com/kyanite/noise/internal/logging"
@@ -92,11 +93,10 @@ func main() {
 
 		// Best-effort cross-app context save
 		summary := fmt.Sprintf("Used noise.sh — %s", sessionTitle)
-		if err := b.SaveCrossAppContext(shutdownCtx, "syntax", "session_summary", summary, 0.5); err != nil {
-			logger.Warnf("failed to save cross-app context: %v", err)
-		}
-		if err := b.SaveCrossAppContext(shutdownCtx, "focus", "session_summary", summary, 0.5); err != nil {
-			logger.Warnf("failed to save cross-app context: %v", err)
+		for _, target := range appnames.Others(appnames.Noise) {
+			if err := b.SaveCrossAppContext(shutdownCtx, target, "session_summary", summary, 0.5); err != nil {
+				logger.Warnf("failed to save cross-app context for %s: %v", target, err)
+			}
 		}
 	}
 
