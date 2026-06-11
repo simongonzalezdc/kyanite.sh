@@ -38,25 +38,51 @@ func NewMediaStore(basePath string) (*MediaStore, error) {
 // SaveVoiceMemo saves a voice memo and returns its path
 func (ms *MediaStore) SaveVoiceMemo(deviceID string, data []byte) (string, error) {
 	filename := generateMediaFilename(deviceID, "webm")
-	path := filepath.Join(ms.voicePath, filename)
+	fullPath := filepath.Join(ms.voicePath, filename)
 
-	if err := os.WriteFile(path, data, DefaultFilePermission); err != nil {
+	if err := os.WriteFile(fullPath, data, DefaultFilePermission); err != nil {
 		return "", fmt.Errorf("failed to write voice memo: %w", err)
 	}
 
-	return path, nil
+	// Return relative path instead of full filesystem path for API responses
+	return "/media/voice/" + filename, nil
+}
+
+// SaveVoiceMemoFullPath saves a voice memo and returns its full filesystem path (for internal use)
+func (ms *MediaStore) SaveVoiceMemoFullPath(deviceID string, data []byte) (string, error) {
+	filename := generateMediaFilename(deviceID, "webm")
+	fullPath := filepath.Join(ms.voicePath, filename)
+
+	if err := os.WriteFile(fullPath, data, DefaultFilePermission); err != nil {
+		return "", fmt.Errorf("failed to write voice memo: %w", err)
+	}
+
+	return fullPath, nil
 }
 
 // SavePhoto saves a photo and returns its path
 func (ms *MediaStore) SavePhoto(deviceID string, data []byte) (string, error) {
 	filename := generateMediaFilename(deviceID, "jpg")
-	path := filepath.Join(ms.photosPath, filename)
+	fullPath := filepath.Join(ms.photosPath, filename)
 
-	if err := os.WriteFile(path, data, DefaultFilePermission); err != nil {
+	if err := os.WriteFile(fullPath, data, DefaultFilePermission); err != nil {
 		return "", fmt.Errorf("failed to write photo: %w", err)
 	}
 
-	return path, nil
+	// Return relative path instead of full filesystem path for API responses
+	return "/media/photos/" + filename, nil
+}
+
+// SavePhotoFullPath saves a photo and returns its full filesystem path (for internal use)
+func (ms *MediaStore) SavePhotoFullPath(deviceID string, data []byte) (string, error) {
+	filename := generateMediaFilename(deviceID, "jpg")
+	fullPath := filepath.Join(ms.photosPath, filename)
+
+	if err := os.WriteFile(fullPath, data, DefaultFilePermission); err != nil {
+		return "", fmt.Errorf("failed to write photo: %w", err)
+	}
+
+	return fullPath, nil
 }
 
 // GetPath returns the full path for a media ID

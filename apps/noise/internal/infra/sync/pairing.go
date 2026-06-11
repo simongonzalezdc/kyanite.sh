@@ -67,7 +67,8 @@ func (pm *PairingManager) GenerateCode() string {
 	}
 
 	pm.activeCodes[code] = time.Now().Add(PairingCodeExpiry)
-	pm.logger.Infof("Generated pairing code: %s (expires in %v)", code, PairingCodeExpiry)
+	// Log at debug level to avoid exposing pairing codes in normal logs
+	pm.logger.Debugf("Generated pairing code: %s (expires in %v)", code, PairingCodeExpiry)
 
 	return code
 }

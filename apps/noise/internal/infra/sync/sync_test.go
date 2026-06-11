@@ -3,6 +3,7 @@ package sync
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -137,18 +138,27 @@ func TestMediaStore(t *testing.T) {
 		ms, _ := NewMediaStore(filepath.Join(tempDir, "media"))
 
 		data := []byte("fake audio data")
-		path, err := ms.SaveVoiceMemo("device123", data)
+		fullPath, err := ms.SaveVoiceMemoFullPath("device123", data)
 		if err != nil {
 			t.Fatalf("failed to save voice memo: %v", err)
 		}
 
-		if path == "" {
+		if fullPath == "" {
 			t.Error("path should not be empty")
 		}
 
 		// Verify file exists
-		if _, err := os.Stat(path); os.IsNotExist(err) {
+		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 			t.Error("voice memo file should exist")
+		}
+
+		// Also test that the public API returns relative path
+		relativePath, err := ms.SaveVoiceMemo("device456", []byte("test"))
+		if err != nil {
+			t.Fatalf("failed to save with relative path: %v", err)
+		}
+		if !strings.HasPrefix(relativePath, "/media/voice/") {
+			t.Errorf("expected relative path to start with /media/voice/, got: %s", relativePath)
 		}
 	})
 
@@ -157,18 +167,27 @@ func TestMediaStore(t *testing.T) {
 		ms, _ := NewMediaStore(filepath.Join(tempDir, "media"))
 
 		data := []byte("fake photo data")
-		path, err := ms.SavePhoto("device123", data)
+		fullPath, err := ms.SavePhotoFullPath("device123", data)
 		if err != nil {
 			t.Fatalf("failed to save photo: %v", err)
 		}
 
-		if path == "" {
+		if fullPath == "" {
 			t.Error("path should not be empty")
 		}
 
 		// Verify file exists
-		if _, err := os.Stat(path); os.IsNotExist(err) {
+		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 			t.Error("photo file should exist")
+		}
+
+		// Also test that the public API returns relative path
+		relativePath, err := ms.SavePhoto("device456", []byte("test"))
+		if err != nil {
+			t.Fatalf("failed to save with relative path: %v", err)
+		}
+		if !strings.HasPrefix(relativePath, "/media/photos/") {
+			t.Errorf("expected relative path to start with /media/photos/, got: %s", relativePath)
 		}
 	})
 

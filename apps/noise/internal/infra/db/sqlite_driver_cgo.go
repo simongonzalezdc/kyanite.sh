@@ -3,8 +3,8 @@
 package db
 
 import (
-	// Import SQLite driver for CGO builds
-	_ "github.com/mattn/go-sqlite3"
+	// Import modernc.org/sqlite for CGO builds (no CGO required, provides better security and cross-platform support)
+	_ "modernc.org/sqlite"
 )
 
-const sqliteDriverName = "sqlite3"
+const sqliteDriverName = "sqlite"
