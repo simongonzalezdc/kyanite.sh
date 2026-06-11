@@ -10,7 +10,9 @@ require (
 	github.com/charmbracelet/log v1.0.0
 	github.com/google/uuid v1.6.0
 	github.com/kyanite/ai v0.0.0
+	github.com/kyanite/config v0.0.0-00010101000000-000000000000
 	github.com/kyanite/design v0.0.0
+	github.com/kyanite/tui v0.0.0-00010101000000-000000000000
 	github.com/pterm/pterm v0.12.83
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
@@ -45,8 +47,6 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.5 // indirect
-	github.com/kyanite/config v0.0.0-00010101000000-000000000000 // indirect
-	github.com/kyanite/tui v0.0.0-00010101000000-000000000000 // indirect
 	github.com/lib/pq v1.12.3 // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect

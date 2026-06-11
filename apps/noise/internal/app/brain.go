@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/kyanite/ai"
+	kyaniteconfig "github.com/kyanite/config"
 	"github.com/kyanite/noise/internal/config"
 	"github.com/kyanite/noise/internal/logging"
 )
@@ -10,7 +11,8 @@ import (
 // If Brain creation fails (e.g. NUCBox unreachable), nil is returned and
 // logged — the app must remain usable offline.
 func newBrain(cfg *config.Config) *ai.Brain {
-	brainCfg := ai.DefaultConfig("noise")
+	root, _ := kyaniteconfig.Load()
+	brainCfg := ai.ConfigFromRoot(root, "noise")
 	if cfg != nil && cfg.AI.BaseURL != "" {
 		brainCfg.OllamaURL = cfg.AI.BaseURL
 	}

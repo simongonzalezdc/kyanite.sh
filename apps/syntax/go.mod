@@ -9,6 +9,7 @@ require (
 	github.com/charmbracelet/lipgloss v1.1.1-0.20250404203927-76690c660834
 	github.com/jung-kurt/gofpdf v1.16.2
 	github.com/kyanite/ai v0.0.0
+	github.com/kyanite/config v0.0.0-00010101000000-000000000000
 	github.com/kyanite/design v0.0.0
 	github.com/kyanite/tui v0.0.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -16,7 +17,6 @@ require (
 
 replace (
 	github.com/kyanite/ai => ../../pkg/ai
-	github.com/kyanite/config => ../../pkg/config
 	github.com/kyanite/design => ../../pkg/design
 	github.com/kyanite/tui => ../../pkg/tui
 )
@@ -41,7 +41,6 @@ require (
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.5 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
-	github.com/kyanite/config v0.0.0-00010101000000-000000000000 // indirect
 	github.com/lib/pq v1.12.3 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -64,3 +63,5 @@ require (
 )
 
 toolchain go1.26.4
+
+replace github.com/kyanite/config => ../../pkg/config

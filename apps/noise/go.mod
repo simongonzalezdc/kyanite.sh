@@ -12,10 +12,9 @@ require (
 	github.com/charmbracelet/lipgloss v1.1.1-0.20250404203927-76690c660834
 	github.com/charmbracelet/log v1.0.0
 	github.com/gen2brain/malgo v0.11.25
-	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20260609105100-df7638d8229a
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
-	github.com/mattn/go-sqlite3 v1.14.45
+	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
@@ -25,7 +24,15 @@ require (
 )
 
 require (
+	github.com/knadh/koanf/maps v0.1.2 // indirect
+	github.com/knadh/koanf/parsers/yaml v1.1.0 // indirect
+	github.com/knadh/koanf/providers/confmap v1.0.0 // indirect
+	github.com/knadh/koanf/providers/env v1.1.0 // indirect
+	github.com/knadh/koanf/providers/file v1.2.1 // indirect
+	github.com/knadh/koanf/v2 v2.3.5 // indirect
 	github.com/lib/pq v1.12.3 // indirect
+	github.com/mitchellh/copystructure v1.2.0 // indirect
+	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 )
 
@@ -90,6 +97,11 @@ require github.com/kyanite/ai v0.0.0
 
 replace github.com/kyanite/ai => ../../pkg/ai
 
-require github.com/kyanite/tui v0.0.0
+require (
+	github.com/kyanite/config v0.0.0-00010101000000-000000000000
+	github.com/kyanite/tui v0.0.0
+)
 
 replace github.com/kyanite/tui => ../../pkg/tui
+
+replace github.com/kyanite/config => ../../pkg/config

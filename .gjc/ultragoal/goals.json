@@ -8,18 +8,21 @@
       "id": "G001",
       "title": "Pass 1 — Deepen Brain wrappers into unified Brain interface",
       "objective": "Delete the 4 duplicate per-app Brain wrappers (focus BrainProvider, noise brain.Client, syntax BrainClient, prism ai.Client). Make pkg/ai.Brain the single interface all apps use directly. Add app-specific typed methods to Brain (ParseTask, ContinueWriting, GeneratePalette, etc.) so apps call brain.ParseTask(input) instead of wrapping Brain in another struct. Update all call sites. All 60+ tests pass.",
-      "status": "active",
+      "status": "complete",
       "createdAt": "2026-06-11T00:38:43.879Z",
-      "updatedAt": "2026-06-11T00:38:56.172Z",
-      "startedAt": "2026-06-11T00:38:56.172Z"
+      "updatedAt": "2026-06-11T02:14:36.277Z",
+      "startedAt": "2026-06-11T00:38:56.172Z",
+      "completedAt": "2026-06-11T00:55:00.000Z",
+      "evidence": "Deleted 4 Brain wrappers (net -508 lines). All apps use *ai.Brain directly. 60+ tests pass. Commit 691963d."
     },
     {
       "id": "G002",
       "title": "Pass 2 — Centralize config loading to single init point",
       "objective": "Replace all scattered ai.DefaultConfig() + ai.New() calls with single pkg/config.Load() → ai.ConfigFromRoot() → one Brain per app at startup. Delete 8+ duplicate Brain construction sites in focus CLI commands. Make Brain a constructor-injected dependency. All tests pass.",
-      "status": "pending",
+      "status": "active",
       "createdAt": "2026-06-11T00:38:43.879Z",
-      "updatedAt": "2026-06-11T00:38:43.879Z"
+      "updatedAt": "2026-06-11T02:14:59.192Z",
+      "startedAt": "2026-06-11T02:14:59.192Z"
     },
     {
       "id": "G003",
@@ -79,5 +82,5 @@
     }
   ],
   "createdAt": "2026-06-11T00:38:43.879Z",
-  "updatedAt": "2026-06-11T00:38:56.172Z"
+  "updatedAt": "2026-06-11T02:14:59.192Z"
 }

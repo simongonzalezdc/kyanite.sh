@@ -7,12 +7,12 @@
     {
       "id": "G001",
       "title": "Pass 1 — Deepen Brain wrappers into unified Brain interface",
-      "status": "active"
+      "status": "complete"
     },
     {
       "id": "G002",
       "title": "Pass 2 — Centralize config loading to single init point",
-      "status": "pending"
+      "status": "active"
     },
     {
       "id": "G003",
@@ -51,9 +51,9 @@
     }
   ],
   "counts": {
-    "pending": 8,
+    "pending": 7,
     "active": 1,
-    "complete": 0,
+    "complete": 1,
     "failed": 0,
     "blocked": 0,
     "review_blocked": 0,
@@ -63,7 +63,7 @@
   "brief_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/ultragoal/brief.md",
   "goals_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/ultragoal/goals.json",
   "version": 2,
-  "updated_at": "2026-06-11T00:40:31.634Z",
+  "updated_at": "2026-06-11T02:14:59.200Z",
   "receipt": {
     "version": 1,
     "skill": "ultragoal",
@@ -71,22 +71,22 @@
     "command": "gjc ultragoal (reconcile)",
     "state_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/skill-active-state.json",
     "storage_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/ultragoal-state.json",
-    "mutated_at": "2026-06-11T00:40:31.634Z",
-    "fresh_until": "2026-06-11T01:10:31.634Z",
+    "mutated_at": "2026-06-11T02:14:59.200Z",
+    "fresh_until": "2026-06-11T02:44:59.200Z",
     "status": "fresh",
-    "mutation_id": "ultragoal:reconcile:2026-06-11T00:40:31.634Z",
+    "mutation_id": "ultragoal:reconcile:2026-06-11T02:14:59.200Z",
     "verb": "reconcile",
     "forced": true,
-    "from_phase": "active",
+    "from_phase": "pending",
     "to_phase": "active",
     "content_sha256": {
       "algorithm": "sha256",
-      "value": "fcdcd391dee27a822b9ba93db26609430de338d0bd9282b0d9f29dd6c2cc1ec9",
+      "value": "486f5c384523e62f4db0e96df26ebdb27bfb7e96ef29736f98c3aa7c505718b2",
       "covered_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/ultragoal-state.json",
-      "computed_at": "2026-06-11T00:40:31.635Z"
+      "computed_at": "2026-06-11T02:14:59.201Z"
     }
   },
   "session_id": "019eaf69-92d5-7000-914c-6b7dd702f1ea",
-  "active_goal_id": "G001",
+  "active_goal_id": "G002",
   "gjc_objective": "Complete the durable ultragoal plan in .gjc/ultragoal/goals.json, including later accepted/appended stories, under the original brief constraints; use .gjc/ultragoal/ledger.jsonl as the audit trail."
 }

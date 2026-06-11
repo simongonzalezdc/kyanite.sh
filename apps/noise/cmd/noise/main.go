@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/kyanite/ai"
+	kyaniteconfig "github.com/kyanite/config"
 	"github.com/kyanite/noise/internal/config"
 	"github.com/kyanite/noise/internal/logging"
 	"github.com/kyanite/noise/internal/plugins"
@@ -34,7 +35,8 @@ func main() {
 	}
 
 	// Create brain for session lifecycle
-	aiCfg := ai.DefaultConfig("noise")
+	root, _ := kyaniteconfig.Load()
+	aiCfg := ai.ConfigFromRoot(root, "noise")
 	b, err := ai.New(aiCfg)
 	if err != nil {
 		logger.Warnf("brain init failed (offline mode): %v", err)

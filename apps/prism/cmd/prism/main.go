@@ -7,9 +7,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	ai "github.com/kyanite/ai"
+	"github.com/kyanite/config"
 	"github.com/kyanite/prism/internal/app"
 )
-
 
 var (
 	Version = "1.0.0"
@@ -17,35 +17,27 @@ var (
 )
 
 func main() {
-	// Command-line flags
-	version := flag.Bool("version", false, "Display version information")
-	versionShort := flag.Bool("v", false, "Display version information (shorthand)")
-	help := flag.Bool("help", false, "Display help information")
-	helpShort := flag.Bool("h", false, "Display help information (shorthand)")
+	version := flag.Bool("version", false, "Print version and exit")
+	help := flag.Bool("help", false, "Print help and exit")
 	flag.Parse()
 
-	// Handle version flag
-	if *version || *versionShort {
-		fmt.Printf("Prism.sh v%s (commit: %s)\n", Version, Commit)
-		fmt.Println("A terminal-based color palette design tool")
-		fmt.Println("Part of the Kyanite Suite")
+	if *version {
+		fmt.Printf("prism %s (%s)\n", Version, Commit)
 		os.Exit(0)
 	}
 
-	// Handle help flag
-	if *help || *helpShort {
-		fmt.Println("Prism.sh - Terminal Color Palette Design Tool")
+	if *help {
+		fmt.Println("prism — color palette & WCAG contrast tool for the terminal")
 		fmt.Println()
-		fmt.Println("Usage:")
-		fmt.Println("  prism           Start the interactive TUI")
-		fmt.Println("  prism -version  Display version information")
-		fmt.Println("  prism -help     Display this help message")
+		fmt.Println("Usage: prism [options]")
 		fmt.Println()
-		fmt.Println("Controls:")
-		fmt.Println("  Ctrl+Q          Quit application")
-		fmt.Println("  Ctrl+H          Toggle help overlay")
-		fmt.Println("  Ctrl+Shift+T    Cycle through themes")
-		fmt.Println("  Esc             Navigate back")
+		fmt.Println("Options:")
+		fmt.Println("  --version       Print version and exit")
+		fmt.Println("  --help          Print help and exit")
+		fmt.Println()
+		fmt.Println("Keybindings:")
+		fmt.Println("  Ctrl+A / p      Toggle AI panel")
+		fmt.Println("  q               Quit")
 		fmt.Println("  Arrow keys      Navigate menus")
 		fmt.Println("  Enter           Select option")
 		fmt.Println()
@@ -53,10 +45,10 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Create the shared kyanite/ai Brain for this app. If initialization
-	// fails (e.g. NUCBox unreachable at startup) the model still works —
-	// AI-dependent features simply return errors offline.
-	brain, _ := ai.New(ai.DefaultConfig("prism"))
+	// Load config from ~/.config/kyanite/config.yaml + env vars
+	root, _ := config.Load()
+	cfg := ai.ConfigFromRoot(root, "prism")
+	brain, _ := ai.New(cfg)
 
 	// Create the root model
 	m := app.NewModel(brain)
@@ -71,15 +63,9 @@ func main() {
 	}()
 
 	// Create the Bubble Tea program
-	p := tea.NewProgram(
-		m,
-		tea.WithAltScreen(),
-		tea.WithMouseCellMotion(),
-	)
-
-	// Run the program
+	p := tea.NewProgram(m, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
-		fmt.Printf("Error running application: %v\n", err)
+		fmt.Fprintf(os.Stderr, "prism: %v\n", err)
 		os.Exit(1)
 	}
 }

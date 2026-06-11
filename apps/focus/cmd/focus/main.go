@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/kyanite/ai"
+	"github.com/kyanite/config"
 	"github.com/kyanite/focus/internal/cli"
 	"github.com/kyanite/focus/internal/tui"
 )
@@ -93,7 +94,8 @@ func findRepoRoot() string {
 // Run TUI directly without CLI interference
 func runTUIDirectly() error {
 	// Create Brain directly for session lifecycle (pkg/ai).
-	cfg := ai.DefaultConfig("focus")
+	root, _ := config.Load()
+	cfg := ai.ConfigFromRoot(root, "focus")
 	brain, _ := ai.New(cfg)
 
 	ctx := context.Background()

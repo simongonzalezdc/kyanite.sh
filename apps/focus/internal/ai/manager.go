@@ -13,6 +13,7 @@ import (
 	"time"
 
 	ai "github.com/kyanite/ai"
+	"github.com/kyanite/config"
 )
 
 // Manager handles AI interactions via the shared pkg/ai Brain.
@@ -53,7 +54,8 @@ type ParsedTask struct {
 // New fails — callers should treat nil as "AI unavailable" and fall
 // back to rule-based logic gracefully.
 func New() *Manager {
-	cfg := ai.DefaultConfig("focus")
+	root, _ := config.Load()
+	cfg := ai.ConfigFromRoot(root, "focus")
 	brain, _ := ai.New(cfg)
 
 	manager := &Manager{
