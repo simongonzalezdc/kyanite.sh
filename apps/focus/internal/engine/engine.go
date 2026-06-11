@@ -56,11 +56,9 @@ func (e *Engine) loadCache() error {
 	return nil
 }
 
-// flushCache saves cached tasks to storage if dirty
-func (e *Engine) flushCache() error {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-
+// flushCacheLocked saves cached tasks to storage if dirty.
+// Caller must hold e.mu.
+func (e *Engine) flushCacheLocked() error {
 	if !e.cacheDirty {
 		return nil // Nothing to save
 	}
@@ -118,16 +116,16 @@ func (e *Engine) AddTask(parsedTask models.ParsedTask) (models.Task, error) {
 		task.Priority = "medium" // Normalize invalid priority
 	}
 
-	// Add to cache
+	// Add to cache and persist atomically
 	e.mu.Lock()
 	e.cache = append(e.cache, task)
 	e.cacheIndex[task.ID] = len(e.cache) - 1
 	e.cacheDirty = true
+	flushErr := e.flushCacheLocked()
 	e.mu.Unlock()
 
-	// Persist to disk
-	if err := e.flushCache(); err != nil {
-		return models.Task{}, fmt.Errorf("failed to save task: %w", err)
+	if flushErr != nil {
+		return models.Task{}, fmt.Errorf("failed to save task: %w", flushErr)
 	}
 
 	return task, nil
@@ -179,7 +177,7 @@ func (e *Engine) AddSubtask(parentID, description, priority string, categories [
 		subtask.Priority = "medium"
 	}
 
-	// Add subtask to cache
+	// Add subtask to cache and persist atomically
 	e.mu.Lock()
 	e.cache = append(e.cache, subtask)
 	e.cacheIndex[subtask.ID] = len(e.cache) - 1
@@ -190,11 +188,11 @@ func (e *Engine) AddSubtask(parentID, description, priority string, categories [
 		e.cache[parentIdx].UpdatedAt = now
 	}
 	e.cacheDirty = true
+	flushErr := e.flushCacheLocked()
 	e.mu.Unlock()
 
-	// Persist to disk
-	if err := e.flushCache(); err != nil {
-		return "", fmt.Errorf("failed to save subtask: %w", err)
+	if flushErr != nil {
+		return "", fmt.Errorf("failed to save subtask: %w", flushErr)
 	}
 
 	return subtask.ID, nil
@@ -233,11 +231,11 @@ func (e *Engine) CompleteTask(id string) error {
 // DeleteTask removes a task
 func (e *Engine) DeleteTask(id string) error {
 	e.mu.Lock()
+	defer e.mu.Unlock()
 
 	// Find task in cache using index
 	idx, exists := e.cacheIndex[id]
 	if !exists {
-		e.mu.Unlock()
 		return fmt.Errorf("task with ID %s not found", id)
 	}
 
@@ -251,19 +249,16 @@ func (e *Engine) DeleteTask(id string) error {
 	}
 
 	e.cacheDirty = true
-	e.mu.Unlock()
-
-	// Persist to disk
-	return e.flushCache()
+	return e.flushCacheLocked()
 }
 
 // RestoreTask restores a previously deleted task with its original ID and all fields
 func (e *Engine) RestoreTask(task models.Task) error {
 	e.mu.Lock()
+	defer e.mu.Unlock()
 
 	// Check if task with this ID already exists
 	if _, exists := e.cacheIndex[task.ID]; exists {
-		e.mu.Unlock()
 		return fmt.Errorf("task with ID %s already exists", task.ID)
 	}
 
@@ -271,10 +266,7 @@ func (e *Engine) RestoreTask(task models.Task) error {
 	e.cache = append(e.cache, task)
 	e.cacheIndex[task.ID] = len(e.cache) - 1
 	e.cacheDirty = true
-	e.mu.Unlock()
-
-	// Persist to disk
-	return e.flushCache()
+	return e.flushCacheLocked()
 }
 
 // GetTask retrieves a specific task by ID
@@ -294,31 +286,28 @@ func (e *Engine) GetTask(id string) (models.Task, error) {
 // updateTaskStatus updates the status of a task
 func (e *Engine) updateTaskStatus(id, status string) error {
 	e.mu.Lock()
+	defer e.mu.Unlock()
 
 	// O(1) lookup using index
 	idx, exists := e.cacheIndex[id]
 	if !exists {
-		e.mu.Unlock()
 		return pkgerrors.NewTaskError("updateTaskStatus", id, pkgerrors.ErrTaskNotFound)
 	}
 
 	e.cache[idx].Status = status
 	e.cache[idx].UpdatedAt = time.Now()
 	e.cacheDirty = true
-	e.mu.Unlock()
-
-	// Persist to disk
-	return e.flushCache()
+	return e.flushCacheLocked()
 }
 
 // UpdateTask updates a task with new values
 func (e *Engine) UpdateTask(updatedTask models.Task) error {
 	e.mu.Lock()
+	defer e.mu.Unlock()
 
 	// O(1) lookup using index
 	idx, exists := e.cacheIndex[updatedTask.ID]
 	if !exists {
-		e.mu.Unlock()
 		return fmt.Errorf("task with ID %s not found", updatedTask.ID)
 	}
 
@@ -327,10 +316,7 @@ func (e *Engine) UpdateTask(updatedTask models.Task) error {
 	updatedTask.UpdatedAt = time.Now()
 	e.cache[idx] = updatedTask
 	e.cacheDirty = true
-	e.mu.Unlock()
-
-	// Persist to disk
-	return e.flushCache()
+	return e.flushCacheLocked()
 }
 
 // UpdateTaskStatus updates only the status of a task
