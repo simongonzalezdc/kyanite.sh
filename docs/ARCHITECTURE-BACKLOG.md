@@ -2,8 +2,8 @@
 
 Generated: 2026-06-11
 Methodology: 10 architect subagents with distinct personas, 180 findings, consolidated and ranked by (Risk × Leverage) / Effort.
-Updated: 2026-06-11 (session 3)
-HEAD: `d0b59ce`
+Updated: 2026-06-11 (session 4)
+HEAD: `bb91e9e`
 
 ## Completed
 
@@ -56,6 +56,15 @@ HEAD: `d0b59ce`
 
 **Session 3 net: -136 LoC**
 
+### Session 4 (`022592b` → `bb91e9e`)
+
+- T6-01 (`bb91e9e`): Quit keybinding standardized to Ctrl+Q across all 4 apps; removed `q` from focus main/synthwave, noise settings, focus unified dashboard
+- T6-02 (`bb91e9e`): AI panel toggle standardized to Ctrl+A; syntax ctrl+p→ctrl+a, text editor AI suggestion moved to ctrl+p
+- T6-03 (`bb91e9e`): Theme cycling standardized to Ctrl+Shift+T; focus ctrl+t→ctrl+shift+t, noise global handler added, music_tools conflict resolved
+- T6-04 (`bb91e9e`): Help keybinding standardized to ? + Ctrl+H; added ctrl+h to noise, ? to prism, removed h from syntax
+- T6-06 (`bb91e9e`): Brain init error handling — all 4 apps now log warning on failure (focus, syntax, prism added; noise already had it)
+
+**Session 4 net: +15 LoC (16 files, keybinding standardization)**
 ---
 
 ## Remaining Backlog (Tiers 4-10)
@@ -94,13 +103,12 @@ HEAD: `d0b59ce`
 
 | ID | Finding | Detail |
 |----|---------|--------|
-| T6-01 | Standardize quit keybinding | ctrl+q everywhere, add unsaved-changes check. Currently: q works in focus+prism, ctrl+q in noise+syntax |
-| T6-02 | Standardize AI panel toggle | ctrl+a everywhere. Noise editor has ctrl+a=select-all conflict → use ctrl+shift+a for select-all |
-| T6-03 | Standardize theme cycling key | ctrl+shift+t everywhere. Noise dashboard has ctrl+shift+t=theory tools conflict |
-| T6-04 | Standardize help keybinding | ? + ctrl+h everywhere (currently ?/ctrl+h/F1/h vary) |
+| ~~T6-01~~ | ~~Standardize quit keybinding~~ | ~~ctrl+q everywhere~~ ✅ |
+| ~~T6-02~~ | ~~Standardize AI panel toggle~~ | ~~ctrl+a everywhere~~ ✅ |
+| ~~T6-03~~ | ~~Standardize theme cycling key~~ | ~~ctrl+shift+t everywhere~~ ✅ |
+| ~~T6-04~~ | ~~Standardize help keybinding~~ | ~~? + ctrl+h everywhere~~ ✅ |
 | T6-05 | Cross-app context save targets | Use `pkg/appnames.All` constant instead of hardcoded lists per app |
-| T6-06 | Brain init error handling | All 4 apps should log warning on brain init failure (3/4 silently swallow) |
-
+| ~~T6-06~~ | ~~Brain init error handling~~ | ~~All 4 apps log warning on brain init failure~~ ✅ |
 ---
 
 ### TIER 7 — Test Coverage Gaps (~14 hr remaining, MEDIUM risk)
@@ -167,17 +175,17 @@ HEAD: `d0b59ce`
 
 ## Recommended Next Session Order
 
-1. **T6-01..06** (3 hr) — Cross-app UX consistency.
-2. **T5-05** (3 hr) — Shared app bootstrapper.
-3. **T5-08** (2 hr) — Shared toast/notification.
-4. **T5-04 + T5-03** (5 hr) — Error paradigm + message type unification.
+1. **T5-05** (3 hr) — Shared app bootstrapper.
+2. **T5-08** (2 hr) — Shared toast/notification.
+3. **T5-04 + T5-03** (5 hr) — Error paradigm + message type unification.
+4. **T6-05** (1 hr) — Cross-app context save targets (pkg/appnames).
 5. Remaining T8 CI, T9 security, T10 data-flow items.
 
 ---
 
 ## Key Context for Continuation
 
-- **Local repo**: ~/workspaces/kyanite-labs/kyanite.sh, branch `main`, HEAD `b19ace8`
+- **Local repo**: ~/workspaces/kyanite-labs/kyanite.sh, branch `main`, HEAD `bb91e9e`
 - **GitHub**: pushed to origin/main (8 commits since `073afa6`)
 - **Forgejo**: 18 commits ahead, push pending (NUCBox tailnet down)
 - **9 go.mod files**: apps/{focus,noise,syntax,prism}, pkg/{design,ai,config,tui,cache,session,testutil}, cmd/kyanite
