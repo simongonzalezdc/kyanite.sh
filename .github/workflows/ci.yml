@@ -15,13 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529ba768e1baff # v5
         with:
           go-version: "1.26"
       - name: Build
         run: cd apps/focus && go build ./...
       - name: Test
-        run: cd apps/focus && go test ./...
+        run: cd apps/focus && go test -race ./...
       - name: Lint
         uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 # v6
         with:
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529ba768e1baff # v5
         with:
           go-version: "1.26"
       - name: Install dependencies
@@ -41,7 +41,7 @@ jobs:
       - name: Build
         run: cd apps/noise && go build ./...
       - name: Test
-        run: cd apps/noise && go test ./...
+        run: cd apps/noise && go test -race ./...
       - name: Lint
         uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 # v6
         with:
@@ -51,13 +51,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529ba768e1baff # v5
         with:
           go-version: "1.26"
       - name: Build
         run: cd apps/syntax && go build ./...
       - name: Test
-        run: cd apps/syntax && go test ./...
+        run: cd apps/syntax && go test -race ./...
       - name: Lint
         uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 # v6
         with:
@@ -67,27 +67,68 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529ba768e1baff # v5
         with:
           go-version: "1.26"
       - name: Build
         run: cd apps/prism && go build ./...
       - name: Test
-        run: cd apps/prism && go test ./...
+        run: cd apps/prism && go test -race ./...
       - name: Lint
         uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 # v6
         with:
           working-directory: apps/prism
 
+  # T8-02: Test the shared pkg/* modules and cmd/kyanite that the per-app
+  # jobs miss. go.work ./pkg/... fails because go.work needs module-relative
+  # patterns, so iterate the modules explicitly.
+  pkg-and-cmd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529ba768e1baff # v5
+        with:
+          go-version: "1.26"
+      - name: Build & test pkg/*
+        run: |
+          set -e
+          for mod in pkg/design pkg/ai pkg/config pkg/tui pkg/cache pkg/session pkg/testutil; do
+            echo "::group::$mod"
+            (cd "$mod" && go build ./... && go test -race ./...)
+            echo "::endgroup::"
+          done
+      - name: Build & test cmd/kyanite
+        run: |
+          set -e
+          (cd cmd/kyanite && go build ./... && go test -race ./...)
+
+  # T8-05: govulncheck scans the workspace for known Go vulnerabilities.
+  vulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529ba768e1baff # v5
+        with:
+          go-version: "1.26"
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - name: Run govulncheck
+        run: govulncheck ./...
+
   release-gate:
-    needs: [focus, noise, syntax, prism]
+    needs: [focus, noise, syntax, prism, pkg-and-cmd, vulncheck]
     runs-on: ubuntu-latest
     if: always()
     steps:
       - name: Check all jobs passed
         run: |
-          if [[ "${{ needs.focus.result }}" != "success" || "${{ needs.noise.result }}" != "success" || "${{ needs.syntax.result }}" != "success" || "${{ needs.prism.result }}" != "success" ]]; then
-            echo "One or more app jobs failed"
+          if [[ "${{ needs.focus.result }}" != "success" \
+             || "${{ needs.noise.result }}" != "success" \
+             || "${{ needs.syntax.result }}" != "success" \
+             || "${{ needs.prism.result }}" != "success" \
+             || "${{ needs.pkg-and-cmd.result }}" != "success" \
+             || "${{ needs.vulncheck.result }}" != "success" ]]; then
+            echo "One or more CI jobs failed"
             exit 1
           fi
-          echo "All apps passed CI"
+          echo "All CI jobs passed"
