@@ -12,7 +12,7 @@ require (
 	github.com/charmbracelet/lipgloss v1.1.1-0.20250404203927-76690c660834
 	github.com/charmbracelet/log v1.0.0
 	github.com/gen2brain/malgo v0.11.25
-	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20260121074030-7aa881864730
+	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20260609105100-df7638d8229a
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/mattn/go-sqlite3 v1.14.32
