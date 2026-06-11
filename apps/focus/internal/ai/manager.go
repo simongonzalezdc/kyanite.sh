@@ -11,6 +11,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	ai "github.com/kyanite/ai"
 )
 
 // Manager handles AI interactions via BrainProvider.
@@ -197,6 +199,20 @@ func (m *Manager) ChatAssistant(ctx context.Context, question string, tasks []st
 	}
 
 	return fmt.Sprintf("AI is currently unavailable. You have %d tasks. Try 'focus --help' to see available commands!", len(tasks)), nil
+}
+
+// GetCrossAppContext retrieves recent context from other kyanite apps (syntax, noise, prism).
+// Returns nil if the brain is unavailable — callers should treat this as best-effort.
+func (m *Manager) GetCrossAppContext(ctx context.Context, limit int) []ai.CrossAppContext {
+	brain := m.brainProvider.Brain()
+	if brain == nil {
+		return nil
+	}
+	contexts, err := brain.GetCrossAppContext(ctx, limit)
+	if err != nil {
+		return nil
+	}
+	return contexts
 }
 
 // IsOllamaAvailable checks if the AI backend is reachable.

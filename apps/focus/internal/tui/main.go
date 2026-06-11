@@ -1334,6 +1334,15 @@ func (m *MainModel) processChatMessage(message string) string {
 		taskDescriptions[i] = fmt.Sprintf("%s (%s, %s)", task.Description, status, task.Priority)
 	}
 
+	// Load cross-app context (best-effort, skip if unavailable)
+	if crossApp := m.aiManager.GetCrossAppContext(context.Background(), 3); len(crossApp) > 0 {
+		var summaries []string
+		for _, c := range crossApp {
+			summaries = append(summaries, c.Summary)
+		}
+		message = "Context from other apps: " + strings.Join(summaries, "; ") + "\n\n" + message
+	}
+
 	// Call real AI
 	response, err := m.aiManager.ChatAssistant(context.Background(), message, taskDescriptions)
 	if err != nil {

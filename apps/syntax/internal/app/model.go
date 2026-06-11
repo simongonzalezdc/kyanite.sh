@@ -89,6 +89,7 @@ type Model struct {
 	SessionID    string               // Unique session ID for brain session persistence
 	AIPanel       aipanel.Model       // AI writing partner side panel
 	AIPanelInput  string              // Input for check:/voice: commands in AI panel
+	CrossAppContext string // Cross-app context from the Brain, loaded when AI panel opens
 
 	// ============================================================
 	// Auto-save State - Automatic saving and status
@@ -177,6 +178,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var cmd tea.Cmd
 		m.AIPanel, cmd = m.AIPanel.Update(msg)
 		return m, cmd
+
+	case crossAppContextLoadedMsg:
+		m.CrossAppContext = msg.context
+		return m, nil
 
 	case AutoSaveTickMsg:
 		// Check if auto-save is needed
@@ -272,6 +277,10 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Toggle AI writing partner panel
 		m.AIPanel = m.AIPanel.Toggle()
 		m.AIPanelInput = ""
+		if m.AIPanel.Visible() {
+			// Load cross-app context when panel opens
+			return m, m.loadCrossAppContext()
+		}
 		return m, nil
 
 	case "?", "h":

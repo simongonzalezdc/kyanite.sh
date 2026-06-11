@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -134,6 +135,8 @@ type RootModel struct {
 
 	// AI Copilot panel
 	aiPanel aipanel.Model
+	// Cross-app context from the Brain, loaded when AI panel opens
+	crossAppContext string
 }
 
 // NewRootModel creates a new root model with initialized state
@@ -290,6 +293,16 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+a":
 			// Toggle AI copilot panel
 			m.aiPanel = m.aiPanel.Toggle()
+			if m.aiPanel.Visible() {
+				// Load cross-app context when panel opens
+				var brainPtr *ai.Brain
+				if m.aiService != nil && m.aiService.BrainClient() != nil {
+					brainPtr = m.aiService.BrainClient().Brain()
+				}
+				if brainPtr != nil {
+					return m, m.loadCrossAppContext(brainPtr)
+				}
+			}
 			return m, nil
 		case "esc":
 			// Cancel voice dictation if active
@@ -317,7 +330,7 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.aiPanel.Visible() && m.currentScreen == screenEditor && m.editor != nil {
 				lyrics := m.editor.GetEditorText()
 				if lyrics != "" {
-					prompt := fmt.Sprintf("Continue these song lyrics. Write 4 more lines that match the style and mood. Current lyrics:\n%s", lyrics)
+					prompt := fmt.Sprintf("Continue these song lyrics. Write 4 more lines that match the style and mood.%s\nCurrent lyrics:\n%s", formatCrossAppContext(m.crossAppContext), lyrics)
 					m.aiPanel = m.aiPanel.StartStream("Lyric Continuation")
 					cmds = append(cmds, m.aiPanel.Generate(prompt))
 					return m, tea.Batch(cmds...)
@@ -343,7 +356,7 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				} else if strings.HasPrefix(lastLine, "mood:") {
 					input := strings.TrimPrefix(lastLine, "mood:")
 					input = strings.TrimSpace(input)
-					prompt := fmt.Sprintf("For a song described as '%s', suggest: key, tempo (BPM), 3 reference songs, and a chord progression. Be creative.", input)
+					prompt := fmt.Sprintf("For a song described as '%s', suggest: key, tempo (BPM), 3 reference songs, and a chord progression. Be creative.%s", input, formatCrossAppContext(m.crossAppContext))
 					m.aiPanel = m.aiPanel.StartStream("Mood Board")
 					cmds = append(cmds, m.aiPanel.Generate(prompt))
 					return m, tea.Batch(cmds...)
@@ -505,6 +518,8 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if cmd != nil {
 			cmds = append(cmds, cmd)
 		}
+	case crossAppContextLoadedMsg:
+		m.crossAppContext = msg.context
 	}
 
 	// Update current screen
@@ -1067,6 +1082,45 @@ type initSuccessMsg struct {
 
 type initErrorMsg struct {
 	err error
+}
+
+// crossAppContextLoadedMsg carries cross-app context loaded from the Brain.
+type crossAppContextLoadedMsg struct {
+	context string
+}
+
+// loadCrossAppContext loads context from other kyanite apps via the Brain.
+// Best-effort: returns an empty-string message if unavailable.
+func (m *RootModel) loadCrossAppContext(brain *ai.Brain) tea.Cmd {
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
+		entries, err := brain.GetCrossAppContext(ctx, 3)
+		if err != nil || len(entries) == 0 {
+			return crossAppContextLoadedMsg{context: ""}
+		}
+
+		var parts []string
+		for _, e := range entries {
+			switch e.SourceApp {
+			case "focus":
+				parts = append(parts, fmt.Sprintf("Recent focus activity: %s", e.Summary))
+			case "syntax":
+				parts = append(parts, fmt.Sprintf("Recent writing activity: %s", e.Summary))
+			}
+		}
+		return crossAppContextLoadedMsg{context: strings.Join(parts, "\n")}
+	}
+}
+
+// formatCrossAppContext formats cross-app context for inclusion in AI prompts.
+// Returns an empty string if no context is available.
+func formatCrossAppContext(ctx string) string {
+	if ctx == "" {
+		return ""
+	}
+	return "\n\nBackground context from your other apps:\n" + ctx
 }
 
 // ScreenChangeMsg requests a change to the given screen.

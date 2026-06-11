@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -48,6 +49,7 @@ type GeneratorModel struct {
 	aiPanel          aipanel.Model
 	aiPanelVisible   bool
 	exportFormats    []string
+	crossAppContext string // Cross-app context from the Brain, loaded when AI panel opens
 }
 
 // NewGeneratorModel creates a new generator model
@@ -135,6 +137,9 @@ func (m GeneratorModel) Update(msg tea.Msg) (GeneratorModel, tea.Cmd) {
 		}
 		m.aiInputMode = false
 		return m, nil
+	case crossAppContextLoadedMsg:
+		m.crossAppContext = msg.context
+		return m, nil
 	case tea.KeyMsg:
 		// AI input mode captures text until Enter/Escape
 		if m.aiInputMode {
@@ -180,6 +185,10 @@ func (m GeneratorModel) Update(msg tea.Msg) (GeneratorModel, tea.Cmd) {
 				m.aiPanel = m.aiPanel.Toggle()
 				m.status = ""
 				m.err = ""
+				// Load cross-app context when panel opens
+				if m.aiClient != nil {
+					return m, m.loadCrossAppContext()
+				}
 			}
 		case "c":
 			if m.generatedPalette != nil {
@@ -516,7 +525,7 @@ func (m GeneratorModel) generateWithAI(description string) tea.Cmd {
 			return AIPaletteGeneratedMsg{Err: "AI not available"}
 		}
 
-		colors, err := m.aiClient.GeneratePalette(context.Background(), description)
+		colors, err := m.aiClient.GeneratePalette(context.Background(), description+formatCrossAppContext(m.crossAppContext))
 		if err != nil {
 			return AIPaletteGeneratedMsg{Err: err.Error()}
 		}
@@ -553,7 +562,7 @@ func (m GeneratorModel) generateMoodWithAI(mood string) tea.Cmd {
 			return AIMoodGeneratedMsg{Err: "AI not available"}
 		}
 
-		moodPalettes, err := m.aiClient.GenerateMoodPalettes(context.Background(), mood)
+		moodPalettes, err := m.aiClient.GenerateMoodPalettes(context.Background(), mood+formatCrossAppContext(m.crossAppContext))
 		if err != nil {
 			return AIMoodGeneratedMsg{Err: err.Error()}
 		}
@@ -609,4 +618,50 @@ func (m GeneratorModel) generateA11yWithAI(colorsInput string) tea.Cmd {
 
 		return AIA11yGeneratedMsg{Analysis: analysis}
 	}
+}
+// crossAppContextLoadedMsg carries cross-app context loaded from the Brain.
+type crossAppContextLoadedMsg struct {
+	context string
+}
+
+// loadCrossAppContext loads context from other kyanite apps via the Brain.
+// Best-effort: returns an empty-string message if unavailable.
+func (m GeneratorModel) loadCrossAppContext() tea.Cmd {
+	return func() tea.Msg {
+		if m.aiClient == nil {
+			return crossAppContextLoadedMsg{context: ""}
+		}
+		brain := m.aiClient.Brain()
+		if brain == nil {
+			return crossAppContextLoadedMsg{context: ""}
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
+		entries, err := brain.GetCrossAppContext(ctx, 3)
+		if err != nil || len(entries) == 0 {
+			return crossAppContextLoadedMsg{context: ""}
+		}
+
+		var parts []string
+		for _, e := range entries {
+			switch e.SourceApp {
+			case "syntax":
+				parts = append(parts, fmt.Sprintf("Story themes: %s", e.Summary))
+			case "noise":
+				parts = append(parts, fmt.Sprintf("Musical mood: %s", e.Summary))
+			}
+		}
+		return crossAppContextLoadedMsg{context: strings.Join(parts, "\n")}
+	}
+}
+
+// formatCrossAppContext formats cross-app context for inclusion in AI prompts.
+// Returns an empty string if no context is available.
+func formatCrossAppContext(ctx string) string {
+	if ctx == "" {
+		return ""
+	}
+	return "\n\nInspiration from your other apps:\n" + ctx
 }

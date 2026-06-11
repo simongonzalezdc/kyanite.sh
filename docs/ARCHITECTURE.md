@@ -2,13 +2,22 @@
 
 ## Overview
 
-kyanite.sh is a Go workspace (`go.work`) containing four independent TUI applications built on the Charm stack (Bubble Tea, Lipgloss, Bubbles). Each app is a standalone module under `apps/` with its own `go.mod`, `cmd/`, `internal/`, and test directories. A shared design module at `pkg/design/` provides unified themes, style tokens, and WCAG validation. A shared AI module at `pkg/ai/` provides a unified inference brain (LLM + STT + memory) consumed by all four apps.
+kyanite.sh is a Go workspace (`go.work`) containing four independent TUI applications built on the Charm stack (Bubble Tea, Lipgloss, Bubbles). Each app is a standalone module under `apps/` with its own `go.mod`, `cmd/`, `internal/`, and test directories. Shared modules provide unified infrastructure:
+
+- `pkg/design/` — themes, style tokens, and WCAG validation
+- `pkg/ai/` — unified inference brain (LLM + STT + memory)
+- `pkg/config/` — koanf-based YAML config with env var overrides
+- `pkg/tui/` — shared TUI components (AI panel, STT input)
 
 ```
 kyanite.sh/
 ├── go.work              # workspace definition (go 1.26.0)
 ├── pkg/design/          # shared design system (themes, tokens, typography, WCAG, icons)
-├── pkg/ai/              # unified inference brain (LLM, STT, memory)
+├── pkg/ai/              # unified inference brain (LLM, STT, memory, cross-app context)
+├── pkg/config/          # centralized config (koanf, YAML, XDG paths)
+├── pkg/tui/             # shared TUI components
+│   ├── aipanel/         #   streaming AI response panel
+│   └── stt/             #   press-to-talk speech-to-text
 ├── apps/
 │   ├── focus/           # journaling & productivity (cobra + bubbletea + huh)
 │   ├── noise/           # music creation & voice capture (bubbletea + cgo/whisper.cpp)
@@ -83,7 +92,9 @@ Key binaries: `focus` (CLI/TUI), `focus-mcp` (Model Context Protocol server).
 | CLI Framework | focus uses cobra; noise/syntax/prism use custom bubbletea entry |
 | Storage | focus & syntax use file-based JSON; noise uses sqlite3; prism uses file-based JSON |
 | AI Integration | All 4 apps use pkg/ai Brain → NUCBox Ollama (LLM) + local whisper.cpp (STT) + NUCBox PostgreSQL (memory) |
-| Theming | Each app has its own theme registry with divergent structures |
+| AI Panels | All 4 apps use `pkg/tui/aipanel` for streaming AI response panels with per-app keybindings |
+| Config | All apps use `pkg/config` for YAML config at `~/.config/kyanite/config.yaml` with env var overrides |
+| Theming | NOW UNIFIED via `pkg/design/` — 11 fields, lipgloss.Color, 6 themes, WCAG AA enforced |
 | Error Handling | Raw `fmt.Errorf` with `%w` wrapping (no structured error library) |
 | Testing | Standard `testing` package + `t.TempDir()` for isolation |
 
@@ -91,9 +102,7 @@ Key binaries: `focus` (CLI/TUI), `focus-mcp` (Model Context Protocol server).
 
 | Area | Issue |
 |---|---|
-| Theme registries | NOW UNIFIED via `pkg/design/` — 11 fields, lipgloss.Color, 6 themes, WCAG AA enforced |
 | Layer boundaries | 20+ Presentation→Infrastructure import violations (noise: 14 files, focus: 6+ files) |
-| Config loading | focus uses viper; others use ad-hoc flag/env parsing |
 | Error types | No shared error types or wrapping conventions |
 | Storage paths | focus uses `~/.focus`; no XDG compliance |
 
@@ -117,40 +126,135 @@ The `pkg/ai/` module (`github.com/kyanite/ai`) provides a unified inference brai
 
 | File | Contents |
 |---|---|
-| `brain.go` | `Brain` struct — main entry point with `New(cfg)`, `Generate()`, `Chat()`, `TranscribeFile()`, `TranscribePCM()`, `SaveContext()`, `LoadContext()`, `SaveMessage()`, `LoadConversation()` |
+| `brain.go` | `Brain` struct — main entry point with `New(cfg)`, `Generate()`, `Chat()`, `StreamChat()`, `TranscribeFile()`, `TranscribePCM()`, session save/resume, cross-app context |
 | `config.go` | `Config` struct with `DefaultConfig(app)` — reads `KYANITE_OLLAMA_URL`, `KYANITE_MODEL`, `KYANITE_WHISPER_BIN`, `KYANITE_DB_HOST` etc. |
-| `llm.go` | `LLMClient` — Ollama `/api/chat` client with `Generate()`, `Chat()`, `IsAvailable()` |
+| `llm.go` | `LLMClient` — Ollama `/api/chat` client with `Generate()`, `Chat()`, `StreamChat()`, `IsAvailable()` |
 | `stt.go` | `STTClient` — whisper.cpp subprocess client with `TranscribeFile()`, `TranscribePCM()`, `IsAvailable()` |
-| `memory.go` | `MemoryStore` — PostgreSQL store with `kyanite_context` and `kyanite_conversations` tables |
-| `prompts.go` | Centralized prompt templates: `FocusParsePrompt`, `FocusSuggestPrompt`, `FocusSummarizePrompt`, `NoiseBrainstormPrompt`, `NoiseContextPrompt`, `SyntaxSuggestPrompt`, `PrismPalettePrompt`, `PrismContrastPrompt` |
-| `types.go` | `Message`, `Transcription`, `GenerateOptions`, `ContextEntry` |
+| `memory.go` | `MemoryStore` — PostgreSQL store with session, context, conversation, and cross-app context tables |
+| `prompts.go` | Centralized prompt templates for all 4 apps (see Per-App Prompts below) |
+| `types.go` | `Message`, `Transcription`, `StreamChunk`, `GenerateOptions`, `ContextEntry`, `Session`, `CrossAppContext` |
+| `errors.go` | Sentinel errors: `ErrBrainNotInitialized`, `ErrLLMUnavailable`, `ErrLLMRequestFailed`, etc. |
+
+### Per-App Prompts
+
+| App | Prompt Functions | Purpose |
+|---|---|---|
+| focus | `FocusDailyBriefingPrompt`, `FocusSmartSuggestPrompt`, `FocusNLInputPrompt` | Daily briefing with task stats, smart suggestions, natural-language task parsing |
+| noise | `NoiseLyricContinuationPrompt`, `NoiseChordSuggestPrompt`, `NoiseMoodBoardPrompt` | Lyric continuation, chord suggestions, mood-based song inspiration |
+| syntax | `SyntaxContinueWritingPrompt`, `SyntaxConsistencyCheckPrompt`, `SyntaxCharacterVoicePrompt`, `SyntaxSuggestPrompt` | Story continuation, plot/timeline consistency, character voice rewriting, general suggestions |
+| prism | `PrismPalettePrompt`, `PrismContrastPrompt`, `PrismMoodPalettePrompt`, `PrismA11yCheckPrompt` | Palette from description, accessible color adjustments, mood palettes, accessibility analysis |
 
 ### Inference Architecture
 
 ```
 Local machine (MacBook Air / Mac Mini):
-  ┌─────────────────────────────┐
-  │  kyanite TUI app             │
-  │  STT: whisper.cpp (local)    │
-  │  LLM: HTTP → nucbox:11434    │
-  └──────────────┬──────────────┘
-                 │ tailnet (encrypted)
-                 ▼
-  ┌──────────────────────────────┐
-  │  NUCBox (Inference Server)   │
-  │  Ollama (gemma4:12b on GPU)  │
-  │  PostgreSQL (memory store)   │
-  └──────────────────────────────┘
+  ┌─────────────────────────────────────────────┐
+  │  kyanite TUI app                            │
+  │  ┌──────────────┐  ┌─────────────────────┐  │
+  │  │ aipanel.Model │  │ stt.Model (noise)   │  │
+  │  │ (AI sidepanel)│  │ (press-to-talk STT) │  │
+  │  └──────┬───────┘  └──────────┬──────────┘  │
+  │         │    Brain.Generate/StreamChat       │
+  │         │    Brain.TranscribePCM             │
+  │  ┌──────┴────────────────────────────────┐  │
+  │  │            *ai.Brain                   │  │
+  │  │  LLM: HTTP → nucbox:11434              │  │
+  │  │  STT: whisper.cpp (local subprocess)   │  │
+  │  │  Memory: PostgreSQL → nucbox           │  │
+  │  └────────────────────────────────────────┘  │
+  └──────────────────────┬──────────────────────┘
+                         │ tailnet (encrypted)
+                         ▼
+  ┌──────────────────────────────────────────────┐
+  │  NUCBox (Inference Server)                   │
+  │  Ollama (gemma4:12b on AMD ROCm GPU)        │
+  │  PostgreSQL (memory store + cross-app ctx)   │
+  └──────────────────────────────────────────────┘
 ```
 
-### Per-App Integration
+### Per-App AI Integration
 
-| App | Integration Layer | LLM Features | STT |
-|---|---|---|---|
-| focus | `internal/ai/brain_provider.go` (implements Provider interface) | Task parsing, suggestions, summaries, chat | Planned |
-| noise | `internal/infra/brain/client.go` (implements QuickLLMClient interface) | Songwriting brainstorming, quick ideas | Voice capture → Brain.TranscribePCM() |
-| syntax | `internal/ai/brain_client.go` (implements Provider interface) | Writing suggestions (continue/improve/dialogue/description) | Planned |
-| prism | `internal/ai/client.go` (standalone) | Palette generation from descriptions, accessible color suggestions | N/A |
+| App | Integration Layer | AI Panel Key | LLM Features | STT |
+|---|---|---|---|---|
+| focus | `internal/ai/brain_provider.go` | `Ctrl+A` | Daily briefing, smart suggestions, NL task input | Planned |
+| noise | `internal/infra/brain/client.go` | `Ctrl+A` | Lyric continuation, chord suggestions, mood boards | Voice capture → Brain.TranscribePCM() |
+| syntax | `internal/ai/brain_client.go` | `Ctrl+P` | Continue writing, consistency check, character voice | Planned |
+| prism | `internal/ai/client.go` | `Ctrl+A` / `p` | Palette generation, mood palettes, a11y advisor | N/A |
+
+### AI Panel Keybindings
+
+| App | Key | Action |
+|---|---|---|
+| focus | `Ctrl+A` | Toggle AI panel |
+| noise | `Ctrl+A` | Toggle AI panel |
+| syntax | `Ctrl+P` | Toggle AI panel |
+| prism | `Ctrl+A` | Toggle AI panel |
+| prism | `p` | Toggle AI panel (alternate) |
+
+The `aipanel.Model` component handles stream lifecycle internally. Apps call `Generate(prompt)` to start a stream, then handle `StreamChunk` and `ErrorMsg` messages in their `Update()` loop. The panel renders a styled side panel with header, streaming content, and error states.
+
+### Cross-App Memory
+
+The memory subsystem provides two cross-app features on top of per-app session context:
+
+**Session save/resume** — Apps persist their full state on exit and restore on launch:
+
+```
+kyanite_sessions table:
+  app        TEXT         -- e.g. "focus", "noise"
+  session_id TEXT         -- unique per session
+  title      TEXT         -- human-readable title
+  state      JSONB        -- serialized app state
+  created_at TIMESTAMPTZ
+  updated_at TIMESTAMPTZ  -- updated on each save (upsert)
+```
+
+Lifecycle:
+1. App creates a session ID on first run
+2. Throughout the session, `SaveContext()` / `SaveMessage()` store incremental data
+3. On exit, `SaveSession()` persists the full app state (upsert by app + session_id)
+4. On next launch, `LoadSession()` restores the previous state
+5. The launcher calls `GetAllRecentSessions()` to show recent sessions across all apps
+
+**Cross-app context** — Apps share relevant context with each other:
+
+```
+kyanite_cross_app_context table:
+  id              SERIAL
+  source_app      TEXT         -- app that produced the context
+  target_app      TEXT         -- app that should receive it
+  context_type    TEXT         -- e.g. "mood", "character", "palette"
+  summary         TEXT         -- human-readable context summary
+  relevance_score REAL         -- 0.0–1.0, used for ranking
+  created_at      TIMESTAMPTZ
+```
+
+Lifecycle:
+1. App detects shareable context (e.g., Noise tags a mood, Syntax creates a character)
+2. `SaveCrossAppContext()` stores it with target app and relevance score
+3. Target app calls `GetCrossAppContext("prism", 10)` to retrieve relevant context
+4. Context is incorporated into prompts (e.g., Focus daily briefing includes Noise moods)
+
+**Additional memory tables:**
+
+```
+kyanite_context table:
+  app        TEXT     -- per-app session key-value store
+  session_id TEXT
+  key        TEXT
+  value      TEXT
+  updated_at TIMESTAMPTZ
+
+kyanite_conversations table:
+  id         SERIAL   -- conversation history
+  app        TEXT
+  session_id TEXT
+  role       TEXT     -- "user" / "assistant" / "system"
+  content    TEXT
+  created_at TIMESTAMPTZ
+```
+
+All memory features degrade gracefully — if PostgreSQL is unreachable, sessions and cross-app context are silently skipped.
 
 ### Environment Variables
 
@@ -170,17 +274,42 @@ Local machine (MacBook Air / Mac Mini):
 All apps work fully offline:
 - If NUCBox is unreachable: `IsLLMAvailable()` returns false, AI features disabled
 - If whisper.cpp not found: `IsSTTAvailable()` returns false, voice disabled
-- If PostgreSQL unreachable: memory silently skipped, no conversation history
+- If PostgreSQL unreachable: memory silently skipped, no conversation history, no session resume
 - Focus falls back through BrainProvider → legacy Ollama → OpenRouter → rule-based parsing
 
 ### Remaining Extraction Candidates
 
 | Module | Contents | Priority |
 |---|---|---|
-| `shared/config` | koanf-based config loading with XDG paths | MEDIUM |
 | `shared/errors` | Structured error types (eris/fault) | MEDIUM |
 | `shared/storage` | Repository interface + file/json/sqlite implementations | LOW |
-| `pkg/ai` | Unified inference brain: Ollama LLM client, whisper.cpp STT, PostgreSQL memory, centralized prompts | **DONE** |
+| `pkg/ai` | Unified inference brain | **DONE** |
+| `pkg/config` | Koanf-based config loading with XDG paths | **DONE** |
+| `pkg/tui` | Shared TUI components (aipanel, stt) | **DONE** |
+
+## Shared Config Module (`pkg/config/`)
+
+The `pkg/config/` module (`github.com/kyanite/config`) provides centralized configuration:
+
+| File | Contents |
+|---|---|
+| `config.go` | `Root` struct (`Brain` + per-app `AppConfig`), `Load()`, `Init()`, `Show()`, `ConfigDir()`, `ConfigPath()` |
+
+Config is loaded in three layers (later overrides earlier):
+1. Built-in defaults (`defaults()` function)
+2. YAML file at `~/.config/kyanite/config.yaml`
+3. Environment variables (`KYANITE_BRAIN_*`, `KYANITE_FOCUS_*`, etc.)
+
+CLI: `kyanite config init` creates a default config file; `kyanite config show` prints resolved config.
+
+## Shared TUI Components (`pkg/tui/`)
+
+The `pkg/tui/` module (`github.com/kyanite/tui`) provides reusable Bubble Tea components:
+
+| Package | Contents |
+|---|---|
+| `aipanel/` | `Model` — streaming AI response panel. `New(brain, w, h)`, `Generate(prompt)`, `ContinueStream(ch)`, `Toggle()`, `View()`. Handles `StreamChunk` and `ErrorMsg` messages. |
+| `stt/` | `Model` — press-to-talk STT component. `New(brain, activationKey)`, `StartRecording()`, `StopRecording()`, `View()`. Handles `TranscriptionMsg` and `RecordingTickMsg`. |
 
 ## CI/CD
 
@@ -238,6 +367,6 @@ All apps work fully offline:
 ### Adoption Roadmap
 
 1. **Phase 1: charmbracelet/log** — ✅ DONE. Replaced all logging across 4 apps.
-2. **Phase 2: Unified AI** — ✅ DONE. Built `pkg/ai/` with Ollama LLM client, whisper.cpp STT, PostgreSQL memory, centralized prompts. All 4 apps migrated. Supersedes charmbracelet/fantasy.
-3. **Phase 3: charmbracelet/ultraviolet** — If bubbletea v2 migration happens, ultraviolet provides the rendering primitives. Syntax's editor buffer could use the cell-based renderer directly.
-4. **Phase 4: charmbracelet/sequin + glow** — Polish pass on syntax's ANSI handling and focus's journal rendering.
+2. **Phase 2: Unified AI** — ✅ DONE. Built `pkg/ai/` with Ollama LLM client, whisper.cpp STT, PostgreSQL memory, centralized prompts, streaming support, session save/resume, and cross-app context. All 4 apps migrated with per-app AI panels. Supersedes charmbracelet/fantasy.
+3. **Phase 3: Shared Config** — ✅ DONE. Built `pkg/config/` with koanf-based YAML config, XDG paths, env var overrides, `config init`/`config show` CLI commands. Replaces ad-hoc flag/env parsing and focus's viper dependency.
+4. **Phase 4: Shared TUI Components** — ✅ DONE. Built `pkg/tui/` with reusable `aipanel` (streaming AI response panel) and `stt` (press-to-talk speech-to-text) components consumed by all 4 apps.

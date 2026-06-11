@@ -1,10 +1,13 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/kyanite/ai"
 )
 
 // continueWriting generates 3 continuation paragraphs via streaming AI.
@@ -28,7 +31,8 @@ func (m Model) continueWriting() (tea.Model, tea.Cmd) {
 	recentText := strings.Join(lines[startLine:], "\n")
 
 	prompt := fmt.Sprintf(
-		"Continue this story naturally. Match the tone, style, and character voices. Write 3 paragraphs.\nCurrent text:\n%s",
+		"Continue this story naturally. Match the tone, style, and character voices. Write 3 paragraphs.%s\nCurrent text:\n%s",
+		formatCrossAppContext(m.CrossAppContext),
 		recentText,
 	)
 
@@ -93,7 +97,8 @@ func (m Model) consistencyCheck(query string) (tea.Model, tea.Cmd) {
 	}
 
 	prompt := fmt.Sprintf(
-		"Review this passage for internal consistency. Check character names, locations, timeline. Flag any contradictions.\nCurrent chapter:\n%s\n\nStory context: %s",
+		"Review this passage for internal consistency. Check character names, locations, timeline. Flag any contradictions.%s\nCurrent chapter:\n%s\n\nStory context: %s",
+		formatCrossAppContext(m.CrossAppContext),
 		content,
 		context,
 	)
@@ -140,14 +145,16 @@ func (m Model) characterVoice(charName string) (tea.Model, tea.Cmd) {
 	}
 
 	prompt := fmt.Sprintf(
-		"Rewrite this dialogue in %s's voice based on their established speech patterns:\n%s",
+		"Rewrite this dialogue in %s's voice based on their established speech patterns:%s\n%s",
 		charName,
+		formatCrossAppContext(m.CrossAppContext),
 		content,
 	)
 	if charContext != "" {
 		prompt = fmt.Sprintf(
-			"Character profile:\n%s\n\nRewrite this dialogue in %s's voice based on their established speech patterns:\n%s",
+			"Character profile:\n%s%s\n\nRewrite this dialogue in %s's voice based on their established speech patterns:\n%s",
 			charContext,
+			formatCrossAppContext(m.CrossAppContext),
 			charName,
 			content,
 		)
@@ -216,4 +223,48 @@ func (m Model) renderWithAIPanel(mainView string) string {
 	}
 
 	return b.String()
+}
+// crossAppContextLoadedMsg carries cross-app context loaded from the Brain.
+type crossAppContextLoadedMsg struct {
+	context string
+}
+
+// loadCrossAppContext loads context from other kyanite apps via the Brain.
+// Best-effort: returns an empty-string message if unavailable.
+func (m Model) loadCrossAppContext() tea.Cmd {
+	return func() tea.Msg {
+		brainClient, ok := m.AIClient.(interface{ Brain() *ai.Brain })
+		if !ok || brainClient.Brain() == nil {
+			return crossAppContextLoadedMsg{context: ""}
+		}
+		brain := brainClient.Brain()
+
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
+		entries, err := brain.GetCrossAppContext(ctx, 3)
+		if err != nil || len(entries) == 0 {
+			return crossAppContextLoadedMsg{context: ""}
+		}
+
+		var parts []string
+		for _, e := range entries {
+			switch e.SourceApp {
+			case "focus":
+				parts = append(parts, fmt.Sprintf("You have recent focus tasks: %s", e.Summary))
+			case "noise":
+				parts = append(parts, fmt.Sprintf("You were working on music about %s", e.Summary))
+			}
+		}
+		return crossAppContextLoadedMsg{context: strings.Join(parts, "\n")}
+	}
+}
+
+// formatCrossAppContext formats cross-app context for inclusion in AI prompts.
+// Returns an empty string if no context is available.
+func formatCrossAppContext(ctx string) string {
+	if ctx == "" {
+		return ""
+	}
+	return "\n\nBackground context from your other apps:\n" + ctx
 }

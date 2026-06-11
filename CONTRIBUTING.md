@@ -30,6 +30,8 @@ Each app is an independent Go module under `apps/`. The workspace (`go.work`) co
 |---|---|---|
 | `pkg/design` | `github.com/kyanite/design` | Themes, tokens, typography, WCAG, icons |
 | `pkg/ai` | `github.com/kyanite/ai` | Unified inference brain (LLM, STT, memory) |
+| `pkg/config` | `github.com/kyanite/config` | Koanf-based YAML config with env var overrides |
+| `pkg/tui` | `github.com/kyanite/tui` | Shared TUI components (aipanel, stt) |
 
 Each app's `go.mod` uses a `replace` directive to reference shared modules locally.
 
@@ -49,15 +51,78 @@ Apps use `ai.DefaultConfig("appname")` and `ai.New(cfg)` to create a Brain. All 
 3. Call `brain.Generate(ctx, prompt)` for LLM, `brain.TranscribeFile()` for STT
 4. Check `brain.IsLLMAvailable()` before relying on AI features
 
-### Environment Variables
+### Adding AI panels to a new app
 
-| Variable | Default | Purpose |
-|---|---|---|
-| `KYANITE_OLLAMA_URL` | `http://nucbox:11434` | Ollama API endpoint |
-| `KYANITE_MODEL` | `gemma4:12b` | LLM model |
-| `KYANITE_WHISPER_BIN` | `whisper-stream` | whisper.cpp binary |
-| `KYANITE_WHISPER_MODEL` | auto-detected | GGML model path |
-| `KYANITE_DB_HOST` | `nucbox` | PostgreSQL host |
+The `pkg/tui/aipanel` package provides a reusable Bubble Tea sub-model for streaming AI responses in a side panel:
+
+1. Import `aipanel "github.com/kyanite/tui/aipanel"`
+2. Create a panel with `aipanel.New(brain, width, height)` — pass your `*ai.Brain`
+3. Wire into your app's `Update()` method — handle `aipanel.StreamChunk` and `aipanel.ErrorMsg` messages
+4. Toggle visibility with `panel.Toggle()` (typically bound to a key like `Ctrl+A`)
+5. Stream a response with `panel.Generate(prompt)` — returns a `tea.Cmd`
+6. Continue reading chunks with `panel.ContinueStream(ch)` after each `StreamChunk` with `Done=false`
+7. Render with `panel.View()` — returns a styled string for your layout
+8. Add your prompt template to `pkg/ai/prompts.go` alongside existing ones
+
+See existing integrations in `apps/focus/internal/tui/`, `apps/noise/internal/ui/`, `apps/syntax/internal/editor/`, and `apps/prism/internal/ui/`.
+
+### Cross-app context
+
+Apps share context through `brain.SaveCrossAppContext()` and `brain.GetCrossAppContext()`:
+
+```go
+// When Noise detects a mood, share it with Prism and Syntax
+brain.SaveCrossAppContext(ctx, "prism", "mood", "melancholy, rainy afternoon", 0.8)
+brain.SaveCrossAppContext(ctx, "syntax", "mood", "melancholy, rainy afternoon", 0.6)
+
+// When Focus generates a daily briefing, pull in context from other apps
+contexts, _ := brain.GetCrossAppContext(ctx, 10)
+for _, c := range contexts {
+    // c.SourceApp, c.ContextType, c.Summary, c.RelevanceScore
+}
+```
+
+The `CrossAppContext` struct stores: source app, target app, context type, summary, and a relevance score (0.0–1.0). Context is persisted in PostgreSQL (`kyanite_cross_app_context` table) and degrades gracefully when the database is unreachable.
+
+### Session save/resume
+
+Apps persist their state on exit and restore it on launch:
+
+```go
+// On exit — save current state
+brain.SaveSession(ctx, sessionID, "Editing Chapter 3", appState)
+
+// On launch — restore previous session
+session, _ := brain.LoadSession(ctx, sessionID)
+if session != nil {
+    // session.State contains JSON-encoded app state
+}
+
+// List recent sessions (for the launcher)
+sessions, _ := brain.GetRecentSessions(ctx, 5)        // this app only
+allSessions, _ := brain.GetAllRecentSessions(ctx, 10)  // across all apps
+```
+
+Sessions are stored in the `kyanite_sessions` PostgreSQL table with upsert semantics (same app + session_id updates in place).
+
+## Config File
+
+The `pkg/config/` module provides centralized configuration loaded from `~/.config/kyanite/config.yaml` with env var overrides via koanf.
+
+### Adding new config fields
+
+1. Add a field to the appropriate struct in `pkg/config/config.go`:
+   - `BrainConfig` for inference settings
+   - `AppConfig` for per-app settings (theme, directories)
+   - Add a new struct + field on `Root` for entirely new config sections
+2. Add a default value in the `defaults()` function
+3. Add a koanf tag (e.g., `koanf:"new_field"`) — env vars follow the pattern `KYANITE_<SECTION>_<FIELD>`
+4. Update the `Init()` function's template string with the new field
+5. Update the `Show()` function's output to display the new field
+
+CLI commands for users:
+- `kyanite config init` — creates `~/.config/kyanite/config.yaml` with defaults
+- `kyanite config show` — prints resolved config (defaults + file + env vars)
 
 ## Release
 
