@@ -15,7 +15,7 @@ require (
 	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20260609105100-df7638d8229a
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
-	github.com/mattn/go-sqlite3 v1.14.32
+	github.com/mattn/go-sqlite3 v1.14.45
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
