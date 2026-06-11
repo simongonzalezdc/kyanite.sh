@@ -47,13 +47,14 @@ HEAD: `d0b59ce`
 
 **Session 2 net: ~-500 LoC**
 
-### Session 3 (`8953dfb` → `d0b59ce`)
+### Session 3 (`8953dfb` → `b19ace8`)
 
 - T4-03 (`f50c5c7`): `writeMutex` scoped to DB calls in autosave executeSave/executeSaveWithVersioning/CleanupOldVersions; lastSaveTime data race fixed
 - T4-04 (`f50c5c7`): `flushCache` → `flushCacheLocked` in engine.go + journal_storage.go; all mutations now hold mutex through flush (TOCTOU eliminated)
 - T5-06 (`d0b59ce`): Top-level Bubble Tea models (RootModel, MainModel, synthwave Model) → value receivers; noise/cmd type assertion updated
+- T5-01 (`b19ace8`): Shared `design.Manager` in `pkg/design/manager.go`; all 4 apps delegate via thin wrappers (-133 LoC)
 
-**Session 3 net: -3 LoC**
+**Session 3 net: -136 LoC**
 
 ---
 
@@ -76,7 +77,7 @@ HEAD: `d0b59ce`
 
 | ID | Finding | Effort | Notes |
 |----|---------|--------|-------|
-| T5-01 | Unify 4× theme managers into `pkg/design/manager.go` | 4 hr | Focus: singleton+Once, Noise: persistence+channel, Syntax: constructor, Prism: NextTheme only |
+| ~~T5-01~~ | ~~Unify 4× theme managers~~ | ~~4 hr~~ ✅ | Shared `design.Manager` in `pkg/design/manager.go`; apps delegate via thin wrappers (-133 LoC) |
 | ~~T5-02~~ | ~~Unify focus dual config~~ | ~~3 hr~~ | ✅ Deleted `focus/pkg/config`, using shared `pkg/config` |
 | T5-03 | Unify ChatMessage/Message types (3 types → 1 in pkg/ai) | 2 hr | ai.Message, app.ChatMessage, agent.ChatMessage — different field counts |
 | T5-04 | Unify error paradigm (sentinels vs structured, not both) | 3 hr | Requires noise/errors/ simplification (already partially done) |
@@ -85,7 +86,7 @@ HEAD: `d0b59ce`
 | T5-07 | Extract shared export infrastructure (`pkg/export`) | 2 hr | Noise: 6-format ExportModel, Prism: palette exporters, Syntax: story exporters |
 | T5-08 | Extract shared toast/notification (`pkg/tui/toast`) | 2 hr | Noise has ToastModel + NotificationManager (overlapping), other apps have nothing |
 
-**T5-01 is the highest leverage remaining item** — eliminates the biggest source of cross-app inconsistency.
+**T5-08 is the highest leverage remaining item** — shared toast/notification across all apps.
 
 ---
 
@@ -166,18 +167,17 @@ HEAD: `d0b59ce`
 
 ## Recommended Next Session Order
 
-1. **T5-01** (4 hr) — Unify 4× theme managers. Highest cross-app leverage.
-2. **T6-01..06** (3 hr) — Cross-app UX consistency.
-3. **T5-05** (3 hr) — Shared app bootstrapper.
-4. **T5-08** (2 hr) — Shared toast/notification.
-5. **T5-04 + T5-03** (5 hr) — Error paradigm + message type unification.
-6. Remaining T8 CI, T9 security, T10 data-flow items.
+1. **T6-01..06** (3 hr) — Cross-app UX consistency.
+2. **T5-05** (3 hr) — Shared app bootstrapper.
+3. **T5-08** (2 hr) — Shared toast/notification.
+4. **T5-04 + T5-03** (5 hr) — Error paradigm + message type unification.
+5. Remaining T8 CI, T9 security, T10 data-flow items.
 
 ---
 
 ## Key Context for Continuation
 
-- **Local repo**: ~/workspaces/kyanite-labs/kyanite.sh, branch `main`, HEAD `f50c5c7`
+- **Local repo**: ~/workspaces/kyanite-labs/kyanite.sh, branch `main`, HEAD `b19ace8`
 - **GitHub**: pushed to origin/main (8 commits since `073afa6`)
 - **Forgejo**: 18 commits ahead, push pending (NUCBox tailnet down)
 - **9 go.mod files**: apps/{focus,noise,syntax,prism}, pkg/{design,ai,config,tui,cache,session,testutil}, cmd/kyanite

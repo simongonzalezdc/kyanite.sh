@@ -20,6 +20,7 @@
 | `8953dfb` | T7-05 | MockBrain wired to focus AI tests, two-phase JSON unmarshal for empty deadlines |
 | `f50c5c7` | T4-03, T4-04 | TOCTOU race fix (flushCacheLocked) + writeMutex scoped to DB calls; lastSaveTime race fix |
 | `d0b59ce` | T5-06 | Top-level Bubble Tea models → value receivers (RootModel, MainModel, synthwave) |
+| `b19ace8` | T5-01 | Shared `design.Manager`; 4 apps delegate via thin wrappers (-133 LoC) |
 
 ## Remaining Backlog (leverage-ranked)
 
