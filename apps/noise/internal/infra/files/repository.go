@@ -93,7 +93,7 @@ func (s *Service) CreateBackup(filePath string) error {
 		return errors.NewFileError("read_for_backup", fullPath, err)
 	}
 
-	if err := os.WriteFile(backupPath, content, 0o644); err != nil {
+	if err := os.WriteFile(backupPath, content, 0o600); err != nil { // T9-02
 		return errors.NewFileError("write_backup", backupPath, err)
 	}
 
@@ -116,7 +116,7 @@ func (s *Service) RestoreBackup(filePath, backupPath string) error {
 		return errors.NewFileError("read_backup", fullBackupPath, err)
 	}
 
-	if err := os.WriteFile(fullPath, content, 0o644); err != nil {
+	if err := os.WriteFile(fullPath, content, 0o600); err != nil { // T9-02
 		return errors.NewFileError("restore_file", fullPath, err)
 	}
 

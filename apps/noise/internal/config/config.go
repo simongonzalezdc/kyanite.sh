@@ -184,7 +184,7 @@ func DefaultConfig() *Config {
 			Database: "noise",
 			Username: "postgres",
 			Password: "",
-			SSLMode:  "disable",
+			SSLMode:  "require", // T9-01: was "disable" — cleartext credentials over network
 		},
 		UI: UIConfig{
 			Theme:           "amber-night",

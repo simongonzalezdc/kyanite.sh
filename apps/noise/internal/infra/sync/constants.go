@@ -57,11 +57,13 @@ const (
 	MaxMultipartFormSize = 50 << 20
 )
 
-// File permission constants
+// File permission constants — T9-02: tightened to user-only (was
+// 0o755/0o644 — world-readable). Media/sync files contain
+// user-generated content and pairing artefacts.
 const (
 	// DefaultDirPermission is the default permission for directories
-	DefaultDirPermission = 0o755
+	DefaultDirPermission = 0o700
 
 	// DefaultFilePermission is the default permission for files
-	DefaultFilePermission = 0o644
+	DefaultFilePermission = 0o600
 )

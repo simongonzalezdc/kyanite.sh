@@ -192,7 +192,7 @@ func (s *Service) WriteSong(song *domain.Song, filePath string) error {
 			fmt.Errorf("content size %d exceeds maximum allowed size %d", len(content), 10*1024*1024))
 	}
 
-	if err := os.WriteFile(fullPath, []byte(content), 0o644); err != nil {
+	if err := os.WriteFile(fullPath, []byte(content), 0o600); err != nil { // T9-02
 		return errors.NewFileError("write", fullPath, err)
 	}
 
@@ -302,12 +302,14 @@ func (s *Service) UnwatchFile(filePath string, watcher FileWatcher) error {
 	return nil
 }
 
-// resolvePath resolves a file path relative to the base directory
+// resolvePath resolves a file path safely under the base directory.
+// T9-03: absolute paths used to bypass BaseDir (returning /etc/passwd
+// verbatim), enabling path traversal. The path is now always anchored
+// to BaseDir, then cleaned. Callers that previously passed absolute
+// paths will see them treated as relative to BaseDir.
 func (s *Service) resolvePath(path string) string {
-	if filepath.IsAbs(path) {
-		return path
-	}
-	return filepath.Join(s.config.BaseDir, path)
+	full := filepath.Clean(filepath.Join(s.config.BaseDir, path))
+	return full
 }
 
 // updateFileCache updates the file cache with new content and metadata
