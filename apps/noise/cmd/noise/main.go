@@ -11,7 +11,6 @@ import (
 	kyaniteconfig "github.com/kyanite/config"
 	"github.com/kyanite/noise/internal/config"
 	"github.com/kyanite/noise/internal/logging"
-	"github.com/kyanite/noise/internal/plugins"
 	"github.com/kyanite/noise/internal/ui"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -28,10 +27,9 @@ func main() {
 	logger.Infof("Starting noise.sh version=%s commit=%s date=%s", version, commit, date)
 
 	// Load configuration
-	cfg, err := config.Load()
+	_, err := config.Load()
 	if err != nil {
 		logger.Warnf("Failed to load config, using defaults: %v", err)
-		cfg = config.DefaultConfig()
 	}
 
 	// Create brain for session lifecycle
@@ -58,11 +56,8 @@ func main() {
 		cancel()
 	}
 
-	// Initialize plugin manager with config and logger
-	pluginManager := plugins.NewManager(cfg, logger)
-
 	// Create root model
-	model := ui.NewRootModel(pluginManager)
+	model := ui.NewRootModel()
 
 	// Create Bubble Tea program with proper options for TUI rendering
 	p := tea.NewProgram(

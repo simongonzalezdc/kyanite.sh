@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kyanite/noise/internal/app/knowledge"
 )
 
 // QuickIdeaMode represents the supported AI assistance modes.
@@ -87,7 +86,7 @@ type QuickIdeaAgent struct {
 	prompts         quickIdeaPrompts
 	contextDetector *ContextDetector
 	contextPrompts  *ContextAwarePrompts
-	knowledgeBase   knowledge.EnhancementProvider
+	knowledgeBase   EnhancementProvider
 	retryConfig     RetryConfig
 }
 
@@ -102,7 +101,7 @@ func NewQuickIdeaAgent() *QuickIdeaAgent {
 	contextDetector := NewContextDetector()
 	contextPrompts := NewContextAwarePrompts()
 	contextPrompts.Initialize()
-	kbProvider := knowledge.NewStubEnhancementProvider()
+	kbProvider := newStubProvider()
 
 	return &QuickIdeaAgent{
 		client:          &stubQuickClient{},
@@ -157,7 +156,7 @@ func (a *QuickIdeaAgent) WithModel(model string) *QuickIdeaAgent {
 }
 
 // WithKnowledgeBase returns a copy of the agent configured to use the provided knowledge base.
-func (a *QuickIdeaAgent) WithKnowledgeBase(kb knowledge.EnhancementProvider) *QuickIdeaAgent {
+func (a *QuickIdeaAgent) WithKnowledgeBase(kb EnhancementProvider) *QuickIdeaAgent {
 	if kb == nil {
 		return a
 	}
@@ -565,7 +564,7 @@ type stubQuickClient struct{}
 func (a *QuickIdeaAgent) enhanceWithKnowledgeBase(ctx context.Context, req QuickRequest, contentType ContentType) knowledgeEnhancedContext {
 	enhanced := knowledgeEnhancedContext{
 		context: req.Context,
-		cards:   []knowledge.Card{},
+		cards:   []Card{},
 		tip:     "",
 	}
 
@@ -574,7 +573,7 @@ func (a *QuickIdeaAgent) enhanceWithKnowledgeBase(ctx context.Context, req Quick
 	}
 
 	// Search for relevant knowledge cards based on mode and content
-	options := knowledge.SearchOptions{
+	options := SearchOptions{
 		Limit:        3,
 		MinRelevance: 0.6,
 		UseCache:     true,
@@ -667,11 +666,6 @@ func (a *QuickIdeaAgent) applyKnowledgeBaseToFallback(resp *QuickResponse, enhan
 }
 
 // knowledgeEnhancedContext represents context enhanced with knowledge base information
-type knowledgeEnhancedContext struct {
-	context string
-	cards   []knowledge.Card
-	tip     string
-}
 
 func isSupportedQuickIdeaMode(mode QuickIdeaMode) bool {
 	_, ok := supportedQuickIdeaModes[mode]
@@ -686,9 +680,9 @@ func ensurePositiveDuration(d time.Duration) time.Duration {
 }
 
 // GetKnowledgeBaseStatus returns the current status of the knowledge base
-func (a *QuickIdeaAgent) GetKnowledgeBaseStatus(ctx context.Context) *knowledge.KnowledgeStatus {
+func (a *QuickIdeaAgent) GetKnowledgeBaseStatus(ctx context.Context) *KnowledgeStatus {
 	if a.knowledgeBase == nil {
-		return &knowledge.KnowledgeStatus{
+		return &KnowledgeStatus{
 			Available: false,
 			Error:     "No knowledge base configured",
 		}

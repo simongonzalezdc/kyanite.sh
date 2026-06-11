@@ -7,13 +7,11 @@ import (
 	"time"
 
 	"github.com/kyanite/noise/internal/app"
-	"github.com/kyanite/noise/internal/collaboration"
 	"github.com/kyanite/noise/internal/config"
 	errutil "github.com/kyanite/noise/internal/errutil"
 	"github.com/kyanite/noise/internal/infra/db"
 	"github.com/kyanite/noise/internal/infra/sync"
 	"github.com/kyanite/noise/internal/logging"
-	"github.com/kyanite/noise/internal/plugins"
 	"github.com/kyanite/noise/internal/theme"
 	"github.com/kyanite/noise/internal/ui/dashboard"
 	"github.com/kyanite/noise/internal/ui/editor"
@@ -106,17 +104,8 @@ type RootModel struct {
 	// Responsive layout system
 	responsiveManager *ResponsiveLayoutManager
 
-	// Collaboration system
-	collaborationManager *collaboration.CollaborationManager
-	presenceManager      *collaboration.PresenceManager
-	sessionManager       *collaboration.SessionManager
-	invitationManager    *collaboration.InvitationManager
-	conflictResolver     *collaboration.ConflictResolver
-
-	// Plugin system
-	pluginManager *plugins.DefaultManager
-
 	// Quick start configuration
+
 	quickStartConfig *QuickStartConfig
 
 	// AI Service
@@ -140,7 +129,7 @@ type RootModel struct {
 }
 
 // NewRootModel creates a new root model with initialized state
-func NewRootModel(pluginManager *plugins.DefaultManager) *RootModel {
+func NewRootModel() *RootModel {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 	s.Style = lipgloss.Style{}.Foreground(theme.GetManager().Current().Primary)
@@ -151,9 +140,6 @@ func NewRootModel(pluginManager *plugins.DefaultManager) *RootModel {
 		spinner:           s,
 		animation:         NewAnimationManager(),
 		responsiveManager: NewResponsiveLayoutManager(),
-		// Collaboration managers are initialized in initializeCollaborationSystem
-		// only when the feature flag is enabled (config.Features.EnableCollaboration)
-		pluginManager: pluginManager,
 	}
 }
 
@@ -399,10 +385,8 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.currentScreen = screenDashboard
 		}
 
-		// Initialize collaboration system
-		m.initializeCollaborationSystem()
-
 		// Initialize child models
+
 		m.initializeChildModels()
 
 		// CRITICAL: Call Init() on child models and collect their commands
@@ -770,51 +754,6 @@ func (m *RootModel) initializeSyncService(cfg *config.Config) {
 			logging.Infof("Sync server started at %s", syncServer.GetLocalURL())
 		}
 	}
-}
-
-// initializeCollaborationSystem initializes the collaboration system
-// Only initializes if collaboration feature is enabled in config
-func (m *RootModel) initializeCollaborationSystem() {
-	// Check if collaboration feature is enabled
-	if m.config == nil || !m.config.IsCollaborationEnabled() {
-		// Collaboration is disabled - skip initialization
-		// This is the default for single-user mode
-		return
-	}
-
-	// Initialize collaboration managers
-	m.collaborationManager = collaboration.NewCollaborationManager(m.database)
-	m.collaborationManager.Start()
-	m.presenceManager = collaboration.NewPresenceManager()
-	m.sessionManager = collaboration.NewSessionManager()
-	m.invitationManager = collaboration.NewInvitationManager()
-	m.conflictResolver = collaboration.NewConflictResolver()
-
-	// Set up UI callbacks for collaboration events
-	m.collaborationManager.SetUICallbacks(
-		m.onSessionUpdate,
-		m.onPresenceUpdate,
-		m.onConflictDetected,
-	)
-
-	// Set up presence manager callbacks
-	m.presenceManager.SetPresenceCallbacks(
-		m.onPresenceUpdate,
-		func(sessionID, userID string) {
-			// Handle user joined for presence manager
-		},
-		func(sessionID, userID string) {
-			// Handle user left for presence manager
-		},
-	)
-
-	// Set up session manager callbacks
-	m.sessionManager.SetSessionCallbacks(
-		m.onSessionCreated,
-		m.onSessionEnded,
-		m.onUserJoined,
-		m.onUserLeft,
-	)
 }
 
 // updateCurrentScreen routes messages to the current screen's model
@@ -1223,36 +1162,6 @@ func (m *RootModel) renderExport() string {
 	m.export.SetDimensions(m.width, m.height)
 
 	return m.export.View()
-}
-
-// Collaboration event handlers
-
-func (m *RootModel) onSessionUpdate(event collaboration.SessionUpdateEvent) {
-	// Handle session updates - could trigger UI refresh or notifications
-}
-
-func (m *RootModel) onPresenceUpdate(event collaboration.PresenceUpdateEvent) {
-	// Handle presence updates - could update presence indicators
-}
-
-func (m *RootModel) onConflictDetected(event collaboration.ConflictEvent) {
-	// Handle conflict detection - could show conflict resolution UI
-}
-
-func (m *RootModel) onUserJoined(session *collaboration.Session, participant *collaboration.Participant) {
-	// Handle user joining session
-}
-
-func (m *RootModel) onUserLeft(session *collaboration.Session, participant *collaboration.Participant) {
-	// Handle user leaving session
-}
-
-func (m *RootModel) onSessionCreated(session *collaboration.Session) {
-	// Handle session creation
-}
-
-func (m *RootModel) onSessionEnded(session *collaboration.Session) {
-	// Handle session ending
 }
 
 // handleVoiceDictation toggles voice dictation recording

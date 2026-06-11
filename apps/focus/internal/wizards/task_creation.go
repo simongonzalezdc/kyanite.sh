@@ -29,6 +29,7 @@ func TaskCreationWizard() error {
 	// Initialize components
 	repo := repository.NewStoreRepository(utils.GetStoragePath())
 	taskEngine := engine.New(repo)
+	var err error
 
 	var task models.ParsedTask
 	var dueDateStr string
@@ -89,7 +90,7 @@ func TaskCreationWizard() error {
 	)
 
 	// Run the form
-	err := form.Run()
+	err = form.Run()
 	if err != nil {
 		return fmt.Errorf("form cancelled or error: %w", err)
 	}

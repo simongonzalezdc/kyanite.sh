@@ -5,7 +5,6 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/design"
-	"github.com/kyanite/focus/internal/command"
 	"github.com/kyanite/focus/internal/tui"
 	"github.com/kyanite/focus/pkg/styles"
 	pterm "github.com/pterm/pterm"
@@ -13,7 +12,6 @@ import (
 )
 
 // Global command history for undo/redo
-var globalHistory = command.NewHistory()
 
 var (
 	focusBlue   = design.DefaultTheme().Secondary

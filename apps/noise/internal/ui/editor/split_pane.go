@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	"github.com/kyanite/noise/internal/app"
-	"github.com/kyanite/noise/internal/app/agent"
+// agent package removed
 	"github.com/kyanite/noise/internal/config"
 	"github.com/kyanite/noise/internal/domain"
 	"github.com/kyanite/noise/internal/infra/db"
@@ -58,7 +58,7 @@ type SplitPaneModel struct {
 	shortcutManager *ShortcutManager
 
 	// Muse AI companion agent
-	museAgent *agent.Muse
+	museAgent interface{}
 
 	// Performance optimizations
 	lastUpdateLength int
@@ -108,7 +108,7 @@ func NewSplitPaneModel(database *db.DB, aiService *app.AIService) *SplitPaneMode
 	t := theme.GetManager().Current()
 
 	// Initialize Muse AI companion agent
-	museAgent := agent.NewMuse(database, aiService, nil)
+	museAgent := interface{}(nil)
 
 	model := &SplitPaneModel{
 		splitRatio:      splitRatio,
@@ -228,7 +228,7 @@ func (m *SplitPaneModel) Update(msg tea.Msg) (*SplitPaneModel, tea.Cmd) {
 
 		// Notify Muse agent of content changes for context tracking
 		if m.museAgent != nil && editorContent != currentContent {
-			m.museAgent.OnContentChange(editorContent)
+   // m.museAgent.OnContentChange(editorContent)  // agent removed
 		}
 
 		if m.previewPane.GetRealtimeManager() != nil {
@@ -430,17 +430,7 @@ func (m *SplitPaneModel) Cleanup() {
 			logging.Warnf("Error stopping auto-save service: %v", err)
 		}
 	}
-	// End Muse session
-	if m.museAgent != nil {
-		if err := m.museAgent.EndSession(); err != nil {
-			logging.Warnf("Error ending Muse session: %v", err)
-		}
-	}
-}
-
-// GetMuse returns the Muse AI companion agent
-func (m *SplitPaneModel) GetMuse() *agent.Muse {
-	return m.museAgent
+	// End Muse session (removed)
 }
 
 // handleShortcutAction handles actions from the keyboard shortcut system

@@ -53,15 +53,6 @@ func TestRegisterCustomReturnsError(t *testing.T) {
 	}
 }
 
-func TestMustGetPanicsOnMissing(t *testing.T) {
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Error("expected panic for missing theme")
-		}
-	}()
-	MustGet("nonexistent")
-}
 
 func TestDefaultTheme(t *testing.T) {
 	th := DefaultTheme()

@@ -79,20 +79,15 @@ func List() []string {
 	return names
 }
 
-// MustGet returns the theme with the given name, or panics if not found.
-func MustGet(name string) Theme {
-	registryMu.RLock()
-	defer registryMu.RUnlock()
-	t, ok := registry[name]
-	if !ok {
-		panic(fmt.Sprintf("design: theme %q not found", name))
-	}
-	return t
-}
-
 // DefaultTheme returns the default theme (amber-night).
 func DefaultTheme() Theme {
-	return MustGet("amber-night")
+	registryMu.RLock()
+	t, ok := registry["amber-night"]
+	registryMu.RUnlock()
+	if !ok {
+		panic("design: default theme \"amber-night\" not registered")
+	}
+	return t
 }
 
 func init() {

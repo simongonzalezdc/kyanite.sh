@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kyanite/focus/internal/di"
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/styles"
@@ -28,7 +29,7 @@ var chatCmd = &cobra.Command{
 		// Initialize components
 		repo := repository.NewStoreRepository(utils.GetStoragePath())
 		engine := engine.New(repo)
-		aiManager := defaultContainer.GetAIManager()
+		aiManager := di.GetContainer().GetAIManager()
 
 		// Check AI status and show indicator
 		status := utils.CheckAIStatus()

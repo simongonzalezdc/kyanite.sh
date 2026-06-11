@@ -1,8 +1,8 @@
 {
   "skill": "ultragoal",
-  "status": "pending",
-  "current_phase": "pending",
-  "active": true,
+  "status": "complete",
+  "current_phase": "complete",
+  "active": false,
   "goals": [
     {
       "id": "G001",
@@ -37,23 +37,23 @@
     {
       "id": "G007",
       "title": "Pass 7 — Exhaustive clean run 1",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "G008",
       "title": "Pass 8 — Exhaustive clean run 2",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "id": "G009",
       "title": "Pass 9 — Exhaustive clean run 3 (final)",
-      "status": "pending"
+      "status": "complete"
     }
   ],
   "counts": {
-    "pending": 3,
+    "pending": 0,
     "active": 0,
-    "complete": 6,
+    "complete": 9,
     "failed": 0,
     "blocked": 0,
     "review_blocked": 0,
@@ -63,7 +63,7 @@
   "brief_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/ultragoal/brief.md",
   "goals_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/ultragoal/goals.json",
   "version": 2,
-  "updated_at": "2026-06-11T03:02:59.094Z",
+  "updated_at": "2026-06-11T03:12:51.683Z",
   "receipt": {
     "version": 1,
     "skill": "ultragoal",
@@ -71,22 +71,21 @@
     "command": "gjc ultragoal (reconcile)",
     "state_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/skill-active-state.json",
     "storage_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/ultragoal-state.json",
-    "mutated_at": "2026-06-11T03:02:59.094Z",
-    "fresh_until": "2026-06-11T03:32:59.094Z",
+    "mutated_at": "2026-06-11T03:12:51.683Z",
+    "fresh_until": "2026-06-11T03:42:51.683Z",
     "status": "fresh",
-    "mutation_id": "ultragoal:reconcile:2026-06-11T03:02:59.094Z",
+    "mutation_id": "ultragoal:reconcile:2026-06-11T03:12:51.683Z",
     "verb": "reconcile",
     "forced": true,
     "from_phase": "pending",
-    "to_phase": "pending",
+    "to_phase": "complete",
     "content_sha256": {
       "algorithm": "sha256",
-      "value": "059a45d750bced51782a4f66ba8724f58f1e2d4a9956f291261129d8ba2612cf",
+      "value": "9f02872016c612c243350873729e6455e87f032d7c6ac3dc2a5d6ff6c1181a81",
       "covered_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/ultragoal-state.json",
-      "computed_at": "2026-06-11T03:02:59.096Z"
+      "computed_at": "2026-06-11T03:12:51.685Z"
     }
   },
   "session_id": "019eaf69-92d5-7000-914c-6b7dd702f1ea",
-  "active_goal_id": "G007",
   "gjc_objective": "Complete the durable ultragoal plan in .gjc/ultragoal/goals.json, including later accepted/appended stories, under the original brief constraints; use .gjc/ultragoal/ledger.jsonl as the audit trail."
 }

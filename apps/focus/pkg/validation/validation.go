@@ -3,27 +3,18 @@ package validation
 import (
 	"errors"
 	"fmt"
-	"net/mail"
-	"net/url"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 )
 
 // Pre-compiled regular expressions for performance
-var (
-	passwordLowerRegex = regexp.MustCompile(`[a-z]`)
-	passwordUpperRegex = regexp.MustCompile(`[A-Z]`)
-	passwordDigitRegex = regexp.MustCompile(`[0-9]`)
-
-	sqlInjectionRegexes = []*regexp.Regexp{
-		regexp.MustCompile(`(?i)(\bunion\b|\bselect\b|\binsert\b|\bupdate\b|\bdelete\b|\bdrop\b|\bcreate\b|\balter\b)`),
-		regexp.MustCompile(`(?i)(\bexec\b|\bexecute\b|\bsp_|\bxp_)`),
-		regexp.MustCompile(`(?i)(\bscript\b|\bjavascript\b|\bvbscript\b)`),
-		regexp.MustCompile(`(?i)(['\"]\s*;\s*(drop|delete|union|select))`),
-	}
-)
+var sqlInjectionRegexes = []*regexp.Regexp{
+	regexp.MustCompile(`(?i)(\bunion\b|\bselect\b|\binsert\b|\bupdate\b|\bdelete\b|\bdrop\b|\bcreate\b|\balter\b)`),
+	regexp.MustCompile(`(?i)(\bexec\b|\bexecute\b|\bsp_|\bxp_)`),
+	regexp.MustCompile(`(?i)(\bscript\b|\bjavascript\b|\bvbscript\b)`),
+	regexp.MustCompile(`(?i)(['\"]\s*;\s*(drop|delete|union|select))`),
+}
 
 func ValidateTaskDescription(description string) error {
 	trimmed := strings.TrimSpace(description)
@@ -52,9 +43,6 @@ func ValidateTaskPriority(priority string) error {
 	return fmt.Errorf("invalid priority: %s (must be one of: %s)", priority, strings.Join(validPriorities, ", "))
 }
 
-func ValidateCategories(categories []string) error { // kept for backward compat
-	return ValidateTaskCategories(categories)
-}
 
 func ValidateTaskCategories(categories []string) error {
 	if len(categories) > 10 {
@@ -110,126 +98,6 @@ func ValidateTaskDeadline(deadline string) error {
 	}
 	return fmt.Errorf("invalid deadline format: %s", deadline)
 }
-
-func ValidateEmail(email string) error {
-	if strings.TrimSpace(email) == "" {
-		return fmt.Errorf("email cannot be empty")
-	}
-	_, err := mail.ParseAddress(email)
-	if err != nil {
-		return fmt.Errorf("invalid email: %s", email)
-	}
-	if strings.Contains(email, "..") {
-		return fmt.Errorf("invalid email: %s", email)
-	}
-	return nil
-}
-
-func ValidateURL(raw string) error {
-	if strings.TrimSpace(raw) == "" {
-		return fmt.Errorf("url cannot be empty")
-	}
-	u, err := url.Parse(raw)
-	if err != nil || u.Scheme == "" || u.Host == "" {
-		return fmt.Errorf("invalid url: %s", raw)
-	}
-	if u.Scheme != "http" && u.Scheme != "https" {
-		return fmt.Errorf("invalid url scheme: %s", u.Scheme)
-	}
-	return nil
-}
-
-func ValidatePhoneNumber(phone string) error {
-	if strings.TrimSpace(phone) == "" {
-		return fmt.Errorf("phone number cannot be empty")
-	}
-	re := regexp.MustCompile(`^\+?[0-9\s\-()]{7,}$`)
-	if !re.MatchString(phone) {
-		return fmt.Errorf("invalid phone number: %s", phone)
-	}
-	return nil
-}
-
-func ValidatePositiveInteger(s string) error {
-	if strings.TrimSpace(s) == "" {
-		return fmt.Errorf("value cannot be empty")
-	}
-	n, err := strconv.Atoi(s)
-	if err != nil || n <= 0 {
-		return fmt.Errorf("must be a positive integer: %s", s)
-	}
-	return nil
-}
-
-func ValidatePositiveNumber(s string) error {
-	if strings.TrimSpace(s) == "" {
-		return fmt.Errorf("value cannot be empty")
-	}
-	f, err := strconv.ParseFloat(s, 64)
-	if err != nil || f <= 0 {
-		return fmt.Errorf("must be a positive number: %s", s)
-	}
-	return nil
-}
-
-func ValidateString(s string, minLen, maxLen int) error {
-	if minLen < 0 || maxLen < minLen {
-		return fmt.Errorf("invalid length bounds")
-	}
-	if len(s) < minLen {
-		return fmt.Errorf("string too short (min %d)", minLen)
-	}
-	if len(s) > maxLen {
-		return fmt.Errorf("string too long (max %d)", maxLen)
-	}
-	return nil
-}
-
-func ValidateDateTime(dt string) error {
-	if strings.TrimSpace(dt) == "" {
-		return fmt.Errorf("datetime cannot be empty")
-	}
-	layouts := []string{time.RFC3339, "2006-01-02T15:04:05"}
-	for _, l := range layouts {
-		if _, err := time.Parse(l, dt); err == nil {
-			return nil
-		}
-	}
-	return fmt.Errorf("invalid datetime: %s", dt)
-}
-
-func ValidatePassword(pw string) error {
-	if len(pw) < 8 {
-		return fmt.Errorf("password too short (min 8)")
-	}
-	hasLower := passwordLowerRegex.MatchString(pw)
-	hasUpper := passwordUpperRegex.MatchString(pw)
-	hasDigit := passwordDigitRegex.MatchString(pw)
-	if !hasLower || !hasUpper || !hasDigit {
-		return fmt.Errorf("password must contain upper, lower, and digit")
-	}
-	return nil
-}
-
-func ValidateTags(tags []string) error {
-	seen := map[string]bool{}
-	for i, tag := range tags {
-		trimmed := strings.TrimSpace(tag)
-		if trimmed == "" {
-			return fmt.Errorf("tag %d cannot be empty", i+1)
-		}
-		if strings.Contains(trimmed, " ") {
-			return fmt.Errorf("tag cannot contain spaces: %s", trimmed)
-		}
-		lower := strings.ToLower(trimmed)
-		if seen[lower] {
-			return fmt.Errorf("duplicate tag: %s", trimmed)
-		}
-		seen[lower] = true
-	}
-	return nil
-}
-
 func ValidateTask(task map[string]interface{}) error {
 	descVal, ok := task["description"]
 	if !ok {

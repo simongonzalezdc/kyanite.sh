@@ -170,7 +170,7 @@ syntax:
 prism:
   theme: amber-night
 `
-	if err := os.WriteFile(cfgPath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(cfgPath, []byte(content), 0600); err != nil {
 		return fmt.Errorf("write config: %w", err)
 	}
 

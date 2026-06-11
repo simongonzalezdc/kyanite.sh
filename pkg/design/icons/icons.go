@@ -1,8 +1,6 @@
 // Package icons provides a 3-tier icon system (ASCII, Unicode, NerdFont)
-// with string width utilities and per-app icon registration.
+// for the shared kyanite.sh icon set.
 package icons
-
-import "sync"
 
 // Style represents the icon rendering tier.
 type Style int
@@ -47,13 +45,10 @@ var DefaultStyle = Unicode
 
 // baseIcons holds the shared base icon set.
 var baseIcons = map[string]Icon{}
-var baseIconsMu sync.RWMutex
 
 // GetIcon returns the icon string for the given name using DefaultStyle,
 // or empty string if not found.
 func GetIcon(name string) string {
-	baseIconsMu.RLock()
-	defer baseIconsMu.RUnlock()
 	icon, ok := baseIcons[name]
 	if !ok {
 		return ""
@@ -61,49 +56,8 @@ func GetIcon(name string) string {
 	return icon.Get(DefaultStyle)
 }
 
-// RegisterIcons registers app-specific icons into the shared registry.
-func RegisterIcons(appIcons map[string]Icon) {
-	baseIconsMu.Lock()
-	defer baseIconsMu.Unlock()
-	for name, icon := range appIcons {
-		baseIcons[name] = icon
-	}
-}
-
-// currentStyle holds the global icon style.
-var currentStyle = Unicode
-var styleMu sync.RWMutex
-
-// SetStyle changes the active icon style.
-func SetStyle(s Style) {
-	styleMu.Lock()
-	defer styleMu.Unlock()
-	currentStyle = s
-}
-
-// GetStyle returns the current icon style.
-func GetStyle() Style {
-	styleMu.RLock()
-	defer styleMu.RUnlock()
-	return currentStyle
-}
-
-// CurrentIcon returns the icon string for the given name using the current style.
-func CurrentIcon(name string) string {
-	styleMu.RLock()
-	s := currentStyle
-	styleMu.RUnlock()
-	baseIconsMu.RLock()
-	icon, ok := baseIcons[name]
-	baseIconsMu.RUnlock()
-	if !ok {
-		return ""
-	}
-	return icon.Get(s)
-}
-
 func init() {
-	RegisterIcons(baseIconDefs)
+	baseIcons = baseIconDefs
 }
 
 // baseIconDefs contains all shared icon definitions.

@@ -21,11 +21,9 @@ func New(filePath string) *Store {
 	// Ensure the directory exists
 	dir := filepath.Dir(filePath)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
-		// If we can't create the directory, fall back to current directory
-		// Log the error for debugging (will be added with logging framework)
-		// For now, use a safe fallback
+		fmt.Fprintf(os.Stderr, "warning: could not create storage dir %s: %v; using %s\n", dir, err, filepath.Join(".", filepath.Base(filePath)))
 		return &Store{
-			filePath: "./tasks.json",
+			filePath: filepath.Join(".", filepath.Base(filePath)),
 		}
 	}
 

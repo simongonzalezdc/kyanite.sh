@@ -8,6 +8,7 @@ import (
 
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/focus/internal/di"
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/models"
@@ -150,7 +151,7 @@ Example: focus edit abc123`,
 
 		// AI-powered enhancement if requested
 		if useAI && description != task.Description {
-			aiManager := defaultContainer.GetAIManager()
+			aiManager := di.GetContainer().GetAIManager()
 			parsedTask, err := aiManager.ParseTask(context.Background(), description)
 			if err == nil {
 				description = parsedTask.Description

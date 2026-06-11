@@ -14,7 +14,7 @@ var summaryCmd = &cobra.Command{
 		// Initialize components
 		repo := repository.NewStoreRepository(utils.GetStoragePath())
 		engine := engine.New(repo)
-		aiManager := defaultContainer.GetAIManager()
+		aiManager := di.GetContainer().GetAIManager()
 
 		// Get all tasks
 		tasks, err := engine.ListTasks("all")
