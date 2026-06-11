@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/knadh/koanf/parsers/yaml"
+	yamllib "go.yaml.in/yaml/v3"
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
@@ -202,6 +203,31 @@ func Load() (*Root, error) {
 	}
 
 	return &cfg, nil
+	return &cfg, nil
+}
+
+// Save writes the Root back to the config file as YAML.
+// Atomic: writes to <path>.tmp first, then renames. Permissions 0600.
+func Save(root *Root) error {
+	dir := ConfigDir()
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return fmt.Errorf("create config dir: %w", err)
+	}
+	cfgPath := ConfigPath()
+
+	data, err := yamllib.Marshal(root)
+	if err != nil {
+		return fmt.Errorf("marshal config: %w", err)
+	}
+
+	tmp := cfgPath + ".tmp"
+	if err := os.WriteFile(tmp, data, 0o600); err != nil {
+		return fmt.Errorf("write config tmp: %w", err)
+	}
+	if err := os.Rename(tmp, cfgPath); err != nil {
+		return fmt.Errorf("rename config tmp: %w", err)
+	}
+	return nil
 }
 
 // Init creates a default config file at the standard location.

@@ -7,7 +7,7 @@ import (
 
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/kyanite/focus/pkg/config"
+	"github.com/kyanite/config"
 	"github.com/spf13/cobra"
 )
 
@@ -123,7 +123,7 @@ func enhancedConfigWizardHandler(cmd *cobra.Command, args []string) {
 		Render("⚙️ Configuration completed and saved successfully!")
 
 	fmt.Println(successStyle)
-	fmt.Printf("📁 Configuration saved to: %s\n", config.GetConfigPath())
+	fmt.Printf("📁 Configuration saved to: %s\n", config.ConfigPath())
 }
 
 func saveEnhancedConfig(configData *struct {
@@ -137,50 +137,47 @@ func saveEnhancedConfig(configData *struct {
 	Editor        string
 },
 ) error {
-	// Load existing config
-	cfg, err := config.LoadConfig()
+	// Load existing root
+	root, err := config.Load()
 	if err != nil {
-		// Create new config if doesn't exist
-		cfg = &config.Config{}
+		// Create a fresh root with focus defaults if loading fails
+		root = &config.Root{
+			Focus: config.FocusConfig{
+				Theme: "amber-night",
+			},
+		}
 	}
 
 	// Apply settings from wizard
-	// Update AI settings
 	if configData.AIProvider != "" {
-		cfg.AI.Provider = configData.AIProvider
+		root.Focus.AI.Provider = configData.AIProvider
 	}
 	if configData.Model != "" {
-		cfg.AI.Model = configData.Model
+		root.Focus.AI.Model = configData.Model
 	}
-
-	// Update theme
 	if configData.DefaultTheme != "" {
-		cfg.Theme = configData.DefaultTheme
+		root.Focus.Theme = configData.DefaultTheme
 	}
-
-	// Update UI settings
 	if configData.TimeFormat != "" {
-		cfg.UI.TimeFormat = configData.TimeFormat
+		root.Focus.UI.TimeFormat = configData.TimeFormat
 	}
-	cfg.UI.Notifications = configData.Notifications
+	root.Focus.UI.Notifications = configData.Notifications
 
-	// Update dashboard settings
 	switch configData.Dashboard {
 	case "compact":
-		cfg.Dashboard.CompactMode = true
-		cfg.Dashboard.ShowAnimation = false
+		root.Focus.Dashboard.CompactMode = true
+		root.Focus.Dashboard.ShowAnimation = false
 	case "animated":
-		cfg.Dashboard.ShowAnimation = true
-		cfg.Dashboard.CompactMode = false
+		root.Focus.Dashboard.ShowAnimation = true
+		root.Focus.Dashboard.CompactMode = false
 	default:
-		cfg.Dashboard.ShowAnimation = false
-		cfg.Dashboard.CompactMode = false
+		root.Focus.Dashboard.ShowAnimation = false
+		root.Focus.Dashboard.CompactMode = false
 	}
 
-	// Update notes settings
 	if configData.Editor != "" {
-		cfg.Notes.DefaultEditor = configData.Editor
+		root.Focus.Notes.DefaultEditor = configData.Editor
 	}
 
-	return config.SaveConfig(cfg)
+	return config.Save(root)
 }

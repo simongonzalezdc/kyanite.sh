@@ -11,7 +11,7 @@ import (
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/internal/wizards"
-	"github.com/kyanite/focus/pkg/config"
+	"github.com/kyanite/config"
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/pkg/styles"
 	"github.com/kyanite/focus/pkg/utils"
@@ -40,7 +40,7 @@ type UnifiedDashboardModel struct {
 	width         int
 	height        int
 	taskEngine    *engine.Engine
-	config        *config.Config
+	config        *config.FocusConfig
 	currentView   string
 	menuItems     []list.Item
 	taskList      []models.Task
@@ -123,7 +123,13 @@ func DefaultUnifiedKeyMap() UnifiedKeyMap {
 func NewUnifiedDashboardModel() UnifiedDashboardModel {
 	repo := repository.NewStoreRepository(utils.GetStoragePath())
 	taskEngine := engine.New(repo)
-	cfg, _ := config.LoadConfig()
+
+	root, _ := config.Load()
+	var cfg *config.FocusConfig
+	if root != nil {
+		focus := root.Focus
+		cfg = &focus
+	}
 
 	initial := styles.ThemeSynthwave
 	if cfg != nil {
@@ -204,11 +210,12 @@ func (m UnifiedDashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.menu.SetHeight(msg.Height - 10)
 
 	case LoadConfigMsg:
-		cfg, err := config.LoadConfig()
+		root, err := config.Load()
 		if err == nil {
-			m.config = cfg
+			focus := root.Focus
+			m.config = &focus
 			th := styles.ThemeSynthwave
-			switch cfg.Theme {
+			switch focus.Theme {
 			case string(styles.ThemeLight):
 				th = styles.ThemeLight
 			case string(styles.ThemePlain):
@@ -244,7 +251,11 @@ func (m UnifiedDashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.applyThemeString(next.Name)
 		if m.config != nil {
 			m.config.Theme = next.Name
-			_ = config.SaveConfig(m.config)
+			// Persist: load full root, replace Focus, save.
+			if root, err := config.Load(); err == nil {
+				root.Focus = *m.config
+				_ = config.Save(root)
+			}
 		}
 		m.statusMessage = fmt.Sprintf("Theme changed to %s", next.Name)
 

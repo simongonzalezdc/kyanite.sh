@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/design"
 	"github.com/kyanite/focus/internal/theme"
-	"github.com/kyanite/focus/pkg/config"
+	"github.com/kyanite/config"
 	"github.com/kyanite/focus/pkg/styles"
 	"github.com/spf13/cobra"
 )
@@ -50,12 +50,12 @@ Available Kyanite Themes:
 		styles.RefreshColors()
 
 		// Update config
-		cfg, err := config.LoadConfig()
+		root, err := config.Load()
 		if err != nil {
-			cfg = &config.Config{}
+			root = &config.Root{}
 		}
-		cfg.Theme = themeName
-		_ = config.SaveConfig(cfg) // Ignore error for UI command
+		root.Focus.Theme = themeName
+		_ = config.Save(root) // Ignore error for UI command
 
 		fmt.Printf("✨ Theme changed to: %s\n", lipgloss.NewStyle().
 			Foreground(theme.GetManager().Current().Primary).

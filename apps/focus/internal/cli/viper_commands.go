@@ -8,9 +8,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/kyanite/focus/pkg/config"
+	"github.com/kyanite/config"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var configGetCmd = &cobra.Command{
@@ -53,68 +52,54 @@ var configPathCmd = &cobra.Command{
 func configGetHandler(cmd *cobra.Command, args []string) {
 	key := args[0]
 
-	cfg := config.GetConfig()
-	if cfg == nil {
+	root, err := config.Load()
+	if err != nil {
 		fmt.Println("❌ Configuration not loaded")
 		return
 	}
+	focus := root.Focus
 
-	// Get value using viper
-	viper.SetDefault(key, "")
-	value := viper.GetString(key)
-
-	if value == "" {
-		// Try nested keys
-		switch key {
-		case "ai.provider":
-			value = cfg.AI.Provider
-		case "ai.model":
-			value = cfg.AI.Model
-		case "ai.temperature":
-			value = fmt.Sprintf("%.1f", cfg.AI.Temperature)
-		case "ai.max_tokens":
-			value = fmt.Sprintf("%d", cfg.AI.MaxTokens)
-		case "ai.timeout":
-			value = fmt.Sprintf("%d", cfg.AI.Timeout)
-		case "theme":
-			value = cfg.Theme
-		case "dashboard.auto_refresh":
-			value = fmt.Sprintf("%t", cfg.Dashboard.AutoRefresh)
-		case "dashboard.refresh_interval":
-			value = fmt.Sprintf("%d", cfg.Dashboard.RefreshInterval)
-		case "dashboard.show_animation":
-			value = fmt.Sprintf("%t", cfg.Dashboard.ShowAnimation)
-		case "dashboard.compact_mode":
-			value = fmt.Sprintf("%t", cfg.Dashboard.CompactMode)
-		case "notes.default_editor":
-			value = cfg.Notes.DefaultEditor
-		case "notes.auto_save":
-			value = fmt.Sprintf("%t", cfg.Notes.AutoSave)
-		case "notes.save_interval":
-			value = fmt.Sprintf("%d", cfg.Notes.SaveInterval)
-		case "ui.time_format":
-			value = cfg.UI.TimeFormat
-		case "ui.date_format":
-			value = cfg.UI.DateFormat
-		case "ui.show_help_tips":
-			value = fmt.Sprintf("%t", cfg.UI.ShowHelpTips)
-		case "ui.notifications":
-			value = fmt.Sprintf("%t", cfg.UI.Notifications)
-		case "ui.sound_effects":
-			value = fmt.Sprintf("%t", cfg.UI.SoundEffects)
-		default:
-			fmt.Printf("❌ Unknown configuration key: %s\n", key)
-			return
-		}
+	switch key {
+	case "ai.provider":
+		fmt.Println(focus.AI.Provider)
+	case "ai.model":
+		fmt.Println(focus.AI.Model)
+	case "ai.temperature":
+		fmt.Printf("%.1f\n", focus.AI.Temperature)
+	case "ai.max_tokens":
+		fmt.Printf("%d\n", focus.AI.MaxTokens)
+	case "ai.timeout":
+		fmt.Printf("%d\n", focus.AI.Timeout)
+	case "theme":
+		fmt.Println(focus.Theme)
+	case "dashboard.auto_refresh":
+		fmt.Printf("%t\n", focus.Dashboard.AutoRefresh)
+	case "dashboard.refresh_interval":
+		fmt.Printf("%d\n", focus.Dashboard.RefreshInterval)
+	case "dashboard.show_animation":
+		fmt.Printf("%t\n", focus.Dashboard.ShowAnimation)
+	case "dashboard.compact_mode":
+		fmt.Printf("%t\n", focus.Dashboard.CompactMode)
+	case "notes.default_editor":
+		fmt.Println(focus.Notes.DefaultEditor)
+	case "notes.auto_save":
+		fmt.Printf("%t\n", focus.Notes.AutoSave)
+	case "notes.save_interval":
+		fmt.Printf("%d\n", focus.Notes.SaveInterval)
+	case "ui.time_format":
+		fmt.Println(focus.UI.TimeFormat)
+	case "ui.date_format":
+		fmt.Println(focus.UI.DateFormat)
+	case "ui.show_help_tips":
+		fmt.Printf("%t\n", focus.UI.ShowHelpTips)
+	case "ui.notifications":
+		fmt.Printf("%t\n", focus.UI.Notifications)
+	case "ui.sound_effects":
+		fmt.Printf("%t\n", focus.UI.SoundEffects)
+	default:
+		fmt.Printf("❌ Unknown configuration key: %s\n", key)
+		return
 	}
-
-	successStyle := lipgloss.NewStyle().
-		Foreground(styles.GetSuccess()).
-		Bold(true)
-
-	fmt.Printf("%s %s\n",
-		successStyle.Render(fmt.Sprintf("%s:", key)),
-		value)
 }
 
 func configSetHandler(cmd *cobra.Command, args []string) {
@@ -162,9 +147,75 @@ func configSetHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Update configuration
-	updates := map[string]any{key: finalValue}
-	if err := config.UpdateConfig(updates); err != nil {
-		fmt.Printf("❌ Failed to update configuration: %v\n", err)
+	root, err := config.Load()
+	if err != nil {
+		fmt.Printf("❌ Failed to load configuration: %v\n", err)
+		return
+	}
+	switch key {
+	case "ai.provider":
+		root.Focus.AI.Provider = value
+	case "ai.model":
+		root.Focus.AI.Model = value
+	case "ai.temperature":
+		if v, ok := finalValue.(float64); ok {
+			root.Focus.AI.Temperature = v
+		}
+	case "ai.max_tokens":
+		if v, ok := finalValue.(int); ok {
+			root.Focus.AI.MaxTokens = v
+		}
+	case "ai.timeout":
+		if v, ok := finalValue.(int); ok {
+			root.Focus.AI.Timeout = v
+		}
+	case "theme":
+		root.Focus.Theme = value
+	case "dashboard.auto_refresh":
+		if v, ok := finalValue.(bool); ok {
+			root.Focus.Dashboard.AutoRefresh = v
+		}
+	case "dashboard.refresh_interval":
+		if v, ok := finalValue.(int); ok {
+			root.Focus.Dashboard.RefreshInterval = v
+		}
+	case "dashboard.show_animation":
+		if v, ok := finalValue.(bool); ok {
+			root.Focus.Dashboard.ShowAnimation = v
+		}
+	case "dashboard.compact_mode":
+		if v, ok := finalValue.(bool); ok {
+			root.Focus.Dashboard.CompactMode = v
+		}
+	case "notes.default_editor":
+		root.Focus.Notes.DefaultEditor = value
+	case "notes.auto_save":
+		if v, ok := finalValue.(bool); ok {
+			root.Focus.Notes.AutoSave = v
+		}
+	case "notes.save_interval":
+		if v, ok := finalValue.(int); ok {
+			root.Focus.Notes.SaveInterval = v
+		}
+	case "ui.time_format":
+		root.Focus.UI.TimeFormat = value
+	case "ui.date_format":
+		root.Focus.UI.DateFormat = value
+	case "ui.show_help_tips":
+		if v, ok := finalValue.(bool); ok {
+			root.Focus.UI.ShowHelpTips = v
+		}
+	case "ui.notifications":
+		if v, ok := finalValue.(bool); ok {
+			root.Focus.UI.Notifications = v
+		}
+	case "ui.sound_effects":
+		if v, ok := finalValue.(bool); ok {
+			root.Focus.UI.SoundEffects = v
+		}
+	}
+	if err := config.Save(root); err != nil {
+		fmt.Printf("❌ Failed to save configuration: %v\n", err)
 		return
 	}
 
@@ -177,11 +228,12 @@ func configSetHandler(cmd *cobra.Command, args []string) {
 }
 
 func configListHandler(cmd *cobra.Command, args []string) {
-	cfg := config.GetConfig()
-	if cfg == nil {
+	root, err := config.Load()
+	if err != nil {
 		fmt.Println("❌ Configuration not loaded")
 		return
 	}
+	focus := root.Focus
 
 	headerStyle := lipgloss.NewStyle().
 		Foreground(styles.GetAccent()).
@@ -195,35 +247,35 @@ func configListHandler(cmd *cobra.Command, args []string) {
 	fmt.Println(strings.Repeat("─", 50))
 
 	fmt.Println(sectionStyle.Render("🤖 AI Configuration"))
-	fmt.Printf("  Provider:    %s\n", cfg.AI.Provider)
-	fmt.Printf("  Model:       %s\n", cfg.AI.Model)
-	fmt.Printf("  Temperature: %.1f\n", cfg.AI.Temperature)
-	fmt.Printf("  Max Tokens:  %d\n", cfg.AI.MaxTokens)
-	fmt.Printf("  Timeout:     %d seconds\n", cfg.AI.Timeout)
+	fmt.Printf("  Provider:    %s\n", focus.AI.Provider)
+	fmt.Printf("  Model:       %s\n", focus.AI.Model)
+	fmt.Printf("  Temperature: %.1f\n", focus.AI.Temperature)
+	fmt.Printf("  Max Tokens:  %d\n", focus.AI.MaxTokens)
+	fmt.Printf("  Timeout:     %d seconds\n", focus.AI.Timeout)
 
 	fmt.Println(sectionStyle.Render("🎨 Theme Configuration"))
-	fmt.Printf("  Theme:       %s\n", cfg.Theme)
+	fmt.Printf("  Theme:       %s\n", focus.Theme)
 
 	fmt.Println(sectionStyle.Render("📊 Dashboard Configuration"))
-	fmt.Printf("  Auto Refresh:  %t\n", cfg.Dashboard.AutoRefresh)
-	fmt.Printf("  Refresh Interval: %d seconds\n", cfg.Dashboard.RefreshInterval)
-	fmt.Printf("  Show Animation: %t\n", cfg.Dashboard.ShowAnimation)
-	fmt.Printf("  Compact Mode:   %t\n", cfg.Dashboard.CompactMode)
+	fmt.Printf("  Auto Refresh:  %t\n", focus.Dashboard.AutoRefresh)
+	fmt.Printf("  Refresh Interval: %d seconds\n", focus.Dashboard.RefreshInterval)
+	fmt.Printf("  Show Animation: %t\n", focus.Dashboard.ShowAnimation)
+	fmt.Printf("  Compact Mode:   %t\n", focus.Dashboard.CompactMode)
 
 	fmt.Println(sectionStyle.Render("📝 Notes Configuration"))
-	fmt.Printf("  Default Editor: %s\n", cfg.Notes.DefaultEditor)
-	fmt.Printf("  Auto Save:      %t\n", cfg.Notes.AutoSave)
-	fmt.Printf("  Save Interval:  %d minutes\n", cfg.Notes.SaveInterval)
-	if cfg.Notes.Directory != "" {
-		fmt.Printf("  Directory:      %s\n", cfg.Notes.Directory)
+	fmt.Printf("  Default Editor: %s\n", focus.Notes.DefaultEditor)
+	fmt.Printf("  Auto Save:      %t\n", focus.Notes.AutoSave)
+	fmt.Printf("  Save Interval:  %d minutes\n", focus.Notes.SaveInterval)
+	if focus.Notes.Directory != "" {
+		fmt.Printf("  Directory:      %s\n", focus.Notes.Directory)
 	}
 
 	fmt.Println(sectionStyle.Render("🎮 UI Configuration"))
-	fmt.Printf("  Time Format:     %s\n", cfg.UI.TimeFormat)
-	fmt.Printf("  Date Format:     %s\n", cfg.UI.DateFormat)
-	fmt.Printf("  Show Help Tips:  %t\n", cfg.UI.ShowHelpTips)
-	fmt.Printf("  Notifications:   %t\n", cfg.UI.Notifications)
-	fmt.Printf("  Sound Effects:   %t\n", cfg.UI.SoundEffects)
+	fmt.Printf("  Time Format:     %s\n", focus.UI.TimeFormat)
+	fmt.Printf("  Date Format:     %s\n", focus.UI.DateFormat)
+	fmt.Printf("  Show Help Tips:  %t\n", focus.UI.ShowHelpTips)
+	fmt.Printf("  Notifications:   %t\n", focus.UI.Notifications)
+	fmt.Printf("  Sound Effects:   %t\n", focus.UI.SoundEffects)
 
 	fmt.Println(strings.Repeat("─", 50))
 }
@@ -245,15 +297,15 @@ func configResetHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Remove config file
-	configPath := config.GetConfigPath()
+	configPath := config.ConfigPath()
 	if err := os.Remove(configPath); err != nil && !os.IsNotExist(err) {
 		fmt.Printf("❌ Failed to remove config file: %v\n", err)
 		return
 	}
 
-	// Reload with defaults
-	if err := config.ReloadConfig(); err != nil {
-		fmt.Printf("❌ Failed to reload configuration: %v\n", err)
+	// Re-create a default config so the next Load() picks up defaults
+	if err := config.Init(); err != nil {
+		fmt.Printf("❌ Failed to recreate default configuration: %v\n", err)
 		return
 	}
 
@@ -265,7 +317,7 @@ func configResetHandler(cmd *cobra.Command, args []string) {
 }
 
 func configPathHandler(cmd *cobra.Command, args []string) {
-	configPath := config.GetConfigPath()
+	configPath := config.ConfigPath()
 
 	// Check if file exists
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {

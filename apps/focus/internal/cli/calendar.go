@@ -10,7 +10,7 @@ import (
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/calendar"
-	"github.com/kyanite/focus/pkg/config"
+	"github.com/kyanite/config"
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/pkg/utils"
 	"github.com/spf13/cobra"
@@ -77,13 +77,9 @@ func calendarShowHandler(cmd *cobra.Command, args []string) {
 	taskEngine := engine.New(repo)
 
 	// Load configuration
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		cfg = &config.Config{Theme: "synthwave"}
-	}
-	theme := cfg.Theme
-	if theme == "" {
-		theme = "synthwave"
+	theme := "synthwave"
+	if root, err := config.Load(); err == nil && root.Focus.Theme != "" {
+		theme = root.Focus.Theme
 	}
 
 	// Get all tasks
@@ -138,13 +134,9 @@ func calendarTodayHandler(cmd *cobra.Command, args []string) {
 	taskEngine := engine.New(repo)
 
 	// Load configuration
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		cfg = &config.Config{Theme: "synthwave"}
-	}
-	theme := cfg.Theme
-	if theme == "" {
-		theme = "synthwave"
+	theme := "synthwave"
+	if root, err := config.Load(); err == nil && root.Focus.Theme != "" {
+		theme = root.Focus.Theme
 	}
 
 	// Get all tasks
@@ -330,13 +322,9 @@ func calendarNavigateHandler(cmd *cobra.Command, args []string) {
 	taskEngine := engine.New(repo)
 
 	// Load configuration
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		cfg = &config.Config{Theme: "synthwave"}
-	}
-	theme := cfg.Theme
-	if theme == "" {
-		theme = "synthwave"
+	theme := "synthwave"
+	if root, err := config.Load(); err == nil && root.Focus.Theme != "" {
+		theme = root.Focus.Theme
 	}
 
 	// Get all tasks
