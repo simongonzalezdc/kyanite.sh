@@ -23,9 +23,7 @@ type ThemeChangeMsg struct {
 const DefaultThemeID = "amber-night"
 
 // Default returns the default theme (Amber Night).
-func Default() Theme {
-	return design.DefaultTheme()
-}
+func Default() Theme { return design.DefaultTheme() }
 
 // GetTheme returns a theme by ID, falling back to default.
 func GetTheme(id string) Theme {
@@ -37,15 +35,13 @@ func GetTheme(id string) Theme {
 }
 
 // ListThemes returns all theme IDs from the design module registry.
-func ListThemes() []string {
-	return design.List()
-}
+func ListThemes() []string { return design.List() }
 
 // Manager handles theme selection, persistence, and switching.
-// It wraps the shared design module registry with app-local concerns.
+// It wraps the shared design.Manager with noise-specific persistence
+// and change notification.
 type Manager struct {
-	mu              sync.RWMutex
-	currentID       string
+	inner           *design.Manager
 	themeChangeChan chan Theme
 }
 
@@ -58,7 +54,7 @@ var (
 func GetManager() *Manager {
 	once.Do(func() {
 		globalManager = &Manager{
-			currentID:       DefaultThemeID,
+			inner:           design.NewManager(DefaultThemeID),
 			themeChangeChan: make(chan Theme, 10),
 		}
 		_ = globalManager.LoadThemePreference()
@@ -67,18 +63,12 @@ func GetManager() *Manager {
 }
 
 // Current returns the current theme.
-func (m *Manager) Current() Theme {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-	return GetTheme(m.currentID)
-}
+func (m *Manager) Current() Theme { return m.inner.Current() }
 
-// SetTheme sets the current theme by ID.
+// SetTheme sets the current theme by ID and persists the preference.
 func (m *Manager) SetTheme(id string) {
-	m.mu.Lock()
-	m.currentID = id
-	t := GetTheme(id)
-	m.mu.Unlock()
+	m.inner.Set(id)
+	t := m.inner.Current()
 
 	select {
 	case m.themeChangeChan <- t:
@@ -86,11 +76,9 @@ func (m *Manager) SetTheme(id string) {
 	}
 
 	go func(savedID string) {
-		// T4-01: a panic here would kill the process; the persistence
-		// path is best-effort and shouldn't crash theme switching.
 		defer func() {
 			if r := recover(); r != nil {
-				_ = r // logged elsewhere; swallow to keep UI responsive
+				_ = r
 			}
 		}()
 		_ = saveThemePreferenceByID(savedID)
@@ -99,42 +87,15 @@ func (m *Manager) SetTheme(id string) {
 
 // Next cycles to the next theme.
 func (m *Manager) Next() Theme {
-	themes := ListThemes()
-	m.mu.RLock()
-	currentID := m.currentID
-	m.mu.RUnlock()
-
-	idx := -1
-	for i, id := range themes {
-		if id == currentID {
-			idx = i
-			break
-		}
-	}
-	nextID := themes[(idx+1)%len(themes)]
-	m.SetTheme(nextID)
-	return m.Current()
+	m.inner.Next()
+	return m.inner.Current()
 }
 
 // Previous cycles to the previous theme.
 func (m *Manager) Previous() Theme {
-	themes := ListThemes()
-	m.mu.RLock()
-	currentID := m.currentID
-	m.mu.RUnlock()
-
-	idx := -1
-	for i, id := range themes {
-		if id == currentID {
-			idx = i
-			break
-		}
-	}
-	prevID := themes[(idx-1+len(themes))%len(themes)]
-	m.SetTheme(prevID)
-	return m.Current()
+	m.inner.Previous()
+	return m.inner.Current()
 }
-
 
 // GetThemeChangeChannel returns a channel for listening to theme changes.
 func (m *Manager) GetThemeChangeChannel() <-chan Theme {
@@ -143,10 +104,7 @@ func (m *Manager) GetThemeChangeChannel() <-chan Theme {
 
 // SaveThemePreference saves the current theme preference to file.
 func (m *Manager) SaveThemePreference() error {
-	m.mu.RLock()
-	id := m.currentID
-	m.mu.RUnlock()
-	return saveThemePreferenceByID(id)
+	return saveThemePreferenceByID(m.inner.CurrentName())
 }
 
 // LoadThemePreference loads theme preference from file.
@@ -194,7 +152,6 @@ func saveThemePreferenceByID(themeID string) error {
 }
 
 // ValidateTheme checks if a theme meets accessibility standards.
-// Returns a list of warning strings for any contrast issues found.
 func ValidateTheme(t Theme) []string {
 	err := design.ValidateThemeAA(t)
 	if err == nil {
@@ -204,7 +161,7 @@ func ValidateTheme(t Theme) []string {
 }
 
 // Registry is a compatibility shim that returns all registered themes
-// as a map keyed by theme name (lowercase, hyphenated).
+// as a map keyed by theme name.
 var Registry map[string]Theme
 
 func init() {
