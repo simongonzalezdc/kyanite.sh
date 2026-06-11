@@ -321,6 +321,8 @@ func (m UnifiedDashboardModel) executeAction(action UnifiedAction) tea.Cmd {
 			return StatusMsg{Message: "Launching add command..."}
 		case ActionWizardTask:
 			go func() {
+				// T4-06: catch any panic from the wizard so a TUI crash doesn't kill the process.
+				defer func() { _ = recover() }()
 				err := wizards.TaskCreationWizard()
 				if err != nil {
 					m.statusMessage = fmt.Sprintf("Wizard error: %v", err)

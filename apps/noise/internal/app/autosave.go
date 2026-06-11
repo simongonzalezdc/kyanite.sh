@@ -428,6 +428,8 @@ func (s *AutoSaveService) performSave(content string) error {
 
 	// Reset to idle after a brief delay
 	go func() {
+		// T4-06: don't let a status-reset panic take down the service.
+		defer func() { _ = recover() }()
 		time.Sleep(constants.StatusIdleDelay)
 		s.setStatus(AutoSaveIdle)
 		s.invokeStatusCallback(AutoSaveIdle)
@@ -524,6 +526,8 @@ func (s *AutoSaveService) SaveWithVersioning(songID int, content string, isMiles
 
 	// Reset to idle after a brief delay
 	go func() {
+		// T4-06: don't let a status-reset panic take down the service.
+		defer func() { _ = recover() }()
 		time.Sleep(constants.StatusIdleDelay)
 		s.setStatus(AutoSaveIdle)
 		s.invokeStatusCallback(AutoSaveIdle)

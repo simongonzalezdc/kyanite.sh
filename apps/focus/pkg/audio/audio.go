@@ -2,8 +2,10 @@ package audio
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
+	"sync/atomic"
 )
 
 type SoundEffect int
@@ -20,7 +22,7 @@ const (
 )
 
 type AudioPlayer struct {
-	enabled bool
+	enabled atomic.Bool
 }
 
 var globalPlayer *AudioPlayer
@@ -30,18 +32,24 @@ func init() {
 }
 
 func NewAudioPlayer() *AudioPlayer {
-	return &AudioPlayer{
-		enabled: true, // Enable by default
-	}
+	p := &AudioPlayer{}
+	p.enabled.Store(true) // Enable by default
+	return p
 }
 
 func (a *AudioPlayer) PlaySound(effect SoundEffect) {
-	if !a.enabled {
+	if !a.enabled.Load() {
 		return
 	}
 
 	// Simple system beep for cross-platform compatibility
 	go func() {
+		// T4-06: prevent a panic in the sound effect from crashing the UI.
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Fprintf(os.Stderr, "audio: recovered panic in PlaySound: %v\n", r)
+			}
+		}()
 		switch effect {
 		case SoundTaskAdd:
 			a.playBeep(800, 100) // High beep for add
@@ -94,15 +102,15 @@ func (a *AudioPlayer) playBeep(frequency, duration int) {
 }
 
 func (a *AudioPlayer) Enable() {
-	a.enabled = true
+	a.enabled.Store(true)
 }
 
 func (a *AudioPlayer) Disable() {
-	a.enabled = false
+	a.enabled.Store(false)
 }
 
 func (a *AudioPlayer) IsEnabled() bool {
-	return a.enabled
+	return a.enabled.Load()
 }
 
 // Global convenience functions
