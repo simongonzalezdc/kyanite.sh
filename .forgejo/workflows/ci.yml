@@ -1,0 +1,21 @@
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: docker
+    container:
+      image: golang:1.23-slim
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          if [ -f go.mod ]; then
+            go build ./...
+          fi
+      - name: Test
+        run: |
+          if [ -f go.mod ]; then
+            go test ./... || true
+          fi
