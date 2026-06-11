@@ -25,7 +25,7 @@ type ChatMessage struct {
 type ChatSession struct {
 	messages []ChatMessage
 	provider string
-	client   any // brain.Client or glm.Client
+	client   any // *ai.Brain-backed adapter or *glm.Client
 	model    string
 }
 
@@ -39,7 +39,7 @@ func (s *AIService) NewChatSession() *ChatSession {
 		client = s.glmClient
 		model = s.config.GLM.Model
 	default:
-		client = s.brainClient
+		client = newBrainLLMAdapter(s.brain)
 		model = s.config.AI.Model
 	}
 
@@ -77,12 +77,12 @@ func (s *AIService) StreamChat(ctx context.Context, message string) (<-chan stri
 }
 
 func (s *AIService) streamBrain(ctx context.Context, message string, ch chan<- string) {
-	if s.brainClient == nil {
+	if s.brain == nil {
 		ch <- "Error: brain not available (offline mode)"
 		return
 	}
 
-	resp, err := s.brainClient.GenerateWithOptions(ctx, message)
+	resp, err := s.brain.Generate(ctx, message)
 	if err != nil {
 		ch <- fmt.Sprintf("Error: %v", err)
 		return

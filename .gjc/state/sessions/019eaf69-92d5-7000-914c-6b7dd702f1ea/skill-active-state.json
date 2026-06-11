@@ -1,40 +1,11 @@
 {
   "version": 1,
   "active": true,
-  "skill": "ralplan",
-  "phase": "final",
-  "updated_at": "2026-06-10T22:57:27.058Z",
+  "skill": "ultragoal",
+  "phase": "active",
+  "updated_at": "2026-06-11T00:40:31.640Z",
+  "session_id": "019eaf69-92d5-7000-914c-6b7dd702f1ea",
   "active_skills": [
-    {
-      "skill": "ralplan",
-      "phase": "final",
-      "active": true,
-      "activated_at": "2026-06-10T22:57:27.058Z",
-      "updated_at": "2026-06-10T22:57:27.058Z",
-      "hud": {
-        "version": 1,
-        "summary": "persisted final stage 1",
-        "chips": [
-          {
-            "label": "pending",
-            "value": "approval",
-            "priority": 5,
-            "severity": "warning"
-          },
-          {
-            "label": "stage",
-            "value": "final",
-            "priority": 10
-          },
-          {
-            "label": "iter",
-            "value": "1",
-            "priority": 30
-          }
-        ],
-        "updated_at": "2026-06-10T22:57:27.056Z"
-      }
-    },
     {
       "skill": "ultragoal",
       "phase": "active",

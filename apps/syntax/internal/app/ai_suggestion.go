@@ -7,12 +7,13 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/kyanite/syntax/internal/ai"
+	"github.com/kyanite/ai"
+	syntaiai "github.com/kyanite/syntax/internal/ai"
 )
 
 // AISuggestionMsg is a message that carries AI suggestion results
 type AISuggestionMsg struct {
-	suggestion *ai.Suggestion
+	suggestion *syntaiai.Suggestion
 	err        error
 }
 
@@ -157,7 +158,7 @@ func (m Model) handleAISuggestionKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) generateAISuggestion() (Model, tea.Cmd) {
-	if m.AIClient == nil || !m.AIClient.IsEnabled() {
+	if m.Brain == nil {
 		m.Error = fmt.Errorf("AI assistant is not enabled")
 		return m, nil
 	}
@@ -167,21 +168,21 @@ func (m Model) generateAISuggestion() (Model, tea.Cmd) {
 		return m, nil
 	}
 
-	// Map selected index to suggestion type
-	var suggestionType ai.SuggestionType
+	// Map selected index to suggestion type name used by ai.SyntaxSuggestPrompt.
+	var typeName string
 	switch m.SelectedIndex {
 	case 0:
-		suggestionType = ai.SuggestionContinue
+		typeName = "continue"
 	case 1:
-		suggestionType = ai.SuggestionImprove
+		typeName = "improve"
 	case 2:
-		suggestionType = ai.SuggestionDialogue
+		typeName = "dialogue"
 	case 3:
-		suggestionType = ai.SuggestionDescription
+		typeName = "description"
 	case 4:
-		suggestionType = ai.SuggestionCharacter
+		typeName = "character"
 	default:
-		suggestionType = ai.SuggestionContinue
+		typeName = "continue"
 	}
 
 	// Get recent content for context
@@ -198,14 +199,25 @@ func (m Model) generateAISuggestion() (Model, tea.Cmd) {
 	m.Message = ""
 
 	// Return command to generate suggestion asynchronously
+	brain := m.Brain
 	return m, func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 		defer cancel()
 
-		suggestion, err := m.AIClient.GetSuggestion(ctx, suggestionType, contentContext, "")
+		prompt := ai.SyntaxSuggestPrompt(typeName, contentContext, "")
+		response, err := brain.Generate(ctx, prompt,
+			ai.WithTemperature(0.7),
+			ai.WithMaxTokens(500),
+		)
+		if err != nil {
+			return AISuggestionMsg{err: err}
+		}
 		return AISuggestionMsg{
-			suggestion: suggestion,
-			err:        err,
+			suggestion: &syntaiai.Suggestion{
+				Type:      suggestionTypeFromName(typeName),
+				Content:   response,
+				Timestamp: time.Now(),
+			},
 		}
 	}
 }
@@ -224,4 +236,23 @@ func (m Model) HandleAISuggestionMsg(msg AISuggestionMsg) Model {
 	}
 
 	return m
+}
+
+// suggestionTypeFromName converts the string key used by ai.SyntaxSuggestPrompt
+// back to the local syntaiai.SuggestionType enum.
+func suggestionTypeFromName(name string) syntaiai.SuggestionType {
+	switch name {
+	case "continue":
+		return syntaiai.SuggestionContinue
+	case "improve":
+		return syntaiai.SuggestionImprove
+	case "dialogue":
+		return syntaiai.SuggestionDialogue
+	case "description":
+		return syntaiai.SuggestionDescription
+	case "character":
+		return syntaiai.SuggestionCharacter
+	default:
+		return syntaiai.SuggestionContinue
+	}
 }

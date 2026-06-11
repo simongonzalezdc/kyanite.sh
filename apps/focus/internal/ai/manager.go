@@ -15,10 +15,11 @@ import (
 	ai "github.com/kyanite/ai"
 )
 
-// Manager handles AI interactions via BrainProvider.
+// Manager handles AI interactions via the shared pkg/ai Brain.
 type Manager struct {
-	brainProvider *BrainProvider
-	validator     *TaskValidator
+	brain          *ai.Brain
+	promptBuilder  *PromptBuilder
+	validator      *TaskValidator
 
 	// Cache for AI responses with LRU eviction
 	cache        map[string]cacheEntry
@@ -39,7 +40,7 @@ type cacheEntry struct {
 	AccessCnt int       `json:"access_count"` // Track access count for LRU
 }
 
-// ParsedTask represents the structured output from AI
+// ParsedTask represents the structured output from the LLM.
 type ParsedTask struct {
 	Description string    `json:"description"`
 	Deadline    time.Time `json:"deadline,omitempty"`
@@ -47,10 +48,17 @@ type ParsedTask struct {
 	Categories  []string  `json:"categories,omitempty"`
 }
 
-// New creates a new AI manager backed by BrainProvider.
+// New creates a new AI manager backed by the shared pkg/ai Brain.
+// The Brain is created with DefaultConfig("focus") and may be nil if
+// New fails — callers should treat nil as "AI unavailable" and fall
+// back to rule-based logic gracefully.
 func New() *Manager {
+	cfg := ai.DefaultConfig("focus")
+	brain, _ := ai.New(cfg)
+
 	manager := &Manager{
-		brainProvider: NewBrainProvider(),
+		brain:         brain,
+		promptBuilder: NewPromptBuilder(),
 		validator:     NewTaskValidator(),
 		cache:         make(map[string]cacheEntry),
 		cacheHits:     make(map[string]time.Time),
@@ -78,8 +86,8 @@ func New() *Manager {
 // Close stops background goroutines and flushes the cache.
 func (m *Manager) Close() {
 	close(m.done)
-	if m.brainProvider != nil {
-		m.brainProvider.Close()
+	if m.brain != nil {
+		m.brain.Close()
 	}
 	m.cacheMutex.RLock()
 	needsSave := m.cacheDirty
@@ -94,7 +102,7 @@ func (m *Manager) Close() {
 	}
 }
 
-// ParseTask converts natural language to structured task using AI
+// ParseTask converts natural language to structured task using the LLM.
 func (m *Manager) ParseTask(ctx context.Context, input string) (*ParsedTask, error) {
 	// Check cache first
 	cacheKey := m.generateCacheKey("parse", input)
@@ -104,13 +112,18 @@ func (m *Manager) ParseTask(ctx context.Context, input string) (*ParsedTask, err
 		}
 	}
 
-	// Try BrainProvider
-	if m.brainProvider.IsAvailable() {
-		result, err := m.brainProvider.ParseTask(ctx, input)
+	// Try the Brain directly
+	if m.brain != nil && m.brain.IsLLMAvailable(ctx) {
+		prompt := m.promptBuilder.BuildParsePrompt(input)
+		resp, err := m.brain.Generate(ctx, prompt, ai.WithJSONMode())
 		if err == nil {
-			if validated, ok := m.validateResponse(result); ok {
-				m.saveToCache(cacheKey, validated)
-				return validated, nil
+			cleaned := extractJSONFromResponse(resp)
+			var task ParsedTask
+			if jsonErr := json.Unmarshal([]byte(cleaned), &task); jsonErr == nil {
+				if validated, ok := m.validateResponse(&task); ok {
+					m.saveToCache(cacheKey, validated)
+					return validated, nil
+				}
 			}
 		}
 	}
@@ -121,7 +134,7 @@ func (m *Manager) ParseTask(ctx context.Context, input string) (*ParsedTask, err
 	return basicResult, nil
 }
 
-// SuggestTasks generates contextual task suggestions
+// SuggestTasks generates contextual task suggestions using the LLM.
 func (m *Manager) SuggestTasks(ctx context.Context, existingTasks []string) ([]string, error) {
 	// Create cache key from tasks
 	taskStr := strings.Join(existingTasks, "|")
@@ -134,16 +147,29 @@ func (m *Manager) SuggestTasks(ctx context.Context, existingTasks []string) ([]s
 		}
 	}
 
-	// TODO: Implement SuggestTasks via BrainProvider when available
+	// Try the Brain directly
+	if m.brain != nil && m.brain.IsLLMAvailable(ctx) {
+		prompt := m.promptBuilder.BuildSuggestPrompt(existingTasks)
+		resp, err := m.brain.Generate(ctx, prompt)
+		if err == nil {
+			suggestions := parseSuggestionList(resp)
+			if len(suggestions) > 0 {
+				m.saveToCache(cacheKey, suggestions)
+				return suggestions, nil
+			}
+		}
+	}
 
 	// Deterministic fallback suggestions
-	return []string{
+	fallback := []string{
 		"Review today's highest-priority task",
 		"Break one blocked item into a smaller next step",
-	}, nil
+	}
+	m.saveToCache(cacheKey, fallback)
+	return fallback, nil
 }
 
-// SummarizeTasks generates a summary of tasks using AI
+// SummarizeTasks generates a summary of tasks using the LLM.
 func (m *Manager) SummarizeTasks(ctx context.Context, tasks []string) (string, error) {
 	// Create cache key from tasks
 	taskStr := strings.Join(tasks, "|")
@@ -156,7 +182,18 @@ func (m *Manager) SummarizeTasks(ctx context.Context, tasks []string) (string, e
 		}
 	}
 
-	// TODO: Implement SummarizeTasks via BrainProvider when available
+	// Try the Brain directly
+	if m.brain != nil && m.brain.IsLLMAvailable(ctx) {
+		prompt := m.promptBuilder.BuildSummaryPrompt(tasks)
+		resp, err := m.brain.Generate(ctx, prompt)
+		if err == nil {
+			summary := strings.TrimSpace(resp)
+			if summary != "" {
+				m.saveToCache(cacheKey, summary)
+				return summary, nil
+			}
+		}
+	}
 
 	// Fallback: basic summary
 	summary := m.basicSummary(tasks)
@@ -165,6 +202,7 @@ func (m *Manager) SummarizeTasks(ctx context.Context, tasks []string) (string, e
 }
 
 // ChatAssistant provides help and answers questions about tasks and app usage
+// using the LLM via the shared Brain.
 func (m *Manager) ChatAssistant(ctx context.Context, question string, tasks []string) (string, error) {
 	// Create cache key from question and tasks
 	taskStr := strings.Join(tasks, "|")
@@ -177,54 +215,59 @@ func (m *Manager) ChatAssistant(ctx context.Context, question string, tasks []st
 		}
 	}
 
-	// Try BrainProvider
-	if m.brainProvider.IsAvailable() {
-		result, err := m.brainProvider.ChatAssistant(ctx, question, tasks)
+	// Try the Brain directly
+	if m.brain != nil && m.brain.IsLLMAvailable(ctx) {
+		prompt := m.promptBuilder.BuildChatPrompt(question, tasks)
+		result, err := m.brain.Generate(ctx, prompt)
 		if err == nil {
-			m.saveToCache(cacheKey, result)
-			return result, nil
+			result = strings.TrimSpace(result)
+			if result != "" {
+				m.saveToCache(cacheKey, result)
+				return result, nil
+			}
 		}
 	}
 
 	// Fallback response
-	if strings.Contains(strings.ToLower(question), "help") || strings.Contains(strings.ToLower(question), "hi") {
-		return "Hello! I'm your focus.sh AI assistant. I can help you with:\n• Task management and organization\n• Productivity tips\n• App usage guidance\n• Smart suggestions\n\nTry asking me about your tasks or how to use specific features!", nil
+	response := m.fallbackChatResponse(question, tasks)
+	m.saveToCache(cacheKey, response)
+	return response, nil
+}
+
+// fallbackChatResponse returns a deterministic answer when the LLM is unavailable.
+func (m *Manager) fallbackChatResponse(question string, tasks []string) string {
+	lower := strings.ToLower(question)
+	if strings.Contains(lower, "help") || strings.Contains(lower, "hi") {
+		return "Hello! I'm your focus.sh AI assistant. I can help you with:\n• Task management and organization\n• Productivity tips\n• App usage guidance\n• Smart suggestions\n\nTry asking me about your tasks or how to use specific features!"
 	}
 
-	if strings.Contains(strings.ToLower(question), "task") {
+	if strings.Contains(lower, "task") {
 		if len(tasks) > 0 {
-			return fmt.Sprintf("I see you have %d tasks. I can help you organize, prioritize, or complete them. Try using 'focus inspire' for suggestions or 'focus list' to see all your tasks!", len(tasks)), nil
+			return fmt.Sprintf("I see you have %d tasks. I can help you organize, prioritize, or complete them. Try using 'focus inspire' for suggestions or 'focus list' to see all your tasks!", len(tasks))
 		}
-		return "You don't have any tasks yet! Start by adding a mission with 'focus add \"your task here\"' and I can help you manage them.", nil
+		return "You don't have any tasks yet! Start by adding a mission with 'focus add \"your task here\"' and I can help you manage them."
 	}
 
-	return fmt.Sprintf("AI is currently unavailable. You have %d tasks. Try 'focus --help' to see available commands!", len(tasks)), nil
+	return fmt.Sprintf("AI is currently unavailable. You have %d tasks. Try 'focus --help' to see available commands!", len(tasks))
 }
 
 // GetCrossAppContext retrieves recent context from other kyanite apps (syntax, noise, prism).
 // Returns nil if the brain is unavailable — callers should treat this as best-effort.
 func (m *Manager) GetCrossAppContext(ctx context.Context, limit int) []ai.CrossAppContext {
-	brain := m.brainProvider.Brain()
-	if brain == nil {
+	if m.brain == nil {
 		return nil
 	}
-	contexts, err := brain.GetCrossAppContext(ctx, limit)
+	contexts, err := m.brain.GetCrossAppContext(ctx, limit)
 	if err != nil {
 		return nil
 	}
 	return contexts
 }
 
-// IsOllamaAvailable checks if the AI backend is reachable.
-// Kept for backward compatibility — now checks BrainProvider availability.
+// IsOllamaAvailable reports whether the AI backend is reachable.
+// It checks the shared Brain's LLM availability (NUCBox Ollama).
 func (m *Manager) IsOllamaAvailable() bool {
-	return m.brainProvider.IsAvailable()
-}
-
-// LaunchOllama is a no-op kept for backward compatibility.
-// BrainProvider connects to NUCBox automatically.
-func (m *Manager) LaunchOllama() error {
-	return nil
+	return m.brain != nil && m.brain.IsLLMAvailable(context.Background())
 }
 
 // validateResponse delegates to TaskValidator
@@ -445,4 +488,36 @@ func (m *Manager) saveCache() {
 	}
 
 	_ = os.WriteFile(m.cachePath, data, 0o644)
+}
+
+// extractJSONFromResponse extracts the first JSON object from a response
+// that may be wrapped in markdown code fences or prose.
+func extractJSONFromResponse(response string) string {
+	start := strings.Index(response, "{")
+	end := strings.LastIndex(response, "}")
+
+	if start != -1 && end != -1 && end > start {
+		return response[start : end+1]
+	}
+
+	return response
+}
+
+// parseSuggestionList splits a multi-line LLM response into a clean slice of
+// task suggestions. It strips bullets, numbering, and surrounding whitespace.
+func parseSuggestionList(response string) []string {
+	var out []string
+	for _, line := range strings.Split(response, "\n") {
+		cleaned := strings.TrimSpace(line)
+		cleaned = strings.TrimLeft(cleaned, "-*•\t ")
+		// Strip leading numeric list markers like "1." or "1)".
+		if idx := strings.IndexAny(cleaned, ".)"); idx == len(cleaned)-1 {
+			cleaned = ""
+		}
+		cleaned = strings.TrimSpace(cleaned)
+		if cleaned != "" {
+			out = append(out, cleaned)
+		}
+	}
+	return out
 }

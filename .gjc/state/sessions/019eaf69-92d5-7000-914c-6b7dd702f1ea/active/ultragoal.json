@@ -1,0 +1,45 @@
+{
+  "skill": "ultragoal",
+  "phase": "active",
+  "active": true,
+  "activated_at": "2026-06-11T00:40:31.640Z",
+  "updated_at": "2026-06-11T00:40:31.640Z",
+  "session_id": "019eaf69-92d5-7000-914c-6b7dd702f1ea",
+  "hud": {
+    "version": 1,
+    "chips": [
+      {
+        "label": "goals",
+        "value": "0/9",
+        "priority": 10
+      },
+      {
+        "label": "current",
+        "value": "G001:Pass 1 — Deepen Brain wrappers into unified Brain interface",
+        "priority": 20
+      },
+      {
+        "label": "status",
+        "value": "active",
+        "priority": 30
+      }
+    ],
+    "updated_at": "2026-06-11T00:40:31.638Z"
+  },
+  "receipt": {
+    "version": 1,
+    "skill": "ultragoal",
+    "owner": "gjc-runtime",
+    "command": "gjc ultragoal (reconcile)",
+    "state_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/skill-active-state.json",
+    "storage_path": "/Users/simongonzalezdecruz/workspaces/archive/personal/kyanite.sh/.gjc/state/sessions/019eaf69-92d5-7000-914c-6b7dd702f1ea/ultragoal-state.json",
+    "mutated_at": "2026-06-11T00:40:31.634Z",
+    "fresh_until": "2026-06-11T01:10:31.634Z",
+    "status": "fresh",
+    "mutation_id": "ultragoal:reconcile:2026-06-11T00:40:31.634Z",
+    "verb": "reconcile",
+    "forced": true,
+    "from_phase": "active",
+    "to_phase": "active"
+  }
+}

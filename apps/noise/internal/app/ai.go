@@ -8,20 +8,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kyanite/noise/internal/app/ai"
+	"github.com/kyanite/ai"
+	localai "github.com/kyanite/noise/internal/app/ai"
 	"github.com/kyanite/noise/internal/config"
 	"github.com/kyanite/noise/internal/constants"
 	"github.com/kyanite/noise/internal/domain"
-	"github.com/kyanite/noise/internal/infra/brain"
 	"github.com/kyanite/noise/internal/infra/glm"
 )
 
 // AIService handles AI-powered assistance
 type AIService struct {
-	config       *config.Config
-	quickAgent   *ai.QuickIdeaAgent
-	brainClient  *brain.Client
-	glmClient    *glm.Client
+	config     *config.Config
+	quickAgent *localai.QuickIdeaAgent
+	brain      *ai.Brain
+	glmClient  *glm.Client
 }
 
 // NewAIService creates a new AI service
@@ -31,12 +31,12 @@ func NewAIService(cfg *config.Config) *AIService {
 	}
 
 	// Initialize infrastructure clients
-	s.brainClient = brain.NewClient()
+	s.brain = newBrain(cfg)
 	glmTimeout := 60 * time.Second
 	s.glmClient = glm.NewClient(cfg.GLM.APIKey, glmTimeout)
 
 	// Configure QuickIdeaAgent based on provider
-	var client ai.QuickLLMClient
+	var client localai.QuickLLMClient
 	var model string
 
 	switch cfg.AI.Provider {
@@ -45,28 +45,43 @@ func NewAIService(cfg *config.Config) *AIService {
 		model = cfg.GLM.Model
 	case "hybrid":
 		// QuickIdeaAgent uses Brain for fast feedback
-		client = s.brainClient
+		client = newBrainLLMAdapter(s.brain)
 		model = cfg.AI.Model
 	default: // "ollama" — now routes through Brain
-		client = s.brainClient
+		client = newBrainLLMAdapter(s.brain)
 		model = cfg.AI.Model
 	}
 
-	s.quickAgent = ai.NewQuickIdeaAgent().
+	s.quickAgent = localai.NewQuickIdeaAgent().
 		WithClient(client, cfg.AI.Timeout).
 		WithModel(model)
 
 	return s
 }
 
+// brainLLMAdapter adapts *ai.Brain to the localai.QuickLLMClient interface used
+// by QuickIdeaAgent. The Brain uses its configured model and ignores model/options.
+type brainLLMAdapter struct {
+	brain *ai.Brain
+}
 
-// BrainClient returns the underlying brain client for session/memory operations.
-func (s *AIService) BrainClient() *brain.Client {
-	return s.brainClient
+func (a *brainLLMAdapter) Generate(ctx context.Context, model, prompt string, options map[string]any) (string, error) {
+	if a.brain == nil {
+		return "", fmt.Errorf("%w: brain not initialized", ai.ErrBrainNotInitialized)
+	}
+	return a.brain.Generate(ctx, prompt)
+}
+
+func newBrainLLMAdapter(b *ai.Brain) *brainLLMAdapter {
+	return &brainLLMAdapter{brain: b}
+}
+// Brain returns the underlying *ai.Brain for session/memory/AI operations.
+func (s *AIService) Brain() *ai.Brain {
+	return s.brain
 }
 
 // GetQuickAgent returns the underlying QuickIdeaAgent
-func (s *AIService) GetQuickAgent() *ai.QuickIdeaAgent {
+func (s *AIService) GetQuickAgent() *localai.QuickIdeaAgent {
 	return s.quickAgent
 }
 
@@ -144,22 +159,48 @@ func (s *AIService) AnalyzeQuality(song *domain.Song) (*domain.QualityScore, err
 
 // IsAvailable checks if AI services are available
 func (s *AIService) IsAvailable() bool {
+	if s.brain == nil {
+		return false
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	return s.brainClient.IsAvailable(ctx)
+	return s.brain.IsLLMAvailable(ctx)
 }
 
 // GetModelStatus returns the status of AI models
 func (s *AIService) GetModelStatus() map[string]interface{} {
-	return s.brainClient.GetModelStatus()
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	provider := "brain"
+	ollamaURL := ""
+	model := ""
+	var ollamaStatus, sttAvailable bool
+	if s.brain != nil {
+		ollamaStatus = s.brain.IsLLMAvailable(ctx)
+		sttAvailable = s.brain.IsSTTAvailable()
+	}
+	if s.config != nil {
+		ollamaURL = s.config.AI.BaseURL
+		model = s.config.AI.Model
+	}
+
+	return map[string]interface{}{
+		"provider":      provider,
+		"ollama_url":    ollamaURL,
+		"model":         model,
+		"ollama_status": ollamaStatus,
+		"stt_available": sttAvailable,
+		"last_check":    time.Now(),
+	}
 }
 
 // Rapid prototyping methods (Delegated to QuickIdeaAgent)
 
 func (s *AIService) GenerateContinuations(ctx context.Context, previousLines []string, sectionType string) ([]string, error) {
 	content := strings.Join(previousLines, "\n")
-	resp, err := s.quickAgent.Generate(ctx, ai.QuickRequest{
-		Mode:    ai.QuickIdeaModeUnstick,
+	resp, err := s.quickAgent.Generate(ctx, localai.QuickRequest{
+		Mode:    localai.QuickIdeaModeUnstick,
 		Context: content,
 		Options: map[string]string{
 			"section": sectionType,
@@ -172,8 +213,8 @@ func (s *AIService) GenerateContinuations(ctx context.Context, previousLines []s
 }
 
 func (s *AIService) GenerateVariations(ctx context.Context, line, section, constraint string) ([]string, error) {
-	resp, err := s.quickAgent.Generate(ctx, ai.QuickRequest{
-		Mode:    ai.QuickIdeaModeTweak,
+	resp, err := s.quickAgent.Generate(ctx, localai.QuickRequest{
+		Mode:    localai.QuickIdeaModeTweak,
 		Context: line,
 		Options: map[string]string{
 			"section":    section,
@@ -187,8 +228,8 @@ func (s *AIService) GenerateVariations(ctx context.Context, line, section, const
 }
 
 func (s *AIService) GenerateRapidBrainstorm(ctx context.Context, theme string, maxAngles int) ([]string, error) {
-	resp, err := s.quickAgent.Generate(ctx, ai.QuickRequest{
-		Mode:    ai.QuickIdeaModeSpark,
+	resp, err := s.quickAgent.Generate(ctx, localai.QuickRequest{
+		Mode:    localai.QuickIdeaModeSpark,
 		Context: theme,
 		Options: map[string]string{
 			"theme": theme,
@@ -206,8 +247,8 @@ func (s *AIService) GenerateRapidBrainstorm(ctx context.Context, theme string, m
 }
 
 func (s *AIService) GenerateOpeningLine(ctx context.Context, theme, angle string) (string, error) {
-	resp, err := s.quickAgent.Generate(ctx, ai.QuickRequest{
-		Mode:    ai.QuickIdeaModeSpark,
+	resp, err := s.quickAgent.Generate(ctx, localai.QuickRequest{
+		Mode:    localai.QuickIdeaModeSpark,
 		Context: theme,
 		Options: map[string]string{
 			"theme": theme,
@@ -223,9 +264,9 @@ func (s *AIService) GenerateOpeningLine(ctx context.Context, theme, angle string
 	return resp.Suggestions[0], nil
 }
 
-func (s *AIService) CheckQualityRedFlags(ctx context.Context, content string) (*ai.QuickResponse, error) {
-	return s.quickAgent.Generate(ctx, ai.QuickRequest{
-		Mode:    ai.QuickIdeaModeCheck,
+func (s *AIService) CheckQualityRedFlags(ctx context.Context, content string) (*localai.QuickResponse, error) {
+	return s.quickAgent.Generate(ctx, localai.QuickRequest{
+		Mode:    localai.QuickIdeaModeCheck,
 		Context: content,
 		Options: map[string]string{
 			"mode": "sketch",
@@ -233,9 +274,9 @@ func (s *AIService) CheckQualityRedFlags(ctx context.Context, content string) (*
 	})
 }
 
-func (s *AIService) CheckQualityByMode(ctx context.Context, content, mode string) (*ai.QuickResponse, error) {
-	return s.quickAgent.Generate(ctx, ai.QuickRequest{
-		Mode:    ai.QuickIdeaModeCheck,
+func (s *AIService) CheckQualityByMode(ctx context.Context, content, mode string) (*localai.QuickResponse, error) {
+	return s.quickAgent.Generate(ctx, localai.QuickRequest{
+		Mode:    localai.QuickIdeaModeCheck,
 		Context: content,
 		Options: map[string]string{
 			"mode": mode,
@@ -245,8 +286,8 @@ func (s *AIService) CheckQualityByMode(ctx context.Context, content, mode string
 
 // GenerateHarmonySuggestions generates chord progressions based on a mood
 func (s *AIService) GenerateHarmonySuggestions(ctx context.Context, mood string) ([]string, error) {
-	resp, err := s.quickAgent.Generate(ctx, ai.QuickRequest{
-		Mode:    ai.QuickIdeaModeHarmony,
+	resp, err := s.quickAgent.Generate(ctx, localai.QuickRequest{
+		Mode:    localai.QuickIdeaModeHarmony,
 		Context: mood,
 		Options: map[string]string{
 			"theme": mood,
@@ -261,5 +302,5 @@ func (s *AIService) GenerateHarmonySuggestions(ctx context.Context, mood string)
 // FindRhymes finds words that rhyme with the given word
 func (s *AIService) FindRhymes(word string) []string {
 	// Use the basic rhyme finder from the ai package
-	return ai.FindBasicRhymes(word)
+	return localai.FindBasicRhymes(word)
 }

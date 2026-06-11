@@ -6,8 +6,10 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	ai "github.com/kyanite/ai"
 	"github.com/kyanite/prism/internal/app"
 )
+
 
 var (
 	Version = "1.0.0"
@@ -51,8 +53,13 @@ func main() {
 		os.Exit(0)
 	}
 
+	// Create the shared kyanite/ai Brain for this app. If initialization
+	// fails (e.g. NUCBox unreachable at startup) the model still works —
+	// AI-dependent features simply return errors offline.
+	brain, _ := ai.New(ai.DefaultConfig("prism"))
+
 	// Create the root model
-	m := app.NewModel()
+	m := app.NewModel(brain)
 
 	// Attempt to load the most recent session (best-effort)
 	m.LoadRecentSession()

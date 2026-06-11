@@ -2,6 +2,7 @@ package ui
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -9,9 +10,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	ai "github.com/kyanite/ai"
 	"github.com/kyanite/design"
 	aipanel "github.com/kyanite/tui/aipanel"
-	appai "github.com/kyanite/prism/internal/ai"
 	"github.com/kyanite/prism/internal/clipboard"
 	"github.com/kyanite/prism/internal/color"
 	"github.com/kyanite/prism/internal/export"
@@ -19,6 +20,18 @@ import (
 	"github.com/kyanite/prism/internal/storage"
 	"github.com/kyanite/prism/internal/theme"
 )
+
+// MoodPalette holds a single named palette from a mood generation.
+type MoodPalette struct {
+	Name   string   `json:"name"`
+	Colors []string `json:"colors"`
+}
+
+// A11yAnalysis holds the result of an accessibility analysis.
+type A11yAnalysis struct {
+	Raw string
+}
+
 
 // AIMode represents the current AI panel sub-mode.
 type AIMode int
@@ -42,7 +55,7 @@ type GeneratorModel struct {
 	status           string
 	exportMode       bool
 	selectedExport   int
-	aiClient         *appai.Client
+	brain            *ai.Brain
 	aiInputMode      bool
 	aiInputText      string
 	aiMode           AIMode
@@ -52,11 +65,13 @@ type GeneratorModel struct {
 	crossAppContext string // Cross-app context from the Brain, loaded when AI panel opens
 }
 
-// NewGeneratorModel creates a new generator model
-func NewGeneratorModel(tm *theme.Manager) GeneratorModel {
-	aiClient := appai.NewClient()
+// NewGeneratorModel creates a new generator model bound to the given
+// AI brain. The brain may be nil if the shared kyanite/ai Brain could
+// not be initialized (e.g. NUCBox unreachable at startup); the AI
+// panel and AI generation features simply no-op or return errors.
+func NewGeneratorModel(tm *theme.Manager, brain *ai.Brain) GeneratorModel {
 	var panel aipanel.Model
-	if brain := aiClient.Brain(); brain != nil {
+	if brain != nil {
 		panel = aipanel.New(brain, ContentWidth, ScreenHeight)
 	}
 	return GeneratorModel{
@@ -66,7 +81,7 @@ func NewGeneratorModel(tm *theme.Manager) GeneratorModel {
 		selectedRule:   0,
 		rules:          palette.AllRules(),
 		exportFormats:  []string{"JSON", "CSS Variables", "TOML", "Kyanite Theme"},
-		aiClient:       aiClient,
+		brain:          brain,
 		aiPanel:        panel,
 	}
 }
@@ -186,7 +201,7 @@ func (m GeneratorModel) Update(msg tea.Msg) (GeneratorModel, tea.Cmd) {
 				m.status = ""
 				m.err = ""
 				// Load cross-app context when panel opens
-				if m.aiClient != nil {
+				if m.brain != nil {
 					return m, m.loadCrossAppContext()
 				}
 			}
@@ -470,7 +485,7 @@ type AIMoodGeneratedMsg struct {
 
 // AIA11yGeneratedMsg carries the result of an AI accessibility analysis.
 type AIA11yGeneratedMsg struct {
-	Analysis *appai.A11yAnalysis
+	Analysis *A11yAnalysis
 	Err      string
 }
 
@@ -518,20 +533,43 @@ func (m GeneratorModel) handleAIInput(key string) (GeneratorModel, tea.Cmd) {
 // hexRegex matches hex color codes like #FF5733
 var hexRegex = regexp.MustCompile(`#[0-9A-Fa-f]{6}`)
 
-// generateWithAI sends a description to the AI client and returns a palette.
+// paletteResult is the JSON shape returned by PrismPalettePrompt.
+type paletteResult struct {
+	Colors []string `json:"colors"`
+	Name   string   `json:"name"`
+}
+
+// generateWithAI sends a description to the AI brain and returns a palette.
 func (m GeneratorModel) generateWithAI(description string) tea.Cmd {
 	return func() tea.Msg {
-		if m.aiClient == nil {
+		if m.brain == nil {
 			return AIPaletteGeneratedMsg{Err: "AI not available"}
 		}
 
-		colors, err := m.aiClient.GeneratePalette(context.Background(), description+formatCrossAppContext(m.crossAppContext))
-		if err != nil {
-			return AIPaletteGeneratedMsg{Err: err.Error()}
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		if !m.brain.IsLLMAvailable(ctx) {
+			return AIPaletteGeneratedMsg{Err: "ai: NUCBox Ollama server unreachable"}
 		}
 
-		parsedColors := make([]color.Color, 0, len(colors))
-		for _, hex := range colors {
+		prompt := ai.PrismPalettePrompt(description + formatCrossAppContext(m.crossAppContext))
+		resp, err := m.brain.Generate(ctx, prompt, ai.WithJSONMode())
+		if err != nil {
+			return AIPaletteGeneratedMsg{Err: fmt.Sprintf("ai: palette generation failed: %v", err)}
+		}
+
+		cleaned := stripMarkdownFence(resp)
+		var result paletteResult
+		if err := json.Unmarshal([]byte(cleaned), &result); err != nil {
+			return AIPaletteGeneratedMsg{Err: fmt.Sprintf("ai: failed to parse palette response: %v", err)}
+		}
+		if len(result.Colors) == 0 {
+			return AIPaletteGeneratedMsg{Err: "ai: no colors returned"}
+		}
+
+		parsedColors := make([]color.Color, 0, len(result.Colors))
+		for _, hex := range result.Colors {
 			c, parseErr := color.ParseHex(hex)
 			if parseErr != nil {
 				continue
@@ -555,20 +593,43 @@ func (m GeneratorModel) generateWithAI(description string) tea.Cmd {
 	}
 }
 
-// generateMoodWithAI sends a mood description and returns the first palette.
+// moodPaletteResult is the JSON shape returned by PrismMoodPalettePrompt.
+type moodPaletteResult struct {
+	Palettes []MoodPalette `json:"palettes"`
+}
+
+// generateMoodWithAI sends a mood description to the AI brain and
+// returns the first palette.
 func (m GeneratorModel) generateMoodWithAI(mood string) tea.Cmd {
 	return func() tea.Msg {
-		if m.aiClient == nil {
+		if m.brain == nil {
 			return AIMoodGeneratedMsg{Err: "AI not available"}
 		}
 
-		moodPalettes, err := m.aiClient.GenerateMoodPalettes(context.Background(), mood+formatCrossAppContext(m.crossAppContext))
+		ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+		defer cancel()
+
+		if !m.brain.IsLLMAvailable(ctx) {
+			return AIMoodGeneratedMsg{Err: "ai: NUCBox Ollama server unreachable"}
+		}
+
+		prompt := ai.PrismMoodPalettePrompt(mood + formatCrossAppContext(m.crossAppContext))
+		resp, err := m.brain.Generate(ctx, prompt, ai.WithJSONMode())
 		if err != nil {
-			return AIMoodGeneratedMsg{Err: err.Error()}
+			return AIMoodGeneratedMsg{Err: fmt.Sprintf("ai: mood palette generation failed: %v", err)}
+		}
+
+		cleaned := stripMarkdownFence(resp)
+		var result moodPaletteResult
+		if err := json.Unmarshal([]byte(cleaned), &result); err != nil {
+			return AIMoodGeneratedMsg{Err: fmt.Sprintf("ai: failed to parse mood palette response: %v", err)}
+		}
+		if len(result.Palettes) == 0 {
+			return AIMoodGeneratedMsg{Err: "ai: no palettes returned"}
 		}
 
 		// Use the first palette from the mood results
-		first := moodPalettes[0]
+		first := result.Palettes[0]
 		parsedColors := make([]color.Color, 0, len(first.Colors))
 		for _, hex := range first.Colors {
 			c, parseErr := color.ParseHex(hex)
@@ -594,10 +655,10 @@ func (m GeneratorModel) generateMoodWithAI(mood string) tea.Cmd {
 	}
 }
 
-// generateA11yWithAI sends colors for accessibility analysis.
+// generateA11yWithAI sends colors for accessibility analysis via the AI brain.
 func (m GeneratorModel) generateA11yWithAI(colorsInput string) tea.Cmd {
 	return func() tea.Msg {
-		if m.aiClient == nil {
+		if m.brain == nil {
 			return AIA11yGeneratedMsg{Err: "AI not available"}
 		}
 
@@ -611,12 +672,20 @@ func (m GeneratorModel) generateA11yWithAI(colorsInput string) tea.Cmd {
 			colors = strings.Join(hexes, ", ")
 		}
 
-		analysis, err := m.aiClient.AnalyzeA11y(context.Background(), colors)
-		if err != nil {
-			return AIA11yGeneratedMsg{Err: err.Error()}
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		if !m.brain.IsLLMAvailable(ctx) {
+			return AIA11yGeneratedMsg{Err: "ai: NUCBox Ollama server unreachable"}
 		}
 
-		return AIA11yGeneratedMsg{Analysis: analysis}
+		prompt := ai.PrismA11yCheckPrompt(colors)
+		resp, err := m.brain.Generate(ctx, prompt)
+		if err != nil {
+			return AIA11yGeneratedMsg{Err: fmt.Sprintf("ai: a11y analysis failed: %v", err)}
+		}
+
+		return AIA11yGeneratedMsg{Analysis: &A11yAnalysis{Raw: strings.TrimSpace(resp)}}
 	}
 }
 // crossAppContextLoadedMsg carries cross-app context loaded from the Brain.
@@ -628,18 +697,14 @@ type crossAppContextLoadedMsg struct {
 // Best-effort: returns an empty-string message if unavailable.
 func (m GeneratorModel) loadCrossAppContext() tea.Cmd {
 	return func() tea.Msg {
-		if m.aiClient == nil {
-			return crossAppContextLoadedMsg{context: ""}
-		}
-		brain := m.aiClient.Brain()
-		if brain == nil {
+		if m.brain == nil {
 			return crossAppContextLoadedMsg{context: ""}
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
-		entries, err := brain.GetCrossAppContext(ctx, 3)
+		entries, err := m.brain.GetCrossAppContext(ctx, 3)
 		if err != nil || len(entries) == 0 {
 			return crossAppContextLoadedMsg{context: ""}
 		}
@@ -664,4 +729,14 @@ func formatCrossAppContext(ctx string) string {
 		return ""
 	}
 	return "\n\nInspiration from your other apps:\n" + ctx
+}
+
+// stripMarkdownFence removes a leading or trailing ```json / ``` fence that
+// the LLM may wrap around JSON output, then trims surrounding whitespace.
+func stripMarkdownFence(s string) string {
+	s = strings.TrimSpace(s)
+	s = strings.TrimPrefix(s, "```json")
+	s = strings.TrimPrefix(s, "```")
+	s = strings.TrimSuffix(s, "```")
+	return strings.TrimSpace(s)
 }

@@ -11,7 +11,6 @@ import (
 
 	"github.com/kyanite/ai"
 	"github.com/kyanite/focus/internal/cli"
-	focusai "github.com/kyanite/focus/internal/ai"
 	"github.com/kyanite/focus/internal/tui"
 )
 
@@ -93,12 +92,9 @@ func findRepoRoot() string {
 
 // Run TUI directly without CLI interference
 func runTUIDirectly() error {
-	// Create BrainProvider for session lifecycle
-	brainProvider := focusai.NewBrainProvider()
-	var brain *ai.Brain
-	if brainProvider != nil {
-		brain = brainProvider.Brain()
-	}
+	// Create Brain directly for session lifecycle (pkg/ai).
+	cfg := ai.DefaultConfig("focus")
+	brain, _ := ai.New(cfg)
 
 	ctx := context.Background()
 	sessionID := fmt.Sprintf("focus-%d", time.Now().Unix())
@@ -155,7 +151,6 @@ func runTUIDirectly() error {
 	// Deferred shutdown: save session and cross-app context
 	defer func() {
 		if brain == nil {
-			brainProvider.Close()
 			return
 		}
 
@@ -191,7 +186,7 @@ func runTUIDirectly() error {
 			}
 		}
 
-		brainProvider.Close()
+		brain.Close()
 	}()
 
 	fmt.Printf("📋 Loaded %d tasks into focus.sh system...\n", len(tasks))

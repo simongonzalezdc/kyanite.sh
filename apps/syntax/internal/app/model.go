@@ -5,8 +5,9 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/kyanite/ai"
 	"github.com/kyanite/design"
-	"github.com/kyanite/syntax/internal/ai"
+	syntaiai "github.com/kyanite/syntax/internal/ai"
 	"github.com/kyanite/syntax/internal/editor"
 	"github.com/kyanite/syntax/internal/location"
 	"github.com/kyanite/syntax/internal/scene"
@@ -82,8 +83,8 @@ type Model struct {
 	// ============================================================
 	// Feature Integrations - AI and spell checking
 	// ============================================================
-	AIClient     ai.Provider          // AI assistant client
-	AISuggestion *ai.Suggestion       // Current AI suggestion
+	Brain        *ai.Brain           // AI inference brain (pkg/ai)
+	AISuggestion *syntaiai.Suggestion       // Current AI suggestion
 	AIGenerating bool                 // Whether AI is generating
 	SpellChecker *spellcheck.Checker  // Spell check integration
 	SessionID    string               // Unique session ID for brain session persistence

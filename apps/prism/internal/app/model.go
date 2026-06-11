@@ -6,10 +6,11 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/kyanite/prism/internal/ai"
+	ai "github.com/kyanite/ai"
 	"github.com/kyanite/prism/internal/theme"
 	"github.com/kyanite/prism/internal/ui"
 )
+
 
 // Screen represents different screens in the app
 type Screen int
@@ -33,7 +34,8 @@ type Model struct {
 	ThemeManager  *theme.Manager
 	SessionID     string
 	lastPalette   string
-	aiClient      *ai.Client
+	brain         *ai.Brain
+
 
 	// Screen models
 	menuModel      ui.MenuModel
@@ -47,20 +49,22 @@ type Model struct {
 	showHelp bool
 }
 
-// NewModel creates a new root model
-func NewModel() Model {
+// NewModel creates a new root model bound to the given AI brain.
+// The brain may be nil if the shared kyanite/ai Brain could not be
+// initialized (e.g. NUCBox unreachable at startup). In that case the
+// app continues to work offline — AI-dependent features return errors.
+func NewModel(brain *ai.Brain) Model {
 	themeManager := theme.NewManager()
-	aiClient := ai.NewClient()
 	sessionID := fmt.Sprintf("prism-%d", time.Now().Unix())
 
 	return Model{
 		CurrentScreen:  ScreenMenu,
 		ThemeManager:   themeManager,
 		SessionID:      sessionID,
-		aiClient:       aiClient,
+		brain:          brain,
 		menuModel:      ui.NewMenuModel(themeManager),
 		wheelModel:     ui.NewWheelModel(themeManager),
-		generatorModel: ui.NewGeneratorModel(themeManager),
+		generatorModel: ui.NewGeneratorModel(themeManager, brain),
 		theoryModel:    ui.NewTheoryModel(themeManager),
 		checkerModel:   ui.NewCheckerModel(themeManager),
 		managerModel:   ui.NewManagerModel(themeManager),
@@ -68,13 +72,18 @@ func NewModel() Model {
 	}
 }
 
+
 // LoadRecentSession attempts to load and print the most recent session.
 // Best-effort: failures are silently ignored.
 func (m *Model) LoadRecentSession() {
+	if m.brain == nil {
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	sessions, err := m.aiClient.GetRecentSessions(ctx, 1)
+	sessions, err := m.brain.GetRecentSessions(ctx, 1)
 	if err != nil || len(sessions) == 0 {
 		return
 	}
@@ -86,9 +95,14 @@ func (m *Model) LoadRecentSession() {
 	}
 }
 
+
 // SaveCurrentSession persists the current session state before exit.
 // Best-effort: failures are silently ignored.
 func (m *Model) SaveCurrentSession() {
+	if m.brain == nil {
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -98,14 +112,15 @@ func (m *Model) SaveCurrentSession() {
 	}
 
 	// Best-effort session save
-	_ = m.aiClient.SaveSession(ctx, m.SessionID, title, nil)
+	_ = m.brain.SaveSession(ctx, m.SessionID, title, nil)
 
 	// Best-effort cross-app context for other kyanite apps
 	summary := fmt.Sprintf("Used palette '%s' in prism", title)
-	_ = m.aiClient.SaveCrossAppContext(ctx, "noise", "palette_usage", summary, 0.5)
-	_ = m.aiClient.SaveCrossAppContext(ctx, "focus", "palette_usage", summary, 0.5)
-	_ = m.aiClient.SaveCrossAppContext(ctx, "syntax", "palette_usage", summary, 0.5)
+	_ = m.brain.SaveCrossAppContext(ctx, "noise", "palette_usage", summary, 0.5)
+	_ = m.brain.SaveCrossAppContext(ctx, "focus", "palette_usage", summary, 0.5)
+	_ = m.brain.SaveCrossAppContext(ctx, "syntax", "palette_usage", summary, 0.5)
 }
+
 
 // SetLastPalette records the most recently generated/saved palette name.
 func (m *Model) SetLastPalette(name string) {
@@ -114,7 +129,9 @@ func (m *Model) SetLastPalette(name string) {
 
 // Close releases resources held by the model.
 func (m *Model) Close() {
-	m.aiClient.Close()
+	if m.brain != nil {
+		m.brain.Close()
+	}
 }
 
 // Init initializes the model

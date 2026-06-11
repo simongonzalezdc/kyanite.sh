@@ -296,8 +296,8 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.aiPanel.Visible() {
 				// Load cross-app context when panel opens
 				var brainPtr *ai.Brain
-				if m.aiService != nil && m.aiService.BrainClient() != nil {
-					brainPtr = m.aiService.BrainClient().Brain()
+				if m.aiService != nil && m.aiService.Brain() != nil {
+					brainPtr = m.aiService.Brain()
 				}
 				if brainPtr != nil {
 					return m, m.loadCrossAppContext(brainPtr)
@@ -608,8 +608,8 @@ func (m *RootModel) initializeChildModels() {
 
 	// Initialize AI copilot panel
 	var brainPtr *ai.Brain
-	if m.aiService != nil && m.aiService.BrainClient() != nil {
-		brainPtr = m.aiService.BrainClient().Brain()
+	if m.aiService != nil && m.aiService.Brain() != nil {
+		brainPtr = m.aiService.Brain()
 	}
 	panelW := m.width
 	panelH := m.height

@@ -109,7 +109,7 @@ func (m Model) viewTextEditor() string {
 	wordCount := len(strings.Fields(m.Buffer.GetContent()))
 
 	aiStatus := ""
-	if m.AIClient != nil && m.AIClient.IsEnabled() {
+	if m.Brain != nil {
 		aiStatus = " | AI: ON"
 	}
 
@@ -535,7 +535,7 @@ func (m Model) handleTextEditorKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case "ctrl+a":
 			// Show AI suggestion menu
-			if m.AIClient != nil && m.AIClient.IsEnabled() {
+			if m.Brain != nil {
 				m.PreviousScreen = ScreenTextEditor
 				m.CurrentScreen = ScreenAISuggestion
 				m.SelectedIndex = 0

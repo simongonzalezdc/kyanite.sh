@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/kyanite/ai"
 	"github.com/kyanite/noise/internal/config"
-	"github.com/kyanite/noise/internal/infra/brain"
 	"github.com/kyanite/noise/internal/logging"
 	"github.com/kyanite/noise/internal/plugins"
 	"github.com/kyanite/noise/internal/ui"
@@ -33,10 +33,13 @@ func main() {
 		cfg = config.DefaultConfig()
 	}
 
-	// Create brain client for session lifecycle
-	brainClient := brain.NewClient()
+	// Create brain for session lifecycle
+	aiCfg := ai.DefaultConfig("noise")
+	b, err := ai.New(aiCfg)
+	if err != nil {
+		logger.Warnf("brain init failed (offline mode): %v", err)
+	}
 	sessionID := fmt.Sprintf("noise-%d", time.Now().Unix())
-	b := brainClient.Brain() // may be nil if Brain init failed (offline mode)
 
 	// Attempt to load the most recent session on startup
 	if b != nil {
@@ -100,7 +103,9 @@ func main() {
 		}
 	}
 
-	brainClient.Close()
+	if b != nil {
+		b.Close()
+	}
 
 	if runErr != nil {
 		os.Exit(1)

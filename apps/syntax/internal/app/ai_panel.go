@@ -7,13 +7,12 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/kyanite/ai"
 )
 
 // continueWriting generates 3 continuation paragraphs via streaming AI.
 // Prompt: "Continue this story naturally. Match the tone, style, and character voices. Write 3 paragraphs."
 func (m Model) continueWriting() (tea.Model, tea.Cmd) {
-	if m.AIClient == nil || !m.AIClient.IsEnabled() {
+	if m.Brain == nil {
 		m.Message = "AI assistant is not enabled"
 		return m, nil
 	}
@@ -71,7 +70,7 @@ func (m Model) submitAIPanelCommand() (tea.Model, tea.Cmd) {
 
 // consistencyCheck checks the current text for contradictions with earlier chapters.
 func (m Model) consistencyCheck(query string) (tea.Model, tea.Cmd) {
-	if m.AIClient == nil || !m.AIClient.IsEnabled() {
+	if m.Brain == nil {
 		m.Message = "AI assistant is not enabled"
 		return m, nil
 	}
@@ -111,7 +110,7 @@ func (m Model) consistencyCheck(query string) (tea.Model, tea.Cmd) {
 
 // characterVoice rewrites dialogue in the given character's voice.
 func (m Model) characterVoice(charName string) (tea.Model, tea.Cmd) {
-	if m.AIClient == nil || !m.AIClient.IsEnabled() {
+	if m.Brain == nil {
 		m.Message = "AI assistant is not enabled"
 		return m, nil
 	}
@@ -233,16 +232,14 @@ type crossAppContextLoadedMsg struct {
 // Best-effort: returns an empty-string message if unavailable.
 func (m Model) loadCrossAppContext() tea.Cmd {
 	return func() tea.Msg {
-		brainClient, ok := m.AIClient.(interface{ Brain() *ai.Brain })
-		if !ok || brainClient.Brain() == nil {
+		if m.Brain == nil {
 			return crossAppContextLoadedMsg{context: ""}
 		}
-		brain := brainClient.Brain()
 
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
-		entries, err := brain.GetCrossAppContext(ctx, 3)
+		entries, err := m.Brain.GetCrossAppContext(ctx, 3)
 		if err != nil || len(entries) == 0 {
 			return crossAppContextLoadedMsg{context: ""}
 		}

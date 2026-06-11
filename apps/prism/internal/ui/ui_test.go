@@ -13,7 +13,7 @@ func TestUIModelInitialization(t *testing.T) {
 	tm := theme.NewManager()
 
 	t.Run("GeneratorModel", func(t *testing.T) {
-		model := NewGeneratorModel(tm)
+		model := NewGeneratorModel(tm, nil)
 
 		// Verify initial state
 		if model.Init() != nil {
@@ -145,7 +145,7 @@ func TestUIModelNavigation(t *testing.T) {
 	})
 
 	t.Run("GeneratorRuleSelection", func(t *testing.T) {
-		model := NewGeneratorModel(tm)
+		model := NewGeneratorModel(tm, nil)
 
 		// Navigate through rules
 		for i := 0; i < 3; i++ {
@@ -172,7 +172,7 @@ func TestUIModelRendering(t *testing.T) {
 		name  string
 		model interface{ View() string }
 	}{
-		{"GeneratorModel", NewGeneratorModel(tm)},
+		{"GeneratorModel", NewGeneratorModel(tm, nil)},
 		{"CheckerModel", NewCheckerModel(tm)},
 		{"MenuModel", NewMenuModel(tm)},
 		{"SearchModel", NewSearchModel(tm)},
@@ -275,7 +275,7 @@ func TestUIModelInteractions(t *testing.T) {
 	tm := theme.NewManager()
 
 	t.Run("GeneratorKeyHandling", func(t *testing.T) {
-		model := NewGeneratorModel(tm)
+		model := NewGeneratorModel(tm, nil)
 
 		// Test various key presses
 		keys := []string{"j", "k", "enter", "c", "s", "e", "q"}
@@ -375,7 +375,7 @@ func TestUIModelEdgeCases(t *testing.T) {
 	tm := theme.NewManager()
 
 	t.Run("UnknownKeyPress", func(t *testing.T) {
-		model := NewGeneratorModel(tm)
+		model := NewGeneratorModel(tm, nil)
 
 		// Send unknown key
 		msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'~'}}
@@ -386,7 +386,7 @@ func TestUIModelEdgeCases(t *testing.T) {
 	})
 
 	t.Run("WindowSizeMessage", func(t *testing.T) {
-		model := NewGeneratorModel(tm)
+		model := NewGeneratorModel(tm, nil)
 
 		// Send window size message
 		msg := tea.WindowSizeMsg{Width: 80, Height: 24}
@@ -449,7 +449,7 @@ func TestUIModelWithRealData(t *testing.T) {
 // TestHarmonyRuleDisplay tests that all harmony rules can be displayed
 func TestHarmonyRuleDisplay(t *testing.T) {
 	tm := theme.NewManager()
-	model := NewGeneratorModel(tm)
+	model := NewGeneratorModel(tm, nil)
 
 	allRules := palette.AllRules()
 

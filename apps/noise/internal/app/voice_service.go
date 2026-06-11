@@ -2,13 +2,14 @@ package app
 
 import (
 	"context"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"sync"
 	"time"
 
+	"github.com/kyanite/ai"
 	"github.com/kyanite/noise/internal/config"
-	"github.com/kyanite/noise/internal/infra/brain"
 	"github.com/kyanite/noise/internal/infra/voice"
 	"github.com/kyanite/noise/internal/logging"
 )
@@ -57,12 +58,12 @@ func (s VoiceState) String() string {
 	}
 }
 
-// VoiceService provides voice-to-text functionality via brain STT.
+// VoiceService provides voice-to-text functionality via *ai.Brain STT.
 type VoiceService struct {
-	capture     *voice.AudioCapture
-	brainClient *brain.Client
-	config      *config.VoiceConfig
-	logger      *logging.Logger
+	capture *voice.AudioCapture
+	brain   *ai.Brain
+	config  *config.VoiceConfig
+	logger  *logging.Logger
 
 	// State
 	state     VoiceState
@@ -96,11 +97,11 @@ func NewVoiceService(cfg *config.Config, logger *logging.Logger) (*VoiceService,
 	}
 
 	vs := &VoiceService{
-		capture:     capture,
-		brainClient: brain.NewClient(),
-		config:      &cfg.Voice,
-		logger:      logger,
-		state:       VoiceStateIdle,
+		capture: capture,
+		brain:   newBrain(cfg),
+		config:  &cfg.Voice,
+		logger:  logger,
+		state:   VoiceStateIdle,
 	}
 
 	// Set up audio level callback
@@ -124,7 +125,7 @@ func NewVoiceServiceWithAutoSetup(cfg *config.Config, logger *logging.Logger, on
 	}
 
 	if onProgress != nil {
-		if vs.brainClient != nil && vs.brainClient.IsSTTAvailable() {
+		if vs.brain != nil && vs.brain.IsSTTAvailable() {
 			onProgress("Voice STT ready (via brain)", 1.0)
 		} else {
 			onProgress("Voice STT unavailable — brain STT not reachable", 0)
@@ -134,12 +135,12 @@ func NewVoiceServiceWithAutoSetup(cfg *config.Config, logger *logging.Logger, on
 	return vs, nil
 }
 
-// Initialize prepares the voice service for transcription via brain STT.
+// Initialize prepares the voice service for transcription via *ai.Brain STT.
 func (vs *VoiceService) Initialize() error {
 	vs.mu.Lock()
 	defer vs.mu.Unlock()
 
-	if vs.brainClient != nil && vs.brainClient.IsSTTAvailable() {
+	if vs.brain != nil && vs.brain.IsSTTAvailable() {
 		vs.logger.Info("Voice service initialized (using brain STT)")
 		return nil
 	}
@@ -155,14 +156,20 @@ func (vs *VoiceService) IsAvailable() bool {
 	if !vs.config.Enabled {
 		return false
 	}
-	return vs.brainClient.IsSTTAvailable()
+	if vs.brain == nil {
+		return false
+	}
+	return vs.brain.IsSTTAvailable()
 }
 
-// IsModelReady returns whether brain STT is ready
+// IsModelReady returns whether *ai.Brain STT is ready
 func (vs *VoiceService) IsModelReady() bool {
 	vs.mu.Lock()
 	defer vs.mu.Unlock()
-	return vs.brainClient.IsSTTAvailable()
+	if vs.brain == nil {
+		return false
+	}
+	return vs.brain.IsSTTAvailable()
 }
 
 // GetState returns the current voice service state
@@ -191,7 +198,7 @@ func (vs *VoiceService) StartDictation() error {
 		return ErrVoiceNotEnabled
 	}
 
-	if !vs.brainClient.IsSTTAvailable() {
+	if vs.brain == nil || !vs.brain.IsSTTAvailable() {
 		return ErrModelNotReady
 	}
 	if vs.state == VoiceStateRecording {
@@ -232,20 +239,21 @@ func (vs *VoiceService) StopDictation() (string, error) {
 
 	duration := time.Since(vs.startTime)
 	vs.setState(VoiceStateProcessing)
-	brainClient := vs.brainClient
+	brain := vs.brain
 	vs.mu.Unlock()
 
 	vs.logger.Debugf("Processing %d samples (%.1fs of audio)", len(samples), duration.Seconds())
 
-	// Transcribe via brain STT
-	if brainClient == nil || !brainClient.IsSTTAvailable() {
+	// Transcribe via *ai.Brain STT
+	if brain == nil || !brain.IsSTTAvailable() {
 		vs.mu.Lock()
 		vs.setState(VoiceStateError)
 		vs.mu.Unlock()
 		return "", ErrModelNotReady
 	}
 
-	transcribed, err := brainClient.TranscribePCM(context.Background(), samples)
+	pcmData := float32ToPCM16(samples)
+	xfer, err := brain.TranscribePCM(context.Background(), pcmData)
 	if err != nil {
 		vs.mu.Lock()
 		vs.lastError = err
@@ -253,6 +261,7 @@ func (vs *VoiceService) StopDictation() (string, error) {
 		vs.mu.Unlock()
 		return "", fmt.Errorf("transcription failed: %w", err)
 	}
+	transcribed := xfer.Text
 
 	vs.mu.Lock()
 	vs.setState(VoiceStateIdle)
@@ -383,8 +392,8 @@ func (vs *VoiceService) Close() error {
 		}
 	}
 
-	if vs.brainClient != nil {
-		vs.brainClient.Close()
+	if vs.brain != nil {
+		vs.brain.Close()
 	}
 
 	if len(errs) > 0 {
@@ -410,4 +419,20 @@ func (vs *VoiceService) CheckMaxDuration() bool {
 	}
 
 	return time.Since(vs.startTime) >= maxDuration
+}
+
+// float32ToPCM16 converts float32 audio samples to 16-bit PCM bytes as
+// required by whisper.cpp via *ai.Brain.TranscribePCM.
+func float32ToPCM16(samples []float32) []byte {
+	buf := make([]byte, len(samples)*2)
+	for i, s := range samples {
+		val := int16(s * 32767.0)
+		if s > 1.0 {
+			val = 32767
+		} else if s < -1.0 {
+			val = -32768
+		}
+		binary.LittleEndian.PutUint16(buf[i*2:], uint16(val))
+	}
+	return buf
 }

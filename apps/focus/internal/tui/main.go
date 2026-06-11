@@ -16,6 +16,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/kyanite/focus/internal/ai"
+	ai_pkg "github.com/kyanite/ai"
 	"github.com/kyanite/focus/internal/theme"
 	"github.com/kyanite/tui/aipanel"
 	"github.com/kyanite/focus/pkg/audio"
@@ -457,9 +458,9 @@ func NewMainModel(tasks []DashboardTask) *MainModel {
 	m.glowStyler = glow.NewGlowStyler("synthwave")
 
 	// Wire Brain to AI panel for streaming generation
-	bp := ai.NewBrainProvider()
-	if bp != nil && bp.Brain() != nil {
-		m.aiPanel = aipanel.New(bp.Brain(), 50, 20)
+	cfg := ai_pkg.DefaultConfig("focus")
+	if brain, _ := ai_pkg.New(cfg); brain != nil {
+		m.aiPanel = aipanel.New(brain, 50, 20)
 	}
 
 	return m
@@ -481,11 +482,7 @@ func (m *MainModel) checkAIStatusCmd() tea.Cmd {
 	}
 	return func() tea.Msg {
 		status := "offline"
-		if !m.aiManager.IsOllamaAvailable() {
-			if err := m.aiManager.LaunchOllama(); err == nil {
-				status = "online"
-			}
-		} else {
+		if m.aiManager.IsOllamaAvailable() {
 			status = "online"
 		}
 		return aiStatusMsg{status: status}
