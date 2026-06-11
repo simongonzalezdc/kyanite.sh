@@ -11,19 +11,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kyanite/ai"
 	"github.com/kyanite/noise/internal/logging"
 )
 
-// ChatMessage represents a single message in a chat conversation
-type ChatMessage struct {
-	Role      string    `json:"role"` // "user" or "assistant"
-	Content   string    `json:"content"`
-	Timestamp time.Time `json:"timestamp"`
-}
-
 // ChatSession manages a conversation with the AI
 type ChatSession struct {
-	messages []ChatMessage
+	messages []ai.Message
 	provider string
 	client   any // *ai.Brain-backed adapter or *glm.Client
 	model    string
@@ -44,7 +38,7 @@ func (s *AIService) NewChatSession() *ChatSession {
 	}
 
 	return &ChatSession{
-		messages: make([]ChatMessage, 0),
+		messages: make([]ai.Message, 0),
 		provider: s.config.AI.Provider,
 		client:   client,
 		model:    model,

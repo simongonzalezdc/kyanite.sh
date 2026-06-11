@@ -16,7 +16,6 @@ type Entry struct {
 	Key       string      `json:"key"`
 	Value     interface{} `json:"value"`
 	CreatedAt time.Time   `json:"created_at"`
-	ExpiresAt time.Time   `json:"expires_at"`
 }
 
 // LRU is a simple in-memory LRU cache with file persistence.
@@ -70,11 +69,20 @@ func (c *LRU) Set(key string, value interface{}) {
 	defer c.mu.Unlock()
 
 	if _, exists := c.entries[key]; exists {
+		// Update existing entry and move to front of order
 		c.entries[key] = &Entry{
 			Key:       key,
 			Value:     value,
 			CreatedAt: time.Now(),
 		}
+		// Move to front of order for LRU
+		for i, k := range c.order {
+			if k == key {
+				c.order = append(c.order[:i], c.order[i+1:]...)
+				break
+			}
+		}
+		c.order = append(c.order, key)
 		return
 	}
 
@@ -88,6 +96,15 @@ func (c *LRU) Set(key string, value interface{}) {
 		CreatedAt: time.Now(),
 	}
 	c.order = append(c.order, key)
+}
+
+// Clear removes all entries from the cache.
+func (c *LRU) Clear() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.entries = make(map[string]*Entry)
+	c.order = make([]string, 0, c.maxEntries)
 }
 
 // Close stops the background saver and flushes to disk.

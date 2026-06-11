@@ -55,6 +55,10 @@ func (c *Container) GetEngine() *engine.Engine {
 
 	if c.engine == nil {
 		c.engine = engine.New(c.GetRepository())
+		// Wire AI manager for cache invalidation
+		if c.aiManager != nil {
+			c.engine.SetAIManager(c.aiManager)
+		}
 	}
 	return c.engine
 }
@@ -66,6 +70,10 @@ func (c *Container) GetAIManager() *ai.Manager {
 
 	if c.aiManager == nil {
 		c.aiManager = ai.New()
+		// If engine already exists, wire it for cache invalidation
+		if c.engine != nil {
+			c.engine.SetAIManager(c.aiManager)
+		}
 	}
 	return c.aiManager
 }

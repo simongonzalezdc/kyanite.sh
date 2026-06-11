@@ -46,6 +46,7 @@ Example: focus add "Complete the project by Friday"`,
 		parsedTask, err := aiManager.ParseTask(ctx, description)
 		if err != nil {
 			// Fallback to basic task creation if AI fails
+			fmt.Println("⚠️ AI unavailable - using heuristic priority assignment")
 			task = models.ParsedTask{
 				Description: description,
 				Priority:    "medium",

@@ -22,6 +22,13 @@ type Manager struct {
 	cache          *cache.LRU
 }
 
+// InvalidateCache clears all cached AI suggestions. Called when tasks are mutated.
+func (m *Manager) InvalidateCache() {
+	if m.cache != nil {
+		m.cache.Clear()
+	}
+}
+
 // ParsedTask represents the structured output from the LLM.
 type ParsedTask struct {
 	Description string    `json:"description"`

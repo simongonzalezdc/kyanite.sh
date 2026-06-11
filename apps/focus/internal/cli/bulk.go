@@ -153,7 +153,11 @@ Examples:
 		fmt.Println(confirmStyle.Render("⚠️  Type 'yes' to confirm deletion:"))
 
 		var confirm string
-		_, _ = fmt.Scanln(&confirm)
+		_, err := fmt.Scanln(&confirm)
+		if err != nil {
+			showBulkError(fmt.Sprintf("Failed to read confirmation: %s", err.Error()))
+			return
+		}
 
 		if strings.ToLower(confirm) != "yes" {
 			showBulkWarning("Deletion cancelled")

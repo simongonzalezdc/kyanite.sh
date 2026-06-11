@@ -131,16 +131,21 @@ func NewUnifiedDashboardModel() UnifiedDashboardModel {
 		cfg = &focus
 	}
 
-	initial := styles.ThemeSynthwave
-	if cfg != nil {
-		switch cfg.Theme {
-		case string(styles.ThemeLight):
-			initial = styles.ThemeLight
-		case string(styles.ThemePlain):
-			initial = styles.ThemePlain
-		}
+	// Use current theme from styles package, not config
+	current := styles.GetTheme()
+	// Convert design.Theme.Name to styles.ThemeMode
+	var themeMode styles.ThemeMode
+	switch current.Name {
+	case "synthwave":
+		themeMode = styles.ThemeSynthwave
+	case "light":
+		themeMode = styles.ThemeLight
+	case "plain":
+		themeMode = styles.ThemePlain
+	default:
+		themeMode = styles.ThemeSynthwave
 	}
-	applyThemeStyles(initial)
+	applyThemeStyles(themeMode)
 
 	menuItems := []list.Item{
 		UnifiedMenuItem{title: "🎯 Add Task", description: "Create a new task", action: ActionAddTask},

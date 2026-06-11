@@ -21,6 +21,11 @@ type Engine struct {
 	cacheDirty bool           // Track if cache needs persisting
 	mu         sync.RWMutex   // Protect cache access
 	cacheValid bool           // Track if cache is loaded
+
+	// AI manager for cache invalidation
+	aiManager interface {
+		InvalidateCache()
+	}
 }
 
 // New creates a new engine instance
@@ -33,6 +38,22 @@ func New(repo repository.Repository) *Engine {
 	// Eagerly load cache on creation
 	_ = e.loadCache()
 	return e
+}
+
+// SetAIManager sets the AI manager for cache invalidation
+func (e *Engine) SetAIManager(aiManager interface {
+	InvalidateCache()
+}) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.aiManager = aiManager
+}
+
+// invalidateAICache invalidates the AI cache when tasks mutate
+func (e *Engine) invalidateAICache() {
+	if e.aiManager != nil {
+		e.aiManager.InvalidateCache()
+	}
 }
 
 // loadCache loads tasks from storage into memory
@@ -127,6 +148,9 @@ func (e *Engine) AddTask(parsedTask models.ParsedTask) (models.Task, error) {
 	if flushErr != nil {
 		return models.Task{}, fmt.Errorf("failed to save task: %w", flushErr)
 	}
+
+	// Invalidate AI cache when task is created
+	e.invalidateAICache()
 
 	return task, nil
 }
@@ -249,7 +273,14 @@ func (e *Engine) DeleteTask(id string) error {
 	}
 
 	e.cacheDirty = true
-	return e.flushCacheLocked()
+	err := e.flushCacheLocked()
+
+	// Invalidate AI cache when task is deleted
+	e.mu.Unlock()
+	e.invalidateAICache()
+	e.mu.Lock()
+
+	return err
 }
 
 // RestoreTask restores a previously deleted task with its original ID and all fields
@@ -316,7 +347,14 @@ func (e *Engine) UpdateTask(updatedTask models.Task) error {
 	updatedTask.UpdatedAt = time.Now()
 	e.cache[idx] = updatedTask
 	e.cacheDirty = true
-	return e.flushCacheLocked()
+	err := e.flushCacheLocked()
+
+	// Invalidate AI cache when task is updated
+	e.mu.Unlock()
+	e.invalidateAICache()
+	e.mu.Lock()
+
+	return err
 }
 
 // UpdateTaskStatus updates only the status of a task
