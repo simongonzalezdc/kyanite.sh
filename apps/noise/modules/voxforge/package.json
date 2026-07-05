@@ -51,7 +51,7 @@
     "@types/gsap": "^3.0.0",
     "@types/jest": "^29.5.12",
     "@types/jest-axe": "^3.5.9",
-    "@types/node": "^25.9.1",
+    "@types/node": "^26.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "@types/sinon": "^21.0.0",
