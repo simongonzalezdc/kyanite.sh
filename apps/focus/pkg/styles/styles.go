@@ -5,7 +5,6 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/kyanite/design"
-	"github.com/pterm/pterm"
 )
 
 // themeMu protects currentThemeName and derived legacy/synthwave color vars.
@@ -298,19 +297,6 @@ func SuggestionStyle(suggestion string) string {
 		Render("🎯 " + suggestion)
 }
 
-func GetPriorityColor(priority string) *pterm.Style {
-	switch priority {
-	case "high":
-		return &pterm.Style{pterm.FgRed}
-	case "medium":
-		return &pterm.Style{pterm.FgCyan}
-	case "low":
-		return &pterm.Style{pterm.FgGreen}
-	default:
-		return &pterm.Style{pterm.FgWhite}
-	}
-}
-
 func AIResponseStyle(response string) string {
 	return lipgloss.NewStyle().
 		Foreground(currentTheme().Accent).
@@ -477,12 +463,12 @@ func CyberStats(active, completed, total int) string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Primary).
 		Render(
-			"📊 GRID STATUS: "+
-				lipgloss.NewStyle().Foreground(t.Warning).Render("⚡ "+string(rune(active)))+
-				" ACTIVE | "+
-				lipgloss.NewStyle().Foreground(t.Success).Render("✅ "+string(rune(completed)))+
-				" COMPLETED | "+
-				lipgloss.NewStyle().Foreground(t.Secondary).Render("🌟 "+string(rune(total)))+
+			"📊 GRID STATUS: " +
+				lipgloss.NewStyle().Foreground(t.Warning).Render("⚡ "+string(rune(active))) +
+				" ACTIVE | " +
+				lipgloss.NewStyle().Foreground(t.Success).Render("✅ "+string(rune(completed))) +
+				" COMPLETED | " +
+				lipgloss.NewStyle().Foreground(t.Secondary).Render("🌟 "+string(rune(total))) +
 				" TOTAL",
 		)
 }
@@ -505,37 +491,6 @@ func EmptyStateMessage() string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(t.Primary).
 		Render("No tasks found.\n\nCreate your first task:\nfocus add \"task description\"")
-}
-
-// Pterm integration for CLI output — these remain as-is.
-
-func SynthwaveGetPriorityColor(priority string) *pterm.Style {
-	switch priority {
-	case "high":
-		return &pterm.Style{
-			pterm.FgRed,
-			pterm.Bold,
-			pterm.BgLightBlue,
-		}
-	case "medium":
-		return &pterm.Style{
-			pterm.FgYellow,
-			pterm.Bold,
-			pterm.BgMagenta,
-		}
-	case "low":
-		return &pterm.Style{
-			pterm.FgGreen,
-			pterm.Bold,
-			pterm.BgCyan,
-		}
-	default:
-		return &pterm.Style{
-			pterm.FgCyan,
-			pterm.Bold,
-			pterm.BgBlue,
-		}
-	}
 }
 
 func SynthwaveAIResponseStyle(response string) string {
