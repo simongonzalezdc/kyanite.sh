@@ -34,12 +34,14 @@ func SetThemeByName(name string) {
 			currentThemeName = id
 			updateLegacyColors()
 			updateSynthwaveColors()
+			rebuildStyles(currentThemeName)
 			return
 		}
 	}
 	currentThemeName = "amber-night"
 	updateLegacyColors()
 	updateSynthwaveColors()
+	rebuildStyles(currentThemeName)
 }
 
 // SetTheme is a no-op kept for backward compatibility with unified_dashboard.
@@ -63,12 +65,14 @@ func CycleTheme() {
 			currentThemeName = ids[(i+1)%len(ids)]
 			updateLegacyColors()
 			updateSynthwaveColors()
+			rebuildStyles(currentThemeName)
 			return
 		}
 	}
 	currentThemeName = "amber-night"
 	updateLegacyColors()
 	updateSynthwaveColors()
+	rebuildStyles(currentThemeName)
 }
 
 // RefreshColors is kept for backward compatibility; now a no-op since styles
@@ -153,87 +157,35 @@ func updateSynthwaveColors() {
 	FocusGrid = t.Border
 }
 
-// Theme-aware style getters
-
-func GetTitleStyle() lipgloss.Style {
-	t := currentTheme()
-	return lipgloss.NewStyle().
-		Foreground(t.Primary).
-		Background(t.Background).
-		Bold(true).
-		Padding(design.SpacingS).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Accent)
-}
-
-func GetBoxStyle() lipgloss.Style {
-	t := currentTheme()
-	return lipgloss.NewStyle().
-		Foreground(t.Text).
-		Background(t.Panel).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Border).
-		Padding(design.SpacingS)
-}
-
-func GetPanelStyle() lipgloss.Style {
-	return GetBoxStyle()
-}
-
-func GetSuccessStyle() lipgloss.Style {
-	return lipgloss.NewStyle().
-		Foreground(currentTheme().Success).
-		Bold(true)
-}
-
-func GetErrorStyle() lipgloss.Style {
-	return lipgloss.NewStyle().
-		Foreground(currentTheme().Error).
-		Bold(true)
-}
-
-func GetWarningStyle() lipgloss.Style {
-	return lipgloss.NewStyle().
-		Foreground(currentTheme().Warning).
-		Bold(true)
-}
-
-func GetSynthwaveTitle() lipgloss.Style { return GetTitleStyle() }
-func GetFocusBox() lipgloss.Style       { return GetBoxStyle() }
-
 // GetThemeList returns all available theme names for CLI commands.
 func GetThemeList() []string { return design.List() }
 
 // GetCurrentThemeName returns the display name of the current theme.
 func GetCurrentThemeName() string { return currentTheme().Name }
 
+// Theme-aware style getters. All derive from the cached, theme-driven Styles
+// in tokens.go; app code never constructs styles inline.
+
+func GetTitleStyle() lipgloss.Style   { return Current().Title }
+func GetBoxStyle() lipgloss.Style     { return Current().Box }
+func GetPanelStyle() lipgloss.Style   { return Current().Box }
+func GetSuccessStyle() lipgloss.Style { return Current().Success }
+func GetErrorStyle() lipgloss.Style   { return Current().Error }
+func GetWarningStyle() lipgloss.Style { return Current().Warning }
+
+func GetSynthwaveTitle() lipgloss.Style { return Current().SynthwaveTitle }
+func GetFocusBox() lipgloss.Style       { return Current().Box }
+
 // Base render functions
 
-func FocusStyle(text string) string {
-	return lipgloss.NewStyle().
-		Foreground(currentTheme().Primary).
-		Bold(true).
-		Render(text)
-}
-
-func FocusPinkColor(text string) string {
-	return lipgloss.NewStyle().Foreground(currentTheme().Primary).Render(text)
-}
-
-func FocusBlueColor(text string) string {
-	return lipgloss.NewStyle().Foreground(currentTheme().Secondary).Render(text)
-}
-
-func FocusGreenColor(text string) string {
-	return lipgloss.NewStyle().Foreground(currentTheme().Success).Render(text)
-}
-
-func FocusPurpleColor(text string) string {
-	return lipgloss.NewStyle().Foreground(currentTheme().Accent).Render(text)
-}
+func FocusStyle(text string) string       { return Current().FocusStyle.Render(text) }
+func FocusPinkColor(text string) string   { return Current().FocusPink.Render(text) }
+func FocusBlueColor(text string) string   { return Current().FocusBlue.Render(text) }
+func FocusGreenColor(text string) string  { return Current().FocusGreen.Render(text) }
+func FocusPurpleColor(text string) string { return Current().FocusPurple.Render(text) }
 
 func PriorityStyle(priority string) string {
-	t := currentTheme()
+	t := Current().Theme
 	var color lipgloss.Color
 	var symbol string
 
@@ -252,112 +204,47 @@ func PriorityStyle(priority string) string {
 		symbol = "⚪"
 	}
 
-	return lipgloss.NewStyle().
+	return lipgloss.Style{}.
 		Foreground(color).
 		Bold(true).
 		Render(symbol + " " + priority)
 }
 
-func IDStyle(id string) string {
-	return lipgloss.NewStyle().
-		Foreground(currentTheme().Secondary).
-		Render(id)
-}
+func IDStyle(id string) string { return Current().ID.Render(id) }
 
-func HeaderStyle(text string) string {
-	return lipgloss.NewStyle().
-		Foreground(currentTheme().Primary).
-		Bold(true).
-		AlignHorizontal(lipgloss.Center).
-		Underline(true).
-		Render(text)
-}
-
-func FooterStyle(text string) string {
-	return lipgloss.NewStyle().
-		Foreground(currentTheme().Accent).
-		Italic(true).
-		Render(text)
-}
+func HeaderStyle(text string) string { return Current().HeaderStyle.Render(text) }
+func FooterStyle(text string) string { return Current().FooterStyle.Render(text) }
 
 func CategoryStyle(category string) string {
-	t := currentTheme()
-	return lipgloss.NewStyle().
-		Foreground(t.Secondary).
-		Background(t.Background).
-		Padding(0, design.SpacingXS).
-		Bold(true).
-		Render("🏷️ " + category)
+	return Current().Category.Render("🏷️ " + category)
 }
 
 func SuggestionStyle(suggestion string) string {
-	return lipgloss.NewStyle().
-		Foreground(currentTheme().Success).
-		Bold(true).
-		Render("🎯 " + suggestion)
+	return Current().Suggestion.Render("🎯 " + suggestion)
 }
 
 func AIResponseStyle(response string) string {
-	return lipgloss.NewStyle().
-		Foreground(currentTheme().Accent).
-		Italic(true).
-		Render("🤖 " + response)
+	return Current().AIResponse.Render("🤖 " + response)
 }
 
-func ReportStyle(text string) string {
-	t := currentTheme()
-	return lipgloss.NewStyle().
-		Foreground(t.Accent).
-		Padding(design.SpacingS).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Secondary).
-		Render(text)
-}
+func ReportStyle(text string) string { return Current().Report.Render(text) }
 
-// Synthwave-style render functions (theme-aware replacements)
+// Synthwave-style render functions (theme-aware, drawn from the cached Styles).
 
-func SynthwaveTitle(text string) string {
-	t := currentTheme()
-	return lipgloss.NewStyle().
-		Foreground(t.Primary).
-		Background(t.Background).
-		Bold(true).
-		Italic(true).
-		Underline(true).
-		Padding(design.SpacingS, design.SpacingM).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Accent).
-		AlignHorizontal(lipgloss.Center).
-		Render(text)
-}
+func SynthwaveTitle(text string) string { return Current().SynthwaveTitle.Render(text) }
 
 func Title(text string) string { return SynthwaveTitle(text) }
 
 func FocusBox(text string, borderColor lipgloss.Color) string {
-	t := currentTheme()
-	return lipgloss.NewStyle().
-		Foreground(t.Accent).
-		Background(t.Panel).
-		Padding(design.SpacingS, design.SpacingM).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(borderColor).
-		Bold(true).
-		Render(text)
+	return Current().FocusBoxBase.BorderForeground(borderColor).Render(text)
 }
 
 func CyberGridBox(text string) string {
-	t := currentTheme()
-	return lipgloss.NewStyle().
-		Foreground(t.Success).
-		Background(t.Panel).
-		Padding(0, design.SpacingXS).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Accent).
-		Render("▶ " + text)
+	return Current().CyberGrid.Render("▶ " + text)
 }
 
 func HolographicText(text string) string {
-	t := currentTheme()
+	t := Current().Theme
 	colors := []lipgloss.Color{
 		t.Primary, t.Accent, t.Secondary,
 		t.Warning, t.Success, t.Warning,
@@ -366,7 +253,7 @@ func HolographicText(text string) string {
 	result := ""
 	for i, char := range text {
 		color := colors[i%len(colors)]
-		result += lipgloss.NewStyle().
+		result += lipgloss.Style{}.
 			Foreground(color).
 			Bold(true).
 			Background(t.Background).
@@ -376,146 +263,81 @@ func HolographicText(text string) string {
 }
 
 func DigitalRain(text string) string {
-	t := currentTheme()
-	return lipgloss.NewStyle().
-		Foreground(t.Success).
-		Background(t.Background).
-		Bold(true).
-		Italic(true).
-		Render("▓ " + text + " ▓")
+	return Current().DigitalRain.Render("▓ " + text + " ▓")
 }
 
 func PriorityExplosion(priority string) string {
-	t := currentTheme()
+	t := Current().Theme
 	switch priority {
 	case "high":
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(t.Error).
 			Background(t.Panel).
 			Bold(true).
 			Render("🔥 HIGH PRIORITY 🔥")
 	case "medium":
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(t.Warning).
 			Background(t.Panel).
 			Bold(true).
 			Render("⚡ MEDIUM ⚡")
 	case "low":
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(t.Success).
 			Background(t.Background).
 			Bold(true).
 			Render("💤 LOW PRIORITY 💤")
 	default:
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(t.Secondary).
 			Render("◉ NORMAL")
 	}
 }
 
 func TaskStatus(status string) string {
-	t := currentTheme()
+	s := Current()
 	if status == "completed" {
-		return lipgloss.NewStyle().
-			Foreground(t.Success).
-			Background(t.Panel).
-			Bold(true).
-			Render("✅ MISSION COMPLETE ✅")
+		return s.TaskDone.Render("✅ MISSION COMPLETE ✅")
 	}
-	return lipgloss.NewStyle().
-		Foreground(t.Accent).
-		Background(t.Panel).
-		Bold(true).
-		Render("◯ ACTIVE MISSION ◯")
+	return s.TaskActive.Render("◯ ACTIVE MISSION ◯")
 }
 
 func CyberTag(tag string) string {
-	t := currentTheme()
-	return lipgloss.NewStyle().
-		Foreground(t.Primary).
-		Background(t.Panel).
-		Padding(0, design.SpacingXS).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Secondary).
-		Render("🏷️ " + tag)
+	return Current().CyberTag.Render("🏷️ " + tag)
 }
 
 func Header() string {
-	t := currentTheme()
-	return lipgloss.NewStyle().
-		Foreground(t.Success).
-		Background(t.Background).
-		Bold(true).
-		AlignHorizontal(lipgloss.Center).
-		Padding(design.SpacingS).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Accent).
-		Render("focus.sh Task Management")
+	return Current().Banner.Render("focus.sh Task Management")
 }
 
 func CyberStats(active, completed, total int) string {
-	t := currentTheme()
-	return lipgloss.NewStyle().
-		Foreground(t.Accent).
-		Background(t.Panel).
-		Bold(true).
-		Padding(design.SpacingS).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Primary).
-		Render(
-			"📊 GRID STATUS: " +
-				lipgloss.NewStyle().Foreground(t.Warning).Render("⚡ "+string(rune(active))) +
-				" ACTIVE | " +
-				lipgloss.NewStyle().Foreground(t.Success).Render("✅ "+string(rune(completed))) +
-				" COMPLETED | " +
-				lipgloss.NewStyle().Foreground(t.Secondary).Render("🌟 "+string(rune(total))) +
-				" TOTAL",
-		)
+	s := Current()
+	t := s.Theme
+	return s.StatsBase.Render(
+		"📊 GRID STATUS: " +
+			lipgloss.Style{}.Foreground(t.Warning).Render("⚡ "+string(rune(active))) +
+			" ACTIVE | " +
+			lipgloss.Style{}.Foreground(t.Success).Render("✅ "+string(rune(completed))) +
+			" COMPLETED | " +
+			lipgloss.Style{}.Foreground(t.Secondary).Render("🌟 "+string(rune(total))) +
+			" TOTAL",
+	)
 }
 
 func LoadingMessage() string {
-	return lipgloss.NewStyle().
-		Foreground(currentTheme().Accent).
-		Bold(true).
-		Render("⠋ Loading...")
+	return Current().Loading.Render("⠋ Loading...")
 }
 
 func EmptyStateMessage() string {
-	t := currentTheme()
-	return lipgloss.NewStyle().
-		Foreground(t.Accent).
-		Background(t.Background).
-		Bold(true).
-		AlignHorizontal(lipgloss.Center).
-		Padding(design.SpacingM).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Primary).
-		Render("No tasks found.\n\nCreate your first task:\nfocus add \"task description\"")
+	return Current().EmptyState.Render("No tasks found.\n\nCreate your first task:\nfocus add \"task description\"")
 }
 
 func SynthwaveAIResponseStyle(response string) string {
-	t := currentTheme()
-	return lipgloss.NewStyle().
-		Foreground(t.Accent).
-		Background(t.Panel).
-		Bold(true).
-		Italic(true).
-		Padding(design.SpacingS).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Secondary).
-		Render("🤖 AI SYNTHESIS: " + response)
+	return Current().SynthAI.Render("🤖 AI SYNTHESIS: " + response)
 }
 
 func SynthwaveReportStyle(text string) string {
-	t := currentTheme()
-	return lipgloss.NewStyle().
-		Foreground(t.Primary).
-		Background(t.Panel).
-		Padding(design.SpacingM).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(t.Accent).
-		Bold(true).
-		Render("📋 ANALYSIS REPORT:\n\n" + text)
+	return Current().SynthReport.Render("📋 ANALYSIS REPORT:\n\n" + text)
 }
 
 // ThemeMode and constants kept for backward compat with unified_dashboard.
