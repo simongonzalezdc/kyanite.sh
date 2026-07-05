@@ -5,11 +5,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kyanite/noise/internal/logging"
-	"github.com/kyanite/design"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/noise/internal/logging"
+	"github.com/kyanite/noise/internal/theme"
 )
 
 // NotificationType represents the type of notification
@@ -324,7 +324,7 @@ func generateNotificationID() string {
 func NewNotificationUIModel(manager *NotificationManager) *NotificationUIModel {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.Style{}.Foreground(design.DefaultTheme().Accent)
+	s.Style = lipgloss.Style{}.Foreground(theme.GetManager().Current().Accent)
 
 	return &NotificationUIModel{
 		manager:       manager,
@@ -387,21 +387,7 @@ func (m *NotificationUIModel) View() string {
 // Helper functions for UI
 
 func (m *NotificationUIModel) renderNotification(notification *Notification, selected bool) string {
-	var style lipgloss.Style
-
-	// Choose style based on notification type
-	switch notification.Type {
-	case NotificationError:
-		style = errorStyle
-	case NotificationWarning:
-		style = warningStyle
-	case NotificationInfo:
-		style = infoStyle
-	case NotificationSuccess:
-		style = successStyle
-	default:
-		style = infoStyle
-	}
+	style := notificationStyle(notification.Type)
 
 	// Add selection indicator if selected
 	indicator := " "
@@ -487,25 +473,22 @@ func (m *NotificationUIModel) DismissSelected() {
 	}
 }
 
-// Styles for different notification types
-
-var (
-	errorStyle = lipgloss.Style{}.
-			Foreground(design.DefaultTheme().Error).
-			Bold(true)
-
-	warningStyle = lipgloss.Style{}.
-			Foreground(design.DefaultTheme().Warning).
-			Bold(true)
-
-	infoStyle = lipgloss.Style{}.
-			Foreground(design.DefaultTheme().Accent).
-			Bold(false)
-
-	successStyle = lipgloss.Style{}.
-			Foreground(design.DefaultTheme().Success).
-			Bold(true)
-)
+// notificationStyle returns a theme-aware style for a notification type.
+// It reads the live theme on each call so notifications follow the active
+// theme instead of being pinned to the default at package load.
+func notificationStyle(nt NotificationType) lipgloss.Style {
+	t := theme.GetManager().Current()
+	switch nt {
+	case NotificationError:
+		return lipgloss.Style{}.Foreground(t.Error).Bold(true)
+	case NotificationWarning:
+		return lipgloss.Style{}.Foreground(t.Warning).Bold(true)
+	case NotificationSuccess:
+		return lipgloss.Style{}.Foreground(t.Success).Bold(true)
+	default: // info
+		return lipgloss.Style{}.Foreground(t.Accent).Bold(false)
+	}
+}
 
 // Message types for Bubble Tea
 
