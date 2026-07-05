@@ -53,7 +53,7 @@ func NewModel() *Model {
 }
 
 // Tea initialization
-func (m *Model) Init() tea.Cmd {
+func (m Model) Init() tea.Cmd {
 	return tea.Tick(time.Millisecond*100, func(t time.Time) tea.Msg {
 		return TickMsg(t)
 	})
@@ -62,11 +62,11 @@ func (m *Model) Init() tea.Cmd {
 type TickMsg time.Time
 
 // Main update loop
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "q", "ctrl+c":
+		case "ctrl+c", "ctrl+q":
 			return m, tea.Quit
 
 		case "up", "k":
@@ -104,7 +104,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // Main view rendering
-func (m *Model) View() string {
+func (m Model) View() string {
 	if m.width == 0 || m.height == 0 {
 		return styles.LoadingMessage()
 	}
@@ -169,7 +169,7 @@ func (m *Model) renderDashboard() string {
 			}
 
 			// Task ID
-			idStyle := lipgloss.NewStyle().
+			idStyle := lipgloss.Style{}.
 				Foreground(styles.SynthwaveCyan).
 				Background(styles.DeepSpace).
 				Render("ID: " + task.ID)
@@ -204,7 +204,7 @@ func (m *Model) renderDashboard() string {
 func (m *Model) renderMatrix() string {
 	var content strings.Builder
 
-	title := lipgloss.NewStyle().
+	title := lipgloss.Style{}.
 		Foreground(styles.SynthwaveGreen).
 		Background(styles.DeepSpace).
 		Bold(true).
@@ -220,7 +220,7 @@ func (m *Model) renderMatrix() string {
 	} else {
 		for i, task := range m.tasks {
 			taskLine := fmt.Sprintf("%02d: %s", i+1, task.Description)
-			taskStyle := lipgloss.NewStyle().
+			taskStyle := lipgloss.Style{}.
 				Foreground(styles.SynthwaveCyan).
 				Background(styles.DeepSpace).
 				Render(taskLine)
@@ -298,7 +298,7 @@ func (m *Model) renderStats() string {
 	}
 
 	for _, stat := range stats {
-		statLine := lipgloss.NewStyle().
+		statLine := lipgloss.Style{}.
 			Foreground(stat.color).
 			Background(styles.DarkVoid).
 			Bold(true).
@@ -313,7 +313,7 @@ func (m *Model) renderStats() string {
 	filled := int(float64(progressWidth) * completionRate / 100)
 	bar := strings.Repeat("█", filled) + strings.Repeat("░", progressWidth-filled)
 
-	progressBar := lipgloss.NewStyle().
+	progressBar := lipgloss.Style{}.
 		Foreground(styles.SynthwaveGreen).
 		Background(styles.DeepSpace).
 		Render("PROGRESS: [" + bar + "]")
@@ -340,7 +340,7 @@ Features:
 • Purposeful animations
 • Professional appearance`
 
-	aboutStyle := lipgloss.NewStyle().
+	aboutStyle := lipgloss.Style{}.
 		Foreground(styles.SynthwaveCyan).
 		Background(styles.DeepSpace).
 		Padding(1, 2).
@@ -359,7 +359,7 @@ func (m *Model) getTaskStyle(index int, task models.Task) string {
 
 	if index == m.selectedIndex {
 		prefix = "▶ "
-		style = lipgloss.NewStyle().
+		style = lipgloss.Style{}.
 			Foreground(styles.SynthwavePink).
 			Background(styles.DarkVoid).
 			Bold(true).
@@ -368,7 +368,7 @@ func (m *Model) getTaskStyle(index int, task models.Task) string {
 			BorderForeground(styles.SynthwaveCyan)
 	} else {
 		prefix = "  "
-		style = lipgloss.NewStyle().
+		style = lipgloss.Style{}.
 			Foreground(styles.SynthwaveCyan).
 			Background(styles.DeepSpace)
 	}
@@ -389,10 +389,10 @@ func (m *Model) renderControls() string {
 		"SPACE: Toggle Glitch",
 		"R: Refresh",
 		"1-4: Switch Views",
-		"Q: Quit",
+		"Ctrl+Q: Quit",
 	}
 
-	controlStyle := lipgloss.NewStyle().
+	controlStyle := lipgloss.Style{}.
 		Foreground(styles.SynthwavePurple).
 		Background(styles.DarkVoid).
 		Bold(true).

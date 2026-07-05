@@ -24,7 +24,7 @@ func (m Model) viewHelp() string {
 			items: []string{
 				"Ctrl+Q         - Quit application",
 				"Ctrl+Shift+T   - Cycle through themes",
-				"?              - Show this help",
+				"? / Ctrl+H     - Show this help",
 				"Esc            - Go back/cancel",
 			},
 		},
@@ -55,7 +55,6 @@ func (m Model) viewHelp() string {
 				"l              - View locations",
 				"t              - View statistics",
 				"e              - Export project",
-				"h              - Help",
 			},
 		},
 	}

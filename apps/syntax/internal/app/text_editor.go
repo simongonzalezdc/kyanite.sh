@@ -533,7 +533,7 @@ func (m Model) handleTextEditorKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		case "ctrl+y":
 			m.Buffer.Redo()
 			return m, nil
-		case "ctrl+a":
+		case "ctrl+p":
 			// Show AI suggestion menu
 			if m.Brain != nil {
 				m.PreviousScreen = ScreenTextEditor

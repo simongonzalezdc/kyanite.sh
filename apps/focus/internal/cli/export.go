@@ -292,7 +292,7 @@ func showExportSuccess(filename string, count int, format string) {
 	}
 
 	for _, detail := range details {
-		detailLine := lipgloss.NewStyle().
+		detailLine := lipgloss.Style{}.
 			Foreground(detail.color).
 			Background(styles.DarkVoid).
 			Bold(true).
@@ -304,7 +304,7 @@ func showExportSuccess(filename string, count int, format string) {
 }
 
 func showExportWarning(message string) {
-	warningStyle := lipgloss.NewStyle().
+	warningStyle := lipgloss.Style{}.
 		Foreground(styles.SynthwaveYellow).
 		Background(styles.DarkVoid).
 		Bold(true).
@@ -314,7 +314,7 @@ func showExportWarning(message string) {
 }
 
 func showExportError(message string) {
-	errorBox := lipgloss.NewStyle().
+	errorBox := lipgloss.Style{}.
 		Foreground(styles.SynthwaveRed).
 		Background(styles.DarkVoid).
 		Bold(true).

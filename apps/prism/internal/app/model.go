@@ -192,7 +192,7 @@ func (m Model) handleKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "ctrl+q":
 		return m, tea.Quit
 
-	case "ctrl+h":
+	case "ctrl+h", "?":
 		m.showHelp = !m.showHelp
 		return m, nil
 

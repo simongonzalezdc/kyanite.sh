@@ -8,6 +8,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/kyanite/ai"
+	"github.com/kyanite/appnames"
 	"github.com/kyanite/config"
 	"github.com/kyanite/syntax/internal/app"
 	"github.com/kyanite/tui/aipanel"
@@ -18,7 +19,10 @@ func main() {
 
 	root, _ := config.Load()
 	cfg := ai.ConfigFromRoot(root, "syntax")
-	brain, _ := ai.New(cfg)
+	brain, err := ai.New(cfg)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: brain init failed (AI features offline): %v\n", err)
+	}
 	m.Brain = brain
 	m.AIPanel = aipanel.New(brain, 40, 24)
 
@@ -61,8 +65,8 @@ func main() {
 		if fm.CurrentProject != nil {
 			summary = fmt.Sprintf("Editing '%s' in syntax", fm.CurrentProject.Title)
 		}
-		_ = brain.SaveCrossAppContext(ctx, "focus", "editing", summary, 0.7)
-		_ = brain.SaveCrossAppContext(ctx, "noise", "editing", summary, 0.5)
+		_ = brain.SaveCrossAppContext(ctx, appnames.Focus, "editing", summary, 0.7)
+		_ = brain.SaveCrossAppContext(ctx, appnames.Noise, "editing", summary, 0.5)
 	}
 
 	if brain != nil {

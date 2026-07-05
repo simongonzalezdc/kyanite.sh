@@ -13,26 +13,33 @@ import (
 func TestStore_New(t *testing.T) {
 	tempDir := t.TempDir()
 
-	tests := []struct {
-		name         string
-		filePath     string
-		expectedPath string
-	}{
-		{
-			name:         "valid file path",
-			filePath:     filepath.Join(tempDir, "test.json"),
-			expectedPath: filepath.Join(tempDir, "test.json"),
-		},
-	}
+	t.Run("store can save and load after New", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "test_new.json")
+		store := New(testFile)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			store := New(tt.filePath)
-			if store.filePath != tt.expectedPath {
-				t.Errorf("New() = %v, want %v", store.filePath, tt.expectedPath)
-			}
-		})
-	}
+		// Verify behavior: save a task, then load it back
+		task := models.Task{
+			ID:          "1",
+			Description: "test task",
+			Priority:    "high",
+			Status:      "pending",
+			CreatedAt:   time.Now(),
+		}
+		if err := store.Save([]models.Task{task}); err != nil {
+			t.Fatalf("Save() error = %v", err)
+		}
+
+		tasks, err := store.Load()
+		if err != nil {
+			t.Fatalf("Load() error = %v", err)
+		}
+		if len(tasks) != 1 {
+			t.Errorf("Load() returned %d tasks, want 1", len(tasks))
+		}
+		if tasks[0].ID != "1" {
+			t.Errorf("Load() task ID = %q, want %q", tasks[0].ID, "1")
+		}
+	})
 }
 
 func TestStore_Load(t *testing.T) {

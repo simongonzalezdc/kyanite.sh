@@ -171,9 +171,11 @@ Example: focus edit abc123`,
 		// Parse and update deadline
 		if deadline != "" {
 			deadlineTime, err := time.Parse("2006-01-02", deadline)
-			if err == nil {
-				task.Deadline = deadlineTime
+			if err != nil {
+				showEditError(fmt.Sprintf("Invalid deadline format (use YYYY-MM-DD): %s", deadline))
+				return
 			}
+			task.Deadline = deadlineTime
 		} else if deadline == "" && deadlineStr != "" {
 			// User cleared the deadline
 			task.Deadline = time.Time{}
@@ -225,7 +227,7 @@ func showCurrentTask(task models.Task) {
 	}
 
 	for _, detail := range details {
-		detailLine := lipgloss.NewStyle().
+		detailLine := lipgloss.Style{}.
 			Foreground(detail.color).
 			Background(styles.DarkVoid).
 			Bold(true).
@@ -237,7 +239,7 @@ func showCurrentTask(task models.Task) {
 }
 
 func showEditError(message string) {
-	errorBox := lipgloss.NewStyle().
+	errorBox := lipgloss.Style{}.
 		Foreground(styles.SynthwaveRed).
 		Background(styles.DarkVoid).
 		Bold(true).
@@ -265,7 +267,7 @@ func showEditSuccess(task models.Task) {
 	}
 
 	for _, detail := range details {
-		detailLine := lipgloss.NewStyle().
+		detailLine := lipgloss.Style{}.
 			Foreground(detail.color).
 			Background(styles.DarkVoid).
 			Bold(true).

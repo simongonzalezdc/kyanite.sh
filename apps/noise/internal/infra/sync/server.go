@@ -396,13 +396,22 @@ func (s *SyncServer) handleUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Determine file type
+	// Determine file type from Content-Type header
 	contentType := header.Header.Get("Content-Type")
 	var mediaPath string
 
+	// Validate file type with magic bytes
 	if isAudioType(contentType) {
+		if !validateAudioMagicBytes(data, contentType) {
+			http.Error(w, "Invalid audio file: content does not match declared type", http.StatusBadRequest)
+			return
+		}
 		mediaPath, err = s.mediaStore.SaveVoiceMemo(deviceID, data)
 	} else if isImageType(contentType) {
+		if !validateImageMagicBytes(data, contentType) {
+			http.Error(w, "Invalid image file: content does not match declared type", http.StatusBadRequest)
+			return
+		}
 		mediaPath, err = s.mediaStore.SavePhoto(deviceID, data)
 	} else {
 		http.Error(w, "Unsupported file type", http.StatusBadRequest)
@@ -414,9 +423,13 @@ func (s *SyncServer) handleUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// mediaStore already returns relative paths, no need to sanitize
+	mediaID := extractMediaID(mediaPath)
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"path": mediaPath,
+		"path":     mediaPath,
+		"media_id": mediaID,
 	})
 }
 
@@ -477,6 +490,58 @@ func isImageType(contentType string) bool {
 		contentType == "image/webp"
 }
 
+// validateImageMagicBytes checks if the file content matches the declared image type
+func validateImageMagicBytes(data []byte, contentType string) bool {
+	if len(data) < 4 {
+		return false
+	}
+
+	switch contentType {
+	case "image/jpeg":
+		// JPEG magic bytes: FF D8 FF
+		return data[0] == 0xFF && data[1] == 0xD8 && data[2] == 0xFF
+	case "image/png":
+		// PNG magic bytes: 89 50 4E 47 (89 PNG)
+		return data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47
+	case "image/gif":
+		// GIF magic bytes: GIF8
+		return len(data) >= 4 && string(data[0:4]) == "GIF8"
+	case "image/webp":
+		// WebP magic bytes: RIFF....WEBP
+		return len(data) >= 12 && string(data[0:4]) == "RIFF" && string(data[8:12]) == "WEBP"
+	default:
+		return false
+	}
+}
+
+// validateAudioMagicBytes checks if the file content matches the declared audio type
+func validateAudioMagicBytes(data []byte, contentType string) bool {
+	if len(data) < 4 {
+		return false
+	}
+
+	switch contentType {
+	case "audio/webm":
+		// WebM magic bytes: 1A 45 DF A3 (EBML header)
+		return data[0] == 0x1A && data[1] == 0x45 && data[2] == 0xDF && data[3] == 0xA3
+	case "audio/ogg":
+		// OGG magic bytes: OggS
+		return string(data[0:4]) == "OggS"
+	case "audio/mp3":
+		// MP3 magic bytes: ID3 (for tagged MP3s) or FF FB/FF FA (for raw MP3)
+		return (len(data) >= 3 && string(data[0:3]) == "ID3") ||
+			(data[0] == 0xFF && (data[1] == 0xFB || data[1] == 0xFA || data[1] == 0xF3 || data[1] == 0xF2))
+	case "audio/wav":
+		// WAV magic bytes: RIFF....WAVE
+		return len(data) >= 12 && string(data[0:4]) == "RIFF" && string(data[8:12]) == "WAVE"
+	case "audio/m4a":
+		// M4A magic bytes: 00 00 00 20 66 74 79 70 (ftyp M4A )
+		return len(data) >= 8 && data[4] == 0x66 && data[5] == 0x74 && data[6] == 0x79 && data[7] == 0x70
+	default:
+		return false
+	}
+}
+
 func mustMarshal(v interface{}) []byte {
 	data, err := json.Marshal(v)
 	if err != nil {
@@ -485,4 +550,68 @@ func mustMarshal(v interface{}) []byte {
 		return []byte("{}")
 	}
 	return data
+}
+
+// sanitizeMediaPath converts a full filesystem path to a relative path for API responses
+// This prevents leaking internal directory structure (e.g., /home/user/.kyanite/... -> /media/voice/file.webm)
+func sanitizeMediaPath(fullPath string) string {
+	// Extract just the filename and return a relative path
+	filename := fullPath
+	if lastSlash := len(fullPath) - 1; lastSlash >= 0 {
+		for i := lastSlash; i >= 0; i-- {
+			if fullPath[i] == '/' || fullPath[i] == '\\' {
+				filename = fullPath[i+1:]
+				break
+			}
+		}
+	}
+
+	// Determine if it's a voice memo or photo based on file extension
+	if len(filename) > 4 {
+		ext := filename[len(filename)-4:]
+		if ext == ".webm" || ext == ".mp3" || ext == ".wav" || ext == ".ogg" || ext == ".m4a" {
+			return "/media/voice/" + filename
+		}
+	}
+	if len(filename) > 4 {
+		ext := filename[len(filename)-4:]
+		if ext == ".jpg" || ext == ".png" || ext == ".gif" {
+			return "/media/photos/" + filename
+		}
+	}
+
+	// Handle .jpeg extension (5 chars)
+	if len(filename) > 5 {
+		ext := filename[len(filename)-5:]
+		if ext == ".jpeg" {
+			return "/media/photos/" + filename
+		}
+	}
+
+	// Fallback: return just the filename if we can't determine type
+	return "/media/" + filename
+}
+
+// extractMediaID extracts just the filename without extension for use as a media ID
+func extractMediaID(fullPath string) string {
+	filename := fullPath
+	if lastSlash := len(fullPath) - 1; lastSlash >= 0 {
+		for i := lastSlash; i >= 0; i-- {
+			if fullPath[i] == '/' || fullPath[i] == '\\' {
+				filename = fullPath[i+1:]
+				break
+			}
+		}
+	}
+
+	// Remove file extension
+	if lastDot := len(filename) - 1; lastDot >= 0 {
+		for i := lastDot; i >= 0; i-- {
+			if filename[i] == '.' {
+				return filename[:i]
+			}
+		}
+	}
+
+	return filename
 }

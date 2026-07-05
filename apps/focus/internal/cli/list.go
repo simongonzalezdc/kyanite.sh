@@ -60,7 +60,7 @@ func renderSynthwaveList(tasks []models.Task, filter string) {
 	fmt.Println()
 
 	// Filter indicator with style
-	filterIndicator := lipgloss.NewStyle().
+	filterIndicator := lipgloss.Style{}.
 		Foreground(styles.SynthwaveYellow).
 		Background(styles.DarkVoid).
 		Bold(true).
@@ -77,7 +77,7 @@ func renderSynthwaveList(tasks []models.Task, filter string) {
 	}
 
 	// Mission count with cyber styling
-	countStyle := lipgloss.NewStyle().
+	countStyle := lipgloss.Style{}.
 		Foreground(styles.SynthwaveCyan).
 		Background(styles.CyberGrid).
 		Bold(true).
@@ -114,7 +114,7 @@ func renderSynthwaveList(tasks []models.Task, filter string) {
 
 func renderTaskWithEffects(index int, task models.Task) {
 	// Task number with focus effect
-	numberStyle := lipgloss.NewStyle().
+	numberStyle := lipgloss.Style{}.
 		Foreground(styles.SynthwavePink).
 		Background(styles.DeepSpace).
 		Bold(true).
@@ -123,13 +123,13 @@ func renderTaskWithEffects(index int, task models.Task) {
 	// Task description with cyber styling
 	var descStyle lipgloss.Style
 	if task.Status == "completed" {
-		descStyle = lipgloss.NewStyle().
+		descStyle = lipgloss.Style{}.
 			Foreground(styles.SynthwaveGreen).
 			Background(styles.DarkVoid).
 			Strikethrough(true).
 			Bold(true)
 	} else {
-		descStyle = lipgloss.NewStyle().
+		descStyle = lipgloss.Style{}.
 			Foreground(styles.SynthwaveCyan).
 			Background(styles.DeepSpace).
 			Bold(true)
@@ -164,7 +164,7 @@ func renderTaskWithEffects(index int, task models.Task) {
 	}
 
 	// Task ID with digital rain effect
-	idStyle := lipgloss.NewStyle().
+	idStyle := lipgloss.Style{}.
 		Foreground(styles.SynthwaveCyan).
 		Background(styles.DeepSpace).
 		Italic(true).

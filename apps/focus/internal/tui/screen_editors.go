@@ -14,7 +14,7 @@ func (m *MainModel) renderTaskEntry() string {
 
 	if m.taskInput == "PRIORITY_MODE" {
 		// Priority change mode
-		header := lipgloss.NewStyle().
+		header := lipgloss.Style{}.
 			Foreground(synthYellow).
 			Bold(true).
 			Align(lipgloss.Center).
@@ -23,16 +23,16 @@ func (m *MainModel) renderTaskEntry() string {
 		b.WriteString("\n\n")
 		b.WriteString(priorityInputStyle.Render("Select Priority:"))
 		b.WriteString("\n")
-		b.WriteString(lipgloss.NewStyle().Foreground(synthCyan).Render("  [1] Low 💤"))
+		b.WriteString(lipgloss.Style{}.Foreground(synthCyan).Render("  [1] Low 💤"))
 		b.WriteString("\n")
-		b.WriteString(lipgloss.NewStyle().Foreground(synthGreen).Render("  [2] Medium ⚡"))
+		b.WriteString(lipgloss.Style{}.Foreground(synthGreen).Render("  [2] Medium ⚡"))
 		b.WriteString("\n")
-		b.WriteString(lipgloss.NewStyle().Foreground(synthRed).Render("  [3] High 🔥"))
+		b.WriteString(lipgloss.Style{}.Foreground(synthRed).Render("  [3] High 🔥"))
 		b.WriteString("\n\n")
-		b.WriteString(lipgloss.NewStyle().Foreground(synthYellow).Render("[Esc] Cancel"))
+		b.WriteString(lipgloss.Style{}.Foreground(synthYellow).Render("[Esc] Cancel"))
 	} else {
 		// Task entry mode
-		header := lipgloss.NewStyle().
+		header := lipgloss.Style{}.
 			Foreground(synthGreen).
 			Bold(true).
 			Align(lipgloss.Center).
@@ -41,7 +41,7 @@ func (m *MainModel) renderTaskEntry() string {
 		b.WriteString("\n\n")
 		b.WriteString(taskInputStyle.Render("Mission: " + m.taskInput + "█"))
 		b.WriteString("\n\n")
-		b.WriteString(lipgloss.NewStyle().Foreground(synthCyan).Render("[Enter] Confirm  [Esc] Cancel"))
+		b.WriteString(lipgloss.Style{}.Foreground(synthCyan).Render("[Enter] Confirm  [Esc] Cancel"))
 	}
 
 	return b.String()
@@ -56,7 +56,7 @@ func (m *MainModel) renderNotesEditor() string {
 	}
 
 	// Notes editor header
-	header := lipgloss.NewStyle().
+	header := lipgloss.Style{}.
 		Foreground(synthCyan).
 		Bold(true).
 		Align(lipgloss.Center).
@@ -65,7 +65,7 @@ func (m *MainModel) renderNotesEditor() string {
 	b.WriteString("\n\n")
 
 	// Current notes display with Glow markdown rendering
-	b.WriteString(lipgloss.NewStyle().Foreground(synthGreen).Bold(true).Render("📝 Current notes (Markdown):"))
+	b.WriteString(lipgloss.Style{}.Foreground(synthGreen).Bold(true).Render("📝 Current notes (Markdown):"))
 	b.WriteString("\n")
 
 	// Show notes using Glow markdown renderer
@@ -79,12 +79,11 @@ func (m *MainModel) renderNotesEditor() string {
 		glowContent := m.glowStyler.RenderSectionWithGlow(
 			"📝 Notes Content",
 			currentNotes,
-			"#00FFF0", // Cyan accent
 		)
 		b.WriteString(glowContent)
 	} else {
 		// Fallback to basic rendering
-		notesStyle := lipgloss.NewStyle().
+		notesStyle := lipgloss.Style{}.
 			Foreground(synthYellow).
 			Background(styles.GetBoxStyle().GetBackground()).
 			Padding(1).
@@ -97,9 +96,9 @@ func (m *MainModel) renderNotesEditor() string {
 	b.WriteString("\n\n")
 
 	// Input area
-	b.WriteString(lipgloss.NewStyle().Foreground(synthGreen).Render("Enter new notes:"))
+	b.WriteString(lipgloss.Style{}.Foreground(synthGreen).Render("Enter new notes:"))
 	b.WriteString("\n")
-	b.WriteString(lipgloss.NewStyle().
+	b.WriteString(lipgloss.Style{}.
 		Foreground(synthCyan).
 		Background(styles.GetBoxStyle().GetBackground()).
 		Padding(1).
@@ -118,7 +117,7 @@ func (m *MainModel) renderNotesEditor() string {
 	}
 
 	for _, instruction := range instructions {
-		b.WriteString(lipgloss.NewStyle().Foreground(synthBlue).Render("  " + instruction))
+		b.WriteString(lipgloss.Style{}.Foreground(synthBlue).Render("  " + instruction))
 		b.WriteString("\n")
 	}
 
@@ -130,7 +129,7 @@ func (m *MainModel) renderFilterEditor() string {
 	var b strings.Builder
 
 	// Filter editor header
-	header := lipgloss.NewStyle().
+	header := lipgloss.Style{}.
 		Foreground(synthYellow).
 		Bold(true).
 		Align(lipgloss.Center).
@@ -139,35 +138,35 @@ func (m *MainModel) renderFilterEditor() string {
 	b.WriteString("\n\n")
 
 	// Current filter status
-	b.WriteString(lipgloss.NewStyle().Foreground(synthCyan).Render("Current filter:"))
+	b.WriteString(lipgloss.Style{}.Foreground(synthCyan).Render("Current filter:"))
 	b.WriteString("\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(synthGreen).
+	b.WriteString(lipgloss.Style{}.Foreground(synthGreen).
 		Render(fmt.Sprintf("Status: %s | Priority: %s", m.filterStatus, m.filterPriority)))
 	b.WriteString("\n\n")
 
 	// Filter options
-	b.WriteString(lipgloss.NewStyle().Foreground(synthCyan).Render("Status options:"))
+	b.WriteString(lipgloss.Style{}.Foreground(synthCyan).Render("Status options:"))
 	b.WriteString("\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(synthBlue).Render("  [1] All tasks"))
+	b.WriteString(lipgloss.Style{}.Foreground(synthBlue).Render("  [1] All tasks"))
 	b.WriteString("\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(synthBlue).Render("  [2] Pending only"))
+	b.WriteString(lipgloss.Style{}.Foreground(synthBlue).Render("  [2] Pending only"))
 	b.WriteString("\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(synthBlue).Render("  [3] Completed only"))
+	b.WriteString(lipgloss.Style{}.Foreground(synthBlue).Render("  [3] Completed only"))
 	b.WriteString("\n\n")
 
-	b.WriteString(lipgloss.NewStyle().Foreground(synthCyan).Render("Priority options:"))
+	b.WriteString(lipgloss.Style{}.Foreground(synthCyan).Render("Priority options:"))
 	b.WriteString("\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(synthBlue).Render("  [H] High priority"))
+	b.WriteString(lipgloss.Style{}.Foreground(synthBlue).Render("  [H] High priority"))
 	b.WriteString("\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(synthBlue).Render("  [M] Medium priority"))
+	b.WriteString(lipgloss.Style{}.Foreground(synthBlue).Render("  [M] Medium priority"))
 	b.WriteString("\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(synthBlue).Render("  [L] Low priority"))
+	b.WriteString(lipgloss.Style{}.Foreground(synthBlue).Render("  [L] Low priority"))
 	b.WriteString("\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(synthBlue).Render("  [A] All priorities"))
+	b.WriteString(lipgloss.Style{}.Foreground(synthBlue).Render("  [A] All priorities"))
 	b.WriteString("\n\n")
 
 	// Instructions
-	b.WriteString(lipgloss.NewStyle().Foreground(synthBlue).Render("[Enter] Apply filter  [Esc] Cancel"))
+	b.WriteString(lipgloss.Style{}.Foreground(synthBlue).Render("[Enter] Apply filter  [Esc] Cancel"))
 
 	return b.String()
 }
@@ -177,7 +176,7 @@ func (m *MainModel) renderSettingsView() string {
 	var b strings.Builder
 
 	// Settings header
-	header := lipgloss.NewStyle().
+	header := lipgloss.Style{}.
 		Foreground(synthPink).
 		Bold(true).
 		Align(lipgloss.Center).
@@ -196,7 +195,7 @@ func (m *MainModel) renderSettingsView() string {
 	}
 
 	for _, setting := range settings {
-		b.WriteString(lipgloss.NewStyle().
+		b.WriteString(lipgloss.Style{}.
 			Foreground(synthCyan).
 			Background(styles.GetBoxStyle().GetBackground()).
 			Padding(0, 1).
@@ -220,12 +219,12 @@ func (m *MainModel) renderSettingsView() string {
 	b.WriteString(sectionTitleStyle.Render("⚡ SETTINGS CONTROLS:"))
 	b.WriteString("\n")
 	for _, control := range controls {
-		b.WriteString(lipgloss.NewStyle().Foreground(synthGreen).Render("  " + control))
+		b.WriteString(lipgloss.Style{}.Foreground(synthGreen).Render("  " + control))
 		b.WriteString("\n")
 	}
 
 	b.WriteString("\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(synthBlue).Render("Press 'Tab' to return to dashboard"))
+	b.WriteString(lipgloss.Style{}.Foreground(synthBlue).Render("Press 'Tab' to return to dashboard"))
 
 	return b.String()
 }

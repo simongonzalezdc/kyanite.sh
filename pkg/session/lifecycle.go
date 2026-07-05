@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/kyanite/ai"
+	"github.com/kyanite/appnames"
 )
 
 // Session holds the current app session state.
@@ -56,7 +57,7 @@ func OnShutdown(s *Session, title string, state any) {
 	_ = s.brain.SaveSession(ctx, s.SessionID, title, state)
 
 	// Save cross-app context for other apps
-	otherApps := otherApps(s.App)
+	otherApps := appnames.Others(s.App)
 	for _, target := range otherApps {
 		_ = s.brain.SaveCrossAppContext(ctx, target, "activity", title, 0.5)
 	}
@@ -78,12 +79,3 @@ func (s *Session) Brain() *ai.Brain {
 	return s.brain
 }
 
-func otherApps(app string) []string {
-	all := []string{"focus", "noise", "syntax", "prism"}
-	for i, a := range all {
-		if a == app {
-			return append(all[:i], all[i+1:]...)
-		}
-	}
-	return all
-}

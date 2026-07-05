@@ -414,8 +414,8 @@ func (dm *DashboardModel) renderSimplifiedView() string {
 func (dm *DashboardModel) GetOnboardingHints() []string {
 	hints := []string{
 		"[TIP] Use number keys (1-6) to quickly access actions",
-		"[TIP] Press 'T' to cycle through beautiful themes",
-		"[TIP] Press 'H' or '?' for help and keyboard shortcuts",
+		"[TIP] Press Ctrl+Shift+T to cycle through beautiful themes",
+		"[TIP] Press Ctrl+H or '?' for help and keyboard shortcuts",
 		"[TIP] Press 'D' to toggle between simple and detailed views",
 	}
 

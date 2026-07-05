@@ -18,12 +18,12 @@ import (
 	"github.com/kyanite/focus/internal/ai"
 	"github.com/kyanite/focus/internal/di"
 	"github.com/kyanite/focus/internal/theme"
-	"github.com/kyanite/tui/aipanel"
 	"github.com/kyanite/focus/pkg/audio"
 	"github.com/kyanite/focus/pkg/calendar"
 	"github.com/kyanite/focus/pkg/glow"
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/pkg/styles"
+	"github.com/kyanite/tui/aipanel"
 )
 
 // Tick message for real-time updates
@@ -240,8 +240,8 @@ func newKeyMap() keyMap {
 			key.WithHelp("r", "reset timer"),
 		),
 		quit: key.NewBinding(
-			key.WithKeys("ctrl+c", "q", "ctrl+q"),
-			key.WithHelp("q/Ctrl+Q", "quit"),
+			key.WithKeys("ctrl+c", "ctrl+q"),
+			key.WithHelp("Ctrl+Q", "quit"),
 		),
 		help: key.NewBinding(
 			key.WithKeys("?", "ctrl+h"),
@@ -305,8 +305,8 @@ func newKeyMap() keyMap {
 			key.WithHelp("p", "change priority"),
 		),
 		themeCycle: key.NewBinding(
-			key.WithKeys("ctrl+t"),
-			key.WithHelp("Ctrl+T", "cycle theme"),
+			key.WithKeys("ctrl+shift+t"),
+			key.WithHelp("Ctrl+Shift+T", "cycle theme"),
 		),
 		journalKey: key.NewBinding(
 			key.WithKeys("g"),
@@ -465,7 +465,7 @@ func NewMainModel(tasks []DashboardTask) *MainModel {
 	return m
 }
 
-func (m *MainModel) Init() tea.Cmd {
+func (m MainModel) Init() tea.Cmd {
 	// Start real-time clock ticker, spinner, and AI status check
 	return tea.Batch(
 		tea.Tick(time.Second, func(t time.Time) tea.Msg { return tickMsg(t) }),
@@ -516,7 +516,7 @@ func (m *MainModel) updateTheme() {
 
 // recreateStyles recreates all styles with current theme colors
 func (m *MainModel) recreateStyles() {
-	titleStyle = lipgloss.NewStyle().
+	titleStyle = lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Background(styles.GetBackground()).
 		Bold(true).
@@ -529,7 +529,7 @@ func (m *MainModel) recreateStyles() {
 		Underline(true).
 		Faint(false)
 
-	sectionTitleStyle = lipgloss.NewStyle().
+	sectionTitleStyle = lipgloss.Style{}.
 		Foreground(styles.GetForeground()).
 		Bold(true).
 		Italic(true).
@@ -539,7 +539,7 @@ func (m *MainModel) recreateStyles() {
 		BorderStyle(lipgloss.RoundedBorder()). // CONSISTENT: RoundedBorder
 		BorderForeground(styles.GetBorder())
 
-	taskStyle = lipgloss.NewStyle().
+	taskStyle = lipgloss.Style{}.
 		Foreground(synthGreen).
 		Padding(0, 2).
 		MarginBottom(1).
@@ -549,7 +549,7 @@ func (m *MainModel) recreateStyles() {
 		BorderLeft(true).
 		BorderRight(true)
 
-	selectedTaskStyle = lipgloss.NewStyle().
+	selectedTaskStyle = lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Background(styles.GetPanel()).
 		Bold(true).
@@ -560,13 +560,13 @@ func (m *MainModel) recreateStyles() {
 		BorderForeground(styles.GetBorder()).
 		Underline(true)
 
-	completedTaskStyle = lipgloss.NewStyle().
+	completedTaskStyle = lipgloss.Style{}.
 		Foreground(synthPurple).
 		Strikethrough(true).
 		Italic(true).
 		Faint(true)
 
-	statsStyle = lipgloss.NewStyle().
+	statsStyle = lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Background(styles.GetPanel()).
 		Bold(true).
@@ -575,7 +575,7 @@ func (m *MainModel) recreateStyles() {
 		BorderStyle(lipgloss.RoundedBorder()). // CONSISTENT
 		BorderForeground(styles.GetBorder())
 
-	helpStyle = lipgloss.NewStyle().
+	helpStyle = lipgloss.Style{}.
 		Foreground(styles.GetForeground()).
 		Italic(true).
 		Bold(true).
@@ -585,7 +585,7 @@ func (m *MainModel) recreateStyles() {
 		BorderStyle(lipgloss.RoundedBorder()). // CONSISTENT
 		BorderForeground(styles.GetBorder())
 
-	glitchStyle = lipgloss.NewStyle().
+	glitchStyle = lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Background(styles.GetPanel()).
 		Bold(true).
@@ -595,7 +595,7 @@ func (m *MainModel) recreateStyles() {
 		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(styles.GetBorder())
 
-	statusBarStyle = lipgloss.NewStyle().
+	statusBarStyle = lipgloss.Style{}.
 		Foreground(styles.GetForeground()).
 		Background(styles.GetPanel()).
 		Bold(true).
@@ -605,7 +605,7 @@ func (m *MainModel) recreateStyles() {
 		BorderForeground(styles.GetBorder()).
 		BorderBottom(true)
 
-	chatInputStyle = lipgloss.NewStyle().
+	chatInputStyle = lipgloss.Style{}.
 		Foreground(styles.GetForeground()).
 		Background(styles.GetPanel()).
 		Bold(true).
@@ -614,7 +614,7 @@ func (m *MainModel) recreateStyles() {
 		BorderStyle(lipgloss.RoundedBorder()). // CONSISTENT
 		BorderForeground(styles.GetBorder())
 
-	chatMessageStyle = lipgloss.NewStyle().
+	chatMessageStyle = lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Italic(true).
 		Background(styles.GetPanel()).
@@ -625,7 +625,7 @@ func (m *MainModel) recreateStyles() {
 		BorderLeft(true).
 		BorderRight(true)
 
-	chatUserStyle = lipgloss.NewStyle().
+	chatUserStyle = lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Bold(true).
 		Italic(true).
@@ -635,7 +635,7 @@ func (m *MainModel) recreateStyles() {
 		BorderStyle(lipgloss.RoundedBorder()). // CONSISTENT
 		BorderForeground(styles.GetAccent())
 
-	taskInputStyle = lipgloss.NewStyle().
+	taskInputStyle = lipgloss.Style{}.
 		Foreground(styles.GetForeground()).
 		Background(styles.GetPanel()).
 		Bold(true).
@@ -644,7 +644,7 @@ func (m *MainModel) recreateStyles() {
 		BorderStyle(lipgloss.RoundedBorder()). // CONSISTENT
 		BorderForeground(styles.GetBorder())
 
-	priorityInputStyle = lipgloss.NewStyle().
+	priorityInputStyle = lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Background(styles.GetPanel()).
 		Bold(true).
@@ -655,7 +655,7 @@ func (m *MainModel) recreateStyles() {
 		BorderForeground(styles.GetAccent())
 }
 
-func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Handle priority change mode
 	if m.taskEntryMode && m.taskInput == "PRIORITY_MODE" {
 		switch msg := msg.(type) {
@@ -806,7 +806,6 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	}
-
 
 	// Handle AI panel input mode
 	if m.aiPanelActive && m.aiPanel.Visible() {
@@ -1463,12 +1462,12 @@ func (m *MainModel) renderProgressBar() string {
 
 	// Filled portion (synth green)
 	for i := 0; i < filledWidth; i++ {
-		bar.WriteString(lipgloss.NewStyle().Foreground(synthGreen).Render("="))
+		bar.WriteString(lipgloss.Style{}.Foreground(synthGreen).Render("="))
 	}
 
 	// Empty portion (dark)
 	for i := 0; i < emptyWidth; i++ {
-		bar.WriteString(lipgloss.NewStyle().Foreground(gridLine).Render("-"))
+		bar.WriteString(lipgloss.Style{}.Foreground(gridLine).Render("-"))
 	}
 
 	bar.WriteString("] ")
@@ -1527,7 +1526,7 @@ func (m *MainModel) renderStats() string {
 	// Render enhanced stats with proper alignment and theme colors
 	var statsContent strings.Builder
 	for i, stat := range stats {
-		statStyle := lipgloss.NewStyle().
+		statStyle := lipgloss.Style{}.
 			Bold(true).
 			Background(styles.GetPanel()).
 			Padding(0, 1).
@@ -1549,7 +1548,7 @@ func (m *MainModel) renderStats() string {
 
 		// Ensure consistent width for alignment
 		maxWidth := 25 // Reasonable width for stat boxes
-		statText := lipgloss.NewStyle().Width(maxWidth).Render("  " + stat + "  ")
+		statText := lipgloss.Style{}.Width(maxWidth).Render("  " + stat + "  ")
 		statsContent.WriteString(statStyle.Render(statText))
 
 		if i < len(stats)-1 {
@@ -1563,7 +1562,7 @@ func (m *MainModel) renderStats() string {
 	}
 
 	// Enhanced stats container with more flair
-	statsContainer := lipgloss.NewStyle().
+	statsContainer := lipgloss.Style{}.
 		Background(styles.GetBoxStyle().GetBackground()).
 		Padding(1, 2).
 		Margin(1).
@@ -1586,7 +1585,7 @@ func (m *MainModel) renderTaskList() string {
 
 	if taskCount == 0 {
 		if m.filterMode {
-			emptyStyle := lipgloss.NewStyle().
+			emptyStyle := lipgloss.Style{}.
 				Foreground(synthYellow).
 				Italic(true).
 				Bold(true).
@@ -1597,7 +1596,7 @@ func (m *MainModel) renderTaskList() string {
 				Render("🔍 No tasks match current filter")
 			return emptyStyle
 		} else {
-			emptyStyle := lipgloss.NewStyle().
+			emptyStyle := lipgloss.Style{}.
 				Foreground(synthBlue).
 				Italic(true).
 				Bold(true).
@@ -1613,7 +1612,7 @@ func (m *MainModel) renderTaskList() string {
 	// Show enhanced filter info if in filter mode
 	if m.filterMode {
 		filterInfo := fmt.Sprintf("🔍 Filter: %s status, %s priority", m.filterStatus, m.filterPriority)
-		filterStyle := lipgloss.NewStyle().
+		filterStyle := lipgloss.Style{}.
 			Foreground(synthYellow).
 			Bold(true).
 			Italic(true).
@@ -1630,11 +1629,11 @@ func (m *MainModel) renderTaskList() string {
 		var taskLine string
 		if task.Status == "completed" {
 			// Enhanced completed task style
-			completedPrefix := lipgloss.NewStyle().
+			completedPrefix := lipgloss.Style{}.
 				Foreground(synthGreen).
 				Bold(true).
 				Render("✅")
-			taskDesc := lipgloss.NewStyle().
+			taskDesc := lipgloss.Style{}.
 				Foreground(synthPurple).
 				Strikethrough(true).
 				Italic(true).
@@ -1660,12 +1659,12 @@ func (m *MainModel) renderTaskList() string {
 				priorityColor = synthCyan
 			}
 
-			priorityStyled := lipgloss.NewStyle().
+			priorityStyled := lipgloss.Style{}.
 				Foreground(priorityColor).
 				Bold(true).
 				Render(prioritySymbol)
 
-			taskDesc := lipgloss.NewStyle().
+			taskDesc := lipgloss.Style{}.
 				Foreground(synthGreen).
 				Render(task.Description)
 
@@ -1694,7 +1693,7 @@ func (m *MainModel) renderFocusView() string {
 	}
 
 	// LARGE HEADER
-	header := lipgloss.NewStyle().
+	header := lipgloss.Style{}.
 		Foreground(synthPink).
 		Bold(true).
 		Align(lipgloss.Center).
@@ -1705,7 +1704,7 @@ func (m *MainModel) renderFocusView() string {
 	// CURRENT MISSION
 	b.WriteString(sectionTitleStyle.Render("🎯 CURRENT MISSION:"))
 	b.WriteString("\n")
-	b.WriteString(lipgloss.NewStyle().
+	b.WriteString(lipgloss.Style{}.
 		Foreground(synthGreen).
 		Background(styles.GetBoxStyle().GetBackground()).
 		Padding(1).
@@ -1718,14 +1717,14 @@ func (m *MainModel) renderFocusView() string {
 	b.WriteString(sectionTitleStyle.Render("📊 SESSION DATA:"))
 	b.WriteString("\n")
 	sessionInfo := fmt.Sprintf("💾 Sessions Completed: %d", m.sessions)
-	b.WriteString(lipgloss.NewStyle().Foreground(synthYellow).Bold(true).Render(sessionInfo))
+	b.WriteString(lipgloss.Style{}.Foreground(synthYellow).Bold(true).Render(sessionInfo))
 	b.WriteString("\n\n")
 
 	// MODE STATUS
 	b.WriteString(sectionTitleStyle.Render("💾 CURRENT MODE:"))
 	b.WriteString("\n")
 	if m.sessionType == workSession {
-		b.WriteString(lipgloss.NewStyle().
+		b.WriteString(lipgloss.Style{}.
 			Foreground(synthGreen).
 			Bold(true).
 			BorderStyle(lipgloss.RoundedBorder()).
@@ -1734,7 +1733,7 @@ func (m *MainModel) renderFocusView() string {
 			Blink(true).
 			Render("🔥 FOCUS MODE ACTIVATED"))
 	} else {
-		b.WriteString(lipgloss.NewStyle().
+		b.WriteString(lipgloss.Style{}.
 			Foreground(synthBlue).
 			Bold(true).
 			BorderStyle(lipgloss.RoundedBorder()).
@@ -1755,7 +1754,7 @@ func (m *MainModel) renderFocusView() string {
 		timerDisplay = m.stopwatch.View()
 	}
 
-	b.WriteString(lipgloss.NewStyle().
+	b.WriteString(lipgloss.Style{}.
 		Foreground(synthGreen).
 		Background(styles.GetBoxStyle().GetBackground()).
 		Padding(2, 4).
@@ -1784,13 +1783,13 @@ func (m *MainModel) renderDashboard() string {
 		headerLineLength = 20
 	}
 	headerLine := strings.Repeat("═", headerLineLength)
-	headerLine = lipgloss.NewStyle().
+	headerLine = lipgloss.Style{}.
 		Foreground(synthPink).
 		Render(headerLine)
 	b.WriteString(headerLine)
 	b.WriteString("\n")
 
-	titleLine := lipgloss.NewStyle().
+	titleLine := lipgloss.Style{}.
 		Foreground(synthBlue).
 		Bold(true).
 		Align(lipgloss.Center).
@@ -1799,7 +1798,7 @@ func (m *MainModel) renderDashboard() string {
 
 	// Add spinner if loading
 	if m.loadingState != notLoading {
-		spinnerLine := lipgloss.NewStyle().
+		spinnerLine := lipgloss.Style{}.
 			Foreground(synthYellow).
 			Align(lipgloss.Center).
 			Render(m.getSpinner() + " Loading...")
@@ -1809,7 +1808,7 @@ func (m *MainModel) renderDashboard() string {
 
 	b.WriteString("\n")
 
-	bottomLine := lipgloss.NewStyle().
+	bottomLine := lipgloss.Style{}.
 		Foreground(synthPink).
 		Render("════════════════════════════════════════════════════════════════════════════════════════════════════════")
 	b.WriteString(bottomLine)
@@ -1834,7 +1833,7 @@ func (m *MainModel) renderDashboard() string {
 			overlayHeight = 15
 		}
 
-		overlay := lipgloss.NewStyle().
+		overlay := lipgloss.Style{}.
 			Foreground(synthGreen).
 			Background(styles.GetBoxStyle().GetBackground()).
 			Padding(2).
@@ -1846,7 +1845,7 @@ func (m *MainModel) renderDashboard() string {
 			Render(m.renderTaskEntry())
 
 		// Center the overlay
-		container := lipgloss.NewStyle().
+		container := lipgloss.Style{}.
 			Width(m.width-4).
 			Height(m.height-4).
 			Align(lipgloss.Center, lipgloss.Center).
@@ -1875,7 +1874,7 @@ func (m *MainModel) renderDashboard() string {
 			overlayHeight = 25
 		}
 
-		overlay := lipgloss.NewStyle().
+		overlay := lipgloss.Style{}.
 			Foreground(synthCyan).
 			Background(styles.GetBoxStyle().GetBackground()).
 			Padding(2).
@@ -1887,7 +1886,7 @@ func (m *MainModel) renderDashboard() string {
 			Render(m.renderNotesEditor())
 
 		// Center the overlay
-		container := lipgloss.NewStyle().
+		container := lipgloss.Style{}.
 			Width(m.width-4).
 			Height(m.height-4).
 			Align(lipgloss.Center, lipgloss.Center).
@@ -1916,7 +1915,7 @@ func (m *MainModel) renderDashboard() string {
 			overlayHeight = 20
 		}
 
-		overlay := lipgloss.NewStyle().
+		overlay := lipgloss.Style{}.
 			Foreground(synthYellow).
 			Background(styles.GetBoxStyle().GetBackground()).
 			Padding(2).
@@ -1928,7 +1927,7 @@ func (m *MainModel) renderDashboard() string {
 			Render(m.renderFilterEditor())
 
 		// Center the overlay
-		container := lipgloss.NewStyle().
+		container := lipgloss.Style{}.
 			Width(m.width-4).
 			Height(m.height-4).
 			Align(lipgloss.Center, lipgloss.Center).
@@ -1958,7 +1957,7 @@ func (m *MainModel) renderDashboard() string {
 			status = "COMPLETED ✅"
 		}
 
-		centerContent.WriteString(lipgloss.NewStyle().
+		centerContent.WriteString(lipgloss.Style{}.
 			Foreground(synthCyan).
 			Background(styles.GetBoxStyle().GetBackground()).
 			Padding(1).
@@ -1966,13 +1965,13 @@ func (m *MainModel) renderDashboard() string {
 			BorderForeground(synthBlue).
 			Render(task.Description))
 		centerContent.WriteString("\n\n")
-		centerContent.WriteString(lipgloss.NewStyle().Foreground(synthGreen).Render(
+		centerContent.WriteString(lipgloss.Style{}.Foreground(synthGreen).Render(
 			fmt.Sprintf("Status: %s\nPriority: %s", status, strings.ToUpper(task.Priority))))
 	} else {
 		centerContent.WriteString("😴 No missions selected")
 	}
 	centerContent.WriteString("\n\n")
-	centerContent.WriteString(lipgloss.NewStyle().Foreground(synthBlue).Render(
+	centerContent.WriteString(lipgloss.Style{}.Foreground(synthBlue).Render(
 		"💡 [ENTER] Focus mode\n💡 [A] Add mission\n💡 [C] Chat assistant\n💡 [Ctrl+A] AI Dashboard\n💡 [D] Complete\n💡 [P] Priority\n💡 [G] Glitch"))
 
 	// Right column - Stats and quick actions
@@ -1980,9 +1979,9 @@ func (m *MainModel) renderDashboard() string {
 	rightContent.WriteString("\n\n")
 	rightContent.WriteString(sectionTitleStyle.Render("⚡ REAL-TIME DATA:"))
 	rightContent.WriteString("\n")
-	rightContent.WriteString(lipgloss.NewStyle().Foreground(synthCyan).Render("🕐 " + time.Now().Format("15:04:05")))
+	rightContent.WriteString(lipgloss.Style{}.Foreground(synthCyan).Render("🕐 " + time.Now().Format("15:04:05")))
 	rightContent.WriteString("\n")
-	rightContent.WriteString(lipgloss.NewStyle().Foreground(synthYellow).Render("📅 " + time.Now().Format("2006-01-02")))
+	rightContent.WriteString(lipgloss.Style{}.Foreground(synthYellow).Render("📅 " + time.Now().Format("2006-01-02")))
 	rightContent.WriteString("\n\n")
 	rightContent.WriteString(sectionTitleStyle.Render("⚡ QUICK ACTIONS:"))
 	rightContent.WriteString("\n")
@@ -1996,7 +1995,7 @@ func (m *MainModel) renderDashboard() string {
 		"[↑/↓] Navigate",
 	}
 	for _, action := range actions {
-		rightContent.WriteString(lipgloss.NewStyle().Foreground(styles.GetAccent()).Render("  " + action))
+		rightContent.WriteString(lipgloss.Style{}.Foreground(styles.GetAccent()).Render("  " + action))
 		rightContent.WriteString("\n")
 	}
 
@@ -2012,18 +2011,18 @@ func (m *MainModel) renderDashboard() string {
 			colWidth = 25
 		}
 
-		leftStyle := lipgloss.NewStyle().Width(colWidth)
-		centerStyle := lipgloss.NewStyle().Width(colWidth)
-		rightStyle := lipgloss.NewStyle().Width(colWidth)
+		leftStyle := lipgloss.Style{}.Width(colWidth)
+		centerStyle := lipgloss.Style{}.Width(colWidth)
+		rightStyle := lipgloss.Style{}.Width(colWidth)
 
 		leftStr = leftStyle.Render(leftStr)
 		centerStr = centerStyle.Render(centerStr)
 		rightStr = rightStyle.Render(rightStr)
 	} else {
 		// For small windows, stack vertically
-		leftStyle := lipgloss.NewStyle().Width(m.width - 4)
-		centerStyle := lipgloss.NewStyle().Width(m.width - 4)
-		rightStyle := lipgloss.NewStyle().Width(m.width - 4)
+		leftStyle := lipgloss.Style{}.Width(m.width - 4)
+		centerStyle := lipgloss.Style{}.Width(m.width - 4)
+		rightStyle := lipgloss.Style{}.Width(m.width - 4)
 
 		leftStr = leftStyle.Render(leftStr)
 		centerStr = centerStyle.Render(centerStr)
@@ -2043,7 +2042,7 @@ func (m *MainModel) renderDashboard() string {
 	return b.String()
 }
 
-func (m *MainModel) View() string {
+func (m MainModel) View() string {
 	if m.quitting {
 		return "\n  Powering down the grid... 🌌\n\n"
 	}
@@ -2117,21 +2116,21 @@ func (m *MainModel) View() string {
 		// Render AI panel with input indicator
 		panelView := m.aiPanel.View()
 		if m.aiPanelActive {
-			inputLine := lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#f4a261")).
+			inputLine := lipgloss.Style{}.
+				Foreground(styles.GetWarning()).
 				Render("> " + m.aiPanelInput + "█")
 			panelView = panelView + "\n" + inputLine
 		}
 
 		// Place panel on the right side
-		mainStyled := lipgloss.NewStyle().
+		mainStyled := lipgloss.Style{}.
 			Width(m.width * 2 / 3).
 			Render(mainContent)
-		panelStyled := lipgloss.NewStyle().
+		panelStyled := lipgloss.Style{}.
 			Width(m.width / 3).
 			Render(panelView)
 
-		fullContent := lipgloss.NewStyle().
+		fullContent := lipgloss.Style{}.
 			Height(m.height).
 			Width(m.width).
 			Render(lipgloss.JoinHorizontal(lipgloss.Top, mainStyled, panelStyled))
@@ -2139,7 +2138,7 @@ func (m *MainModel) View() string {
 		return fullContent
 	}
 
-	fullContent := lipgloss.NewStyle().
+	fullContent := lipgloss.Style{}.
 		Height(m.height).
 		Width(m.width).
 		Render(mainContent)
@@ -2155,7 +2154,7 @@ func (m *MainModel) renderTaskEntryOverlay() string {
 	overlay.WriteString(m.renderTaskEntry())
 
 	// Center container
-	container := lipgloss.NewStyle().
+	container := lipgloss.Style{}.
 		Foreground(synthGreen).
 		Background(styles.GetBoxStyle().GetBackground()).
 		Padding(2).
@@ -2167,7 +2166,7 @@ func (m *MainModel) renderTaskEntryOverlay() string {
 		Render(overlay.String())
 
 	// Wrap in outer container
-	outerContainer := lipgloss.NewStyle().
+	outerContainer := lipgloss.Style{}.
 		Width(m.width-10).
 		Height(m.height-15).
 		Align(lipgloss.Center, lipgloss.Center).
@@ -2194,7 +2193,7 @@ func (m *MainModel) renderNotesOverlay() string {
 		containerHeight = m.height - 10
 	}
 
-	container := lipgloss.NewStyle().
+	container := lipgloss.Style{}.
 		Foreground(synthCyan).
 		Background(styles.GetBoxStyle().GetBackground()).
 		Padding(2).
@@ -2206,7 +2205,7 @@ func (m *MainModel) renderNotesOverlay() string {
 		Render(overlay.String())
 
 	// Wrap in outer container
-	outerContainer := lipgloss.NewStyle().
+	outerContainer := lipgloss.Style{}.
 		Width(m.width).
 		Height(m.height).
 		Align(lipgloss.Center, lipgloss.Center).
@@ -2233,7 +2232,7 @@ func (m *MainModel) renderFilterOverlay() string {
 		containerHeight = m.height - 15
 	}
 
-	container := lipgloss.NewStyle().
+	container := lipgloss.Style{}.
 		Foreground(synthYellow).
 		Background(styles.GetBoxStyle().GetBackground()).
 		Padding(2).
@@ -2245,7 +2244,7 @@ func (m *MainModel) renderFilterOverlay() string {
 		Render(overlay.String())
 
 	// Wrap in outer container
-	outerContainer := lipgloss.NewStyle().
+	outerContainer := lipgloss.Style{}.
 		Width(m.width).
 		Height(m.height).
 		Align(lipgloss.Center, lipgloss.Center).
@@ -2253,7 +2252,6 @@ func (m *MainModel) renderFilterOverlay() string {
 
 	return outerContainer
 }
-
 
 // buildDailyBriefing constructs a prompt for the daily productivity briefing.
 func (m *MainModel) buildDailyBriefing() string {

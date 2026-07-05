@@ -58,3 +58,5 @@ replace github.com/kyanite/design => ../../pkg/design
 replace github.com/kyanite/tui => ../../pkg/tui
 
 replace github.com/kyanite/config => ../../pkg/config
+
+replace github.com/kyanite/appnames => ../../pkg/appnames

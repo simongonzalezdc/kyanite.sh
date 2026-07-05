@@ -8,10 +8,10 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/config"
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/internal/wizards"
-	"github.com/kyanite/config"
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/pkg/styles"
 	"github.com/kyanite/focus/pkg/utils"
@@ -102,8 +102,8 @@ func DefaultUnifiedKeyMap() UnifiedKeyMap {
 			key.WithHelp("?", "help"),
 		),
 		Quit: key.NewBinding(
-			key.WithKeys("ctrl+c", "Q"),
-			key.WithHelp("Ctrl+C/Q", "quit"),
+			key.WithKeys("ctrl+c", "ctrl+q"),
+			key.WithHelp("Ctrl+Q", "quit"),
 		),
 		Config: key.NewBinding(
 			key.WithKeys("c"),
@@ -131,16 +131,21 @@ func NewUnifiedDashboardModel() UnifiedDashboardModel {
 		cfg = &focus
 	}
 
-	initial := styles.ThemeSynthwave
-	if cfg != nil {
-		switch cfg.Theme {
-		case string(styles.ThemeLight):
-			initial = styles.ThemeLight
-		case string(styles.ThemePlain):
-			initial = styles.ThemePlain
-		}
+	// Use current theme from styles package, not config
+	current := styles.GetTheme()
+	// Convert design.Theme.Name to styles.ThemeMode
+	var themeMode styles.ThemeMode
+	switch current.Name {
+	case "synthwave":
+		themeMode = styles.ThemeSynthwave
+	case "light":
+		themeMode = styles.ThemeLight
+	case "plain":
+		themeMode = styles.ThemePlain
+	default:
+		themeMode = styles.ThemeSynthwave
 	}
-	applyThemeStyles(initial)
+	applyThemeStyles(themeMode)
 
 	menuItems := []list.Item{
 		UnifiedMenuItem{title: "🎯 Add Task", description: "Create a new task", action: ActionAddTask},
@@ -373,21 +378,21 @@ func (m UnifiedDashboardModel) executeAction(action UnifiedAction) tea.Cmd {
 
 func applyThemeStyles(theme styles.ThemeMode) {
 	styles.SetTheme(theme)
-	menuTitleStyle = lipgloss.NewStyle().
+	menuTitleStyle = lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Background(styles.GetBackground()).
 		Padding(0, 2).
 		Bold(true)
-	selectedItemStyle = lipgloss.NewStyle().
+	selectedItemStyle = lipgloss.Style{}.
 		Foreground(styles.GetBackground()).
 		Background(styles.GetAccent()).
 		Bold(true)
-	normalItemStyle = lipgloss.NewStyle().
+	normalItemStyle = lipgloss.Style{}.
 		Foreground(styles.GetAccent())
-	statusStyle = lipgloss.NewStyle().
+	statusStyle = lipgloss.Style{}.
 		Foreground(styles.GetSuccess()).
 		Bold(true)
-	errorStyle = lipgloss.NewStyle().
+	errorStyle = lipgloss.Style{}.
 		Foreground(styles.GetError()).
 		Bold(true)
 }
@@ -416,21 +421,21 @@ func (m *UnifiedDashboardModel) applyTheme(theme styles.ThemeMode) {
 
 func applyThemeStylesByName(themeName string) {
 	styles.SetThemeByName(themeName)
-	menuTitleStyle = lipgloss.NewStyle().
+	menuTitleStyle = lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Background(styles.GetBackground()).
 		Padding(0, 2).
 		Bold(true)
-	selectedItemStyle = lipgloss.NewStyle().
+	selectedItemStyle = lipgloss.Style{}.
 		Foreground(styles.GetBackground()).
 		Background(styles.GetAccent()).
 		Bold(true)
-	normalItemStyle = lipgloss.NewStyle().
+	normalItemStyle = lipgloss.Style{}.
 		Foreground(styles.GetAccent())
-	statusStyle = lipgloss.NewStyle().
+	statusStyle = lipgloss.Style{}.
 		Foreground(styles.GetSuccess()).
 		Bold(true)
-	errorStyle = lipgloss.NewStyle().
+	errorStyle = lipgloss.Style{}.
 		Foreground(styles.GetError()).
 		Bold(true)
 }
@@ -490,7 +495,7 @@ func (m UnifiedDashboardModel) renderHelp() string {
   r              → Refresh data
   Esc/q          → Go back
   ?              → Show help
-  Ctrl+C/Q       → Quit application
+  Ctrl+Q         → Quit application
 `
 	return helpText
 }
@@ -526,7 +531,7 @@ func (m UnifiedDashboardModel) renderFooter() string {
 		fmt.Fprintf(&configInfo, "🎨 %s | ", m.config.Theme)
 	}
 	taskCount := fmt.Sprintf("📋 %d tasks", len(m.taskList))
-	return fmt.Sprintf("%s%s | %s | [?]Help [c]Config [t]Theme [r]Refresh [q]Quit", configInfo.String(), taskCount, m.currentView)
+	return fmt.Sprintf("%s%s | %s | [?]Help [c]Config [Ctrl+Shift+T]Theme [r]Refresh [Ctrl+Q]Quit", configInfo.String(), taskCount, m.currentView)
 }
 
 type UnifiedActionMsg struct{ Action UnifiedAction }

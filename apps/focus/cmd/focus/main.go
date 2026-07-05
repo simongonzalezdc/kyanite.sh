@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/kyanite/ai"
+	"github.com/kyanite/appnames"
 	"github.com/kyanite/config"
 	"github.com/kyanite/focus/internal/cli"
 	"github.com/kyanite/focus/internal/tui"
@@ -181,7 +182,7 @@ func runTUIDirectly() error {
 		// Save cross-app context for other kyanite apps
 		if completed > 0 {
 			summary := fmt.Sprintf("Completed %d tasks in focus", completed)
-			for _, targetApp := range []string{"noise", "syntax", "prism"} {
+			for _, targetApp := range appnames.Others(appnames.Focus) {
 				if err := brain.SaveCrossAppContext(ctx, targetApp, "task_completion", summary, 0.6); err != nil {
 					log.Printf("focus: save cross-app context for %s: %v", targetApp, err)
 				}

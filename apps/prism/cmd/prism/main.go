@@ -36,8 +36,10 @@ func main() {
 		fmt.Println("  --help          Print help and exit")
 		fmt.Println()
 		fmt.Println("Keybindings:")
-		fmt.Println("  Ctrl+A / p      Toggle AI panel")
-		fmt.Println("  q               Quit")
+		fmt.Println("  Ctrl+A          Toggle AI panel")
+		fmt.Println("  Ctrl+Q          Quit")
+		fmt.Println("  Ctrl+Shift+T    Cycle theme")
+		fmt.Println("  Ctrl+H / ?      Toggle help")
 		fmt.Println("  Arrow keys      Navigate menus")
 		fmt.Println("  Enter           Select option")
 		fmt.Println()
@@ -48,7 +50,10 @@ func main() {
 	// Load config from ~/.config/kyanite/config.yaml + env vars
 	root, _ := config.Load()
 	cfg := ai.ConfigFromRoot(root, "prism")
-	brain, _ := ai.New(cfg)
+	brain, err := ai.New(cfg)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: brain init failed (AI features offline): %v\n", err)
+	}
 
 	// Create the root model
 	m := app.NewModel(brain)

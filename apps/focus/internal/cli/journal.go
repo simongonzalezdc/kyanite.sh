@@ -54,14 +54,14 @@ var journalNewCmd = &cobra.Command{
 		}
 
 		// Success message
-		successStyle := lipgloss.NewStyle().
+		successStyle := lipgloss.Style{}.
 			Foreground(styles.GetSuccess()).
 			Bold(true).
 			Render("✅ Journal entry created successfully")
 		fmt.Println(successStyle)
 
 		// Entry details
-		detailStyle := lipgloss.NewStyle().
+		detailStyle := lipgloss.Style{}.
 			Foreground(styles.GetForeground()).
 			Background(styles.GetPanel()).
 			Padding(1, 2).
@@ -94,7 +94,7 @@ var journalListCmd = &cobra.Command{
 		}
 
 		if len(entries) == 0 {
-			emptyStyle := lipgloss.NewStyle().
+			emptyStyle := lipgloss.Style{}.
 				Foreground(styles.GetWarning()).
 				Bold(true).
 				Render("📭 No journal entries found")
@@ -104,7 +104,7 @@ var journalListCmd = &cobra.Command{
 		}
 
 		// Header
-		headerStyle := lipgloss.NewStyle().
+		headerStyle := lipgloss.Style{}.
 			Foreground(styles.GetAccent()).
 			Bold(true).
 			Render("📚 Journal Entries")
@@ -118,7 +118,7 @@ var journalListCmd = &cobra.Command{
 		}
 		for i := start; i < len(entries); i++ {
 			entry := entries[i]
-			entryStyle := lipgloss.NewStyle().
+			entryStyle := lipgloss.Style{}.
 				Foreground(styles.GetForeground()).
 				Background(styles.GetPanel()).
 				Padding(0, 1).
@@ -140,7 +140,7 @@ var journalListCmd = &cobra.Command{
 		}
 
 		if len(entries) > 10 {
-			moreStyle := lipgloss.NewStyle().
+			moreStyle := lipgloss.Style{}.
 				Foreground(styles.GetWarning()).
 				Italic(true).
 				Render(fmt.Sprintf("... and %d more entries", len(entries)-10))
@@ -189,7 +189,7 @@ var journalSearchCmd = &cobra.Command{
 		}
 
 		if len(entries) == 0 {
-			noResultsStyle := lipgloss.NewStyle().
+			noResultsStyle := lipgloss.Style{}.
 				Foreground(styles.GetWarning()).
 				Bold(true).
 				Render(fmt.Sprintf("🔍 No results found for: %s", keyword))
@@ -198,7 +198,7 @@ var journalSearchCmd = &cobra.Command{
 		}
 
 		// Results header
-		resultsStyle := lipgloss.NewStyle().
+		resultsStyle := lipgloss.Style{}.
 			Foreground(styles.GetSuccess()).
 			Bold(true).
 			Render(fmt.Sprintf("🔍 Found %d entries for: %s", len(entries), keyword))
@@ -207,7 +207,7 @@ var journalSearchCmd = &cobra.Command{
 
 		// Display results
 		for _, entry := range entries {
-			resultStyle := lipgloss.NewStyle().
+			resultStyle := lipgloss.Style{}.
 				Foreground(styles.GetForeground()).
 				Background(styles.GetPanel()).
 				Padding(0, 1).
@@ -280,13 +280,13 @@ var journalExportCmd = &cobra.Command{
 		}
 
 		// Success message
-		successStyle := lipgloss.NewStyle().
+		successStyle := lipgloss.Style{}.
 			Foreground(styles.GetSuccess()).
 			Bold(true).
 			Render("✅ Exported to syntax.sh")
 
 		filename := entry.GetExportFilename(exportType)
-		detailsStyle := lipgloss.NewStyle().
+		detailsStyle := lipgloss.Style{}.
 			Foreground(styles.GetForeground()).
 			Background(styles.GetPanel()).
 			Padding(1, 2).
@@ -375,14 +375,14 @@ func createJournalEntry() *models.JournalEntry {
 // displayJournalEntry displays a journal entry in a formatted way
 func displayJournalEntry(entry *models.JournalEntry) {
 	// Header
-	headerStyle := lipgloss.NewStyle().
+	headerStyle := lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Bold(true).
 		Render(fmt.Sprintf("📅 Journal Entry - %s", entry.Date))
 	fmt.Println(headerStyle)
 
 	// Metadata
-	metadataStyle := lipgloss.NewStyle().
+	metadataStyle := lipgloss.Style{}.
 		Foreground(styles.GetForeground()).
 		Background(styles.GetPanel()).
 		Padding(1, 2).
@@ -405,7 +405,7 @@ func displayJournalEntry(entry *models.JournalEntry) {
 	fmt.Println(metadataStyle.Render(strings.Join(metadata, "\n")))
 
 	// Content
-	contentStyle := lipgloss.NewStyle().
+	contentStyle := lipgloss.Style{}.
 		Foreground(styles.GetForeground()).
 		Background(styles.GetPanel()).
 		Padding(1, 2).

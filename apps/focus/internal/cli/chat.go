@@ -77,7 +77,7 @@ var chatCmd = &cobra.Command{
 			}
 
 			// Get AI response with streaming
-			aiLabel := lipgloss.NewStyle().
+			aiLabel := lipgloss.Style{}.
 				Foreground(styles.GetAccent()).
 				Bold(true).
 				Render("AI: ")

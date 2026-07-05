@@ -145,7 +145,7 @@ Examples:
 
 		// Confirm deletion
 		fmt.Println()
-		confirmStyle := lipgloss.NewStyle().
+		confirmStyle := lipgloss.Style{}.
 			Foreground(styles.SynthwaveYellow).
 			Background(styles.DarkVoid).
 			Bold(true).
@@ -153,7 +153,11 @@ Examples:
 		fmt.Println(confirmStyle.Render("⚠️  Type 'yes' to confirm deletion:"))
 
 		var confirm string
-		_, _ = fmt.Scanln(&confirm)
+		_, err := fmt.Scanln(&confirm)
+		if err != nil {
+			showBulkError(fmt.Sprintf("Failed to read confirmation: %s", err.Error()))
+			return
+		}
 
 		if strings.ToLower(confirm) != "yes" {
 			showBulkWarning("Deletion cancelled")
@@ -227,7 +231,7 @@ func showBulkCompleteSuccess(completed, failed int) {
 	}
 
 	for _, detail := range details {
-		detailLine := lipgloss.NewStyle().
+		detailLine := lipgloss.Style{}.
 			Foreground(detail.color).
 			Background(styles.DarkVoid).
 			Bold(true).
@@ -253,7 +257,7 @@ func showBulkDeleteSuccess(deleted, failed int) {
 	}
 
 	for _, detail := range details {
-		detailLine := lipgloss.NewStyle().
+		detailLine := lipgloss.Style{}.
 			Foreground(detail.color).
 			Background(styles.DarkVoid).
 			Bold(true).
@@ -265,7 +269,7 @@ func showBulkDeleteSuccess(deleted, failed int) {
 }
 
 func showBulkDeleteWarning(tasks []models.Task) {
-	warningBox := lipgloss.NewStyle().
+	warningBox := lipgloss.Style{}.
 		Foreground(styles.SynthwaveYellow).
 		Background(styles.DarkVoid).
 		Bold(true).
@@ -280,7 +284,7 @@ func showBulkDeleteWarning(tasks []models.Task) {
 	for i, task := range tasks {
 		if i >= 5 {
 			remaining := len(tasks) - 5
-			moreStyle := lipgloss.NewStyle().
+			moreStyle := lipgloss.Style{}.
 				Foreground(styles.SynthwaveCyan).
 				Background(styles.DarkVoid).
 				Padding(0, 1).
@@ -288,7 +292,7 @@ func showBulkDeleteWarning(tasks []models.Task) {
 			fmt.Println(moreStyle)
 			break
 		}
-		taskLine := lipgloss.NewStyle().
+		taskLine := lipgloss.Style{}.
 			Foreground(styles.SynthwavePink).
 			Background(styles.DarkVoid).
 			Padding(0, 1).
@@ -298,7 +302,7 @@ func showBulkDeleteWarning(tasks []models.Task) {
 }
 
 func showBulkWarning(message string) {
-	warningStyle := lipgloss.NewStyle().
+	warningStyle := lipgloss.Style{}.
 		Foreground(styles.SynthwaveYellow).
 		Background(styles.DarkVoid).
 		Bold(true).
@@ -308,7 +312,7 @@ func showBulkWarning(message string) {
 }
 
 func showBulkError(message string) {
-	errorBox := lipgloss.NewStyle().
+	errorBox := lipgloss.Style{}.
 		Foreground(styles.SynthwaveRed).
 		Background(styles.DarkVoid).
 		Bold(true).

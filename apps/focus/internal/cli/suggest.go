@@ -74,7 +74,7 @@ var suggestCmd = &cobra.Command{
 		}
 
 		// Stream suggestions with consistent styling
-		titleStyle := lipgloss.NewStyle().
+		titleStyle := lipgloss.Style{}.
 			Foreground(styles.GetSuccess()).
 			Bold(true).
 			Render("Task Suggestions:")

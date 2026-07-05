@@ -451,16 +451,13 @@ func (s *AutoSaveService) performSave(content string) error {
 
 // executeSave performs the actual database save operation
 func (s *AutoSaveService) executeSave(content string) error {
-	// Serialize database writes to prevent "database is locked" errors
-	s.writeMutex.Lock()
-	defer s.writeMutex.Unlock()
-
 	// For now, we'll save as a version without a specific song ID
 	// In a full implementation, this would be associated with the current song
 	autoSaveTimestampFormat := "2006-01-02 15:04:05"
 	versionName := fmt.Sprintf("Auto-save %s", time.Now().Format(autoSaveTimestampFormat))
 
-	// Add retry logic specifically for lock errors
+	// Add retry logic specifically for lock errors.
+	// T4-03: release writeMutex during backoff sleep to avoid holding it during I/O waits.
 	var lastErr error
 	lockRetryDelay := constants.LockRetryDelay
 
@@ -471,13 +468,18 @@ func (s *AutoSaveService) executeSave(content string) error {
 			lockRetryDelay *= 2 // Exponential backoff
 		}
 
-		version, err := s.db.SaveVersion(0, content, false, versionName)
-		if err != nil {
-			lastErr = err
+		var version *domain.Version
+		func() {
+			s.writeMutex.Lock()
+			defer s.writeMutex.Unlock()
+			version, lastErr = s.db.SaveVersion(0, content, false, versionName)
+		}()
+
+		if lastErr != nil {
 			// Check if it's a database lock error
-			if strings.Contains(err.Error(), "database is locked") ||
-				strings.Contains(err.Error(), "locked") ||
-				strings.Contains(err.Error(), "busy") {
+			if strings.Contains(lastErr.Error(), "database is locked") ||
+				strings.Contains(lastErr.Error(), "locked") ||
+				strings.Contains(lastErr.Error(), "busy") {
 				if attempt < constants.MaxLockRetries {
 					continue // Retry on lock errors
 				}
@@ -498,10 +500,11 @@ func (s *AutoSaveService) executeSave(content string) error {
 	}
 
 	s.contentMutex.Lock()
-	s.lastSaveTime = time.Now()
+	saveTime := time.Now()
+	s.lastSaveTime = saveTime
 	s.contentMutex.Unlock()
 
-	logging.Infof("Auto-save completed at %s", s.lastSaveTime.Format(time.RFC3339))
+	logging.Infof("Auto-save completed at %s", saveTime.Format(time.RFC3339))
 	return nil
 }
 
@@ -549,10 +552,6 @@ func (s *AutoSaveService) SaveWithVersioning(songID int, content string, isMiles
 
 // executeSaveWithVersioning performs the actual versioned save operation
 func (s *AutoSaveService) executeSaveWithVersioning(songID int, content string, isMilestone bool, name string) error {
-	// Serialize database writes to prevent "database is locked" errors
-	s.writeMutex.Lock()
-	defer s.writeMutex.Unlock()
-
 	// Ensure we have a proper version name
 	if strings.TrimSpace(name) == "" {
 		autoSaveTimestampFormat := "2006-01-02 15:04:05"
@@ -563,7 +562,7 @@ func (s *AutoSaveService) executeSaveWithVersioning(songID int, content string, 
 		}
 	}
 
-	// Add retry logic specifically for lock errors
+	// T4-03: release writeMutex during backoff sleep to avoid holding it during I/O waits.
 	var lastErr error
 	lockRetryDelay := constants.LockRetryDelay
 
@@ -574,13 +573,17 @@ func (s *AutoSaveService) executeSaveWithVersioning(songID int, content string, 
 			lockRetryDelay *= 2 // Exponential backoff
 		}
 
-		_, err := s.db.SaveVersion(songID, content, isMilestone, name)
-		if err != nil {
-			lastErr = err
+		func() {
+			s.writeMutex.Lock()
+			defer s.writeMutex.Unlock()
+			_, lastErr = s.db.SaveVersion(songID, content, isMilestone, name)
+		}()
+
+		if lastErr != nil {
 			// Check if it's a database lock error
-			if strings.Contains(err.Error(), "database is locked") ||
-				strings.Contains(err.Error(), "locked") ||
-				strings.Contains(err.Error(), "busy") {
+			if strings.Contains(lastErr.Error(), "database is locked") ||
+				strings.Contains(lastErr.Error(), "locked") ||
+				strings.Contains(lastErr.Error(), "busy") {
 				if attempt < constants.MaxLockRetries {
 					continue // Retry on lock errors
 				}
@@ -593,10 +596,11 @@ func (s *AutoSaveService) executeSaveWithVersioning(songID int, content string, 
 	}
 
 	s.contentMutex.Lock()
-	s.lastSaveTime = time.Now()
+	saveTime := time.Now()
+	s.lastSaveTime = saveTime
 	s.contentMutex.Unlock()
 
-	logging.Infof("Versioned save completed at %s", s.lastSaveTime.Format(time.RFC3339))
+	logging.Infof("Versioned save completed at %s", saveTime.Format(time.RFC3339))
 	return nil
 }
 
@@ -610,11 +614,10 @@ func (s *AutoSaveService) GetVersionHistory(songID int, limit int) ([]*domain.Ve
 
 // CleanupOldVersions removes old versions beyond the configured limit
 func (s *AutoSaveService) CleanupOldVersions(songID int) error {
-	// Serialize database writes to prevent "database is locked" errors
+	// T4-03: acquire writeMutex only for DB operations, release during backoff sleep.
 	s.writeMutex.Lock()
-	defer s.writeMutex.Unlock()
-
 	versions, err := s.db.GetVersions(songID, 1000)
+	s.writeMutex.Unlock()
 	if err != nil {
 		return errutil.Wrap(err, "get versions for cleanup")
 	}
@@ -632,7 +635,10 @@ func (s *AutoSaveService) CleanupOldVersions(songID int) error {
 				deleteRetryDelay *= 2
 			}
 
+			s.writeMutex.Lock()
 			deleteErr = s.db.DeleteVersion(version.ID)
+			s.writeMutex.Unlock()
+
 			if deleteErr == nil {
 				break // Success
 			}

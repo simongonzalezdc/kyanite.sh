@@ -135,11 +135,9 @@ func (js *JournalStorage) SaveEntries(entries []*models.JournalEntry) error {
 	return nil
 }
 
-// flushCache saves cache to disk (called when cache is dirty)
-func (js *JournalStorage) flushCache() error {
-	js.cacheMutex.Lock()
-	defer js.cacheMutex.Unlock()
-
+// flushCacheLocked saves cache to disk (called when cache is dirty).
+// Caller must hold js.cacheMutex.
+func (js *JournalStorage) flushCacheLocked() error {
 	if !js.cacheDirty {
 		return nil
 	}
@@ -163,7 +161,6 @@ func (js *JournalStorage) flushCache() error {
 	}
 
 	js.cacheDirty = false
-
 	return nil
 }
 
@@ -174,6 +171,7 @@ func (js *JournalStorage) AddEntry(entry *models.JournalEntry) error {
 	}
 
 	js.cacheMutex.Lock()
+	defer js.cacheMutex.Unlock()
 
 	// Check if entry with same ID already exists (O(1) lookup)
 	if idx, exists := js.cacheIdx[entry.ID]; exists {
@@ -186,8 +184,7 @@ func (js *JournalStorage) AddEntry(entry *models.JournalEntry) error {
 	}
 
 	js.cacheDirty = true
-	js.cacheMutex.Unlock()
-	return js.flushCache()
+	return js.flushCacheLocked()
 }
 
 // GetEntryByID retrieves a journal entry by ID (O(1) with cache)
@@ -230,16 +227,15 @@ func (js *JournalStorage) UpdateEntry(entry *models.JournalEntry) error {
 	}
 
 	js.cacheMutex.Lock()
+	defer js.cacheMutex.Unlock()
 
 	// O(1) lookup via index
 	if idx, exists := js.cacheIdx[entry.ID]; exists {
 		js.cache[idx] = entry
 		js.cacheDirty = true
-		js.cacheMutex.Unlock()
-		return js.flushCache()
+		return js.flushCacheLocked()
 	}
 
-	js.cacheMutex.Unlock()
 	return fmt.Errorf("journal entry with ID %s not found", entry.ID)
 }
 
@@ -250,11 +246,11 @@ func (js *JournalStorage) DeleteEntry(id string) error {
 	}
 
 	js.cacheMutex.Lock()
+	defer js.cacheMutex.Unlock()
 
 	// O(1) lookup via index
 	idx, exists := js.cacheIdx[id]
 	if !exists {
-		js.cacheMutex.Unlock()
 		return fmt.Errorf("journal entry with ID %s not found", id)
 	}
 
@@ -268,8 +264,7 @@ func (js *JournalStorage) DeleteEntry(id string) error {
 	}
 
 	js.cacheDirty = true
-	js.cacheMutex.Unlock()
-	return js.flushCache()
+	return js.flushCacheLocked()
 }
 
 // SearchEntries searches journal entries by keyword in content, title, or tags

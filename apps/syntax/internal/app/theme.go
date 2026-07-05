@@ -47,67 +47,30 @@ func applyTheme(t design.Theme) Styles {
 	}
 }
 
-// Manager handles theme selection and switching using the shared design module.
+// Manager wraps the shared design.Manager with syntax-specific theme methods.
 type Manager struct {
-	currentTheme string
-	currentIndex int
-	themeNames   []string
+	inner *design.Manager
 }
 
-// NewManager creates a new theme manager backed by the design module registry.
+// NewManager creates a new theme manager backed by the shared design.Manager.
 func NewManager(initialTheme string) *Manager {
-	themeNames := design.List()
-
-	idx := 0
-	for i, name := range themeNames {
-		if name == initialTheme {
-			idx = i
-			break
-		}
-	}
-
-	return &Manager{
-		currentTheme: initialTheme,
-		currentIndex: idx,
-		themeNames:   themeNames,
-	}
+	return &Manager{inner: design.NewManager(initialTheme)}
 }
 
 // GetCurrent returns the current design.Theme.
-func (m *Manager) GetCurrent() design.Theme {
-	return design.Get(m.currentTheme)
-}
+func (m *Manager) GetCurrent() design.Theme { return m.inner.Current() }
 
 // GetCurrentName returns the current theme name.
-func (m *Manager) GetCurrentName() string {
-	return m.currentTheme
-}
+func (m *Manager) GetCurrentName() string { return m.inner.CurrentName() }
 
 // NextTheme cycles to the next theme.
-func (m *Manager) NextTheme() design.Theme {
-	m.currentIndex = (m.currentIndex + 1) % len(m.themeNames)
-	m.currentTheme = m.themeNames[m.currentIndex]
-	return m.GetCurrent()
-}
+func (m *Manager) NextTheme() design.Theme { return m.inner.Next() }
 
 // PrevTheme cycles to the previous theme.
-func (m *Manager) PrevTheme() design.Theme {
-	m.currentIndex--
-	if m.currentIndex < 0 {
-		m.currentIndex = len(m.themeNames) - 1
-	}
-	m.currentTheme = m.themeNames[m.currentIndex]
-	return m.GetCurrent()
-}
+func (m *Manager) PrevTheme() design.Theme { return m.inner.Previous() }
 
 // SetTheme sets a specific theme by name.
 func (m *Manager) SetTheme(name string) design.Theme {
-	for i, themeName := range m.themeNames {
-		if themeName == name {
-			m.currentIndex = i
-			m.currentTheme = name
-			break
-		}
-	}
-	return m.GetCurrent()
+	m.inner.Set(name)
+	return m.inner.Current()
 }

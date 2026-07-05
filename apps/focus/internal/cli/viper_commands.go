@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"github.com/kyanite/focus/pkg/styles"
 	"fmt"
+	"github.com/kyanite/focus/pkg/styles"
 	"os"
 	"strconv"
 	"strings"
@@ -219,7 +219,7 @@ func configSetHandler(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	successStyle := lipgloss.NewStyle().
+	successStyle := lipgloss.Style{}.
 		Foreground(styles.GetSuccess()).
 		Bold(true)
 
@@ -235,11 +235,11 @@ func configListHandler(cmd *cobra.Command, args []string) {
 	}
 	focus := root.Focus
 
-	headerStyle := lipgloss.NewStyle().
+	headerStyle := lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Bold(true)
 
-	sectionStyle := lipgloss.NewStyle().
+	sectionStyle := lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Bold(true)
 
@@ -281,7 +281,7 @@ func configListHandler(cmd *cobra.Command, args []string) {
 }
 
 func configResetHandler(cmd *cobra.Command, args []string) {
-	confirmStyle := lipgloss.NewStyle().
+	confirmStyle := lipgloss.Style{}.
 		Foreground(styles.GetError()).
 		Bold(true)
 
@@ -309,7 +309,7 @@ func configResetHandler(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	successStyle := lipgloss.NewStyle().
+	successStyle := lipgloss.Style{}.
 		Foreground(styles.GetSuccess()).
 		Bold(true)
 

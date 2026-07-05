@@ -7,10 +7,12 @@ use (
 	./apps/syntax
 	./cmd/kyanite
 	./pkg/ai
-	./pkg/design
-	./pkg/config
-	./pkg/tui
+	./pkg/appnames
 	./pkg/cache
+	./pkg/config
+	./pkg/design
+	./pkg/export
 	./pkg/session
 	./pkg/testutil
+	./pkg/tui
 )

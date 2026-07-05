@@ -37,3 +37,11 @@ service-account*.json
 *.db3
 *.sqlite
 *.sqlite3
+
+# Build artifacts (rebuilt by go build; must not be committed)
+/cmd/kyanite/kyanite
+/focus
+/noise
+
+# Agent/orchestration state
+.omc/

@@ -9,7 +9,7 @@ import (
 
 func (m *MainModel) renderHelpBar() string {
 	// CONSISTENT: Help bar styling
-	helpStyle := lipgloss.NewStyle().
+	helpStyle := lipgloss.Style{}.
 		Foreground(styles.GetForeground()).
 		Background(styles.GetPanel()).
 		Padding(1, 2).                         // CONSISTENT: 1 vertical, 2 horizontal
@@ -96,7 +96,7 @@ func (m *MainModel) renderHelpBar() string {
 	var shortcutStrings []string
 	for _, shortcut := range shortcuts {
 		shortcutStrings = append(shortcutStrings,
-			lipgloss.NewStyle().
+			lipgloss.Style{}.
 				Foreground(styles.GetForeground()).
 				Render(shortcut))
 	}

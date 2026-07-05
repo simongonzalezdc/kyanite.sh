@@ -2,39 +2,29 @@ package theme
 
 import "github.com/kyanite/design"
 
-// Manager handles theme switching using the shared design module.
+// Manager wraps the shared design.Manager with prism-specific convenience methods.
 type Manager struct {
-	current design.Theme
+	inner *design.Manager
 }
 
 // NewManager creates a new theme manager with the default theme.
 func NewManager() *Manager {
-	return &Manager{
-		current: design.DefaultTheme(),
-	}
+	return &Manager{inner: design.NewManager("amber-night")}
 }
 
 // SetTheme sets the current theme.
-func (m *Manager) SetTheme(t *design.Theme) {
-	m.current = *t
-}
+func (m *Manager) SetTheme(t *design.Theme) { m.inner.Set(t.Name) }
 
-// CurrentTheme returns the current theme.
+// CurrentTheme returns a pointer to the current theme.
 func (m *Manager) CurrentTheme() *design.Theme {
-	return &m.current
+	t := m.inner.Current()
+	return &t
 }
 
 // NextTheme cycles to the next theme in the registry.
 func (m *Manager) NextTheme() *design.Theme {
-	names := design.List()
-	for i, name := range names {
-		if name == m.current.Name {
-			next := (i + 1) % len(names)
-			m.current = design.Get(names[next])
-			return &m.current
-		}
-	}
-	return &m.current
+	t := m.inner.Next()
+	return &t
 }
 
 // AllThemes returns all registered themes from the design module.

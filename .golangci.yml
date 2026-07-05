@@ -11,13 +11,35 @@ linters:
     - gosimple
     - ineffassign
     - typecheck
+    - gosec       # security audit (T8-12)
+    - exhaustive  # check switch exhaustiveness (T8-12)
+    - revive      # style & correctness (T8-12)
 
 linters-settings:
   staticcheck:
     checks: ["all"]
+  gosec:
+    excludes:
+      - G104  # audit errors not checked — too noisy for existing code
+  revive:
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: error-return
+      - name: error-strings
+      - name: exported
+      - name: increment-decrement
+      - name: var-naming
+      - name: package-comments
+      - name: range
+      - name: receiver-naming
+      - name: time-naming
+      - name: unexported-return
+      - name: indent-error-flow
 
 issues:
   exclude-rules:
     - path: _test\.go
       linters:
         - errcheck
+        - gosec

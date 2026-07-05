@@ -7,19 +7,19 @@ import (
 
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/kyanite/focus/pkg/styles"
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/models"
+	"github.com/kyanite/focus/pkg/styles"
 	"github.com/kyanite/focus/pkg/utils"
 )
 
 var (
-	accentStyle = lipgloss.NewStyle().
+	accentStyle = lipgloss.Style{}.
 			Foreground(styles.GetAccent()).
 			Bold(true)
 
-	successStyle = lipgloss.NewStyle().
+	successStyle = lipgloss.Style{}.
 			Foreground(styles.GetSuccess()).
 			Bold(true)
 )

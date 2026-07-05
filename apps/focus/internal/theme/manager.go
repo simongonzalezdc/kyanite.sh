@@ -14,16 +14,15 @@ var (
 	once          sync.Once
 )
 
-// Manager stores the current theme name and delegates to the design module.
+// Manager wraps the shared design.Manager with Focus-specific theme ID migration.
 type Manager struct {
-	mu          sync.RWMutex
-	currentName string
+	inner *design.Manager
 }
 
 // GetManager returns the singleton theme manager.
 func GetManager() *Manager {
 	once.Do(func() {
-		globalManager = &Manager{currentName: "amber-night"}
+		globalManager = &Manager{inner: design.NewManager("amber-night")}
 	})
 	return globalManager
 }
@@ -31,59 +30,17 @@ func GetManager() *Manager {
 // SetTheme sets the current theme by name (with migration of old IDs).
 func (m *Manager) SetTheme(id string) {
 	id = migrateThemeID(id)
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.currentName = id
+	m.inner.Set(id)
 }
 
 // Current returns the current design.Theme.
-func (m *Manager) Current() Theme {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-	t := design.Get(m.currentName)
-	if t.Name == "" {
-		return design.DefaultTheme()
-	}
-	return t
-}
+func (m *Manager) Current() Theme { return m.inner.Current() }
 
 // Next cycles to the next theme and returns it.
-func (m *Manager) Next() Theme {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	ids := design.List()
-	for i, name := range ids {
-		if name == m.currentName {
-			m.currentName = ids[(i+1)%len(ids)]
-			t := design.Get(m.currentName)
-			if t.Name == "" {
-				return design.DefaultTheme()
-			}
-			return t
-		}
-	}
-	m.currentName = "amber-night"
-	return design.DefaultTheme()
-}
+func (m *Manager) Next() Theme { return m.inner.Next() }
 
 // Previous cycles to the previous theme and returns it.
-func (m *Manager) Previous() Theme {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	ids := design.List()
-	for i, name := range ids {
-		if name == m.currentName {
-			m.currentName = ids[(i-1+len(ids))%len(ids)]
-			t := design.Get(m.currentName)
-			if t.Name == "" {
-				return design.DefaultTheme()
-			}
-			return t
-		}
-	}
-	m.currentName = "amber-night"
-	return design.DefaultTheme()
-}
+func (m *Manager) Previous() Theme { return m.inner.Previous() }
 
 // migrateThemeID maps old Focus theme IDs to design module theme names.
 func migrateThemeID(oldID string) string {

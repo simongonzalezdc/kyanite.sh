@@ -274,7 +274,7 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.Message = fmt.Sprintf("Theme: %s", m.CurrentTheme.Name)
 		return m, nil
 
-	case "ctrl+p":
+	case "ctrl+a":
 		// Toggle AI writing partner panel
 		m.AIPanel = m.AIPanel.Toggle()
 		m.AIPanelInput = ""
@@ -284,7 +284,7 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
-	case "?", "h":
+	case "?":
 		// Show help
 		m.PreviousScreen = m.CurrentScreen
 		m.CurrentScreen = ScreenHelp

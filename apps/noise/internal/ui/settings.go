@@ -106,7 +106,7 @@ func DefaultKeyMap() KeyMap {
 		Back:  key.NewBinding(key.WithKeys("esc")),
 		Save:  key.NewBinding(key.WithKeys("ctrl+s")),
 		Reset: key.NewBinding(key.WithKeys("ctrl+r")),
-		Quit:  key.NewBinding(key.WithKeys("q", "ctrl+c")),
+		Quit:  key.NewBinding(key.WithKeys("ctrl+c", "ctrl+q")),
 	}
 }
 
@@ -860,6 +860,11 @@ func (m *SettingsModel) saveSettings() {
 		return
 	}
 
+	// Reload config from disk to update in-memory pointer
+	if cfg, err := config.Load(); err == nil {
+		m.config = cfg
+	}
+
 	m.showSaveMsg = true
 	if m.saveMsgTimer != nil {
 		m.saveMsgTimer.Stop()
@@ -874,7 +879,9 @@ func (m *SettingsModel) saveSettings() {
 
 // Callback functions for setting changes
 func (m *SettingsModel) onThemeChange(value interface{}) {
-	// Theme change would require reloading the UI
+	// Update theme in theme manager and persist
+	themeID := m.config.UI.Theme
+	theme.GetManager().SetTheme(themeID)
 }
 
 func (m *SettingsModel) onFontSizeChange(value interface{}) {

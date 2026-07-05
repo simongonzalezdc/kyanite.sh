@@ -144,7 +144,7 @@ func NewRootModel() *RootModel {
 }
 
 // Init initializes the root model
-func (m *RootModel) Init() tea.Cmd {
+func (m RootModel) Init() tea.Cmd {
 	// Enable TUI mode to suppress log output that would corrupt the terminal
 	logging.EnableTUIMode()
 
@@ -187,7 +187,7 @@ func (m *RootModel) initializeApp() tea.Cmd {
 }
 
 // Update handles messages and updates the model
-func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
@@ -307,9 +307,14 @@ func (m *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.currentScreen = screenMenu
 				return m, nil
 			}
-		case "f1", "?":
+		case "f1", "?", "ctrl+h":
 			// Toggle help mode
 			m.helpMode = !m.helpMode
+			return m, nil
+		case "ctrl+shift+t":
+			// Cycle theme globally
+			next := theme.GetManager().Next()
+			theme.GetManager().SetTheme(next.Name)
 			return m, nil
 		case "tab":
 			// When AI panel is visible, Tab triggers lyric continuation
@@ -799,7 +804,7 @@ func (m *RootModel) updateCurrentScreen(msg tea.Msg) tea.Cmd {
 }
 
 // View renders the current screen
-func (m *RootModel) View() string {
+func (m RootModel) View() string {
 	// Show quit confirmation dialog if active
 	if m.confirmingQuit {
 		return m.renderQuitConfirmation()
