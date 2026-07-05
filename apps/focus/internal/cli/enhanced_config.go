@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"github.com/kyanite/focus/pkg/styles"
 	"fmt"
+	"github.com/kyanite/focus/pkg/styles"
 	"strings"
 
 	"github.com/charmbracelet/huh"
@@ -96,7 +96,7 @@ func enhancedConfigWizardHandler(cmd *cobra.Command, args []string) {
 
 	err := form.Run()
 	if err != nil {
-		errorStyle := lipgloss.NewStyle().
+		errorStyle := lipgloss.Style{}.
 			Foreground(styles.GetError()).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error: %v", err))
@@ -107,7 +107,7 @@ func enhancedConfigWizardHandler(cmd *cobra.Command, args []string) {
 
 	// Save configuration
 	if err := saveEnhancedConfig(&configData); err != nil {
-		errorStyle := lipgloss.NewStyle().
+		errorStyle := lipgloss.Style{}.
 			Foreground(styles.GetError()).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Failed to save configuration: %v", err))
@@ -117,7 +117,7 @@ func enhancedConfigWizardHandler(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Println()
-	successStyle := lipgloss.NewStyle().
+	successStyle := lipgloss.Style{}.
 		Foreground(styles.GetSuccess()).
 		Bold(true).
 		Render("⚙️ Configuration completed and saved successfully!")

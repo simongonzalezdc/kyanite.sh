@@ -1,16 +1,16 @@
 package cli
 
 import (
-	"github.com/kyanite/focus/pkg/styles"
 	"fmt"
+	"github.com/kyanite/focus/pkg/styles"
 	"strings"
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/config"
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/pkg/calendar"
-	"github.com/kyanite/config"
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/pkg/utils"
 	"github.com/spf13/cobra"
@@ -85,7 +85,7 @@ func calendarShowHandler(cmd *cobra.Command, args []string) {
 	// Get all tasks
 	tasks, err := taskEngine.ListTasks("all")
 	if err != nil {
-		errorStyle := lipgloss.NewStyle().
+		errorStyle := lipgloss.Style{}.
 			Foreground(styles.GetError()).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error loading tasks: %v", err))
@@ -108,7 +108,7 @@ func calendarShowHandler(cmd *cobra.Command, args []string) {
 	renderer := calendar.NewRenderer(theme, 80, 20)
 
 	// Render appropriate view
-	headerStyle := lipgloss.NewStyle().
+	headerStyle := lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Bold(true).
 		Render("📅 focus.sh CALENDAR")
@@ -142,7 +142,7 @@ func calendarTodayHandler(cmd *cobra.Command, args []string) {
 	// Get all tasks
 	tasks, err := taskEngine.ListTasks("all")
 	if err != nil {
-		errorStyle := lipgloss.NewStyle().
+		errorStyle := lipgloss.Style{}.
 			Foreground(styles.GetError()).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error loading tasks: %v", err))
@@ -159,7 +159,7 @@ func calendarTodayHandler(cmd *cobra.Command, args []string) {
 	// Create renderer
 	renderer := calendar.NewRenderer(theme, 80, 20)
 
-	headerStyle := lipgloss.NewStyle().
+	headerStyle := lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Bold(true).
 		Render("📅 TODAY'S TASKS")
@@ -177,7 +177,7 @@ func calendarAddHandler(cmd *cobra.Command, args []string) {
 	if len(args) > 1 {
 		parsedDate, err := parseDate(args[1])
 		if err != nil {
-			errorStyle := lipgloss.NewStyle().
+			errorStyle := lipgloss.Style{}.
 				Foreground(styles.GetError()).
 				Bold(true).
 				Render(fmt.Sprintf("❌ Invalid date format: %v", err))
@@ -218,7 +218,7 @@ func calendarAddHandler(cmd *cobra.Command, args []string) {
 	// Add task
 	newTask, err := taskEngine.AddTask(parsedTask)
 	if err != nil {
-		errorStyle := lipgloss.NewStyle().
+		errorStyle := lipgloss.Style{}.
 			Foreground(styles.GetError()).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error adding task: %v", err))
@@ -227,7 +227,7 @@ func calendarAddHandler(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	successStyle := lipgloss.NewStyle().
+	successStyle := lipgloss.Style{}.
 		Foreground(styles.GetSuccess()).
 		Bold(true).
 		Render("✅ Task added to calendar!")
@@ -246,7 +246,7 @@ func calendarListHandler(cmd *cobra.Command, args []string) {
 	// Get all tasks
 	tasks, err := taskEngine.ListTasks("all")
 	if err != nil {
-		errorStyle := lipgloss.NewStyle().
+		errorStyle := lipgloss.Style{}.
 			Foreground(styles.GetError()).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error loading tasks: %v", err))
@@ -255,7 +255,7 @@ func calendarListHandler(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	headerStyle := lipgloss.NewStyle().
+	headerStyle := lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Bold(true).
 		Render("📅 CALENDAR TASK LIST")
@@ -330,7 +330,7 @@ func calendarNavigateHandler(cmd *cobra.Command, args []string) {
 	// Get all tasks
 	tasks, err := taskEngine.ListTasks("all")
 	if err != nil {
-		errorStyle := lipgloss.NewStyle().
+		errorStyle := lipgloss.Style{}.
 			Foreground(styles.GetError()).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error loading tasks: %v", err))
@@ -344,7 +344,7 @@ func calendarNavigateHandler(cmd *cobra.Command, args []string) {
 	if len(args) > 0 {
 		parsedDate, err := parseDate(args[0])
 		if err != nil {
-			errorStyle := lipgloss.NewStyle().
+			errorStyle := lipgloss.Style{}.
 				Foreground(styles.GetError()).
 				Bold(true).
 				Render(fmt.Sprintf("❌ Invalid date format: %v", err))
@@ -364,7 +364,7 @@ func calendarNavigateHandler(cmd *cobra.Command, args []string) {
 	// Create renderer
 	renderer := calendar.NewRenderer(theme, 80, 20)
 
-	headerStyle := lipgloss.NewStyle().
+	headerStyle := lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Bold(true).
 		Render(fmt.Sprintf("📅 NAVIGATED TO %s", targetDate.Format("2006-01-02")))

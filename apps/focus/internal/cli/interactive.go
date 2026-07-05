@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"github.com/kyanite/focus/pkg/styles"
 	"fmt"
+	"github.com/kyanite/focus/pkg/styles"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -78,7 +78,7 @@ func interactiveHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Show success message
-	successStyle := lipgloss.NewStyle().
+	successStyle := lipgloss.Style{}.
 		Foreground(styles.GetSuccess()).
 		Bold(true).
 		Render("✅ Task created successfully!")
@@ -241,7 +241,7 @@ func configHandler(cmd *cobra.Command, args []string) {
 💾 Auto-save: %s minutes
 
 Configuration saved to ~/.focus/config.yml`, aiProvider, defaultTheme, interval),
-		"#FF71CE", "#0F0A19", true,
+		string(styles.FocusPink), string(styles.DarkBg), true,
 	)
 
 	fmt.Println(configDisplay)
@@ -262,7 +262,7 @@ func displayTaskDetails(task models.Task) {
 		priority = "🟡 Medium"
 	}
 
-	headerStyle := lipgloss.NewStyle().
+	headerStyle := lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Bold(true).
 		Render(fmt.Sprintf("%s - %s", task.Description, status))

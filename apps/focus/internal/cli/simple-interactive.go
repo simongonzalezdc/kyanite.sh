@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"github.com/kyanite/focus/pkg/styles"
 	"fmt"
+	"github.com/kyanite/focus/pkg/styles"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -93,7 +93,7 @@ func simpleInteractiveHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Show success message
-	successStyle := lipgloss.NewStyle().
+	successStyle := lipgloss.Style{}.
 		Foreground(styles.GetSuccess()).
 		Bold(true).
 		Render("✅ Task created successfully!")
@@ -128,7 +128,7 @@ func testGumHandler(cmd *cobra.Command, args []string) {
 		fmt.Println("✅ Gum is available - proceeding with functionality tests")
 
 		// Test basic gum functionality
-		testResult := gum.Style("focus.sh Test", "#FF71CE", "", false)
+		testResult := gum.Style("focus.sh Test", string(styles.FocusPink), "", false)
 		fmt.Printf("✅ Gum styling test: %s\n", testResult)
 	} else {
 		fmt.Println("❌ Gum is not available in current PATH")

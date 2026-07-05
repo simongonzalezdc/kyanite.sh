@@ -11,7 +11,7 @@ func (m *MainModel) renderCalendarView() string {
 	var b strings.Builder
 
 	// CONSISTENT: Standard header styling
-	header := lipgloss.NewStyle().
+	header := lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Bold(true).
 		Align(lipgloss.Center).
@@ -21,7 +21,7 @@ func (m *MainModel) renderCalendarView() string {
 	b.WriteString("\n\n")
 
 	// CONSISTENT: Navigation styling
-	navStyle := lipgloss.NewStyle().
+	navStyle := lipgloss.Style{}.
 		Foreground(styles.GetForeground()).
 		Background(styles.GetPanel()).
 		Padding(1, 2).                    // CONSISTENT: 1 vertical, 2 horizontal
@@ -44,7 +44,7 @@ func (m *MainModel) renderCalendarView() string {
 			calendarContent = m.calSelectedDate.Format("2006-01-02")
 		}
 
-		calendarBox := lipgloss.NewStyle().
+		calendarBox := lipgloss.Style{}.
 			Foreground(styles.GetForeground()).
 			Background(styles.GetPanel()).
 			Padding(1, 2).                    // CONSISTENT: 1 vertical, 2 horizontal
@@ -56,7 +56,7 @@ func (m *MainModel) renderCalendarView() string {
 		b.WriteString(calendarBox.Render(calendarContent))
 	} else {
 		// CONSISTENT: Placeholder styling
-		placeholder := lipgloss.NewStyle().
+		placeholder := lipgloss.Style{}.
 			Foreground(styles.GetForeground()).
 			Background(styles.GetPanel()).
 			Padding(1, 2).                    // CONSISTENT: 1 vertical, 2 horizontal
@@ -70,7 +70,7 @@ func (m *MainModel) renderCalendarView() string {
 	b.WriteString("\n\n")
 
 	// CONSISTENT: Instructions styling
-	instructions := lipgloss.NewStyle().
+	instructions := lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Italic(true).
 		Align(lipgloss.Center).

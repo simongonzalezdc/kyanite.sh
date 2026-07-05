@@ -39,7 +39,7 @@ var templateListCmd = &cobra.Command{
 		}
 
 		if len(templateList) == 0 {
-			fmt.Println(lipgloss.NewStyle().
+			fmt.Println(lipgloss.Style{}.
 				Foreground(styles.SynthwaveYellow).
 				Render("No templates found. Create one with: focus template create"))
 			return
@@ -50,28 +50,28 @@ var templateListCmd = &cobra.Command{
 		fmt.Println()
 
 		for i, tmpl := range templateList {
-			fmt.Printf("%d. %s\n", i+1, lipgloss.NewStyle().
+			fmt.Printf("%d. %s\n", i+1, lipgloss.Style{}.
 				Foreground(styles.SynthwaveCyan).
 				Bold(true).
 				Render(tmpl.Name))
 
-			fmt.Printf("   %s\n", lipgloss.NewStyle().
+			fmt.Printf("   %s\n", lipgloss.Style{}.
 				Foreground(styles.SynthwavePink).
 				Render(tmpl.Description))
 
 			if tmpl.Priority != "" {
-				fmt.Printf("   Priority: %s\n", lipgloss.NewStyle().
+				fmt.Printf("   Priority: %s\n", lipgloss.Style{}.
 					Foreground(getPriorityColor(tmpl.Priority)).
 					Render(strings.ToUpper(tmpl.Priority)))
 			}
 
 			if len(tmpl.Categories) > 0 {
-				fmt.Printf("   Categories: %s\n", lipgloss.NewStyle().
+				fmt.Printf("   Categories: %s\n", lipgloss.Style{}.
 					Foreground(styles.SynthwaveYellow).
 					Render(strings.Join(tmpl.Categories, ", ")))
 			}
 
-			fmt.Printf("   ID: %s\n", lipgloss.NewStyle().
+			fmt.Printf("   ID: %s\n", lipgloss.Style{}.
 				Foreground(styles.DarkVoid).
 				Render(tmpl.ID[:8]+"..."))
 			fmt.Println()
@@ -161,11 +161,11 @@ Examples:
 
 		fmt.Println(styles.SynthwaveTitle("✨ TASK CREATED FROM TEMPLATE"))
 		fmt.Println()
-		fmt.Printf("%s %s\n", lipgloss.NewStyle().Foreground(styles.SynthwaveCyan).Render("▸ ID:"),
+		fmt.Printf("%s %s\n", lipgloss.Style{}.Foreground(styles.SynthwaveCyan).Render("▸ ID:"),
 			task.ID[:8]+"...")
-		fmt.Printf("%s %s\n", lipgloss.NewStyle().Foreground(styles.SynthwavePink).Render("▸ Description:"),
+		fmt.Printf("%s %s\n", lipgloss.Style{}.Foreground(styles.SynthwavePink).Render("▸ Description:"),
 			task.Description)
-		fmt.Printf("%s %s\n", lipgloss.NewStyle().Foreground(styles.SynthwaveYellow).Render("▸ Template:"),
+		fmt.Printf("%s %s\n", lipgloss.Style{}.Foreground(styles.SynthwaveYellow).Render("▸ Template:"),
 			template.Name)
 	},
 }
@@ -193,7 +193,7 @@ var templateDeleteCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Println(lipgloss.NewStyle().
+		fmt.Println(lipgloss.Style{}.
 			Foreground(styles.SynthwaveGreen).
 			Render(fmt.Sprintf("✅ Template '%s' deleted successfully", name)))
 	},
@@ -235,7 +235,7 @@ func showTemplateSuccess(template models.TaskTemplate) {
 	}
 
 	for _, detail := range details {
-		detailLine := lipgloss.NewStyle().
+		detailLine := lipgloss.Style{}.
 			Foreground(detail.color).
 			Background(styles.DarkVoid).
 			Bold(true).
@@ -245,7 +245,7 @@ func showTemplateSuccess(template models.TaskTemplate) {
 	}
 	fmt.Println()
 
-	info := lipgloss.NewStyle().
+	info := lipgloss.Style{}.
 		Foreground(styles.SynthwaveCyan).
 		Background(styles.DarkVoid).
 		Padding(1, 2).
@@ -254,7 +254,7 @@ func showTemplateSuccess(template models.TaskTemplate) {
 }
 
 func showTemplateError(message string) {
-	errorBox := lipgloss.NewStyle().
+	errorBox := lipgloss.Style{}.
 		Foreground(styles.SynthwaveRed).
 		Background(styles.DarkVoid).
 		Bold(true).

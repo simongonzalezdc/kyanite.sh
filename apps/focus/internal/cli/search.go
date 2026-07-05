@@ -223,7 +223,7 @@ func showSearchResults(tasks []models.Task, query string) {
 	}
 
 	if criteria.Len() > 0 {
-		criteriaStyle := lipgloss.NewStyle().
+		criteriaStyle := lipgloss.Style{}.
 			Foreground(styles.SynthwaveCyan).
 			Background(styles.DarkVoid).
 			Padding(0, 1).
@@ -233,7 +233,7 @@ func showSearchResults(tasks []models.Task, query string) {
 	}
 
 	// Show count
-	countStyle := lipgloss.NewStyle().
+	countStyle := lipgloss.Style{}.
 		Foreground(styles.SynthwaveYellow).
 		Background(styles.DarkVoid).
 		Bold(true).
@@ -243,7 +243,7 @@ func showSearchResults(tasks []models.Task, query string) {
 	fmt.Println()
 
 	if len(tasks) == 0 {
-		noResultsStyle := lipgloss.NewStyle().
+		noResultsStyle := lipgloss.Style{}.
 			Foreground(styles.SynthwaveRed).
 			Background(styles.DarkVoid).
 			Padding(1, 2).
@@ -287,7 +287,7 @@ func displaySearchTask(task models.Task, index int) {
 		task.Description,
 	)
 
-	taskStyle := lipgloss.NewStyle().
+	taskStyle := lipgloss.Style{}.
 		Foreground(styles.SynthwavePink).
 		Background(styles.DarkVoid).
 		Padding(0, 1)
@@ -305,7 +305,7 @@ func displaySearchTask(task models.Task, index int) {
 			deadlineColor = styles.SynthwaveRed
 			deadlineStr += " (OVERDUE)"
 		}
-		deadlineStyle := lipgloss.NewStyle().
+		deadlineStyle := lipgloss.Style{}.
 			Foreground(deadlineColor).
 			Render("📅 " + deadlineStr)
 		metadata.WriteString(deadlineStyle)
@@ -313,7 +313,7 @@ func displaySearchTask(task models.Task, index int) {
 	}
 
 	if len(task.Categories) > 0 {
-		catStyle := lipgloss.NewStyle().
+		catStyle := lipgloss.Style{}.
 			Foreground(styles.SynthwaveYellow).
 			Render("🏷️  " + strings.Join(task.Categories, ", "))
 		metadata.WriteString(catStyle)
@@ -327,7 +327,7 @@ func displaySearchTask(task models.Task, index int) {
 }
 
 func showSearchError(message string) {
-	errorBox := lipgloss.NewStyle().
+	errorBox := lipgloss.Style{}.
 		Foreground(styles.SynthwaveRed).
 		Background(styles.DarkVoid).
 		Bold(true).

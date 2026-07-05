@@ -167,7 +167,7 @@ func showRecurSuccess(task models.Task, pattern models.RecurrencePattern, interv
 	}
 
 	for _, detail := range details {
-		detailLine := lipgloss.NewStyle().
+		detailLine := lipgloss.Style{}.
 			Foreground(detail.color).
 			Background(styles.DarkVoid).
 			Bold(true).
@@ -177,7 +177,7 @@ func showRecurSuccess(task models.Task, pattern models.RecurrencePattern, interv
 	}
 	fmt.Println()
 
-	info := lipgloss.NewStyle().
+	info := lipgloss.Style{}.
 		Foreground(styles.SynthwaveCyan).
 		Background(styles.DarkVoid).
 		Padding(1, 2).
@@ -206,7 +206,7 @@ func getIntervalUnit(pattern models.RecurrencePattern, interval int) string {
 }
 
 func showRecurError(message string) {
-	errorBox := lipgloss.NewStyle().
+	errorBox := lipgloss.Style{}.
 		Foreground(styles.SynthwaveRed).
 		Background(styles.DarkVoid).
 		Bold(true).

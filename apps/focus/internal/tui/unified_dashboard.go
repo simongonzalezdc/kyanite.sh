@@ -8,10 +8,10 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/kyanite/config"
 	"github.com/kyanite/focus/internal/engine"
 	"github.com/kyanite/focus/internal/repository"
 	"github.com/kyanite/focus/internal/wizards"
-	"github.com/kyanite/config"
 	"github.com/kyanite/focus/pkg/models"
 	"github.com/kyanite/focus/pkg/styles"
 	"github.com/kyanite/focus/pkg/utils"
@@ -378,21 +378,21 @@ func (m UnifiedDashboardModel) executeAction(action UnifiedAction) tea.Cmd {
 
 func applyThemeStyles(theme styles.ThemeMode) {
 	styles.SetTheme(theme)
-	menuTitleStyle = lipgloss.NewStyle().
+	menuTitleStyle = lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Background(styles.GetBackground()).
 		Padding(0, 2).
 		Bold(true)
-	selectedItemStyle = lipgloss.NewStyle().
+	selectedItemStyle = lipgloss.Style{}.
 		Foreground(styles.GetBackground()).
 		Background(styles.GetAccent()).
 		Bold(true)
-	normalItemStyle = lipgloss.NewStyle().
+	normalItemStyle = lipgloss.Style{}.
 		Foreground(styles.GetAccent())
-	statusStyle = lipgloss.NewStyle().
+	statusStyle = lipgloss.Style{}.
 		Foreground(styles.GetSuccess()).
 		Bold(true)
-	errorStyle = lipgloss.NewStyle().
+	errorStyle = lipgloss.Style{}.
 		Foreground(styles.GetError()).
 		Bold(true)
 }
@@ -421,21 +421,21 @@ func (m *UnifiedDashboardModel) applyTheme(theme styles.ThemeMode) {
 
 func applyThemeStylesByName(themeName string) {
 	styles.SetThemeByName(themeName)
-	menuTitleStyle = lipgloss.NewStyle().
+	menuTitleStyle = lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Background(styles.GetBackground()).
 		Padding(0, 2).
 		Bold(true)
-	selectedItemStyle = lipgloss.NewStyle().
+	selectedItemStyle = lipgloss.Style{}.
 		Foreground(styles.GetBackground()).
 		Background(styles.GetAccent()).
 		Bold(true)
-	normalItemStyle = lipgloss.NewStyle().
+	normalItemStyle = lipgloss.Style{}.
 		Foreground(styles.GetAccent())
-	statusStyle = lipgloss.NewStyle().
+	statusStyle = lipgloss.Style{}.
 		Foreground(styles.GetSuccess()).
 		Bold(true)
-	errorStyle = lipgloss.NewStyle().
+	errorStyle = lipgloss.Style{}.
 		Foreground(styles.GetError()).
 		Bold(true)
 }

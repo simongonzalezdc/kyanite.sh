@@ -19,12 +19,12 @@ var (
 	focusPurple = design.DefaultTheme().Accent
 	accentColor = design.DefaultTheme().Border
 
-	headerStyle = lipgloss.NewStyle().
+	headerStyle = lipgloss.Style{}.
 			Foreground(styles.GetAccent()).
 			Bold(true).
 			AlignHorizontal(lipgloss.Center)
 
-	boxStyle = lipgloss.NewStyle().
+	boxStyle = lipgloss.Style{}.
 			Foreground(styles.GetAccent()).
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(styles.GetAccent()).
@@ -37,14 +37,14 @@ var rootCmd = &cobra.Command{
 	Short: "🌟 focus.sh - Kyanite Suite Task Manager",
 	Long: boxStyle.Render(
 		headerStyle.Render("🌟 W E L C O M E   T O   F O C U S . S H 🌟") + "\n\n" +
-			lipgloss.NewStyle().Foreground(styles.GetSuccess()).Render(
+			lipgloss.Style{}.Foreground(styles.GetSuccess()).Render(
 				"🚀 Part of the Kyanite Creative Suite\n"+
 					"✨ Professional task management with AI assistance\n"+
 					"🌈 Clean, focused productivity experience\n\n"+
 					"Controls: A(dd) | C(omplete) | L(ist) | J(ournal) | T(heme) | ?(help)") + "\n" +
-			lipgloss.NewStyle().Foreground(styles.GetAccent()).Render(
+			lipgloss.Style{}.Foreground(styles.GetAccent()).Render(
 				"────────────────────────────────────────────────────────────────────────────────") + "\n" +
-			lipgloss.NewStyle().Foreground(styles.GetAccent()).Render(
+			lipgloss.Style{}.Foreground(styles.GetAccent()).Render(
 				"💡 Part of Kyanite Suite: noise.sh (music) | focus.sh (tasks) | syntax.sh (writing) | prism.sh (visual) | wave.sh (audio)")),
 	Run: func(cmd *cobra.Command, args []string) {
 		// Launch directly into TUI dashboard

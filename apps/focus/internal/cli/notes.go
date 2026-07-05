@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"github.com/kyanite/focus/pkg/styles"
 	"fmt"
+	"github.com/kyanite/focus/pkg/styles"
 	"os"
 	"os/exec"
 	"strings"
@@ -78,7 +78,7 @@ func showAllNotes(engine *engine.Engine) {
 		}
 
 		// Task header
-		headerStyle := lipgloss.NewStyle().
+		headerStyle := lipgloss.Style{}.
 			Foreground(styles.GetAccent()).
 			Bold(true)
 
@@ -91,7 +91,7 @@ func showAllNotes(engine *engine.Engine) {
 		fmt.Println(strings.Repeat("─", 40))
 
 		// Notes content
-		notesStyle := lipgloss.NewStyle().
+		notesStyle := lipgloss.Style{}.
 			Foreground(styles.GetAccent()).
 			PaddingLeft(2)
 
@@ -240,7 +240,7 @@ func editTaskNotes(taskID string, engine *engine.Engine) {
 	}
 
 	// Show success message
-	successStyle := lipgloss.NewStyle().
+	successStyle := lipgloss.Style{}.
 		Foreground(styles.GetSuccess()).
 		Bold(true).
 		Render("✅ Notes updated successfully!")

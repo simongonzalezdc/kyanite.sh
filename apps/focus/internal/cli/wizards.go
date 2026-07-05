@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"github.com/kyanite/focus/pkg/styles"
 	"fmt"
+	"github.com/kyanite/focus/pkg/styles"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -33,7 +33,7 @@ func wizardHandler(cmd *cobra.Command, args []string) {
 
 	err := wizards.TaskCreationWizard()
 	if err != nil {
-		errorStyle := lipgloss.NewStyle().
+		errorStyle := lipgloss.Style{}.
 			Foreground(styles.GetError()).
 			Bold(true).
 			Render(fmt.Sprintf("❌ Error: %v", err))
@@ -43,7 +43,7 @@ func wizardHandler(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Println()
-	successStyle := lipgloss.NewStyle().
+	successStyle := lipgloss.Style{}.
 		Foreground(styles.GetSuccess()).
 		Bold(true).
 		Render("🎉 Task creation completed successfully!")
@@ -65,7 +65,7 @@ func editWizardHandler(cmd *cobra.Command, args []string) {
 	// 3. Save the changes
 
 	// For now, show a placeholder
-	placeholderStyle := lipgloss.NewStyle().
+	placeholderStyle := lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Italic(true).
 		Render("🚧 Task loading and saving will be implemented in the next phase")

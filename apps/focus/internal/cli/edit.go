@@ -227,7 +227,7 @@ func showCurrentTask(task models.Task) {
 	}
 
 	for _, detail := range details {
-		detailLine := lipgloss.NewStyle().
+		detailLine := lipgloss.Style{}.
 			Foreground(detail.color).
 			Background(styles.DarkVoid).
 			Bold(true).
@@ -239,7 +239,7 @@ func showCurrentTask(task models.Task) {
 }
 
 func showEditError(message string) {
-	errorBox := lipgloss.NewStyle().
+	errorBox := lipgloss.Style{}.
 		Foreground(styles.SynthwaveRed).
 		Background(styles.DarkVoid).
 		Bold(true).
@@ -267,7 +267,7 @@ func showEditSuccess(task models.Task) {
 	}
 
 	for _, detail := range details {
-		detailLine := lipgloss.NewStyle().
+		detailLine := lipgloss.Style{}.
 			Foreground(detail.color).
 			Background(styles.DarkVoid).
 			Bold(true).

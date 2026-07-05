@@ -45,15 +45,15 @@ var subtaskCmd = &cobra.Command{
 		subtask, _ := eng.GetTask(subtaskID)
 
 		// Display success message
-		successStyle := lipgloss.NewStyle().
+		successStyle := lipgloss.Style{}.
 			Foreground(styles.SynthwaveGreen).
 			Bold(true)
 
-		taskStyle := lipgloss.NewStyle().
+		taskStyle := lipgloss.Style{}.
 			Foreground(styles.SynthwaveCyan).
 			Bold(true)
 
-		parentStyle := lipgloss.NewStyle().
+		parentStyle := lipgloss.Style{}.
 			Foreground(styles.SynthwavePurple)
 
 		fmt.Println(successStyle.Render("✓ Subtask added"))
@@ -90,5 +90,5 @@ func getPriorityWithColor(priority string) string {
 	default:
 		color = styles.SynthwaveCyan
 	}
-	return lipgloss.NewStyle().Foreground(color).Render(priority)
+	return lipgloss.Style{}.Foreground(color).Render(priority)
 }

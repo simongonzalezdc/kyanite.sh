@@ -12,7 +12,7 @@ func (m *MainModel) renderChatView() string {
 	var b strings.Builder
 
 	// CONSISTENT: Standard header styling
-	header := lipgloss.NewStyle().
+	header := lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Background(styles.GetPanel()).
 		Bold(true).
@@ -27,7 +27,7 @@ func (m *MainModel) renderChatView() string {
 	b.WriteString("\n\n")
 
 	// CONSISTENT: Input box styling
-	inputBox := lipgloss.NewStyle().
+	inputBox := lipgloss.Style{}.
 		Foreground(styles.GetForeground()).
 		Background(styles.GetPanel()).
 		Padding(1, 2).                    // CONSISTENT: 1 vertical, 2 horizontal
@@ -45,7 +45,7 @@ func (m *MainModel) renderChatView() string {
 		message = message[:maxWidth-2] + ".."
 	}
 
-	currentMessage := lipgloss.NewStyle().
+	currentMessage := lipgloss.Style{}.
 		Foreground(styles.GetForeground()).
 		Render(fmt.Sprintf("> %s", message))
 
@@ -54,7 +54,7 @@ func (m *MainModel) renderChatView() string {
 	b.WriteString("\n\n")
 
 	// CONSISTENT: Chat history styling
-	historyBox := lipgloss.NewStyle().
+	historyBox := lipgloss.Style{}.
 		Foreground(styles.GetForeground()).
 		Background(styles.GetPanel()).
 		Padding(1, 2).                    // CONSISTENT: 1 vertical, 2 horizontal
@@ -76,7 +76,7 @@ func (m *MainModel) renderChatView() string {
 	b.WriteString("\n\n")
 
 	// CONSISTENT: Instructions styling
-	instructions := lipgloss.NewStyle().
+	instructions := lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Italic(true).
 		Align(lipgloss.Center).

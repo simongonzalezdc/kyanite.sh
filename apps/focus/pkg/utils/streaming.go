@@ -12,7 +12,7 @@ import (
 // StreamText displays text with a streaming effect and colors
 func StreamText(text string, color lipgloss.Color, speed time.Duration) {
 	// Create streaming style
-	streamStyle := lipgloss.NewStyle().
+	streamStyle := lipgloss.Style{}.
 		Foreground(color).
 		Bold(true)
 
@@ -44,7 +44,7 @@ func StreamSentence(text string, baseColor lipgloss.Color, speed time.Duration) 
 			fmt.Print(" ")
 		}
 
-		streamStyle := lipgloss.NewStyle().
+		streamStyle := lipgloss.Style{}.
 			Foreground(baseColor).
 			Bold(true)
 
@@ -69,7 +69,7 @@ func StreamWithTypingEffect(text string, color lipgloss.Color) {
 
 		// Consistent typing speed
 		for _, char := range word {
-			fmt.Print(lipgloss.NewStyle().Foreground(color).Render(string(char)))
+			fmt.Print(lipgloss.Style{}.Foreground(color).Render(string(char)))
 			os.Stdout.Sync()
 			time.Sleep(50 * time.Millisecond) // Consistent 50ms delay
 		}

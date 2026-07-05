@@ -49,17 +49,17 @@ func CheckAIStatus() AIStatus {
 func GetStatusIndicator(status AIStatus) string {
 	switch {
 	case status.OllamaAvailable:
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(styles.GetSuccess()).
 			Bold(true).
 			Render("🤖 AI: Online")
 	case status.OpenRouterKey:
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(styles.GetWarning()).
 			Bold(true).
 			Render("🤖 AI: Remote")
 	default:
-		return lipgloss.NewStyle().
+		return lipgloss.Style{}.
 			Foreground(styles.GetError()).
 			Bold(true).
 			Render("🤖 AI: Offline")

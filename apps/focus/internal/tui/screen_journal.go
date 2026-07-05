@@ -11,7 +11,7 @@ func (m *MainModel) renderJournalView() string {
 	var b strings.Builder
 
 	// CONSISTENT: Standard header styling
-	header := lipgloss.NewStyle().
+	header := lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Background(styles.GetPanel()).
 		Bold(true).
@@ -24,7 +24,7 @@ func (m *MainModel) renderJournalView() string {
 	b.WriteString("\n\n")
 
 	// CONSISTENT: Journal content styling
-	journalBox := lipgloss.NewStyle().
+	journalBox := lipgloss.Style{}.
 		Foreground(styles.GetForeground()).
 		Background(styles.GetPanel()).
 		Padding(1, 2).                    // CONSISTENT: 1 vertical, 2 horizontal
@@ -34,7 +34,7 @@ func (m *MainModel) renderJournalView() string {
 		Width(m.width - 6).
 		Height(m.height - 10)
 
-	journalContent := lipgloss.NewStyle().
+	journalContent := lipgloss.Style{}.
 		Render(`Journal entries will appear here.
 
 Available commands:
@@ -49,7 +49,7 @@ Press Tab to navigate back to dashboard.`)
 	b.WriteString("\n\n")
 
 	// CONSISTENT: Instructions styling
-	instructions := lipgloss.NewStyle().
+	instructions := lipgloss.Style{}.
 		Foreground(styles.GetAccent()).
 		Italic(true).
 		Align(lipgloss.Center).
