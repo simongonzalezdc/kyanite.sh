@@ -137,10 +137,33 @@ func CreateTestFile(t *testing.T, dir, name, content string) string {
 	return path
 }
 
-// CreateCorruptedTestFile creates a file with intentionally corrupted JSON-like content.
+// CreateCorruptedTestFile creates a file whose content the matching CorruptionRule
+// for its extension will actually flag as corrupted. The corruption shape must match
+// the detector: .txt uses an embedded null byte (binary corruption), .md uses an
+// unmatched code fence, and everything else (incl. .json and .backup) uses invalid JSON.
+// Writing JSON-shaped bytes for every extension silently hid whether the .txt/.md
+// recovery paths work, because those detectors never fire on JSON-shaped text.
 func CreateCorruptedTestFile(t *testing.T, dir, name string) string {
 	t.Helper()
-	return CreateTestFile(t, dir, name, `{"invalid": json content`)
+	return CreateTestFile(t, dir, name, corruptedContentFor(name))
+}
+
+// corruptedContentFor returns detector-recognizable corruption for the file's type.
+// The .json literal must stay byte-identical to assertions that read the original
+// back unchanged after a failed recovery (see recovery_test.go "original corrupted
+// file remains unchanged").
+func corruptedContentFor(name string) string {
+	switch strings.ToLower(filepath.Ext(name)) {
+	case ".txt":
+		// Text rule flags embedded null bytes as binary corruption.
+		return "corrupted text\x00with embedded null byte"
+	case ".md":
+		// Markdown rule flags an odd number of ``` fences.
+		return "# Corrupted markdown\n\n```code\nno closing fence\n"
+	default:
+		// JSON rule flags syntactically invalid JSON.
+		return `{"invalid": json content}`
+	}
 }
 
 // CreateTestSong creates a minimal test song with the given ID and title.
