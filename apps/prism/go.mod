@@ -49,7 +49,7 @@ require (
 	golang.org/x/text v0.34.0 // indirect
 )
 
-toolchain go1.26.4
+toolchain go1.26.5
 
 replace github.com/kyanite/ai => ../../pkg/ai
 

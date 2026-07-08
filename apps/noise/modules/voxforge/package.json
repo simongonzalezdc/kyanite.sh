@@ -58,7 +58,7 @@
     "@types/testing-library__jest-dom": "^5.14.9",
     "autoprefixer": "^10.5.0",
     "cypress": "^15.16.0",
-    "eslint": "^10.0.0",
+    "eslint": "^9.39.1",
     "eslint-config-next": "^16.2.6",
     "eslint-plugin-jest": "^27.6.3",
     "husky": "^9.0.11",

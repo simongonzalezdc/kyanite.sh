@@ -59,7 +59,7 @@ require (
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
 
-toolchain go1.26.4
+toolchain go1.26.5
 
 replace github.com/kyanite/config => ../../pkg/config
 

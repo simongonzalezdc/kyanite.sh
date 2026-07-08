@@ -21,7 +21,7 @@
     "@serwist/build": "^9.5.11",
     "@serwist/sw": "^9.5.11",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^25.0.0",
+    "@types/node": "^20.19.30",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^10.4.1",
