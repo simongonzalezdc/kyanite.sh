@@ -1,5 +1,9 @@
 # kyanite.sh
 
+> kyanite.sh is a terminal-first creative tools suite (Go + Charm) that helps creators and neurodivergent builders who live in the terminal focus, write songs, write fiction, and design palettes from the TUI.
+
+**TL;DR:** kyanite.sh — terminal-first creative tools suite (Go + Charm). Best for creators and neurodivergent builders who live in the terminal.
+
 A unified suite of terminal-first creative tools built with Go and the Charm stack.
 
 ## Apps
@@ -159,3 +163,78 @@ go test ./...
 # Workspace-wide operations
 go work sync
 ```
+
+<!-- s-plus-geo:start -->
+
+## What is kyanite.sh?
+
+**kyanite.sh** is a **terminal-first creative tools suite (Go + Charm)** that helps **creators and neurodivergent builders who live in the terminal** **focus, write songs, write fiction, and design palettes from the TUI**.
+
+| | |
+| --- | --- |
+| **Product** | kyanite.sh |
+| **Category** | terminal-first creative tools suite (Go + Charm) |
+| **Best for** | creators and neurodivergent builders who live in the terminal |
+| **Not** | a web SaaS suite |
+| **Source** | [GitHub](https://github.com/simongonzalezdc/kyanite.sh) · [Forgejo](https://git.kyanitelabs.tech/simon/kyanite.sh) |
+| **Keywords** | terminal creative tools, Charm TUI suite, focus noise syntax prism |
+
+## Who it's for
+
+- Primary: creators and neurodivergent builders who live in the terminal
+- Use when you need to focus, write songs, write fiction, and design palettes from the TUI
+- Skip if you need a web SaaS suite
+
+## FAQ
+
+### What is kyanite.sh?
+
+kyanite.sh is a terminal-first creative tools suite (Go + Charm). It helps creators and neurodivergent builders who live in the terminal focus, write songs, write fiction, and design palettes from the TUI.
+
+### Who should use kyanite.sh?
+
+creators and neurodivergent builders who live in the terminal.
+
+### How is kyanite.sh different?
+
+Local terminal apps (focus/noise/syntax/prism), not cloud creative suites.
+
+### Is kyanite.sh production software?
+
+Treat the README status and release tags as source of truth for maturity. Validate against your own requirements before production use.
+
+## Status
+
+- Maintained as of 2026 on the default branch
+- Prefer release tags when pinning dependencies
+- Report issues on the canonical remote listed above
+
+## Agent surface
+
+- Coding agents: read this README first, then repo docs/`AGENTS.md` if present
+- Prefer machine-readable briefs (`llms.txt`) when the repo ships one
+- MCP or skill entrypoints are documented in-repo when applicable
+
+## Contributing
+
+Issues and PRs welcome on the canonical remote. Keep public docs free of secrets and machine-local paths.
+
+## License
+
+See [LICENSE](LICENSE) in this repository (or package metadata if license is package-only).
+
+
+## Table of contents
+
+- [What is it?](#what-is-kyanite-sh)
+- [FAQ](#faq)
+- [Status](#status)
+
+
+![status](https://img.shields.io/badge/status-active-success)
+![docs](https://img.shields.io/badge/docs-S%2B_SEO%2FGEO-blue)
+
+
+![Project diagram placeholder](https://img.shields.io/badge/visual-see_docs-lightgrey.svg)
+
+<!-- s-plus-geo:end -->
