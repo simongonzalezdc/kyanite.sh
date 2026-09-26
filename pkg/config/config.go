@@ -103,12 +103,12 @@ type FocusConfig struct {
 func defaults() *confmap.Confmap {
 	return confmap.Provider(map[string]interface{}{
 		// Brain
-		"brain.ollama_url":    "http://nucbox:11434",
+		"brain.ollama_url":    "http://gpu-host:11434",
 		"brain.model":         "gemma4:12b",
 		"brain.timeout":       "60s",
 		"brain.whisper_bin":   "whisper-stream",
 		"brain.whisper_model": defaultWhisperModel(),
-		"brain.db_host":       "nucbox",
+		"brain.db_host":       "gpu-host",
 		"brain.db_port":       5432,
 		"brain.db_name":       "kyanite",
 		"brain.db_user":       "kyanite",
@@ -246,12 +246,12 @@ func Init() error {
 # Docs: https://github.com/simongonzalezdc/kyanite.sh#configuration
 
 brain:
-  ollama_url: http://nucbox:11434
+  ollama_url: http://gpu-host:11434
   model: gemma4:12b
   timeout: 60s
   whisper_bin: whisper-stream
   whisper_model: ~/.local/share/achiote-voice/models/ggml-large-v3-turbo.bin
-  db_host: nucbox
+  db_host: gpu-host
   db_port: 5432
   db_name: kyanite
   db_user: kyanite
