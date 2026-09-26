@@ -20,7 +20,7 @@
 		"ftype": 1
 	},
 	"params": {
-		"model": "/Users/simongonzalezdecruz/.local/share/achiote-voice/models/ggml-large-v3-turbo.bin",
+		"model": "~/.local/share/achiote-voice/models/ggml-large-v3-turbo.bin",
 		"language": "en",
 		"translate": false
 	},
