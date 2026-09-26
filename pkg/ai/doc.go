@@ -10,7 +10,7 @@
 //	  ┌─────────────────────────────┐
 //	  │  kyanite TUI app             │
 //	  │  STT: whisper.cpp (local)    │
-//	  │  LLM: HTTP → nucbox:11434    │
+//	  │  LLM: HTTP → gpu-host:11434    │
 //	  └──────────────┬──────────────┘
 //	                 │ tailnet
 //	                 ▼

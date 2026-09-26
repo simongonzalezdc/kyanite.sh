@@ -10,7 +10,7 @@ import (
 
 func main() {
 	cfg := ai.DefaultConfig("verify")
-	cfg.OllamaURL = "http://nucbox:11434"
+	cfg.OllamaURL = "http://gpu-host:11434"
 	cfg.Model = "gemma4:12b"
 	cfg.Timeout = 30 * time.Second
 
