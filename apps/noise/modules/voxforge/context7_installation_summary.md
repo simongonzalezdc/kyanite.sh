@@ -8,12 +8,12 @@ Successfully installed Context7 MCP server from https://github.com/upstash/conte
 
 **Server Name:** `github.com/upstash/context7-mcp` (as required)
 **Installation Method:** npm npx command
-**Location:** `/Users/simongonzalezdecruz/Documents/Cline/MCP/context7-mcp/`
+**Location:** `~/Documents/Cline/MCP/context7-mcp/`
 **Status:** ✅ Installed and functional
 
 ## MCP Settings Configuration
 
-**File Location:** `/Users/simongonzalezdecruz/Library/Application Support/Cursor/User/globalStorage/kilocode.kilo-code/settings/mcp_settings.json`
+**File Location:** `~/Library/Application Support/Cursor/User/globalStorage/kilocode.kilo-code/settings/mcp_settings.json`
 
 **Configuration Entry:**
 ```json
