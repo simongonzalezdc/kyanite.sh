@@ -43,14 +43,14 @@ Based on the built-in tools documentation:
 - `cipher_bash` - Execute bash commands (agent-accessible)
 
 ## Final Configuration File
-**Location:** `/Users/simongonzalezdecruz/Library/Application Support/Cursor/User/globalStorage/kilocode.kilo-code/settings/mcp_settings.json`
+**Location:** `~/Library/Application Support/Cursor/User/globalStorage/kilocode.kilo-code/settings/mcp_settings.json`
 
 **Cipher Server Entry:**
 ```json
 "github.com/campfirein/cipher": {
   "command": "node",
   "args": [
-    "/Users/simongonzalezdecruz/Documents/Cline/MCP/cipher/dist/src/app/index.cjs",
+    "~/Documents/Cline/MCP/cipher/dist/src/app/index.cjs",
     "--mode",
     "mcp"
   ],
