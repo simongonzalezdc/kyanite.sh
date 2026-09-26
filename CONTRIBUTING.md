@@ -38,7 +38,7 @@ Each app's `go.mod` uses a `replace` directive to reference shared modules local
 ## AI Module
 
 The `pkg/ai/` module provides a unified Brain for all four apps:
-- **LLM**: Ollama on NUCBox over tailnet (`http://nucbox:11434`)
+- **LLM**: Ollama on NUCBox over tailnet (`http://gpu-host:11434`)
 - **STT**: Local whisper.cpp subprocess
 - **Memory**: PostgreSQL on NUCBox
 

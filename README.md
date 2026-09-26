@@ -50,7 +50,7 @@ All four apps share a unified inference brain (`pkg/ai/`) that provides:
 Configuration via environment variables:
 
 ```bash
-export KYANITE_OLLAMA_URL=http://nucbox:11434  # Ollama endpoint
+export KYANITE_OLLAMA_URL=http://gpu-host:11434  # Ollama endpoint
 export KYANITE_MODEL=gemma4:12b                # LLM model
 export KYANITE_WHISPER_MODEL=~/.local/share/.../ggml-large-v3-turbo.bin  # STT model
 ```
@@ -92,12 +92,12 @@ Config file structure:
 
 ```yaml
 brain:
-  ollama_url: http://nucbox:11434
+  ollama_url: http://gpu-host:11434
   model: gemma4:12b
   timeout: 60s
   whisper_bin: whisper-stream
   whisper_model: ~/.local/share/.../ggml-large-v3-turbo.bin
-  db_host: nucbox
+  db_host: gpu-host
   db_port: 5432
   db_name: kyanite
   db_user: kyanite
