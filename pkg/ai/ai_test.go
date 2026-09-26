@@ -14,13 +14,13 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.App != "focus" {
 		t.Errorf("expected app 'focus', got %q", cfg.App)
 	}
-	if cfg.OllamaURL != "http://nucbox:11434" {
+	if cfg.OllamaURL != "http://gpu-host:11434" {
 		t.Errorf("expected default ollama URL, got %q", cfg.OllamaURL)
 	}
 	if cfg.Model != "gemma4:12b" {
 		t.Errorf("expected default model, got %q", cfg.Model)
 	}
-	if cfg.DBHost != "nucbox" {
+	if cfg.DBHost != "gpu-host" {
 		t.Errorf("expected default db host, got %q", cfg.DBHost)
 	}
 	if cfg.DBPort != 5432 {
