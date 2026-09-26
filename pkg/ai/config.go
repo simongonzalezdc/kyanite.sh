@@ -16,7 +16,7 @@ import (
 //   - Memory: PostgreSQL on NUCBox
 type Config struct {
 	// LLM configuration
-	OllamaURL string // Ollama API endpoint (default: "http://nucbox:11434")
+	OllamaURL string // Ollama API endpoint (default: "http://gpu-host:11434")
 	Model     string // Model name (default: "gemma4:12b")
 	Timeout   time.Duration
 
@@ -40,7 +40,7 @@ type Config struct {
 // DefaultConfig returns a config with sensible defaults for the kyanite.sh tailnet.
 func DefaultConfig(app string) Config {
 	return Config{
-		OllamaURL: envOr("KYANITE_OLLAMA_URL", "http://nucbox:11434"),
+		OllamaURL: envOr("KYANITE_OLLAMA_URL", "http://gpu-host:11434"),
 		Model:     envOr("KYANITE_MODEL", "gemma4:12b"),
 		Timeout:   60 * time.Second,
 
@@ -48,7 +48,7 @@ func DefaultConfig(app string) Config {
 		WhisperModel: envOr("KYANITE_WHISPER_MODEL", defaultWhisperModel()),
 		WhisperLang:  envOr("KYANITE_WHISPER_LANG", "en"),
 
-		DBHost:     envOr("KYANITE_DB_HOST", "nucbox"),
+		DBHost:     envOr("KYANITE_DB_HOST", "gpu-host"),
 		DBPort:     envOrInt("KYANITE_DB_PORT", 5432),
 		DBName:     envOr("KYANITE_DB_NAME", "kyanite"),
 		DBUser:     envOr("KYANITE_DB_USER", "kyanite"),
