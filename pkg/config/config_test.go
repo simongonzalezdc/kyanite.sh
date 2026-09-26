@@ -48,7 +48,7 @@ func TestLoad_DefaultsOnly(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load() error: %v", err)
 	}
-	if cfg.Brain.OllamaURL != "http://nucbox:11434" {
+	if cfg.Brain.OllamaURL != "http://gpu-host:11434" {
 		t.Errorf("default ollama_url: got %s", cfg.Brain.OllamaURL)
 	}
 	if cfg.Brain.Model != "gemma4:12b" {
@@ -209,7 +209,7 @@ func TestLoad_NonExistentFile(t *testing.T) {
 		t.Error("Expected default config when file doesn't exist, got nil")
 	}
 	// Verify defaults are present
-	if cfg.Brain.OllamaURL != "http://nucbox:11434" {
+	if cfg.Brain.OllamaURL != "http://gpu-host:11434" {
 		t.Errorf("Expected default ollama_url, got: %s", cfg.Brain.OllamaURL)
 	}
 }

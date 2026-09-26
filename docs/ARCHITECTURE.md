@@ -158,9 +158,9 @@ Local machine (MacBook Air / Mac Mini):
   │         │    Brain.TranscribePCM             │
   │  ┌──────┴────────────────────────────────┐  │
   │  │            *ai.Brain                   │  │
-  │  │  LLM: HTTP → nucbox:11434              │  │
+  │  │  LLM: HTTP → gpu-host:11434              │  │
   │  │  STT: whisper.cpp (local subprocess)   │  │
-  │  │  Memory: PostgreSQL → nucbox           │  │
+  │  │  Memory: PostgreSQL → gpu-host           │  │
   │  └────────────────────────────────────────┘  │
   └──────────────────────┬──────────────────────┘
                          │ tailnet (encrypted)
@@ -260,12 +260,12 @@ All memory features degrade gracefully — if PostgreSQL is unreachable, session
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `KYANITE_OLLAMA_URL` | `http://nucbox:11434` | Ollama API endpoint |
+| `KYANITE_OLLAMA_URL` | `http://gpu-host:11434` | Ollama API endpoint |
 | `KYANITE_MODEL` | `gemma4:12b` | LLM model name |
 | `KYANITE_WHISPER_BIN` | `whisper-stream` | whisper.cpp binary |
 | `KYANITE_WHISPER_MODEL` | auto-detected (ggml-large-v3-turbo.bin) | GGML model path |
 | `KYANITE_WHISPER_LANG` | `en` | STT language |
-| `KYANITE_DB_HOST` | `nucbox` | PostgreSQL host |
+| `KYANITE_DB_HOST` | `gpu-host` | PostgreSQL host |
 | `KYANITE_DB_NAME` | `kyanite` | Database name |
 | `KYANITE_DB_USER` | `kyanite` | Database user |
 
