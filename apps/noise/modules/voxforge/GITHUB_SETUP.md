@@ -12,7 +12,7 @@
 
 2. **Add the remote and push:**
    ```bash
-   cd /Users/simongonzalezdecruz/Desktop/VoxForge
+   cd ~/Desktop/VoxForge
    git remote add origin https://github.com/YOUR_USERNAME/voxforge.git
    git branch -M main
    git push -u origin main

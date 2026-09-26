@@ -102,7 +102,7 @@ HEAD: `8953dfb`
 | T7-02 | Focus CLI — 20+ command handlers untested | Only cli_test.go tests imported validation functions |
 | T7-03 | Focus Engine — AddSubtask/RestoreTask/UpdateTask untested | Real parent-child linking, duplicate-ID, timestamp logic |
 | T7-04 | pkg/config — no error-path tests | Missing: malformed YAML, permission errors, directory-as-path |
-| ~~T7-05~~ | ~~pkg/testutil/mock_brain exists but unused~~ | ~~Focus AI tests still hit network (nucbox:11434)~~ ✅ |
+| ~~T7-05~~ | ~~pkg/testutil/mock_brain exists but unused~~ | ~~Focus AI tests still hit network (gpu-host:11434)~~ ✅ |
 | T7-06 | Focus store_test.go asserts on unexported filePath field | Tests implementation, not behavior |
 | T7-07 | Focus ai/manager_test.go tests 5 unexported functions | Tests implementation details |
 
