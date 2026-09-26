@@ -23,7 +23,7 @@
 - Required environment: OLLAMA_HOST (optional, default: http://127.0.0.1:11434)
 
 ## Current Status
-- ✅ Repository cloned to /Users/simongonzalezdecruz/Documents/Cline/MCP/Ollama-mcp
+- ✅ Repository cloned to ~/Documents/Cline/MCP/Ollama-mcp
 - ✅ Package.json analyzed - TypeScript project with build script
 - ✅ Source structure confirmed - single index.ts file
 - ✅ Dependencies installed successfully (pnpm install)

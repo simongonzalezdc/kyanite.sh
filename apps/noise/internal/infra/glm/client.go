@@ -54,7 +54,7 @@ type ChatResponse struct {
 	} `json:"usage"`
 }
 
-// Generate sends a prompt to GLM-4.7 and returns the completion
+// Generate sends a prompt to GLM-5.3 and returns the completion
 func (c *Client) Generate(ctx context.Context, model, prompt string, options map[string]any) (string, error) {
 	if c.APIKey == "" {
 		return "", fmt.Errorf("GLM API key is required")
@@ -62,7 +62,7 @@ func (c *Client) Generate(ctx context.Context, model, prompt string, options map
 
 	// Default model for songwriting brainstorm if not specified
 	if model == "" {
-		model = "glm-4.7-plus"
+		model = "glm-5.3"
 	}
 
 	reqBody := ChatRequest{
