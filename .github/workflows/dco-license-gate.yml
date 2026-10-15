@@ -82,8 +82,9 @@ jobs:
               block=$(awk 'BEGIN{RS=""; FS="\n"} END{printf "%s", $0}' <<<"$msg")
               ok=0
               while IFS= read -r line; do
-                if [[ "$line" =~ ^[Ss]igned-[Oo]ff-[Bb]y:[[:space:]]*(.+?)[[:space:]]*\<([^<>]+)\>[[:space:]]*$ ]]; then
+                if [[ "$line" =~ ^[Ss]igned-[Oo]ff-[Bb]y:[[:space:]]*(.+)[[:space:]]*\<([^<>]+)\>[[:space:]]*$ ]]; then
                   sn="${BASH_REMATCH[1]}"; se="${BASH_REMATCH[2]}"
+                  sn="${sn#"${sn%%[![:space:]]*}"}"; sn="${sn%"${sn##*[![:space:]]}"}"  # trim ends
                   { [[ "$(lc "$sn")" == "$(lc "$aname")" && "$(lc "$se")" == "$(lc "$aemail")" ]] \
                     || [[ "$(lc "$sn")" == "$(lc "$cname")" && "$(lc "$se")" == "$(lc "$cemail")" ]]; } && ok=1
                 fi
